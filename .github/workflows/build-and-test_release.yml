@@ -184,7 +184,7 @@ jobs:
 
       # <template: checkout_step>
       - name: Checkout sources
-        uses: actions/checkout@v2.4.0
+        uses: actions/checkout@v3
 
       # </template: checkout_step>
       # <template: update_comment_on_start>
@@ -221,7 +221,7 @@ jobs:
 
       # <template: checkout_step>
       - name: Checkout sources
-        uses: actions/checkout@v2.4.0
+        uses: actions/checkout@v3
 
       # </template: checkout_step>
 
@@ -309,7 +309,7 @@ jobs:
 
       # <template: checkout_full_step>
       - name: Checkout sources
-        uses: actions/checkout@v2.4.0
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
       # </template: checkout_full_step>
@@ -585,7 +585,7 @@ jobs:
 
       # <template: checkout_full_step>
       - name: Checkout sources
-        uses: actions/checkout@v2.4.0
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
       # </template: checkout_full_step>
@@ -861,7 +861,7 @@ jobs:
 
       # <template: checkout_full_step>
       - name: Checkout sources
-        uses: actions/checkout@v2.4.0
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
       # </template: checkout_full_step>
@@ -1130,7 +1130,7 @@ jobs:
 
       # <template: checkout_full_step>
       - name: Checkout sources
-        uses: actions/checkout@v2.4.0
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
       # </template: checkout_full_step>
@@ -1242,7 +1242,7 @@ jobs:
 
       # <template: checkout_full_step>
       - name: Checkout sources
-        uses: actions/checkout@v2.4.0
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
       # </template: checkout_full_step>
@@ -1355,7 +1355,7 @@ jobs:
 
       # <template: checkout_full_step>
       - name: Checkout sources
-        uses: actions/checkout@v2.4.0
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
       # </template: checkout_full_step>
@@ -1459,7 +1459,7 @@ jobs:
 
       # <template: checkout_full_step>
       - name: Checkout sources
-        uses: actions/checkout@v2.4.0
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
       # </template: checkout_full_step>
@@ -1563,7 +1563,7 @@ jobs:
 
       # <template: checkout_full_step>
       - name: Checkout sources
-        uses: actions/checkout@v2.4.0
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
       # </template: checkout_full_step>
@@ -1667,7 +1667,7 @@ jobs:
 
       # <template: checkout_full_step>
       - name: Checkout sources
-        uses: actions/checkout@v2.4.0
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
       # </template: checkout_full_step>
@@ -1771,7 +1771,7 @@ jobs:
 
       # <template: checkout_full_step>
       - name: Checkout sources
-        uses: actions/checkout@v2.4.0
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
       # </template: checkout_full_step>
@@ -1875,7 +1875,7 @@ jobs:
 
       # <template: checkout_full_step>
       - name: Checkout sources
-        uses: actions/checkout@v2.4.0
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
       # </template: checkout_full_step>
@@ -2055,7 +2055,7 @@ jobs:
 
       # <template: checkout_full_step>
       - name: Checkout sources
-        uses: actions/checkout@v2.4.0
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
       # </template: checkout_full_step>
@@ -2160,7 +2160,7 @@ jobs:
 
       # <template: checkout_full_step>
       - name: Checkout sources
-        uses: actions/checkout@v2.4.0
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
       # </template: checkout_full_step>
@@ -2287,7 +2287,7 @@ jobs:
 
       # <template: checkout_full_step>
       - name: Checkout sources
-        uses: actions/checkout@v2.4.0
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
       # </template: checkout_full_step>
@@ -2421,7 +2421,7 @@ jobs:
 
       # <template: checkout_step>
       - name: Checkout sources
-        uses: actions/checkout@v2.4.0
+        uses: actions/checkout@v3
 
       # </template: checkout_step>
       # <template: update_comment_on_finish>
