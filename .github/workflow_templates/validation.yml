@@ -26,14 +26,12 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-{!{ tmpl.Exec "pull_request_info_job" $ctx | strings.Indent 2 }!}
-
   close_dependabot_prs_for_forks:
     name: Autoclose Dependabot PRs for forks
     runs-on: ubuntu-latest
     if: ${{ github.actor == 'dependabot[bot]' && github.repository != 'deckhouse/deckhouse' }}
     env:
-      ENABLE_DEPENDABOT_IN_FORKS: ${{secrets.ENABLE_DEPENDABOT_IN_FORKS}}
+      ENABLE_DEPENDABOT_IN_FORKS: ${{ secrets.ENABLE_DEPENDABOT_IN_FORKS }}
     steps:
       - name: Close PR
         uses: {!{ index (ds "actions") "actions/github-script" }!}
@@ -56,13 +54,14 @@ jobs:
               state: 'closed'
             });
 
+{!{ tmpl.Exec "pull_request_info_job" $ctx | strings.Indent 2 }!}
+
   # Get pull request info for validation scripts.
   # Push event has no pull request information, so retrieve it with Rest API.
   discover:
     name: Prepare input for validation scripts
     needs:
       - pull_request_info
-      - close_dependabot_prs_for_forks
     runs-on: ubuntu-latest
     outputs:
       run_no_cyrillic: ${{ steps.on_push.outputs.run_no_cyrillic }}
