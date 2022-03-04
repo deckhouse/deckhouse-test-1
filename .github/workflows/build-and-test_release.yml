@@ -121,7 +121,7 @@ jobs:
     steps:
       - id: git_info
         name: Get tag name and SHA
-        uses: actions/github-script@v5.0.0
+        uses: actions/github-script@v6
         with:
           script: |
             const { GITHUB_REF_TYPE, GITHUB_REF_NAME } = process.env
@@ -190,7 +190,7 @@ jobs:
       # <template: update_comment_on_start>
       - name: Update comment on start
         if: ${{ github.event_name == 'workflow_dispatch' && !!github.event.inputs.issue_number }}
-        uses: actions/github-script@v5.0.0
+        uses: actions/github-script@v6
         with:
           github-token: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
           script: |
@@ -260,7 +260,7 @@ jobs:
           NEEDS_CONTEXT: ${{ toJSON(needs) }}
           JOB_CONTEXT: ${{ toJSON(job) }}
           STEPS_CONTEXT: ${{ toJSON(steps) }}
-        uses: actions/github-script@v5.0.0
+        uses: actions/github-script@v6
         with:
           github-token: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
           script: |
@@ -535,7 +535,7 @@ jobs:
           NEEDS_CONTEXT: ${{ toJSON(needs) }}
           JOB_CONTEXT: ${{ toJSON(job) }}
           STEPS_CONTEXT: ${{ toJSON(steps) }}
-        uses: actions/github-script@v5.0.0
+        uses: actions/github-script@v6
         with:
           github-token: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
           script: |
@@ -811,7 +811,7 @@ jobs:
           NEEDS_CONTEXT: ${{ toJSON(needs) }}
           JOB_CONTEXT: ${{ toJSON(job) }}
           STEPS_CONTEXT: ${{ toJSON(steps) }}
-        uses: actions/github-script@v5.0.0
+        uses: actions/github-script@v6
         with:
           github-token: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
           script: |
@@ -1087,7 +1087,7 @@ jobs:
           NEEDS_CONTEXT: ${{ toJSON(needs) }}
           JOB_CONTEXT: ${{ toJSON(job) }}
           STEPS_CONTEXT: ${{ toJSON(steps) }}
-        uses: actions/github-script@v5.0.0
+        uses: actions/github-script@v6
         with:
           github-token: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
           script: |
@@ -1199,7 +1199,7 @@ jobs:
           NEEDS_CONTEXT: ${{ toJSON(needs) }}
           JOB_CONTEXT: ${{ toJSON(job) }}
           STEPS_CONTEXT: ${{ toJSON(steps) }}
-        uses: actions/github-script@v5.0.0
+        uses: actions/github-script@v6
         with:
           github-token: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
           script: |
@@ -1311,7 +1311,7 @@ jobs:
           NEEDS_CONTEXT: ${{ toJSON(needs) }}
           JOB_CONTEXT: ${{ toJSON(job) }}
           STEPS_CONTEXT: ${{ toJSON(steps) }}
-        uses: actions/github-script@v5.0.0
+        uses: actions/github-script@v6
         with:
           github-token: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
           script: |
@@ -1415,7 +1415,7 @@ jobs:
           NEEDS_CONTEXT: ${{ toJSON(needs) }}
           JOB_CONTEXT: ${{ toJSON(job) }}
           STEPS_CONTEXT: ${{ toJSON(steps) }}
-        uses: actions/github-script@v5.0.0
+        uses: actions/github-script@v6
         with:
           github-token: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
           script: |
@@ -1519,7 +1519,7 @@ jobs:
           NEEDS_CONTEXT: ${{ toJSON(needs) }}
           JOB_CONTEXT: ${{ toJSON(job) }}
           STEPS_CONTEXT: ${{ toJSON(steps) }}
-        uses: actions/github-script@v5.0.0
+        uses: actions/github-script@v6
         with:
           github-token: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
           script: |
@@ -1623,7 +1623,7 @@ jobs:
           NEEDS_CONTEXT: ${{ toJSON(needs) }}
           JOB_CONTEXT: ${{ toJSON(job) }}
           STEPS_CONTEXT: ${{ toJSON(steps) }}
-        uses: actions/github-script@v5.0.0
+        uses: actions/github-script@v6
         with:
           github-token: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
           script: |
@@ -1727,7 +1727,7 @@ jobs:
           NEEDS_CONTEXT: ${{ toJSON(needs) }}
           JOB_CONTEXT: ${{ toJSON(job) }}
           STEPS_CONTEXT: ${{ toJSON(steps) }}
-        uses: actions/github-script@v5.0.0
+        uses: actions/github-script@v6
         with:
           github-token: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
           script: |
@@ -1831,7 +1831,7 @@ jobs:
           NEEDS_CONTEXT: ${{ toJSON(needs) }}
           JOB_CONTEXT: ${{ toJSON(job) }}
           STEPS_CONTEXT: ${{ toJSON(steps) }}
-        uses: actions/github-script@v5.0.0
+        uses: actions/github-script@v6
         with:
           github-token: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
           script: |
@@ -2011,7 +2011,7 @@ jobs:
           NEEDS_CONTEXT: ${{ toJSON(needs) }}
           JOB_CONTEXT: ${{ toJSON(job) }}
           STEPS_CONTEXT: ${{ toJSON(steps) }}
-        uses: actions/github-script@v5.0.0
+        uses: actions/github-script@v6
         with:
           github-token: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
           script: |
@@ -2115,7 +2115,7 @@ jobs:
           NEEDS_CONTEXT: ${{ toJSON(needs) }}
           JOB_CONTEXT: ${{ toJSON(job) }}
           STEPS_CONTEXT: ${{ toJSON(steps) }}
-        uses: actions/github-script@v5.0.0
+        uses: actions/github-script@v6
         with:
           github-token: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
           script: |
@@ -2243,7 +2243,7 @@ jobs:
           NEEDS_CONTEXT: ${{ toJSON(needs) }}
           JOB_CONTEXT: ${{ toJSON(job) }}
           STEPS_CONTEXT: ${{ toJSON(steps) }}
-        uses: actions/github-script@v5.0.0
+        uses: actions/github-script@v6
         with:
           github-token: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
           script: |
@@ -2369,7 +2369,7 @@ jobs:
           NEEDS_CONTEXT: ${{ toJSON(needs) }}
           JOB_CONTEXT: ${{ toJSON(job) }}
           STEPS_CONTEXT: ${{ toJSON(steps) }}
-        uses: actions/github-script@v5.0.0
+        uses: actions/github-script@v6
         with:
           github-token: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
           script: |
@@ -2432,7 +2432,7 @@ jobs:
           NEEDS_CONTEXT: ${{ toJSON(needs) }}
           JOB_CONTEXT: ${{ toJSON(job) }}
           STEPS_CONTEXT: ${{ toJSON(steps) }}
-        uses: actions/github-script@v5.0.0
+        uses: actions/github-script@v6
         with:
           github-token: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
           script: |
