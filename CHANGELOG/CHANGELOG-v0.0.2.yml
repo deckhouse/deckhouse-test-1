@@ -1,0 +1,5 @@
+docs:
+  fixes:
+    - summary: typo
+      pull_request: https://github.com/deckhouse/deckhouse-test-1/pull/17
+
