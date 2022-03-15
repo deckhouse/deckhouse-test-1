@@ -65,13 +65,13 @@ steps:
         SRC_NAME=$1
         SRC=$2
         DST=$3
-        echo "⚓️ 💫 [$(date -u)] Pull '${SRC_NAME}' image as ${SRC}."
+        echo "⚓️ 📥 [$(date -u)] Pull '${SRC_NAME}' image as ${SRC}."
         docker pull ${SRC}
-        echo "⚓️ 💫 [$(date -u)] Tag '${SRC_NAME}' image as ${DST}."
+        echo "⚓️ 🏷 [$(date -u)] Tag '${SRC_NAME}' image as ${DST}."
         docker image tag ${SRC} ${DST}
-        echo "⚓️ 💫 [$(date -u)] Push '${SRC_NAME}' image as ${DST}."
+        echo "⚓️ 📤 [$(date -u)] Push '${SRC_NAME}' image as ${DST}."
         docker image push ${DST}
-        echo "⚓️ [$(date -u)] Remove local tag for '${SRC_NAME}'."
+        echo "⚓️ 🧹 [$(date -u)] Remove local tag for '${SRC_NAME}'."
         docker image rmi ${DST} || true;
       }
 
@@ -103,11 +103,8 @@ steps:
           --report-path images_tags_werf.json
         BRANCH_REGISTRY_PATH="${GHA_TEST_REGISTRY_PATH}/dev"
         SEMVER_REGISTRY_PATH="${GHA_TEST_REGISTRY_PATH}"
-        echo "⚓️ [$(date -u)] DECKHOUSE_REGISTRY_HOST is empty. Publish to Github Container Registry '${PROD_REGISTRY_PATH}'"
+        echo "⚓️ 🧪 [$(date -u)] DECKHOUSE_REGISTRY_HOST is empty. Publish to Github Container Registry '${PROD_REGISTRY_PATH}'"
       fi
-
-      # Save 'tests' image name to pass it as output for 'tests' jobs.
-      TESTS_IMAGE=
 
       # Publish images for Git branch.
       if [[ -n "${CI_COMMIT_BRANCH}" ]]; then
@@ -115,22 +112,17 @@ steps:
         # Use it as image tag.
         IMAGE_TAG=${CI_COMMIT_REF_SLUG}
 
-        echo "⚓️ [$(date -u)] Publish images to dev-registry for branch '${CI_COMMIT_BRANCH}' and edition '${WERF_ENV}' using tag '${IMAGE_TAG}' ..."
+        echo "⚓️ 💫 [$(date -u)] Publish images to dev-registry for branch '${CI_COMMIT_BRANCH}' and edition '${WERF_ENV}' using tag '${IMAGE_TAG}' ..."
 
-        echo "⚓️ [$(date -u)] Publish 'dev' image to dev-registry using tag ${IMAGE_TAG}".
+        echo "⚓️ 💫 [$(date -u)] Publish 'dev' image to dev-registry using tag ${IMAGE_TAG}".
         DECKHOUSE_IMAGE_SRC="$(jq -r '.Images."dev".DockerImageName' images_tags_werf.json)"
         DECKHOUSE_IMAGE=${BRANCH_REGISTRY_PATH}:${IMAGE_TAG}
         pull_push_rmi 'dev' ${DECKHOUSE_IMAGE_SRC} ${DECKHOUSE_IMAGE}
 
-        echo "⚓️ [$(date -u)] Publish 'dev/install' image to dev-registry using tag ${IMAGE_TAG}".
+        echo "⚓️ 💫 [$(date -u)] Publish 'dev/install' image to dev-registry using tag ${IMAGE_TAG}".
         INSTALL_IMAGE_SRC="$(jq -r '.Images."dev/install".DockerImageName' images_tags_werf.json)"
         INSTALL_IMAGE=${BRANCH_REGISTRY_PATH}/install:${IMAGE_TAG}
         pull_push_rmi 'dev/install' ${INSTALL_IMAGE_SRC} ${INSTALL_IMAGE}
-
-        echo "⚓️ [$(date -u)] Publish 'tests' image to dev-registry using tag ${IMAGE_TAG}".
-        TESTS_IMAGE_SRC="$(jq -r '.Images."tests".DockerImageName' images_tags_werf.json)"
-        TESTS_IMAGE=${BRANCH_REGISTRY_PATH}/tests:${IMAGE_TAG}
-        pull_push_rmi 'tests' ${TESTS_IMAGE_SRC} ${TESTS_IMAGE}
       fi
 
 {!{ if eq $buildType "release" }!}
@@ -140,7 +132,7 @@ steps:
         # Slugify doesn't change a tag with safe-only characters.
         IMAGE_TAG=$(werf slugify --format docker-tag "${CI_COMMIT_TAG}")
 
-        echo "⚓️ [$(date -u)] Publish images for Git tag '${CI_COMMIT_TAG}' and registry suffix '${REGISTRY_SUFFIX}' using tag '${IMAGE_TAG}' ..."
+        echo "⚓️ 💫 [$(date -u)] Publish images for Git tag '${CI_COMMIT_TAG}' and registry suffix '${REGISTRY_SUFFIX}' using tag '${IMAGE_TAG}' ..."
         if [[ -n ${DECKHOUSE_REGISTRY_PATH} ]] ; then
           # Copy stages to prod registry from dev registry.
           werf build \
@@ -151,28 +143,25 @@ steps:
         fi
         # Note: do not run second werf build for test repo, as it has no secondary repo.
 
-        echo "⚓️ [$(date -u)] Publish 'dev' image to deckhouse registry using tag ${IMAGE_TAG} ..."
+        echo "⚓️ 💫 [$(date -u)] Publish 'dev' image to deckhouse registry using tag ${IMAGE_TAG} ..."
         DECKHOUSE_IMAGE_SRC="$(jq -r '.Images."dev".DockerImageName' images_tags_werf.json)"
         DECKHOUSE_IMAGE=${SEMVER_REGISTRY_PATH}/${REGISTRY_SUFFIX}:${IMAGE_TAG}
         pull_push_rmi 'dev' ${DECKHOUSE_IMAGE_SRC} ${DECKHOUSE_IMAGE}
 
-        echo "⚓️ [$(date -u)] Publish 'dev/install' image to deckhouse registry using tag ${IMAGE_TAG} ..."
+        echo "⚓️ 💫 [$(date -u)] Publish 'dev/install' image to deckhouse registry using tag ${IMAGE_TAG} ..."
         INSTALL_IMAGE_SRC="$(jq -r '.Images."dev/install".DockerImageName' images_tags_werf.json)"
         INSTALL_IMAGE=${SEMVER_REGISTRY_PATH}/${REGISTRY_SUFFIX}/install:${IMAGE_TAG}
         pull_push_rmi 'dev/install' ${INSTALL_IMAGE_SRC} ${INSTALL_IMAGE}
 
-        echo "⚓️ [$(date -u)] Publish 'tests' image to deckhouse registry using tag ${IMAGE_TAG} ..."
-        TESTS_IMAGE_SRC="$(jq -r '.Images."tests".DockerImageName' images_tags_werf.json)"
-        TESTS_IMAGE=${SEMVER_REGISTRY_PATH}/${REGISTRY_SUFFIX}/tests:${IMAGE_TAG}
-        pull_push_rmi 'tests' ${TESTS_IMAGE_SRC} ${TESTS_IMAGE}
-
-        echo "⚓️ [$(date -u)] Publish 'release-channel-version' image to deckhouse registry using tag ${IMAGE_TAG} ..."
+        echo "⚓️ 💫 [$(date -u)] Publish 'release-channel-version' image to deckhouse registry using tag ${IMAGE_TAG} ..."
         RELEASE_CHANNEL_IMAGE_SRC="$(jq -r '.Images."release-channel-version".DockerImageName' images_tags_werf.json)"
         RELEASE_CHANNEL_IMAGE=${SEMVER_REGISTRY_PATH}/${REGISTRY_SUFFIX}/release-channel:${IMAGE_TAG}
         pull_push_rmi 'release-channel-version' ${RELEASE_CHANNEL_IMAGE_SRC} ${RELEASE_CHANNEL_IMAGE}
       fi
 {!{- end }!}
 
+      # Save 'tests' image name to pass it as output for 'tests' jobs.
+      TESTS_IMAGE="$(jq -r '.Images."tests".DockerImageName' images_tags_werf.json)"
       echo "::set-output name=tests_image_name::${TESTS_IMAGE}"
 
   - name: Cleanup

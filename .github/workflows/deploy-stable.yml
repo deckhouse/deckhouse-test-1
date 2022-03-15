@@ -221,19 +221,6 @@ jobs:
             done
           fi
 
-      - name: Check push enabled
-        id: check_push
-        env:
-          SKIP_PUSH_FOR_DEPLOY: ${{secrets.SKIP_PUSH_FOR_DEPLOY}}
-          REPO: ${{github.repository}}
-        run: |
-          if [[ ${REPO} == "deckhouse/deckhouse" ]]; then
-            echo "::set-output name=enable::true"
-          fi
-          if [[ ${SKIP_PUSH_FOR_DEPLOY} != "true" ]]; then
-            echo "::set-output name=enable::true"
-          fi
-
 
 
       - name: Publish release images for CE
@@ -242,7 +229,7 @@ jobs:
           DECKHOUSE_REGISTRY_HOST: ${{secrets.DECKHOUSE_REGISTRY_HOST}}
           CI_COMMIT_TAG: ${{needs.git_info.outputs.ci_commit_tag}}
           WERF_ENV: CE
-          ENABLE_PUSH: ${{steps.check_push.outputs.enable}}
+          SKIP_PUSH_FOR_DEPLOY: ${{secrets.SKIP_PUSH_FOR_DEPLOY}}
         run: |
           ## Source: .gitlab/ci_templates/deploy.yml
 
@@ -253,19 +240,25 @@ jobs:
             SRC_NAME=$1
             SRC=$2
             DST=$3
-            echo "⚓️ 💫 [$(date -u)] Pull '${SRC_NAME}' image as ${SRC}."
+            echo "⚓️ 📥 [$(date -u)] Pull '${SRC_NAME}' image as ${SRC}."
             docker pull ${SRC}
-            echo "⚓️ 💫 [$(date -u)] Tag '${SRC_NAME}' image as ${DST}."
+            echo "⚓️ 🏷 [$(date -u)] Tag '${SRC_NAME}' image as ${DST}."
             docker image tag ${SRC} ${DST}
 
-            if [[ ${ENABLE_PUSH} == "true" ]] ; then
-              echo "⚓️ 💫 [$(date -u)] Push '${SRC_NAME}' image as ${DST}."
-              docker image push ${DST}
-            else
-              echo "⚓️ [$(date -u)] SKIP_PUSH_FOR_DEPLOY=true, skip running 'docker image push ${DST}'."
+            enable_push="true"
+            if [[ ${GITHUB_REPOSITORY} != "deckhouse/deckhouse" ]]; then
+              if [[ ${SKIP_PUSH_FOR_SUSPEND} == "true" ]]; then
+                enable_push="false"
+                echo "⚓️ ❎ [$(date -u)] SKIP_PUSH_FOR_DEPLOY=true, skip running 'docker image push ${DST}'."
+              fi
             fi
 
-            echo "⚓️ [$(date -u)] Remove local tag for '${SRC_NAME}'."
+            if [[ ${enable_push} == "true" ]] ; then
+              echo "⚓️ 📤 [$(date -u)] Push '${SRC_NAME}' image as ${DST}."
+              docker image push ${DST}
+            fi
+
+            echo "⚓️ 🧹 [$(date -u)] Remove local tag for '${SRC_NAME}'."
             docker image rmi ${DST} || true;
           }
 
@@ -291,7 +284,7 @@ jobs:
           PROD_REGISTRY_PATH="${DECKHOUSE_REGISTRY_HOST}/deckhouse"
           if [[ -z "${DECKHOUSE_REGISTRY_HOST}" ]]; then
             PROD_REGISTRY_PATH="${GHA_TEST_REGISTRY_PATH}"
-            echo "⚓️ [$(date -u)] DECKHOUSE_REGISTRY_HOST is empty. Publish using Github Container Registry: '${PROD_REGISTRY_PATH}'"
+            echo "⚓️ 🧪 [$(date -u)] DECKHOUSE_REGISTRY_HOST is empty. Publish using Github Container Registry: '${PROD_REGISTRY_PATH}'"
           fi
 
           #   3. Prepare image names: republish CI_COMMIT_TAG tag images in dev-registry
@@ -309,24 +302,24 @@ jobs:
 
           #   4. Publish to dev registry if DECKHOUSE_REGISTRY_HOST is set (run in the main repo).
           if [[ -n "${DECKHOUSE_REGISTRY_HOST}" ]]; then
-            echo "⚓️ [$(date -u)] Publish 'dev' image to dev-registry using tag ${RELEASE_CHANNEL}".
+            echo "⚓️ 💫 [$(date -u)] Publish 'dev' image to dev-registry using tag ${RELEASE_CHANNEL}".
             pull_push_rmi 'dev' ${SOURCE_IMAGE} ${DEV_IMAGE}
 
-            echo "⚓️ [$(date -u)] Publish 'dev/install' image to dev-registry using tag ${RELEASE_CHANNEL}".
+            echo "⚓️ 💫 [$(date -u)] Publish 'dev/install' image to dev-registry using tag ${RELEASE_CHANNEL}".
             pull_push_rmi 'dev/install' ${SOURCE_INSTALL_IMAGE} ${DEV_INSTALL_IMAGE}
           fi
 
           #   5. Publish prod images to rw registry.
-          echo "⚓️ [$(date -u)] Publish 'dev' image to rw-registry using tag ${RELEASE_CHANNEL}".
+          echo "⚓️ 💫 [$(date -u)] Publish 'dev' image to rw-registry using tag ${RELEASE_CHANNEL}".
           pull_push_rmi 'dev' ${SOURCE_IMAGE} ${PROD_IMAGE}
 
-          echo "⚓️ [$(date -u)] Publish 'dev/install' image to rw-registry using tag ${RELEASE_CHANNEL}".
+          echo "⚓️ 💫 [$(date -u)] Publish 'dev/install' image to rw-registry using tag ${RELEASE_CHANNEL}".
           pull_push_rmi 'dev/install' ${SOURCE_INSTALL_IMAGE} ${PROD_INSTALL_IMAGE}
 
-          echo "⚓️ [$(date -u)] Publish 'release-channel-version' image to rw-registry using tag ${RELEASE_CHANNEL}".
+          echo "⚓️ 💫 [$(date -u)] Publish 'release-channel-version' image to rw-registry using tag ${RELEASE_CHANNEL}".
           pull_push_rmi 'release-channel-version' ${SOURCE_RELEASE_VERSION_IMAGE} ${PROD_RELEASE_VERSION_IMAGE}
 
-          echo "⚓️ [$(date -u)] Remove local source images."
+          echo "⚓️  [$(date -u)] Remove local source images."
           echo "  Delete local 'dev' source image ${SOURCE_IMAGE}"
           docker image rmi ${SOURCE_IMAGE} || true
 
@@ -354,7 +347,7 @@ jobs:
           DECKHOUSE_REGISTRY_HOST: ${{secrets.DECKHOUSE_REGISTRY_HOST}}
           CI_COMMIT_TAG: ${{needs.git_info.outputs.ci_commit_tag}}
           WERF_ENV: EE
-          ENABLE_PUSH: ${{steps.check_push.outputs.enable}}
+          SKIP_PUSH_FOR_DEPLOY: ${{secrets.SKIP_PUSH_FOR_DEPLOY}}
         run: |
           ## Source: .gitlab/ci_templates/deploy.yml
 
@@ -365,19 +358,25 @@ jobs:
             SRC_NAME=$1
             SRC=$2
             DST=$3
-            echo "⚓️ 💫 [$(date -u)] Pull '${SRC_NAME}' image as ${SRC}."
+            echo "⚓️ 📥 [$(date -u)] Pull '${SRC_NAME}' image as ${SRC}."
             docker pull ${SRC}
-            echo "⚓️ 💫 [$(date -u)] Tag '${SRC_NAME}' image as ${DST}."
+            echo "⚓️ 🏷 [$(date -u)] Tag '${SRC_NAME}' image as ${DST}."
             docker image tag ${SRC} ${DST}
 
-            if [[ ${ENABLE_PUSH} == "true" ]] ; then
-              echo "⚓️ 💫 [$(date -u)] Push '${SRC_NAME}' image as ${DST}."
-              docker image push ${DST}
-            else
-              echo "⚓️ [$(date -u)] SKIP_PUSH_FOR_DEPLOY=true, skip running 'docker image push ${DST}'."
+            enable_push="true"
+            if [[ ${GITHUB_REPOSITORY} != "deckhouse/deckhouse" ]]; then
+              if [[ ${SKIP_PUSH_FOR_SUSPEND} == "true" ]]; then
+                enable_push="false"
+                echo "⚓️ ❎ [$(date -u)] SKIP_PUSH_FOR_DEPLOY=true, skip running 'docker image push ${DST}'."
+              fi
             fi
 
-            echo "⚓️ [$(date -u)] Remove local tag for '${SRC_NAME}'."
+            if [[ ${enable_push} == "true" ]] ; then
+              echo "⚓️ 📤 [$(date -u)] Push '${SRC_NAME}' image as ${DST}."
+              docker image push ${DST}
+            fi
+
+            echo "⚓️ 🧹 [$(date -u)] Remove local tag for '${SRC_NAME}'."
             docker image rmi ${DST} || true;
           }
 
@@ -403,7 +402,7 @@ jobs:
           PROD_REGISTRY_PATH="${DECKHOUSE_REGISTRY_HOST}/deckhouse"
           if [[ -z "${DECKHOUSE_REGISTRY_HOST}" ]]; then
             PROD_REGISTRY_PATH="${GHA_TEST_REGISTRY_PATH}"
-            echo "⚓️ [$(date -u)] DECKHOUSE_REGISTRY_HOST is empty. Publish using Github Container Registry: '${PROD_REGISTRY_PATH}'"
+            echo "⚓️ 🧪 [$(date -u)] DECKHOUSE_REGISTRY_HOST is empty. Publish using Github Container Registry: '${PROD_REGISTRY_PATH}'"
           fi
 
           #   3. Prepare image names: republish CI_COMMIT_TAG tag images in dev-registry
@@ -421,24 +420,24 @@ jobs:
 
           #   4. Publish to dev registry if DECKHOUSE_REGISTRY_HOST is set (run in the main repo).
           if [[ -n "${DECKHOUSE_REGISTRY_HOST}" ]]; then
-            echo "⚓️ [$(date -u)] Publish 'dev' image to dev-registry using tag ${RELEASE_CHANNEL}".
+            echo "⚓️ 💫 [$(date -u)] Publish 'dev' image to dev-registry using tag ${RELEASE_CHANNEL}".
             pull_push_rmi 'dev' ${SOURCE_IMAGE} ${DEV_IMAGE}
 
-            echo "⚓️ [$(date -u)] Publish 'dev/install' image to dev-registry using tag ${RELEASE_CHANNEL}".
+            echo "⚓️ 💫 [$(date -u)] Publish 'dev/install' image to dev-registry using tag ${RELEASE_CHANNEL}".
             pull_push_rmi 'dev/install' ${SOURCE_INSTALL_IMAGE} ${DEV_INSTALL_IMAGE}
           fi
 
           #   5. Publish prod images to rw registry.
-          echo "⚓️ [$(date -u)] Publish 'dev' image to rw-registry using tag ${RELEASE_CHANNEL}".
+          echo "⚓️ 💫 [$(date -u)] Publish 'dev' image to rw-registry using tag ${RELEASE_CHANNEL}".
           pull_push_rmi 'dev' ${SOURCE_IMAGE} ${PROD_IMAGE}
 
-          echo "⚓️ [$(date -u)] Publish 'dev/install' image to rw-registry using tag ${RELEASE_CHANNEL}".
+          echo "⚓️ 💫 [$(date -u)] Publish 'dev/install' image to rw-registry using tag ${RELEASE_CHANNEL}".
           pull_push_rmi 'dev/install' ${SOURCE_INSTALL_IMAGE} ${PROD_INSTALL_IMAGE}
 
-          echo "⚓️ [$(date -u)] Publish 'release-channel-version' image to rw-registry using tag ${RELEASE_CHANNEL}".
+          echo "⚓️ 💫 [$(date -u)] Publish 'release-channel-version' image to rw-registry using tag ${RELEASE_CHANNEL}".
           pull_push_rmi 'release-channel-version' ${SOURCE_RELEASE_VERSION_IMAGE} ${PROD_RELEASE_VERSION_IMAGE}
 
-          echo "⚓️ [$(date -u)] Remove local source images."
+          echo "⚓️  [$(date -u)] Remove local source images."
           echo "  Delete local 'dev' source image ${SOURCE_IMAGE}"
           docker image rmi ${SOURCE_IMAGE} || true
 
@@ -466,7 +465,7 @@ jobs:
           DECKHOUSE_REGISTRY_HOST: ${{secrets.DECKHOUSE_REGISTRY_HOST}}
           CI_COMMIT_TAG: ${{needs.git_info.outputs.ci_commit_tag}}
           WERF_ENV: FE
-          ENABLE_PUSH: ${{steps.check_push.outputs.enable}}
+          SKIP_PUSH_FOR_DEPLOY: ${{secrets.SKIP_PUSH_FOR_DEPLOY}}
         run: |
           ## Source: .gitlab/ci_templates/deploy.yml
 
@@ -477,19 +476,25 @@ jobs:
             SRC_NAME=$1
             SRC=$2
             DST=$3
-            echo "⚓️ 💫 [$(date -u)] Pull '${SRC_NAME}' image as ${SRC}."
+            echo "⚓️ 📥 [$(date -u)] Pull '${SRC_NAME}' image as ${SRC}."
             docker pull ${SRC}
-            echo "⚓️ 💫 [$(date -u)] Tag '${SRC_NAME}' image as ${DST}."
+            echo "⚓️ 🏷 [$(date -u)] Tag '${SRC_NAME}' image as ${DST}."
             docker image tag ${SRC} ${DST}
 
-            if [[ ${ENABLE_PUSH} == "true" ]] ; then
-              echo "⚓️ 💫 [$(date -u)] Push '${SRC_NAME}' image as ${DST}."
-              docker image push ${DST}
-            else
-              echo "⚓️ [$(date -u)] SKIP_PUSH_FOR_DEPLOY=true, skip running 'docker image push ${DST}'."
+            enable_push="true"
+            if [[ ${GITHUB_REPOSITORY} != "deckhouse/deckhouse" ]]; then
+              if [[ ${SKIP_PUSH_FOR_SUSPEND} == "true" ]]; then
+                enable_push="false"
+                echo "⚓️ ❎ [$(date -u)] SKIP_PUSH_FOR_DEPLOY=true, skip running 'docker image push ${DST}'."
+              fi
             fi
 
-            echo "⚓️ [$(date -u)] Remove local tag for '${SRC_NAME}'."
+            if [[ ${enable_push} == "true" ]] ; then
+              echo "⚓️ 📤 [$(date -u)] Push '${SRC_NAME}' image as ${DST}."
+              docker image push ${DST}
+            fi
+
+            echo "⚓️ 🧹 [$(date -u)] Remove local tag for '${SRC_NAME}'."
             docker image rmi ${DST} || true;
           }
 
@@ -515,7 +520,7 @@ jobs:
           PROD_REGISTRY_PATH="${DECKHOUSE_REGISTRY_HOST}/deckhouse"
           if [[ -z "${DECKHOUSE_REGISTRY_HOST}" ]]; then
             PROD_REGISTRY_PATH="${GHA_TEST_REGISTRY_PATH}"
-            echo "⚓️ [$(date -u)] DECKHOUSE_REGISTRY_HOST is empty. Publish using Github Container Registry: '${PROD_REGISTRY_PATH}'"
+            echo "⚓️ 🧪 [$(date -u)] DECKHOUSE_REGISTRY_HOST is empty. Publish using Github Container Registry: '${PROD_REGISTRY_PATH}'"
           fi
 
           #   3. Prepare image names: republish CI_COMMIT_TAG tag images in dev-registry
@@ -533,24 +538,24 @@ jobs:
 
           #   4. Publish to dev registry if DECKHOUSE_REGISTRY_HOST is set (run in the main repo).
           if [[ -n "${DECKHOUSE_REGISTRY_HOST}" ]]; then
-            echo "⚓️ [$(date -u)] Publish 'dev' image to dev-registry using tag ${RELEASE_CHANNEL}".
+            echo "⚓️ 💫 [$(date -u)] Publish 'dev' image to dev-registry using tag ${RELEASE_CHANNEL}".
             pull_push_rmi 'dev' ${SOURCE_IMAGE} ${DEV_IMAGE}
 
-            echo "⚓️ [$(date -u)] Publish 'dev/install' image to dev-registry using tag ${RELEASE_CHANNEL}".
+            echo "⚓️ 💫 [$(date -u)] Publish 'dev/install' image to dev-registry using tag ${RELEASE_CHANNEL}".
             pull_push_rmi 'dev/install' ${SOURCE_INSTALL_IMAGE} ${DEV_INSTALL_IMAGE}
           fi
 
           #   5. Publish prod images to rw registry.
-          echo "⚓️ [$(date -u)] Publish 'dev' image to rw-registry using tag ${RELEASE_CHANNEL}".
+          echo "⚓️ 💫 [$(date -u)] Publish 'dev' image to rw-registry using tag ${RELEASE_CHANNEL}".
           pull_push_rmi 'dev' ${SOURCE_IMAGE} ${PROD_IMAGE}
 
-          echo "⚓️ [$(date -u)] Publish 'dev/install' image to rw-registry using tag ${RELEASE_CHANNEL}".
+          echo "⚓️ 💫 [$(date -u)] Publish 'dev/install' image to rw-registry using tag ${RELEASE_CHANNEL}".
           pull_push_rmi 'dev/install' ${SOURCE_INSTALL_IMAGE} ${PROD_INSTALL_IMAGE}
 
-          echo "⚓️ [$(date -u)] Publish 'release-channel-version' image to rw-registry using tag ${RELEASE_CHANNEL}".
+          echo "⚓️ 💫 [$(date -u)] Publish 'release-channel-version' image to rw-registry using tag ${RELEASE_CHANNEL}".
           pull_push_rmi 'release-channel-version' ${SOURCE_RELEASE_VERSION_IMAGE} ${PROD_RELEASE_VERSION_IMAGE}
 
-          echo "⚓️ [$(date -u)] Remove local source images."
+          echo "⚓️  [$(date -u)] Remove local source images."
           echo "  Delete local 'dev' source image ${SOURCE_IMAGE}"
           docker image rmi ${SOURCE_IMAGE} || true
 

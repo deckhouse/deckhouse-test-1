@@ -481,13 +481,13 @@ jobs:
             SRC_NAME=$1
             SRC=$2
             DST=$3
-            echo "⚓️ 💫 [$(date -u)] Pull '${SRC_NAME}' image as ${SRC}."
+            echo "⚓️ 📥 [$(date -u)] Pull '${SRC_NAME}' image as ${SRC}."
             docker pull ${SRC}
-            echo "⚓️ 💫 [$(date -u)] Tag '${SRC_NAME}' image as ${DST}."
+            echo "⚓️ 🏷 [$(date -u)] Tag '${SRC_NAME}' image as ${DST}."
             docker image tag ${SRC} ${DST}
-            echo "⚓️ 💫 [$(date -u)] Push '${SRC_NAME}' image as ${DST}."
+            echo "⚓️ 📤 [$(date -u)] Push '${SRC_NAME}' image as ${DST}."
             docker image push ${DST}
-            echo "⚓️ [$(date -u)] Remove local tag for '${SRC_NAME}'."
+            echo "⚓️ 🧹 [$(date -u)] Remove local tag for '${SRC_NAME}'."
             docker image rmi ${DST} || true;
           }
 
@@ -519,11 +519,8 @@ jobs:
               --report-path images_tags_werf.json
             BRANCH_REGISTRY_PATH="${GHA_TEST_REGISTRY_PATH}/dev"
             SEMVER_REGISTRY_PATH="${GHA_TEST_REGISTRY_PATH}"
-            echo "⚓️ [$(date -u)] DECKHOUSE_REGISTRY_HOST is empty. Publish to Github Container Registry '${PROD_REGISTRY_PATH}'"
+            echo "⚓️ 🧪 [$(date -u)] DECKHOUSE_REGISTRY_HOST is empty. Publish to Github Container Registry '${PROD_REGISTRY_PATH}'"
           fi
-
-          # Save 'tests' image name to pass it as output for 'tests' jobs.
-          TESTS_IMAGE=
 
           # Publish images for Git branch.
           if [[ -n "${CI_COMMIT_BRANCH}" ]]; then
@@ -531,26 +528,23 @@ jobs:
             # Use it as image tag.
             IMAGE_TAG=${CI_COMMIT_REF_SLUG}
 
-            echo "⚓️ [$(date -u)] Publish images to dev-registry for branch '${CI_COMMIT_BRANCH}' and edition '${WERF_ENV}' using tag '${IMAGE_TAG}' ..."
+            echo "⚓️ 💫 [$(date -u)] Publish images to dev-registry for branch '${CI_COMMIT_BRANCH}' and edition '${WERF_ENV}' using tag '${IMAGE_TAG}' ..."
 
-            echo "⚓️ [$(date -u)] Publish 'dev' image to dev-registry using tag ${IMAGE_TAG}".
+            echo "⚓️ 💫 [$(date -u)] Publish 'dev' image to dev-registry using tag ${IMAGE_TAG}".
             DECKHOUSE_IMAGE_SRC="$(jq -r '.Images."dev".DockerImageName' images_tags_werf.json)"
             DECKHOUSE_IMAGE=${BRANCH_REGISTRY_PATH}:${IMAGE_TAG}
             pull_push_rmi 'dev' ${DECKHOUSE_IMAGE_SRC} ${DECKHOUSE_IMAGE}
 
-            echo "⚓️ [$(date -u)] Publish 'dev/install' image to dev-registry using tag ${IMAGE_TAG}".
+            echo "⚓️ 💫 [$(date -u)] Publish 'dev/install' image to dev-registry using tag ${IMAGE_TAG}".
             INSTALL_IMAGE_SRC="$(jq -r '.Images."dev/install".DockerImageName' images_tags_werf.json)"
             INSTALL_IMAGE=${BRANCH_REGISTRY_PATH}/install:${IMAGE_TAG}
             pull_push_rmi 'dev/install' ${INSTALL_IMAGE_SRC} ${INSTALL_IMAGE}
-
-            echo "⚓️ [$(date -u)] Publish 'tests' image to dev-registry using tag ${IMAGE_TAG}".
-            TESTS_IMAGE_SRC="$(jq -r '.Images."tests".DockerImageName' images_tags_werf.json)"
-            TESTS_IMAGE=${BRANCH_REGISTRY_PATH}/tests:${IMAGE_TAG}
-            pull_push_rmi 'tests' ${TESTS_IMAGE_SRC} ${TESTS_IMAGE}
           fi
 
 
 
+          # Save 'tests' image name to pass it as output for 'tests' jobs.
+          TESTS_IMAGE="$(jq -r '.Images."tests".DockerImageName' images_tags_werf.json)"
           echo "::set-output name=tests_image_name::${TESTS_IMAGE}"
 
       - name: Cleanup

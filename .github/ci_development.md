@@ -2,15 +2,20 @@
 
 ## Templates
 
-Files in workflows directory renders from 3 directories with templates: workflow_templates,
+Files in workflows directory render from 3 directories with templates: workflow_templates,
 ci_templates, and ci_includes. Use render-workflows.sh to render workflows directory
-after changing templates.
+after changing templates (requires Docker):
+
+```
+cd .github
+./render-workflows.sh
+```
 
 ## Testing
 
 We use pull_request_target and workflow_dispatch events which require workflow file
 be committed in the main branch.
-To test changes in these workflows, use additional repositories to test changes:
+There are additional repositories for testing changes in these workflows and not interfere with processes in main repo.
 
 Add remotes:
 
@@ -36,6 +41,3 @@ git push test-1 HEAD:main --force
 6. Push for deploy and suspend can be skipped with SKIP_PUSH_FOR_SUSPEND and SKIP_PUSH_FOR_DEPLOY variables.
 7. No registry cleanup.
 8. Autoclose for Dependabot PRs (can be enabled with secret ENABLE_DEPENDABOT_IN_FORKS=true).
-
-
-
