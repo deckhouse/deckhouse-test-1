@@ -1,0 +1,5 @@
+docs:
+  fixes:
+    - summary: comment
+      pull_request: https://github.com/deckhouse/deckhouse-test-1/pull/29
+
