@@ -222,7 +222,7 @@ jobs:
           ./.github/scripts/validation_run.sh --download-only ./pr.diff
 
       - name: Upload diff as artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: pr_diff
           path: pr.diff
