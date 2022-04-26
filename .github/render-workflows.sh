@@ -33,12 +33,13 @@ fi
 dockerExit=0
 cat <<'SCRIPT_END' | docker run -i --rm \
   -e ACTIONLINT_RUN=$ACTIONLINT_RUN \
+  -e TARGET_UID=$(id -u) \
+  -e TARGET_GID=$(id -g) \
   -v $(pwd)/../.gitlab/ci_includes:/in/gitlab_ci_includes \
   -v $(pwd)/ci_includes:/in/ci_includes \
   -v $(pwd)/ci_templates:/in/ci_templates \
   -v $(pwd)/workflow_templates:/in/workflow_templates \
   -v $(pwd)/workflows:/out/workflows \
-  --user ${UID}:${GID} \
   --entrypoint=ash \
   hairyhenderson/gomplate:v3.10.0-alpine - || dockerExit=1
 
@@ -127,8 +128,10 @@ for f in /out/tmp/* ; do
 done
 
 if [[ $hasChanges == 1 ]] ; then
-  mv /out/tmp/*.yml /out/workflows/
   echo "Render success. Workflows changed."
+  mv /out/tmp/*.yml /out/workflows/
+  echo "Restore permissions to ${TARGET_UID}:${TARGET_GID}"
+  chown -R ${TARGET_UID}:${TARGET_GID} /out/workflows
 else
   echo "Render success. No changes."
 fi
