@@ -10,7 +10,7 @@ require (
 	github.com/cloudflare/cfssl v1.5.0
 	github.com/davecgh/go-spew v1.1.1
 	github.com/deckhouse/deckhouse/dhctl v0.0.0 // use non-existent version for replace
-	github.com/fatih/color v1.9.0
+	github.com/fatih/color v1.13.0
 	github.com/flant/addon-operator v1.0.6-0.20220420111301-847d379e6249
 	github.com/flant/kube-client v0.0.6
 	github.com/flant/shell-operator v1.0.10-0.20220324171037-a48626e8b125
@@ -18,14 +18,15 @@ require (
 	github.com/ghodss/yaml v1.0.0
 	github.com/go-openapi/spec v0.19.8
 	github.com/gojuno/minimock/v3 v3.0.8
-	github.com/google/go-cmp v0.5.5
-	github.com/google/go-containerregistry v0.0.0-20191002200252-ff1ac7f97758
-	github.com/google/uuid v1.1.2
+	github.com/google/go-cmp v0.5.6
+	github.com/google/go-containerregistry v0.5.1
+	github.com/google/uuid v1.2.0
 	github.com/gophercloud/gophercloud v0.20.0
 	github.com/gophercloud/utils v0.0.0-20210823151123-bfd010397530
+	github.com/gotestyourself/gotestyourself v2.2.0+incompatible // indirect
 	github.com/hashicorp/go-multierror v1.1.1
-	github.com/iancoleman/strcase v0.0.0-20191112232945-16388991a334
-	github.com/imdario/mergo v0.3.11
+	github.com/iancoleman/strcase v0.2.0
+	github.com/imdario/mergo v0.3.12
 	github.com/kyokomi/emoji v2.1.0+incompatible
 	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826
 	github.com/onsi/ginkgo v1.16.5
@@ -39,19 +40,19 @@ require (
 	github.com/tidwall/gjson v1.12.1
 	github.com/tidwall/sjson v1.2.3
 	github.com/vmware/govmomi v0.24.1
-	go.etcd.io/etcd/api/v3 v3.5.0-alpha.0
-	go.etcd.io/etcd/client/v3 v3.5.0-alpha.0
-	google.golang.org/grpc v1.32.0
+	go.etcd.io/etcd/api/v3 v3.5.1
+	go.etcd.io/etcd/client/v3 v3.5.0
+	google.golang.org/grpc v1.43.0
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
 	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
-	helm.sh/helm/v3 v3.5.1
-	k8s.io/api v0.21.4
-	k8s.io/apiextensions-apiserver v0.20.5
-	k8s.io/apimachinery v0.21.4
-	k8s.io/apiserver v0.20.5
-	k8s.io/client-go v0.21.4
-	k8s.io/utils v0.0.0-20201110183641-67b214c5f920
+	helm.sh/helm/v3 v3.8.2
+	k8s.io/api v0.23.5
+	k8s.io/apiextensions-apiserver v0.23.5
+	k8s.io/apimachinery v0.23.5
+	k8s.io/apiserver v0.23.5
+	k8s.io/client-go v0.23.5
+	k8s.io/utils v0.0.0-20211116205334-6203023598ed
 	sigs.k8s.io/yaml v1.3.0
 )
 
