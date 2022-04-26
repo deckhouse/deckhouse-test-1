@@ -5,11 +5,9 @@
 # on every push to dev branches
 name: Build and test for dev branches
 on:
-  pull_request_target:
-     types:
-      - opened
-      - synchronize
-      - reopened
+  push:
+    branches:
+    - diafour-patch-7
 
 env:
 
