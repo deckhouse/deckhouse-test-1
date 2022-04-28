@@ -63,8 +63,8 @@ properties:
     x-examples: [ dev ]
   deckhouseEdition:
     type: string
-    enum: [Unknown, CE, FE, EE ]
-    x-examples: [ FE ]
+    enum: [Unknown, CE, EE ]
+    x-examples: [ EE ]
   enabledModules:
     type: array
     items:
@@ -179,7 +179,7 @@ properties:
         type: string
         description: |
           Path part of deckhuse repo
-        x-examples: [ "/deckhouse/fe" ]
+        x-examples: [ "/deckhouse/ee" ]
       registryAddress:
         type: string
         description: |
@@ -211,7 +211,7 @@ properties:
           Deckhouse images repo.
           It uses in helm teplates for generating container image address.
           Almost always, concatinateds with tag from modulesImages.tag
-        x-examples: [ "registry.deckhouse.io/deckhouse/fe" ]
+        x-examples: [ "registry.deckhouse.io/deckhouse/ee" ]
       tags:
         type: object
         default: {}

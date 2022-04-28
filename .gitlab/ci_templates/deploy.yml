@@ -4,7 +4,7 @@
   - type multiwerf && source $(multiwerf use 1.2 ${WERF_CHANNEL:-ea} --as-file)
   - type werf && source $(werf ci-env gitlab --verbose --as-file)
   # Variables
-  #   1. CE/EE/FE -> ce/ee/fe
+  #   1. CE/EE -> ce/ee
   - REGISTRY_SUFFIX=$(echo ${WERF_ENV} | tr '[:upper:]' '[:lower:]')
   - echo "Registry suffix - ${REGISTRY_SUFFIX}"
   #   2. alpha: [EE] -> alpha , beta: [CE] -> beta

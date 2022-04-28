@@ -83,7 +83,7 @@ positive:
           password: passwd
       clusterIsBootstrapped: true
       deckhouseVersion: dev
-      deckhouseEdition: FE
+      deckhouseEdition: EE
       enabledModules: [ "cert-manager", "vertical-pod-autoscaler-crd", "prometheus", "priority-class" ]
       discovery:
         clusterControlPlaneIsHighlyAvailable: true
@@ -108,10 +108,10 @@ positive:
           CA
           Multiline
       modulesImages:
-        registry: registry.deckhouse.io/deckhouse/fe
+        registry: registry.deckhouse.io/deckhouse/ee
         registryDockercfg: Y2ZnCg==
         registryAddress: registry.deckhouse.io
-        registryPath: /deckhouse/fe
+        registryPath: /deckhouse/ee
         registryScheme: https
         registryCA: testCA
         tags:

@@ -81,7 +81,7 @@ bb-rp-get-token() {
   AUTH_REALM="$(awk -F "," '{split($1,s,"\""); print s[2]}' <<< "${AUTH_HEADER}")"
   AUTH_SERVICE="$(awk -F "," '{split($2,s,"\""); print s[2]}' <<< "${AUTH_HEADER}" | sed "s/ /+/g")"
 {{- /*
-  # Remove leading / from REGISTRY_PATH due to scope format -> scope=repository:deckhouse/fe:pull
+  # Remove leading / from REGISTRY_PATH due to scope format -> scope=repository:deckhouse/ee:pull
 */}}
   curl --retry 3 -k -fsSL ${AUTH} "${AUTH_REALM}?service=${AUTH_SERVICE}&scope=repository:${REGISTRY_PATH#/}:pull" | python -c 'import json; import sys; jsonDoc = sys.stdin.read(); parsed = json.loads(jsonDoc); print(parsed["token"]);'
 }

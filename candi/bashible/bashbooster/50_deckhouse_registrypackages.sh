@@ -44,7 +44,7 @@ bb-rp-is-installed?() {
   AUTH_REALM="$(awk -F "," '{split($1,s,"\""); print s[2]}' <<< "${AUTH_HEADER}")"
   AUTH_SERVICE="$(awk -F "," '{split($2,s,"\""); print s[2]}' <<< "${AUTH_HEADER}" | sed "s/ /+/g")"
   # shellcheck disable=SC2086
-  # Remove leading / from REGISTRY_PATH due to scope format -> scope=repository:deckhouse/fe:pull
+  # Remove leading / from REGISTRY_PATH due to scope format -> scope=repository:deckhouse/ee:pull
   curl --retry 3 -fsSL ${AUTH} "${AUTH_REALM}?service=${AUTH_SERVICE}&scope=repository:${REGISTRY_PATH#/}:pull" | jq -r '.token'
 }
 

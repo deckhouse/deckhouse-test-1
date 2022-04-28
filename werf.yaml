@@ -345,10 +345,9 @@ ansible:
   - raw: rm -rf /var/cache/apk/*
 
   setup:
-  - name: "Migrate ee/fe internal packages imports"
+  - name: "Migrate ee internal packages imports"
     shell: |
       find /deckhouse/modules/* -type f -exec sed -i 's/github.com\/deckhouse\/deckhouse\/ee\/modules/github.com\/deckhouse\/deckhouse\/modules/g' {} +
-      find /deckhouse/modules/* -type f -exec sed -i 's/github.com\/deckhouse\/deckhouse\/ee\/fe\/modules/github.com\/deckhouse\/deckhouse\/modules/g' {} +
 
 docker:
   ENV:
@@ -409,11 +408,10 @@ shell:
   - mkdir /deckhouse /out
 
   setup:
-  # Migrate ee/fe internal packages imports
+  # Migrate ee internal packages imports
   - find /deckhouse/modules/* -type f -exec sed -i 's/github.com\/deckhouse\/deckhouse\/ee\/modules/github.com\/deckhouse\/deckhouse\/modules/g' {} +
-  - find /deckhouse/modules/* -type f -exec sed -i 's/github.com\/deckhouse\/deckhouse\/ee\/fe\/modules/github.com\/deckhouse\/deckhouse\/modules/g' {} +
   - cd /deckhouse
-  # Generate hooks imports for particular edition (CE/EE/FE)
+  # Generate hooks imports for particular edition (CE/EE)
   - go generate ./tools/register.go
   # Go modules depend on `register-go-hooks.go` file, hence we cannot split downloading dependencies and building
   # into separate phases.
@@ -736,7 +734,7 @@ args:
 {{- $CandiVersionMap := .Files.Get "candi/version_map.yml" | fromYaml }}
 {{- $ModulesImagesIDList := list }}
 
-# Collect EE and FE images if desired
+# Collect EE images if desired
 {{ $ModulesImagesBuildFiles := .Files.Glob "modules/*/images/*/{Dockerfile,werf.inc.yaml}" }}
 {{- if eq .Env "EE" }}
   {{ $ModulesImagesBuildFiles = merge $ModulesImagesBuildFiles (.Files.Glob "ee/modules/*/images/*/{Dockerfile,werf.inc.yaml}") }}

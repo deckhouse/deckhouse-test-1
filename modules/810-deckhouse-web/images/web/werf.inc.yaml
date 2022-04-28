@@ -194,12 +194,4 @@ git:
   includePaths:
   - modules/**/docs/README.md
   - ee/modules/**/docs/README.md
-- add: /ee/fe
-  to: /comparison/fe
-  owner: jekyll
-  group: jekyll
-  stageDependencies:
-    setup: ['**/*']
-  includePaths:
-  - modules/**/docs/README.md
 {{ tpl (.Files.Get "docs/documentation/werf-git-section.inc.yaml") . }}

@@ -49,10 +49,10 @@ discovery:
   d8SpecificNodeCountByRole:
     system: 1
 modulesImages:
-  registry: registry.deckhouse.io/deckhouse/fe
+  registry: registry.deckhouse.io/deckhouse/ee
   registryDockercfg: Y2ZnCg==
   registryAddress: registry.deckhouse.io
-  registryPath: /deckhouse/fe
+  registryPath: /deckhouse/ee
   registryCA: CACACA
   registryScheme: https
   tags:

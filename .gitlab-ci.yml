@@ -1,7 +1,7 @@
 variables:
   # Don't forget to update .gitlab-ci-simple.yml if necessary
   WERF_CHANNEL: "ea"
-  WERF_ENV: FE
+  WERF_ENV: EE
   # We use stapel image from own registry due to docker hub pull amount limitation.
   # To re-push stapel image from docker hub use command:
   # `skopeo copy docker://flant/werf-stapel:0.6.1 docker://registry-write.deckhouse.io/flant/werf-stapel:0.6.1`
@@ -54,17 +54,12 @@ Build EE:
   only:
   - tags
 
-Build FE:
-  extends: .Build template
-  tags:
-    - werf-distributed
-
 Tests:
   extends: .Tests template
   tags:
     - werf-distributed
   needs: &needs
-    - "Build FE"
+    - "Build EE"
 
 Matrix Tests:
   extends: .Matrix Tests template
@@ -245,19 +240,16 @@ Copyright Validation:
     - "Tests"
     - "Build CE"
     - "Build EE"
-    - "Build FE"
     - "Go Generate"
   tags:
     - werf-distributed
   dependencies:
     - "Build CE"
     - "Build EE"
-    - "Build FE"
   parallel:
     matrix:
     - WERF_ENV: CE
     - WERF_ENV: EE
-    - WERF_ENV: FE
   only:
     - tags
 

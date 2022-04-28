@@ -628,7 +628,7 @@ module.exports.checkValidationLabels = async ({ github, context, core }) => {
  *   /e2e/use/cri/containerd
  *   /deploy/web/stage v1.3.2
  *   /deploy/alpha - to deploy all editions
- *   /deploy/alpha/ce,ee,fe
+ *   /deploy/alpha/ce,ee
  *   /suspend/alpha
  *
  * @param {object} inputs

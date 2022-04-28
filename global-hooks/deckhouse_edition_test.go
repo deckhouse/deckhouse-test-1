@@ -42,14 +42,14 @@ var _ = Describe("Global hooks :: deckhouse_edition ", func() {
 	Context("With set edition", func() {
 		BeforeEach(func() {
 			f.BindingContexts.Set(f.GenerateOnStartupContext())
-			err := writeEditionTMPFile("FE")
+			err := writeEditionTMPFile("EE")
 			Expect(err).To(BeNil())
 			f.RunHook()
 		})
 
 		It("Should run", func() {
 			Expect(f).To(ExecuteSuccessfully())
-			Expect(f.ValuesGet("global.deckhouseEdition").String()).To(Equal(`FE`))
+			Expect(f.ValuesGet("global.deckhouseEdition").String()).To(Equal(`EE`))
 		})
 	})
 })

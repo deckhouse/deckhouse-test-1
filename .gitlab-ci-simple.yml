@@ -1,6 +1,6 @@
 variables:
   WERF_CHANNEL: "ea"
-  WERF_ENV: FE
+  WERF_ENV: EE
   WERF_STAPEL_IMAGE_NAME: "flant/werf-stapel"
   WERF_STAPEL_IMAGE_VERSION: "0.6.1"
   TEST_TIMEOUT: "15m"

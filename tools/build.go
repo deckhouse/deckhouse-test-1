@@ -222,7 +222,6 @@ func main() {
 	if edition == "all" {
 		executeEdition("CE")
 		executeEdition("EE")
-		executeEdition("FE")
 	} else {
 		executeEdition(edition)
 	}
@@ -232,33 +231,6 @@ func executeEdition(edition string) {
 	deleteRevisionFiles(edition)
 
 	switch edition {
-	case "FE":
-		writeSections(writeSettings{
-			Edition: edition,
-			Prefix:  "ee/fe",
-			Dir:     "modules",
-			SaveTo:  modulesFileName,
-		})
-		writeSections(writeSettings{
-			Edition:      edition,
-			Prefix:       "ee/fe",
-			Dir:          "modules",
-			SaveTo:       modulesWithExcludeFileName,
-			ExcludePaths: defaultModulesExcludes,
-		})
-		writeSections(writeSettings{
-			Edition:           edition,
-			Prefix:            "ee/fe",
-			Dir:               "modules",
-			SaveTo:            modulesWithDependencies,
-			StageDependencies: stageDependencies,
-			ExcludePaths:      nothingButGoHooksExcludes,
-		})
-		writeSections(writeSettings{
-			Edition: edition,
-			SaveTo:  candiFileName,
-		})
-		fallthrough
 	case "EE":
 		writeSections(writeSettings{
 			Edition: edition,
