@@ -7,8 +7,10 @@ package hooks
 
 import (
 	. "github.com/benjamintf1/unmarshalledmatchers"
-	. "github.com/deckhouse/deckhouse/testing/hooks"
 	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
+
+	. "github.com/deckhouse/deckhouse/testing/hooks"
 )
 
 const (
