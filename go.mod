@@ -9,6 +9,7 @@ require (
 	github.com/clarketm/json v1.15.7
 	github.com/cloudflare/cfssl v1.5.0
 	github.com/davecgh/go-spew v1.1.1
+	github.com/davecgh/go-xdr v0.0.0-20161123171359-e6a2ba005892 // indirect
 	github.com/deckhouse/deckhouse/dhctl v0.0.0 // use non-existent version for replace
 	github.com/fatih/color v1.9.0
 	github.com/flant/addon-operator v1.0.6-0.20220420111301-847d379e6249
@@ -20,7 +21,7 @@ require (
 	github.com/gojuno/minimock/v3 v3.0.8
 	github.com/google/go-cmp v0.5.5
 	github.com/google/go-containerregistry v0.0.0-20191002200252-ff1ac7f97758
-	github.com/google/uuid v1.1.2
+	github.com/google/uuid v1.3.0
 	github.com/gophercloud/gophercloud v0.20.0
 	github.com/gophercloud/utils v0.0.0-20210823151123-bfd010397530
 	github.com/hashicorp/go-multierror v1.1.1
@@ -38,7 +39,7 @@ require (
 	github.com/stretchr/testify v1.7.0
 	github.com/tidwall/gjson v1.12.1
 	github.com/tidwall/sjson v1.2.3
-	github.com/vmware/govmomi v0.24.1
+	github.com/vmware/govmomi v0.28.0
 	go.etcd.io/etcd/api/v3 v3.5.0-alpha.0
 	go.etcd.io/etcd/client/v3 v3.5.0-alpha.0
 	google.golang.org/grpc v1.32.0
