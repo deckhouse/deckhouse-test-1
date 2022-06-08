@@ -111,7 +111,11 @@ jobs:
 
   copyright_validation:
     name: Copyright Validation
-{!{ tmpl.Exec "validation_template" (slice $ctx "copyright") | strings.Indent 4 -}!}
+{!{ tmpl.Exec "validation_template" (slice $ctx "copyright") | strings.Indent 4 }!}
+
+  markdown_validation:
+    name: Markdown Linter
+{!{ tmpl.Exec "validation_template" (slice $ctx "markdown") | strings.Indent 4 -}!}
 
 {!{/* Template for validation jobs. */}!}
 {!{ define "validation_template" }!}
