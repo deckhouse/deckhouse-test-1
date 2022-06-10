@@ -4,12 +4,7 @@ search: add a node to the cluster, set up a GPU-enabled node, ephemeral nodes
 ---
 {% raw %}
 
-## How do I add a static node to a cluster?
-
-To add a new static node (e.g., VM or bare-metal server) to the cluster, you need to:
-
-1. Create a `NodeGroup` with the necessary parameters (`nodeType` can be `Static` or `CloudStatic`) or use an existing one. Let's, for example, create a [`NodeGroup` called `worker`](usage.html#an-example-of-the-static-nodegroup-configuration).
-2. Get the script for installing and configuring the node: `kubectl -n d8-cloud-instance-manager get secret manual-bootstrap-for-worker -o json | jq '.data."bootstrap.sh"' -r`
+## How do
 3. Before configuring Kubernetes on the node, make sure that you have performed all the necessary actions for the node to work correctly in the cluster:
   - Added all the necessary mount points (NFS, Ceph,...) to `/etc/fstab`;
   - Installed the suitable `ceph-common` version on the node as well as other packages;
