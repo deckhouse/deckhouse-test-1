@@ -28,6 +28,10 @@ docker run --rm -v $PWD:/workdir --entrypoint sh ghcr.io/igorshubovych/markdownl
  "echo
   echo '#########################################################################################################################'
   echo '###                                                                                                                   ###'
-  echo '###                   Markdown linter report, powered by https://github.com/DavidAnson/markdownlint                   ###'
+  echo '###                   Markdown linter report                                                                          ###'
   echo
-  for i in \$(grep -E '^\+\+\+ b\/.*\.md\$' $1 | sed -E 's#^\+\+\+ b\/##'); do markdownlint --config testing/markdownlint.yaml \$i; done"
+  for i in \$(grep -E '^\+\+\+ b\/.*\.md\$' $1 | sed -E 's#^\+\+\+ b\/##'); do markdownlint --config testing/markdownlint.yaml \$i; done
+  echo '###                                                                                                                   ###'
+  echo '###                   Powered by https://github.com/DavidAnson/markdownlint                                           ###'
+  echo '#########################################################################################################################'
+  "
