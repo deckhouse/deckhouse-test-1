@@ -24,4 +24,10 @@ if [[ ! -f $1 ]]; then
   exit 1
 fi
 
-docker run --rm -v $PWD:/workdir --entrypoint sh ghcr.io/igorshubovych/markdownlint-cli@sha256:2e22b4979347f70e0768e3fef1a459578b75d7966e4b1a6500712b05c5139476 -c "for i in \$(grep -E '^\+\+\+ b\/.*\.md\$' $1 | sed -E 's#^\+\+\+ b\/##'); do markdownlint --config testing/markdownlint.yaml \$i; done"
+docker run --rm -v $PWD:/workdir --entrypoint sh ghcr.io/igorshubovych/markdownlint-cli@sha256:2e22b4979347f70e0768e3fef1a459578b75d7966e4b1a6500712b05c5139476 -c \
+ "echo
+  echo '#########################################################################################################################'
+  echo '###                                                                                                                   ###'
+  echo '###                   Markdown linter report, powered by https://github.com/DavidAnson/markdownlint                   ###'
+  echo
+  for i in \$(grep -E '^\+\+\+ b\/.*\.md\$' $1 | sed -E 's#^\+\+\+ b\/##'); do markdownlint --config testing/markdownlint.yaml \$i; done"
