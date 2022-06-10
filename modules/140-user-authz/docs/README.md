@@ -8,13 +8,6 @@ Also, it implements the role-based subsystem for end-to-end authorization, there
 
 All the configuration of access rights is performed using [Custom Resources](cr.html).
 
-## Module features
-
-- Manages user and group access control using Kubernetes RBAC;
-- Manages access to scaling tools (the `allowScale` parameter of the [`ClusterAuthorizationRule`](cr.html#clusterauthorizationrule) Custom Resource);
-- Manages access to port forwarding (the `portForwarding` parameter of the [`ClusterAuthorizationRule`](cr.html#clusterauthorizationrule) Custom Resource);
-- Manages the list of allowed namespaces as regular expressions (the `limitNamespaces` parameter of the [`ClusterAuthorizationRule`](cr.html#clusterauthorizationrule) Custom Resource);
-- Manages access to system namespaces such as `kube-system`, etc., (the `allowAccessToSystemNamespaces` parameter of the [`ClusterAuthorizationRule`](cr.html#clusterauthorizationrule) Custom Resource);
 
 ## Role model
 In addition to the RBAC, you can use a set of high-level roles in the module:
