@@ -60,7 +60,6 @@ You have to set the `additionalSecurityGroups` parameter for all [`AWSInstanceCl
 Set the following annotation for the Service object: `service.beta.kubernetes.io/aws-load-balancer-subnets: subnet-foo, subnet-bar`.
 
 You can get current subnets for a particular installation as follows:
-
 ```bash
 kubectl -n d8-system exec deploy/deckhouse -c deckhouse -- deckhouse-controller module values cloud-provider-aws -o json \
 | jq -r '.cloudProviderAws.internal.zoneToSubnetIdMap'
