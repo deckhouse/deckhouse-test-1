@@ -31,9 +31,10 @@ docker run --rm -v $PWD:/workdir --entrypoint sh ghcr.io/igorshubovych/markdownl
      echo 'To run linter locally and AUTOMATICALLY FIX basic problems execute the following command in the Deckhouse repo:'
      echo 'docker run --rm -ti -v \$PWD:/workdir ghcr.io/igorshubovych/markdownlint-cli@sha256:2e22b4979347f70e0768e3fef1a459578b75d7966e4b1a6500712b05c5139476 --config testing/markdownlint.yaml -p testing/.markdownlintignore --fix \"**/*.md\"'
      STATUS=\$EXIT_CODE
+  else
+     echo 'All checks passed.'
   fi
   echo
-  echo '###'
   echo '###                   Powered by https://github.com/DavidAnson/markdownlint/'
   echo '######################################################################################################################'
   echo
