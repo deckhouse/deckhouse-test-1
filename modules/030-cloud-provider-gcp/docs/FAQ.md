@@ -11,7 +11,7 @@ title: "Cloud provider — GCP: FAQ"
 
 ## Adding CloudStatic nodes to a cluster
 
-Add Network Tag that is equal to the cluster `prefix` to instances that you'd manually join to the cluster.
+Add Neork Tag that is equal to the cluster `prefix` to instances that you'd manually join to the cluster.
 
 You can find out `prefix` using the command:
 
