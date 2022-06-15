@@ -5,7 +5,6 @@ title: "Cloud provider — AWS: usage"
 ## An example of the `AWSInstanceClass` custom resource
 
 Below is a simple example of custom resource `AWSInstanceClass` configuration:
-
 ```yaml
 apiVersion: deckhouse.io/v1
 kind: AWSInstanceClass
