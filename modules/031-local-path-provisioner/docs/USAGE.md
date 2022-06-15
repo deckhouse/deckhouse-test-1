@@ -19,7 +19,8 @@ spec:
 
 ## Example CR `LocalPathProvisioner` with `reclaimPolicy` set
 
-Reclaim policy set to `Delete`.
+dfgdfgdfgReclaim policy set to `Delete`.
+
 ```yaml
 apiVersion: deckhouse.io/v1alpha1
 kind: LocalPathProvisioner
