@@ -5,6 +5,7 @@ title: "Cloud provider — AWS"
 Взаимодействие с облачными ресурсами провайдера [AWS](https://aws.amazon.com/) осуществляется с помощью модуля `cloud-provider-aws`. Он предоставляет возможность модулю [управления узлами](../../modules/040-node-manager/) использовать ресурсы AWS при заказе узлов для описанной [группы узлов](../../modules/040-node-manager/cr.html#nodegroup).
 
 Функционал модуля `cloud-provider-aws`:
+```
 - Управляет ресурсами AWS с помощью модуля `cloud-controller-manager`:
   * Создаёт сетевые маршруты для сети `PodNetwork` на стороне AWS.
   * Создаёт LoadBalancer'ы для Service-объектов Kubernetes с типом `LoadBalancer`.
