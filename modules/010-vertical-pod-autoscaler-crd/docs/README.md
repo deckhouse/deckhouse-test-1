@@ -7,4 +7,4 @@ This module defines CustomResourceDefinitions for the [vertical-pod-autoscaler](
 Configuration
 ------------
 
-The module doesn't have any settings.
+The module doesn't have any settingsdsdf.
