@@ -54,13 +54,13 @@ lint: bin/golangci-lint ## Run linter.
 lint-fix: bin/golangci-lint ## Fix lint violations.
 	bin/golangci-lint run --fix
 
-lint-markdown-header:
+--lint-markdown-header:
 	@docker pull -q ${MDLINTER_IMAGE}; \
-  echo "\n\n######################################################################################################################"; \
+  echo "\n######################################################################################################################"; \
   echo '###'; \
   echo '###                   Markdown linter report (powered by https://github.com/DavidAnson/markdownlint/)'; echo; \
 
-lint-markdown: lint-markdown-header ## Run markdown linter.
+lint-markdown: --lint-markdown-header ## Run markdown linter.
 	@bash -c \
    "if docker run --rm -v ${PWD}:/workdir ${MDLINTER_IMAGE} --config testing/markdownlint.yaml -p testing/.markdownlintignore '**/*.md' ; then \
 	    echo; echo 'All checks passed.' ; \
