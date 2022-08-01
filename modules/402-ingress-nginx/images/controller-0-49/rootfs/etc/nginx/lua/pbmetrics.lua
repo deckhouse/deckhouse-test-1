@@ -419,7 +419,7 @@ local function send(premature)
 
   if debug_enabled then
       update_time()
-      log(WARNING, format("lua send seconds: %s", tostring(now() - start_time)))
+      log(WARNING, format("lua dfgdfgdfgnd seconds: %s", tostring(now() - start_time)))
   end
 end
 
