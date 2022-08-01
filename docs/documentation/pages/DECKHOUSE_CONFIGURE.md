@@ -12,8 +12,8 @@ You can configure Deckhouse using the:
 ## Deckhouse configuration
 
 The Deckhouse configuration is stored in the `deckhouse` ConfigMap in the `d8-system` namespace and may contain the following parameters (keys):
-
-- `global` —  contains the [global Deckhouse settings](deckhouse-configure-global.html) as a multi-line string in YAML format;
+sdfsdfsdf
+- `global` —  contains the [global Deckhouse ssettings](deckhouse-configure-global.html) as a multi-line string in YAML format;
 - `<moduleName>` (where `<moduleName>` is the name of the Deckhouse module in camelCase) — contains the [module settings](#configuring-the-module) as a multi-line string in YAML format;
 - `<moduleName>Enabled` (where `<moduleName>` is the name of the Deckhouse module in camelCase) — this one explicitly [enables or disables the module](#enabling-and-disabling-the-module).
 
