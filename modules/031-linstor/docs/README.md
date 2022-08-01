@@ -13,3 +13,6 @@ The linstor module makes it easy to use LINSTOR-based storage in your cluster. A
 Two modes are supported: **LVM** and **LVMThin**.
 
 Each of them has its advantages and disadvantages, read [FAQ](faq.html#performance-and-reliability-notes-comparison-to-ceph) for more details and comparison.
+
+
+df';glkfd;lhk;flkghj
