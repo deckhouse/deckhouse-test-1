@@ -286,7 +286,7 @@ pull_request_info:
         ref: ${{ steps.pr_props.outputs.ref }}
 
     # Get info about changes.
-    - name: Check for dangerous changes
+    - name: Check for PR changes
       uses: {!{ index (ds "actions") "dorny/paths-filter" }!}
       if: steps.pr_props.outputs.should_check == 'true'
       id: changes
