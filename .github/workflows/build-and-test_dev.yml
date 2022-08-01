@@ -215,7 +215,7 @@ jobs:
           ref: ${{ steps.pr_props.outputs.ref }}
 
       # Get info about changes.
-      - name: Check for dangerous changes
+      - name: Check for PR changes
         uses: dorny/paths-filter@v2
         if: steps.pr_props.outputs.should_check == 'true'
         id: changes
@@ -778,6 +778,16 @@ jobs:
           WERF_LOG_VERBOSE: "on"
           WERF_REPO: ${{steps.check_flant_registry.outputs.web_registry_path}}
     # </template: main_web_build_template>
+
+  test123:
+    name: Test111
+    needs:
+      - pull_request_info
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          echo changes_not_markdown is ${{ needs.pull_request_info.outputs.changes_not_markdown }}
+          echo changes_docs is ${{ needs.pull_request_info.outputs.changes_docs }}
 
   tests:
     if: ${{ needs.pull_request_info.outputs.changes_not_markdown == 'true' }}

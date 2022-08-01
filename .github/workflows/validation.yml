@@ -239,7 +239,7 @@ jobs:
           ref: ${{ steps.pr_props.outputs.ref }}
 
       # Get info about changes.
-      - name: Check for dangerous changes
+      - name: Check for PR changes
         uses: dorny/paths-filter@v2
         if: steps.pr_props.outputs.should_check == 'true'
         id: changes

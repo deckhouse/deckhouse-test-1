@@ -85,6 +85,16 @@ jobs:
       - pull_request_info
 {!{ tmpl.Exec "main_web_build_template" $ctx | strings.Indent 4 }!}
 
+  test123:
+    name: Test111
+    needs:
+      - pull_request_info
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          echo changes_not_markdown is ${{ needs.pull_request_info.outputs.changes_not_markdown }}
+          echo changes_docs is ${{ needs.pull_request_info.outputs.changes_docs }}
+
   tests:
     if: ${{ needs.pull_request_info.outputs.changes_not_markdown == 'true' }}
     name: Tests
