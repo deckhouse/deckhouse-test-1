@@ -786,8 +786,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: |
-          echo changes_not_markdown is ${{ needs.pull_request_info.outputs.changes_not_markdown }}
-          echo changes_docs is ${{ needs.pull_request_info.outputs.changes_docs }}
+          echo "changes_not_markdown is ${{ needs.pull_request_info.outputs.changes_not_markdown }}"
+          echo "changes_docs is ${{ needs.pull_request_info.outputs.changes_docs }}"
+          echo "ref is ${{ needs.pull_request_info.outputs.ref }}"
 
   tests:
     if: ${{ needs.pull_request_info.outputs.changes_not_markdown == 'true' }}

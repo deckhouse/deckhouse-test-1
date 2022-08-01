@@ -5,7 +5,7 @@
 name: 'Daily e2e tests'
 on:
   schedule:
-  - cron: '5 21 * * *'
+  - cron: '0 3 * * 1-5'
   workflow_dispatch:
 
 env:
@@ -34,7 +34,7 @@ jobs:
     if: ${{ false || github.repository == 'deckhouse/deckhouse' }}
     steps:
     - name: Do nothing
-      run: echo "We use job's 'if' for checking repository. We do not need any action in this job, but Github enforce use 'steps' to us."
+      run: echo "Empty action to fulfil Github requirements."
 
 
 # Note: git_info is needed for werf.yaml
@@ -118,7 +118,7 @@ jobs:
 
   # <template: e2e_run_job_template>
   run_aws_containerd_1_21:
-    name: "Daily e2e tests, AWS, Containerd, Kubernetes 1.21"
+    name: "AWS, Containerd, Kubernetes 1.21"
     needs:
       - git_info
     env:
@@ -442,7 +442,7 @@ jobs:
 
   # <template: e2e_run_job_template>
   run_azure_containerd_1_21:
-    name: "Daily e2e tests, Azure, Containerd, Kubernetes 1.21"
+    name: "Azure, Containerd, Kubernetes 1.21"
     needs:
       - git_info
     env:
@@ -774,7 +774,7 @@ jobs:
 
   # <template: e2e_run_job_template>
   run_gcp_containerd_1_21:
-    name: "Daily e2e tests, GCP, Containerd, Kubernetes 1.21"
+    name: "GCP, Containerd, Kubernetes 1.21"
     needs:
       - git_info
     env:
@@ -1094,7 +1094,7 @@ jobs:
 
   # <template: e2e_run_job_template>
   run_yandex_cloud_containerd_1_21:
-    name: "Daily e2e tests, Yandex.Cloud, Containerd, Kubernetes 1.21"
+    name: "Yandex.Cloud, Containerd, Kubernetes 1.21"
     needs:
       - git_info
     env:
@@ -1422,7 +1422,7 @@ jobs:
 
   # <template: e2e_run_job_template>
   run_openstack_containerd_1_21:
-    name: "Daily e2e tests, OpenStack, Containerd, Kubernetes 1.21"
+    name: "OpenStack, Containerd, Kubernetes 1.21"
     needs:
       - git_info
     env:
@@ -1742,7 +1742,7 @@ jobs:
 
   # <template: e2e_run_job_template>
   run_vsphere_containerd_1_21:
-    name: "Daily e2e tests, vSphere, Containerd, Kubernetes 1.21"
+    name: "vSphere, Containerd, Kubernetes 1.21"
     needs:
       - git_info
     env:
@@ -2066,7 +2066,7 @@ jobs:
 
   # <template: e2e_run_job_template>
   run_static_containerd_1_21:
-    name: "Daily e2e tests, Static, Containerd, Kubernetes 1.21"
+    name: "Static, Containerd, Kubernetes 1.21"
     needs:
       - git_info
     env:
