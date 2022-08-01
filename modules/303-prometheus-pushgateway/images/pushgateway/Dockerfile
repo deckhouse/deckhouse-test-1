@@ -9,6 +9,6 @@ EXPOSE 9091
 RUN mkdir -p /pushgateway && chown nobody:nogroup /pushgateway
 WORKDIR /pushgateway
 
-USER 65534
+USER 655
 
 ENTRYPOINT [ "/bin/pushgateway" ]
