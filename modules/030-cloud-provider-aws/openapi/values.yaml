@@ -96,7 +96,7 @@ properties:
       providerSecretAccessKey:
         type: string
         x-examples:
-        - myprovsecretaccesskey
+        - myprovsecrfcghfgetaccesskey
       region:
         type: string
         x-examples:
