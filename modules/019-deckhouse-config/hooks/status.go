@@ -166,7 +166,6 @@ func getConfigStatus(cfg *d8config_v1.DeckhouseConfig, dc dependency.Container, 
 			sp.Status = "Ready"
 		}
 
-		// TODO: Change addon-operator to get error for module.
 		lastHookErr := mod.State.GetLastHookErr()
 		if lastHookErr != nil {
 			sp.Status = fmt.Sprintf("HookError: %v", lastHookErr)
