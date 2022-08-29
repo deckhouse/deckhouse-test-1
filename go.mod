@@ -50,10 +50,10 @@ require (
 	helm.sh/helm/v3 v3.5.1
 	k8s.io/api v0.21.4
 	k8s.io/apiextensions-apiserver v0.20.5
-	k8s.io/apimachinery v0.21.4
+	k8s.io/apimachinery v0.25.0
 	k8s.io/apiserver v0.20.5
 	k8s.io/client-go v0.21.4
-	k8s.io/utils v0.0.0-20220210201930-3a6ce19ff2f9
+	k8s.io/utils v0.0.0-20220728103510-ee6ede2d64ed
 	sigs.k8s.io/yaml v1.3.0
 )
 
