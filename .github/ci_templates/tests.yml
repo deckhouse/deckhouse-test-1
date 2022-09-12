@@ -8,7 +8,7 @@ docker_options: '-w /deckhouse -v ${{env.HOME}}/go-pkg-cache:/go/pkg'
 {!{ define "matrix_run_args" }!}
 # <template: matrix_run_args>
 args: 'make tests-matrix'
-docker_options: '-w /deckhouse -v ${{github.workspace}}:/deckhouse -e "TERM=xterm-256color" -e "CGO_ENABLED=0" -v ${{env.HOME}}/go-pkg-cache:/go/pkg'
+docker_options: '-w /deckhouse -v ${{github.workspace}}:/deckhouse -e "TERM=xterm-256color" -e "CGO_ENABLED=0" -v ${{env.HOME}}/go-pkg-cache:/go/pkg -v ${{env.HOME}}/deckhouse-bin-cache:/deckhouse/bin'
 # </template: matrix_run_args>
 {!{- end -}!}
 
