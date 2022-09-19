@@ -126,14 +126,10 @@ func SetupHelmConfig(values string) *Config {
 }
 
 func GetModulesImages() map[string]interface{} {
-	tags, err := library.GetModulesImagesTags("")
-	if err != nil {
-		panic(err)
-	}
 	return map[string]interface{}{
 		"registry":          "registry.example.com",
 		"registryDockercfg": "Y2ZnCg==",
-		"tags":              tags,
+		"tags":              library.DefaultImagesTags,
 	}
 }
 
