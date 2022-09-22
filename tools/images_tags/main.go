@@ -99,7 +99,7 @@ func main() {
 					if tags[module] == nil {
 						tags[module] = make(map[string]string)
 					}
-					tags[module][tag] = "imageHash"
+					tags[module][tag] = fmt.Sprintf("imageHash-%s-%s", module, tag)
 				}
 			}
 			break
