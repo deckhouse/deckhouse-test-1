@@ -330,6 +330,9 @@ jobs:
     name: Check a milestone is set for a pull request
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout sources
+        uses: actions/checkout@v2.4.0
+
       - name: Check that a milestone is set for a pull request
         uses: actions/github-script@v5.0.0
         with:
