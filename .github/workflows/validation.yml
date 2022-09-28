@@ -326,6 +326,18 @@ jobs:
           name: pr_diff
           path: pr.diff
 
+  check-pr-milestone:
+    name: Check a milestone is set for a pull request
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check that a milestone is set for a pull request
+        uses: actions/github-script@v5.0.0
+        with:
+          github-token: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
+          script: |
+            const script = require('./.github/scripts/js/check-pr-milestone');
+
+            await script.checkPrMilestone({github, context, core});
 
   no_cyrillic_validation:
     name: No Cyrillic Validation
