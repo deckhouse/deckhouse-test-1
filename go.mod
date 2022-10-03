@@ -31,7 +31,7 @@ require (
 	github.com/kyokomi/emoji v2.1.0+incompatible
 	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826
 	github.com/onsi/ginkgo v1.16.5
-	github.com/onsi/gomega v1.19.0
+	github.com/onsi/gomega v1.20.1
 	github.com/otiai10/copy v1.0.2
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.8.1
@@ -50,10 +50,10 @@ require (
 	helm.sh/helm/v3 v3.5.1
 	k8s.io/api v0.21.4
 	k8s.io/apiextensions-apiserver v0.20.5
-	k8s.io/apimachinery v0.21.4
+	k8s.io/apimachinery v0.25.2
 	k8s.io/apiserver v0.20.5
 	k8s.io/client-go v0.21.4
-	k8s.io/utils v0.0.0-20220210201930-3a6ce19ff2f9
+	k8s.io/utils v0.0.0-20220728103510-ee6ede2d64ed
 	sigs.k8s.io/yaml v1.3.0
 )
 
