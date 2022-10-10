@@ -62,7 +62,6 @@ const istioValues = `
       externalAuthentication: {}
       password: qqq
     outboundTrafficPolicyMode: AllowAny
-    tlsMode: "Off"
     sidecar:
       includeOutboundIPRanges: ["10.0.0.0/24"]
       excludeOutboundIPRanges: ["1.2.3.4/32"]
@@ -94,12 +93,11 @@ const istioValues = `
 var _ = Describe("Module :: istio :: helm template :: main", func() {
 	f := SetupHelmConfig(``)
 
-	Context("tlsMode = Off, no federations or multiclusters", func() {
+	Context("no federations or multiclusters", func() {
 		BeforeEach(func() {
 			f.ValuesSetFromYaml("global", globalValues)
 			f.ValuesSet("global.modulesImages", GetModulesImages())
 			f.ValuesSetFromYaml("istio", istioValues)
-			f.ValuesSet("istio.tlsMode", "Off")
 			f.HelmRender()
 		})
 
@@ -110,8 +108,6 @@ var _ = Describe("Module :: istio :: helm template :: main", func() {
 			Expect(mwh.Exists()).To(BeTrue())
 			Expect(len(mwh.Field("webhooks").Array())).To(Equal(2))
 
-			paDefault := f.KubernetesResource("PeerAuthentication", "d8-istio", "default")
-			drDefault := f.KubernetesResource("DestinationRule", "d8-istio", "default")
 			drApiserver := f.KubernetesResource("DestinationRule", "d8-istio", "kube-apiserver")
 
 			Expect(paDefault.Exists()).To(BeTrue())
@@ -250,7 +246,6 @@ var _ = Describe("Module :: istio :: helm template :: main", func() {
 			f.ValuesSetFromYaml("istio.internal.revisionsToInstall", `[v1x13,v1x12]`)
 			f.ValuesSetFromYaml("istio.internal.operatorRevisionsToInstall", `[v1x13,v1x12]`)
 			f.ValuesSetFromYaml("istio.internal.applicationNamespaces", `[foo,bar]`)
-			f.ValuesSet("istio.tlsMode", "Off")
 			f.HelmRender()
 		})
 
@@ -344,7 +339,6 @@ var _ = Describe("Module :: istio :: helm template :: main", func() {
 			f.ValuesSetFromYaml("istio.internal.revisionsToInstall", `[v1x13]`)
 			f.ValuesSetFromYaml("istio.internal.operatorRevisionsToInstall", `[v1x13]`)
 			f.ValuesSet("istio.federation.enabled", true)
-			f.ValuesSet("istio.tlsMode", "Off")
 			f.ValuesSetFromYaml("istio.internal.federations", `
 - name: neighbour-0
   trustDomain: n.n0
@@ -421,7 +415,6 @@ neighbour-0:
 			f.ValuesSetFromYaml("istio.internal.revisionsToInstall", `[v1x13]`)
 			f.ValuesSetFromYaml("istio.internal.operatorRevisionsToInstall", `[v1x13]`)
 			f.ValuesSet("istio.multicluster.enabled", true)
-			f.ValuesSet("istio.tlsMode", "Off")
 			f.ValuesSet("istio.internal.multiclustersNeedIngressGateway", true)
 			f.ValuesSetFromYaml("istio.internal.multiclusters", `
 - name: neighbour-0
