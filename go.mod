@@ -32,29 +32,29 @@ require (
 	github.com/mitchellh/hashstructure/v2 v2.0.2
 	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826
 	github.com/onsi/ginkgo v1.16.5
-	github.com/onsi/gomega v1.19.0
+	github.com/onsi/gomega v1.20.1
 	github.com/otiai10/copy v1.0.2
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spaolacci/murmur3 v1.1.0
 	github.com/square/go-jose/v3 v3.0.0-20200630053402-0a67ce9b0693
-	github.com/stretchr/testify v1.7.2
+	github.com/stretchr/testify v1.8.0
 	github.com/tidwall/gjson v1.12.1
 	github.com/tidwall/sjson v1.2.3
 	github.com/vmware/govmomi v0.24.1
-	go.etcd.io/etcd/api/v3 v3.5.0-alpha.0
-	go.etcd.io/etcd/client/v3 v3.5.0-alpha.0
-	google.golang.org/grpc v1.32.0
+	go.etcd.io/etcd/api/v3 v3.5.4
+	go.etcd.io/etcd/client/v3 v3.5.4
+	google.golang.org/grpc v1.47.0
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
 	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.1
 	helm.sh/helm/v3 v3.5.1
-	k8s.io/api v0.21.4
+	k8s.io/api v0.25.3
 	k8s.io/apiextensions-apiserver v0.20.5
-	k8s.io/apimachinery v0.21.4
-	k8s.io/apiserver v0.20.5
-	k8s.io/client-go v0.21.4
-	k8s.io/utils v0.0.0-20220210201930-3a6ce19ff2f9
+	k8s.io/apimachinery v0.25.3
+	k8s.io/apiserver v0.25.3
+	k8s.io/client-go v0.25.3
+	k8s.io/utils v0.0.0-20220728103510-ee6ede2d64ed
 	sigs.k8s.io/yaml v1.3.0
 )
 
