@@ -110,10 +110,13 @@ jobs:
         with:
           github-token: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
           script: |
-            core.info('Issue' + context.payload.issue.number);
-            core.info('PR' + context.payload.pull_request.number);
+            if ( context.payload.issue.number ) {
+              const prNumber = context.payload.issue.number;
+            } else {
+              const prNumber = context.payload.pull_request.number;
+            }
 
-            const prNumber = context.payload.pull_request.number;
+            core.info('PR is ' + prNumber);
 
             const response = await github.rest.pulls.get({
               owner: context.repo.owner,
