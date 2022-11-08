@@ -20,6 +20,7 @@ on:
   issues:
     types:
       - "milestoned"
+      - "demilestoned"
 
 # Cancel in-progress jobs for the same PR (pull_request_target event) or for the same branch (push event).
 concurrency:
@@ -110,10 +111,11 @@ jobs:
         with:
           github-token: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
           script: |
+            let prNumber = "";
             if ( context.payload.issue.number ) {
-              const prNumber = context.payload.issue.number;
+              prNumber = context.payload.issue.number;
             } else {
-              const prNumber = context.payload.pull_request.number;
+              prNumber = context.payload.pull_request.number;
             }
 
             core.info('PR is ' + prNumber);
