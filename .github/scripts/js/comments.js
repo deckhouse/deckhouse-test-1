@@ -2,6 +2,9 @@
  * Bot related functions.
  */
 
+
+
+
 const WORKFLOW_START_MARKER = '<!-- workflow_start -->'
 module.exports.WORKFLOW_START_MARKER = WORKFLOW_START_MARKER;
 
