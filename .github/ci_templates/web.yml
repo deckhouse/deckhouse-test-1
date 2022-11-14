@@ -131,6 +131,17 @@ steps:
 # </template: doc_version_template>
 {!{- end -}!}
 
+{!{ define "doc_release_version_template" }!}
+{!{/* ci_commit_ref_name is a tagname or branch name */}!}
+# <template: doc_release_version_template>
+- name: Set documentation version
+  env:
+    CI_COMMIT_REF_NAME: ${{needs.git_info.outputs.ci_commit_ref_name}}
+  run: |
+    echo "DOC_VERSION=${CI_COMMIT_REF_NAME/release-/v}" >> $GITHUB_ENV
+# </template: doc_release_version_template>
+{!{- end -}!}
+
 {!{ define "deploy_doc_template" }!}
 {!{- $env := . -}!}
 {!{- $webEnv := printf "web-%s" $env -}!}
