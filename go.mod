@@ -16,7 +16,7 @@ require (
 	github.com/flant/shell-operator v1.0.13-0.20221018121846-032ccd06522c // branch: main
 	github.com/gammazero/deque v0.0.0-20190521012701-46e4ffb7a622
 	github.com/ghodss/yaml v1.0.0
-	github.com/go-openapi/spec v0.19.8
+	github.com/go-openapi/spec v0.20.7
 	github.com/go-sql-driver/mysql v1.5.0 // indirect
 	github.com/gojuno/minimock/v3 v3.0.8
 	github.com/golang/protobuf v1.5.2
