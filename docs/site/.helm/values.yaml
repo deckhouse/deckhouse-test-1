@@ -19,7 +19,7 @@ vrouter:
     web-stage: "latest"
     _default: "latest"
   showLatestChannel: "true"
-  i18nType: "separate-domain"
+  i18nType: "location"
   logLevel:
     web-stage: trace
     _default: debug

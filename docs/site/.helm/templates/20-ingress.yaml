@@ -1,17 +1,12 @@
 {{- $_ := set . "Version" ( splitList "/" .Values.global.doc_version | last ) }}
 {{- $_ := set . "VersionURLNormalized" ( printf "%s" .Version | lower | replace "+" "-plus-" | replace "_" "-u-" ) }}
 {{- $_ := set . "VersionDNSNormalized" ( printf "%s" .Version | lower | replace "+" "-plus-" | replace "_" "-u-" | replace "." "-dot-" ) }}
-{{- $hostEn := .Values.global.url }}
-{{- $hostRu := .Values.global.url_ru }}
-{{- $hosts := list -}}
-{{- $hosts = append $hosts (dict "Lang" "en" "URL" $hostEn) -}}
-{{- $hosts = append $hosts (dict "Lang" "ru" "URL" $hostRu) -}}
+{{- $host := .Values.global.url }}
 
-{{- range $hosts }}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: main-{{ .Lang }}
+  name: main
   annotations:
     nginx.ingress.kubernetes.io/enable-cors: "true"
     nginx.ingress.kubernetes.io/cors-allow-origin: '*'
@@ -19,42 +14,55 @@ metadata:
       proxy_set_header X-Original-URI         $request_uri;
       ssi on;
       ssi_silent_errors on;
-      rewrite ^/ru/(.*) https://{{ $hostRu }}/$1 redirect;
-      rewrite ^/en/(.*) https://{{ $hostEn }}/$1 redirect;
+      if ($geoip_country_code ~ 'RU|UA|BY|KZ' ) {
+        rewrite ^/$ /ru/ permanent;
+      }
       {{- include "rewrites" . | nindent 6 }}
-{{- if ne $.Values.web.env "web-production" }}
+{{- if or ( eq .Values.web.env "web-stage")  ( eq .Values.web.env "web-test")  }}
     nginx.ingress.kubernetes.io/auth-signin: https://$host/dex-authenticator/sign_in
-    nginx.ingress.kubernetes.io/auth-url: https://{{ $.Chart.Name }}-{{ .Lang }}-dex-authenticator.deckhouse-{{ $.Values.web.env }}.svc.cluster.local/dex-authenticator/auth
+    nginx.ingress.kubernetes.io/auth-url: https://{{ .Chart.Name }}-public-dex-authenticator.deckhouse-{{ .Values.web.env }}.svc.cluster.local/dex-authenticator/auth
     nginx.ingress.kubernetes.io/auth-response-headers: X-Auth-Request-User,X-Auth-Request-Email
 {{- end }}
 spec:
   ingressClassName: "nginx"
   tls:
   - hosts:
-      - {{ .URL }}
-{{- if eq $.Values.web.env "web-production" }}
-      - www.{{ .URL }}
+      - {{ $host }}
+{{- if eq .Values.web.env "web-production" }}
+      - www.{{ $host }}
 {{- end }}
-    secretName: tls-{{ .URL }}
+    secretName: tls-{{ $host }}
   rules:
-  - host: {{ .URL }}
+  - host: {{ $host }}
     http:
       paths:
       - path: /
         pathType: Prefix
         backend:
           service:
-            name: frontend
-            port:
-              name: http
-      - path: /includes
-        pathType: Prefix
-        backend:
-          service:
             name: backend
             port:
               name: http
-      - path: /documentation/v1
+---
+{{- if eq .Values.web.env "web-production" }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: early-redirect
+  annotations:
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      rewrite ^/(.*)$ https://{{ $host }}/$1 permanent;
+spec:
+  ingressClassName: "nginx"
+  tls:
+  - hosts:
+      - early.{{ $host }}
+    secretName: tls-{{ $host }}
+  rules:
+  - host: early.{{ $host }}
+    http:
+      paths:
+      - path: /
         pathType: Prefix
         backend:
           service:
@@ -62,34 +70,38 @@ spec:
             port:
               name: http
 ---
+{{- end }}
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
-  name: {{ $.Chart.Name }}-{{ .Lang }}-cert
+  name: {{ .Chart.Name }}-cert
 spec:
   certificateOwnerRef: false
-  secretName: tls-{{ .URL }}
+  secretName: tls-{{ $host }}
   issuerRef:
     kind: ClusterIssuer
+{{- if hasPrefix "review" .Values.web.env }}
+    name: letsencrypt-staging
+{{- else }}
     name: letsencrypt
-  commonName: {{ .URL }}
-  dnsNames:
-  - {{ .URL }}
-{{- if eq $.Values.web.env "web-production" }}
-  - www.{{ .URL }}
 {{- end }}
-{{- if ne $.Values.web.env "web-production" }}
+  commonName: {{ $host }}
+  dnsNames:
+  - {{ $host }}
+{{- if eq .Values.web.env "web-production" }}
+  - www.{{ $host }}
+  - early.{{ $host }}
+{{- end }}
+{{- if or ( eq .Values.web.env "web-stage")  ( eq .Values.web.env "web-test")  }}
 ---
 apiVersion: deckhouse.io/v1alpha1
 kind: DexAuthenticator
 metadata:
-  name: {{ $.Chart.Name }}-{{ .Lang }}
+  name: {{ .Chart.Name }}-public
 spec:
-  applicationDomain: {{ .URL }}
+  applicationDomain: {{ $host }}
   sendAuthorizationHeader: false
-  applicationIngressCertificateSecretName: tls-{{ .URL }}
+  applicationIngressCertificateSecretName: tls-{{ $host }}
   applicationIngressClassName: "nginx"
   keepUsersLoggedInFor: "720h"
 {{- end }}
----
-{{ end -}}
