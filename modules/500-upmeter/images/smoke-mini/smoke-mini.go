@@ -317,4 +317,5 @@ func prometheusHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	fmt.Fprintf(w, "ok")
+
 }
