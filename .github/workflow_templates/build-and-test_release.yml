@@ -144,15 +144,6 @@ jobs:
 {!{ tmpl.Exec "tests_template" (slice $ctx "dhctl" "build_fe") | strings.Indent 4 }!}
 {!{ tmpl.Exec "update_comment_on_finish" (slice "job,one-line" $jobNames.dhctl_tests) | strings.Indent 6 }!}
 
-{!{ $jobNames = coll.Merge $jobNames (dict "golang_format" "GolangCI Lint") }!}
-  golang_format:
-    name: {!{ $jobNames.golang_format }!}
-    needs:
-      - git_info
-      - build_fe
-{!{ tmpl.Exec "tests_template" (slice $ctx "golang_format" "build_fe") | strings.Indent 4 }!}
-{!{ tmpl.Exec "update_comment_on_finish" (slice "job,one-line" $jobNames.golang_format) | strings.Indent 6 }!}
-
 {!{ $jobNames = coll.Merge $jobNames (dict "golangci_lint" "GolangCI Lint") }!}
   golangci_lint:
     name: {!{ $jobNames.golangci_lint }!}
@@ -198,9 +189,25 @@ jobs:
       - git_info
       - doc_web_build
       - main_web_build
-    # TODO: remove
-    #if: ${{ needs.git_info.outputs.ci_commit_ref_name == 'main' && github.repository == 'deckhouse/deckhouse' }}
-    if: ${{ needs.git_info.outputs.ci_commit_ref_name == 'main' }}
+    if: ${{ needs.git_info.outputs.ci_commit_ref_name == 'main' && github.repository == 'deckhouse/deckhouse' }}
+    runs-on: [self-hosted, regular]
+    steps:
+{!{ tmpl.Exec "started_at_output" . | strings.Indent 6 }!}
+{!{ tmpl.Exec "checkout_full_step" $ctx | strings.Indent 6}!}
+{!{ tmpl.Exec "login_flant_registry_step" . | strings.Indent 6 }!}
+{!{ tmpl.Exec "doc_version_template" | strings.Indent 6 }!}
+{!{ tmpl.Exec "deploy_doc_template" "production" | strings.Indent 6 }!}
+{!{ tmpl.Exec "deploy_site_template" "production" | strings.Indent 6 }!}
+{!{ tmpl.Exec "update_comment_on_finish" (slice "job,one-line" $jobNames.deploy_latest_web) | strings.Indent 6 }!}
+
+{!{/* Autodeploy documentation to production and stage envs on a new tag */}!}
+{!{ $jobNames = coll.Merge $jobNames (dict "deploy_tagged_doc" "Deploy tagged documentation") }!}
+  deploy_tagged_doc:
+    name: {!{ $jobNames.deploy_tagged_doc }!}
+    needs:
+      - git_info
+      - doc_web_build
+    if: ${{ needs.git_info.outputs.ci_commit_tag != '' && github.repository == 'deckhouse/deckhouse' }}
     runs-on: [self-hosted, regular]
     steps:
 {!{ tmpl.Exec "started_at_output" . | strings.Indent 6 }!}
@@ -208,8 +215,8 @@ jobs:
 {!{ tmpl.Exec "login_flant_registry_step" . | strings.Indent 6 }!}
 {!{ tmpl.Exec "doc_version_template" | strings.Indent 6 }!}
 {!{ tmpl.Exec "deploy_doc_template" "stage" | strings.Indent 6 }!}
-{!{ tmpl.Exec "deploy_site_template" "stage" | strings.Indent 6 }!}
-{!{ tmpl.Exec "update_comment_on_finish" (slice "job,one-line" $jobNames.deploy_latest_web) | strings.Indent 6 }!}
+{!{ tmpl.Exec "deploy_doc_template" "production" | strings.Indent 6 }!}
+{!{ tmpl.Exec "update_comment_on_finish" (slice "job,one-line" $jobNames.deploy_tagged_doc) | strings.Indent 6 }!}
 
   last_comment:
     name: Update comment on finish
@@ -224,11 +231,11 @@ jobs:
       - doc_web_build
       - main_web_build
       - deploy_latest_web
+      - deploy_tagged_doc
       - tests
       - matrix_tests
       - dhctl_tests
       - golangci_lint
-      - golang_format
       - openapi_test_cases
       - web_links_test
       - validators

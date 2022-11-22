@@ -1,5 +1,4 @@
 {!{- $ctx := . -}!}
-{!{- $jobNames := dict -}!}
 
 name: Build and test for release branches
 
@@ -77,13 +76,6 @@ jobs:
       - build_deckhouse
 {!{ tmpl.Exec "tests_template" (slice $ctx "dhctl" "build_deckhouse") | strings.Indent 4 }!}
 
-  golang_format:
-    name: Golang Format
-    needs:
-      - git_info
-      - build_deckhouse
-{!{ tmpl.Exec "tests_template" (slice $ctx "golang_format" "build_deckhouse") | strings.Indent 4 }!}
-
   golangci_lint:
     name: GolangCI Lint
     needs:
@@ -113,23 +105,3 @@ jobs:
       - git_info
       - build_deckhouse
 {!{ tmpl.Exec "tests_template" (slice $ctx "validators" "build_deckhouse") | strings.Indent 4 }!}
-
-{!{/* Autodeploy documentation to production and stage envs on push to release branch */}!}
-{!{ $jobNames = coll.Merge $jobNames (dict "deploy_release_doc" "Deploy release documentation") }!}
-  deploy_release_doc:
-    name: {!{ $jobNames.deploy_release_doc }!}
-    needs:
-      - git_info
-      - doc_web_build
-    # TODO: remove
-    #if: ${{ startsWith(needs.git_info.outputs.ci_commit_ref_name, 'release-') && github.repository == 'deckhouse/deckhouse' }}
-    if: ${{ startsWith(needs.git_info.outputs.ci_commit_ref_name, 'release-') }}
-    runs-on: [self-hosted, regular]
-    steps:
-{!{ tmpl.Exec "started_at_output" . | strings.Indent 6 }!}
-{!{ tmpl.Exec "checkout_full_step" $ctx | strings.Indent 6}!}
-{!{ tmpl.Exec "login_flant_registry_step" . | strings.Indent 6 }!}
-{!{ tmpl.Exec "doc_release_version_template" | strings.Indent 6 }!}
-{!{ tmpl.Exec "deploy_doc_template" "stage" | strings.Indent 6 }!}
-{!{ tmpl.Exec "deploy_doc_template" "production" | strings.Indent 6 }!}
-{!{ tmpl.Exec "update_comment_on_finish" (slice "job,one-line" $jobNames.deploy_release_doc) | strings.Indent 6 }!}
