@@ -58,6 +58,7 @@ steps:
     env:
       TESTS_IMAGE_NAME: ${{needs.{!{$build_job}!}.outputs.tests_image_name}}
     run: |
+      env
       if [[ -z ${TESTS_IMAGE_NAME} ]] ; then
         echo "TESTS_IMAGE_NAME is empty"
         exit 1

@@ -663,6 +663,7 @@ jobs:
         env:
           TESTS_IMAGE_NAME: ${{needs.build_deckhouse.outputs.tests_image_name}}
         run: |
+          env
           if [[ -z ${TESTS_IMAGE_NAME} ]] ; then
             echo "TESTS_IMAGE_NAME is empty"
             exit 1
@@ -749,6 +750,7 @@ jobs:
         env:
           TESTS_IMAGE_NAME: ${{needs.build_deckhouse.outputs.tests_image_name}}
         run: |
+          env
           if [[ -z ${TESTS_IMAGE_NAME} ]] ; then
             echo "TESTS_IMAGE_NAME is empty"
             exit 1
@@ -835,6 +837,7 @@ jobs:
         env:
           TESTS_IMAGE_NAME: ${{needs.build_deckhouse.outputs.tests_image_name}}
         run: |
+          env
           if [[ -z ${TESTS_IMAGE_NAME} ]] ; then
             echo "TESTS_IMAGE_NAME is empty"
             exit 1
@@ -921,6 +924,7 @@ jobs:
         env:
           TESTS_IMAGE_NAME: ${{needs.build_deckhouse.outputs.tests_image_name}}
         run: |
+          env
           if [[ -z ${TESTS_IMAGE_NAME} ]] ; then
             echo "TESTS_IMAGE_NAME is empty"
             exit 1
@@ -1007,6 +1011,7 @@ jobs:
         env:
           TESTS_IMAGE_NAME: ${{needs.build_deckhouse.outputs.tests_image_name}}
         run: |
+          env
           if [[ -z ${TESTS_IMAGE_NAME} ]] ; then
             echo "TESTS_IMAGE_NAME is empty"
             exit 1
@@ -1272,6 +1277,7 @@ jobs:
         env:
           TESTS_IMAGE_NAME: ${{needs.build_deckhouse.outputs.tests_image_name}}
         run: |
+          env
           if [[ -z ${TESTS_IMAGE_NAME} ]] ; then
             echo "TESTS_IMAGE_NAME is empty"
             exit 1
