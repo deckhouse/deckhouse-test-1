@@ -20,7 +20,7 @@ require (
 	github.com/go-sql-driver/mysql v1.5.0 // indirect
 	github.com/gojuno/minimock/v3 v3.0.8
 	github.com/golang/protobuf v1.5.2
-	github.com/google/go-cmp v0.5.8
+	github.com/google/go-cmp v0.5.9
 	github.com/google/go-containerregistry v0.0.0-20191002200252-ff1ac7f97758
 	github.com/google/uuid v1.1.2
 	github.com/gophercloud/gophercloud v0.20.0
@@ -32,29 +32,29 @@ require (
 	github.com/mitchellh/hashstructure/v2 v2.0.2
 	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826
 	github.com/onsi/ginkgo v1.16.5
-	github.com/onsi/gomega v1.20.2
+	github.com/onsi/gomega v1.23.0
 	github.com/otiai10/copy v1.0.2
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spaolacci/murmur3 v1.1.0
 	github.com/square/go-jose/v3 v3.0.0-20200630053402-0a67ce9b0693
-	github.com/stretchr/testify v1.7.2
+	github.com/stretchr/testify v1.8.0
 	github.com/tidwall/gjson v1.12.1
 	github.com/tidwall/sjson v1.2.3
 	github.com/vmware/govmomi v0.24.1
-	go.etcd.io/etcd/api/v3 v3.5.0-alpha.0
-	go.etcd.io/etcd/client/v3 v3.5.0-alpha.0
-	google.golang.org/grpc v1.32.0
+	go.etcd.io/etcd/api/v3 v3.5.5
+	go.etcd.io/etcd/client/v3 v3.5.5
+	google.golang.org/grpc v1.49.0
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
 	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.1
 	helm.sh/helm/v3 v3.5.1
-	k8s.io/api v0.21.4
+	k8s.io/api v0.26.1
 	k8s.io/apiextensions-apiserver v0.20.5
-	k8s.io/apimachinery v0.21.4
-	k8s.io/apiserver v0.20.5
-	k8s.io/client-go v0.21.4
-	k8s.io/utils v0.0.0-20220210201930-3a6ce19ff2f9
+	k8s.io/apimachinery v0.26.1
+	k8s.io/apiserver v0.26.1
+	k8s.io/client-go v0.26.1
+	k8s.io/utils v0.0.0-20221107191617-1a15be271d1d
 	sigs.k8s.io/yaml v1.3.0
 )
 
