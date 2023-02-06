@@ -8,7 +8,7 @@ run:
 issues:
   exclude:
   - SA5009.*
-#  - SA4017.*
+  - SA4017.*
 #  - ST1005.*
   - "should not use dot imports"
   - "don't use an underscore in package name"

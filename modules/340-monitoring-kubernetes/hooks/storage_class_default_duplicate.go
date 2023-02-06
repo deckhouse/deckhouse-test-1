@@ -52,6 +52,7 @@ func filterStorageClassDup(obj *unstructured.Unstructured) (go_hook.FilterResult
 
 var _ = sdk.RegisterFunc(&go_hook.HookConfig{
 	// Retest
+	// fwefwefew
 	Queue: "/modules/monitoring-kubernetes",
 	Kubernetes: []go_hook.KubernetesConfig{
 		{
