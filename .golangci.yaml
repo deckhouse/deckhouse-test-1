@@ -7,7 +7,9 @@ run:
     - modules/302-vertical-pod-autoscaler/hooks/internal/vertical-pod-autoscaler/v1
 issues:
   exclude:
-  - ST1005.*
+  - SA5009.*
+#  - SA4017.*
+#  - ST1005.*
   - "should not use dot imports"
   - "don't use an underscore in package name"
   - "exported: .*"
@@ -38,7 +40,7 @@ linters:
   - ineffassign
   - misspell
   - revive
-#  - staticcheck
+  - staticcheck
 #  - structcheck
   - typecheck
   - unconvert
