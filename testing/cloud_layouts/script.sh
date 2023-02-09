@@ -72,6 +72,11 @@ Provider specific environment variables:
 \$LAYOUT_AZURE_CLIENT_ID
 \$LAYOUT_AZURE_CLIENT_SECRET
 
+  EKS:
+
+\$LAYOUT_AWS_ACCESS_KEY
+\$LAYOUT_AWS_SECRET_ACCESS_KEY
+
   Openstack:
 
 \$LAYOUT_OS_PASSWORD
@@ -309,6 +314,16 @@ function prepare_environment() {
         <"$cwd/configuration.tpl.yaml" >"$cwd/configuration.yaml"
 
     ssh_user="azureuser"
+    ;;
+
+  "EKS")
+    # shellcheck disable=SC2016
+    env AWS_ACCESS_KEY="$(base64 -d <<< "$LAYOUT_AWS_ACCESS_KEY")" AWS_SECRET_ACCESS_KEY="$(base64 -d <<< "$LAYOUT_AWS_SECRET_ACCESS_KEY")" \
+        KUBERNETES_VERSION="$KUBERNETES_VERSION" CRI="$CRI" DEV_BRANCH="$DEV_BRANCH" PREFIX="$PREFIX" DECKHOUSE_DOCKERCFG="$DECKHOUSE_DOCKERCFG" \
+        envsubst '${DECKHOUSE_DOCKERCFG} ${PREFIX} ${DEV_BRANCH} ${KUBERNETES_VERSION} ${CRI} ${AWS_ACCESS_KEY} ${AWS_SECRET_ACCESS_KEY}' \
+        <"$cwd/configuration.tpl.yaml" >"$cwd/configuration.yaml"
+
+    ssh_user="ubuntu"
     ;;
 
   "OpenStack")

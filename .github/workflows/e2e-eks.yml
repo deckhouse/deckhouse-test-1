@@ -17,7 +17,7 @@
 # limitations under the License.
 
 # <template: e2e_workflow_template>
-name: 'e2e: Azure'
+name: 'e2e: EKS'
 on:
   workflow_dispatch:
     inputs:
@@ -189,7 +189,7 @@ jobs:
         uses: actions/github-script@v5.0.0
         with:
           script: |
-            const provider = 'azure';
+            const provider = 'eks';
 
             const ci = require('./.github/scripts/js/ci');
             return await ci.checkE2ELabels({github, context, core, provider});
@@ -198,7 +198,7 @@ jobs:
 
   # <template: e2e_run_job_template>
   run_docker_1_22:
-    name: "e2e: Azure, Docker, Kubernetes 1.22"
+    name: "e2e: EKS, Docker, Kubernetes 1.22"
     needs:
       - check_e2e_labels
       - git_info
@@ -208,14 +208,14 @@ jobs:
       run_id: ${{ github.run_id }}
       # need for find state in artifact
       cluster_prefix: ${{ steps.setup.outputs.dhctl-prefix }}
-      ran_for: "azure;Standard;docker;1.22"
+      ran_for: "eks;WithoutNAT;docker;1.22"
       failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.failed_cluster_stayed }}
       issue_number: ${{ inputs.issue_number }}
       install_image_path: ${{ steps.setup.outputs.install-image-path }}
     env:
-      PROVIDER: Azure
+      PROVIDER: EKS
       CRI: Docker
-      LAYOUT: Standard
+      LAYOUT: WithoutNAT
       KUBERNETES_VERSION: "1.22"
       EVENT_LABEL: ${{ github.event.label.name }}
     runs-on: [self-hosted, e2e-common]
@@ -243,7 +243,7 @@ jobs:
         with:
           github-token: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
           script: |
-            const name = 'e2e: Azure, Docker, Kubernetes 1.22';
+            const name = 'e2e: EKS, Docker, Kubernetes 1.22';
 
             const ci = require('./.github/scripts/js/ci');
             return await ci.updateCommentOnStart({github, context, core, name})
@@ -409,13 +409,13 @@ jobs:
 
           echo '::echo::off'
 
-      - name: "Run e2e test: Azure/Docker/1.22"
+      - name: "Run e2e test: EKS/Docker/1.22"
         id: e2e_test_run
         timeout-minutes: 60
         env:
-          PROVIDER: Azure
+          PROVIDER: EKS
           CRI: Docker
-          LAYOUT: Standard
+          LAYOUT: WithoutNAT
           KUBERNETES_VERSION: "1.22"
           LAYOUT_DECKHOUSE_DOCKERCFG: ${{ secrets.LAYOUT_DECKHOUSE_DOCKERCFG }}
           LAYOUT_SSH_KEY: ${{ secrets.LAYOUT_SSH_KEY}}
@@ -426,10 +426,8 @@ jobs:
           DECKHOUSE_IMAGE_TAG: ${{ steps.setup.outputs.deckhouse-image-tag }}
           INITIAL_IMAGE_TAG: ${{ steps.setup.outputs.initial-image-tag }}
         # <template: e2e_run_template>
-          LAYOUT_AZURE_SUBSCRIPTION_ID: ${{ secrets.LAYOUT_AZURE_SUBSCRIPTION_ID }}
-          LAYOUT_AZURE_CLIENT_ID: ${{ secrets.LAYOUT_AZURE_CLIENT_ID }}
-          LAYOUT_AZURE_CLIENT_SECRET: ${{ secrets.LAYOUT_AZURE_CLIENT_SECRET }}
-          LAYOUT_AZURE_TENANT_ID: ${{ secrets.LAYOUT_AZURE_TENANT_ID }}
+          LAYOUT_AWS_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_ACCESS_KEY }}
+          LAYOUT_AWS_SECRET_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_SECRET_ACCESS_KEY }}
           COMMENT_ID: ${{ inputs.comment_id }}
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
@@ -463,32 +461,89 @@ jobs:
 
           $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" "$ssh_connect_str_file" > "${dhctl_log_file}-wait-log" 2>&1 &
 
+          docker run --rm \
+          -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
+          -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
+          -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
+          -e CRI=${CRI} \
+          -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_DEFAULT_REGION=eu-central-1 \
+          -e LAYOUT=${LAYOUT} \
+          -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
+          -e CRI=${CRI} \
+          -v $(pwd)/testing:/deckhouse/testing \
+          -v ${TMP_DIR_PATH}:/tmp \
+          --user $(id -u):$(id -u) \
+          ${TERRAFORM_IMAGE_NAME} \
+          bash /deckhouse/testing/cloud_layouts/script_eks.sh run-test
+          docker run --rm \
+          -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
+          -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
+          -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
+          -e LAYOUT=${LAYOUT:-not_provided} \
+          -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
+          -e CRI=${CRI} \
+          -v "$PWD/config.yml:/config.yml" \
+          -v ${TMP_DIR_PATH}:/tmp \
+          -v "$PWD/resources.yml:/resources.yml" \
+          -v $(pwd)/testing:/deckhouse/testing \
+          ${INSTALL_IMAGE_NAME} \
+          dhctl bootstrap-phase install-deckhouse \
+            --kubeconfig=/tmp/eks-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}.kubeconfig \
+            --config=/deckhouse/testing/cloud_layouts/EKS/WithoutNAT/configuration.yaml
 
           docker run --rm \
-            -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
-            -e PREFIX=${PREFIX} \
-            -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
-            -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
-            -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
-            -e CRI=${CRI} \
-            -e PROVIDER=${PROVIDER:-not_provided} \
-            -e MASTER_CONNECTION_STRING=${SSH_MASTER_CONNECTION_STRING:-} \
-            -e LAYOUT=${LAYOUT:-not_provided} \
-            -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
-            -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
-            -e LAYOUT_AZURE_SUBSCRIPTION_ID=${LAYOUT_AZURE_SUBSCRIPTION_ID:-not_provided} \
-            -e LAYOUT_AZURE_CLIENT_ID=${LAYOUT_AZURE_CLIENT_ID:-not_provided} \
-            -e LAYOUT_AZURE_CLIENT_SECRET=${LAYOUT_AZURE_CLIENT_SECRET:-not_provided} \
-            -e LAYOUT_AZURE_TENANT_ID=${LAYOUT_AZURE_TENANT_ID:-not_provided} \
-            -v $(pwd)/testing:/deckhouse/testing \
-            -v ${TMP_DIR_PATH}:/tmp \
-            --user $(id -u):$(id -u) \
-            -v /etc/group:/etc/group:ro \
-            -v /etc/passwd:/etc/passwd:ro \
-            -v /etc/shadow:/etc/shadow:ro \
-            -w /deckhouse \
+          -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
+          -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
+          -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
+          -e LAYOUT=${LAYOUT:-not_provided} \
+          -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
+          -e CRI=${CRI} \
+          -v "$PWD/config.yml:/config.yml" \
+          -v ${TMP_DIR_PATH}:/tmp \
+          -v "$PWD/resources.yml:/resources.yml" \
+          -v $(pwd)/testing:/deckhouse/testing \
           ${INSTALL_IMAGE_NAME} \
-          bash /deckhouse/testing/cloud_layouts/script.sh run-test
+          dhctl bootstrap-phase create-resources \
+            --kubeconfig=/tmp/eks-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}.kubeconfig \
+            --resources=/deckhouse/testing/cloud_layouts/EKS/WithoutNAT/resources.yaml
+
+          docker run --rm \
+          -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
+          -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
+          -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
+          -e CRI=${CRI} \
+          -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_DEFAULT_REGION=eu-central-1 \
+          -e LAYOUT=${LAYOUT} \
+          -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
+          -e CRI=${CRI} \
+          -e KUBECONFIG=/tmp/eks-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}.kubeconfig \
+          -v $(pwd)/testing:/deckhouse/testing \
+          -v ${TMP_DIR_PATH}:/tmp \
+          --user $(id -u):$(id -u) \
+          ${TERRAFORM_IMAGE_NAME} \
+          bash /deckhouse/testing/cloud_layouts/script_eks.sh wait_deckhouse_ready
+
+          docker run --rm \
+          -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
+          -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
+          -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
+          -e CRI=${CRI} \
+          -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_DEFAULT_REGION=eu-central-1 \
+          -e LAYOUT=${LAYOUT} \
+          -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
+          -e CRI=${CRI} \
+          -e KUBECONFIG=/tmp/eks-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}.kubeconfig \
+          -v $(pwd)/testing:/deckhouse/testing \
+          -v ${TMP_DIR_PATH}:/tmp \
+          --user $(id -u):$(id -u) \
+          ${TERRAFORM_IMAGE_NAME} \
+          bash /deckhouse/testing/cloud_layouts/script_eks.sh wait_cluster_ready
 
         # </template: e2e_run_template>
       - name: Read connection string
@@ -516,9 +571,9 @@ jobs:
         id: cleanup_cluster
         timeout-minutes: 60
         env:
-          PROVIDER: Azure
+          PROVIDER: EKS
           CRI: Docker
-          LAYOUT: Standard
+          LAYOUT: WithoutNAT
           KUBERNETES_VERSION: "1.22"
           LAYOUT_DECKHOUSE_DOCKERCFG: ${{ secrets.LAYOUT_DECKHOUSE_DOCKERCFG }}
           LAYOUT_SSH_KEY: ${{ secrets.LAYOUT_SSH_KEY}}
@@ -528,10 +583,8 @@ jobs:
           TERRAFORM_IMAGE_NAME: ${{ steps.setup.outputs.terraform-image-name }}
           DECKHOUSE_IMAGE_TAG: ${{ steps.setup.outputs.deckhouse-image-tag }}
         # <template: e2e_run_template>
-          LAYOUT_AZURE_SUBSCRIPTION_ID: ${{ secrets.LAYOUT_AZURE_SUBSCRIPTION_ID }}
-          LAYOUT_AZURE_CLIENT_ID: ${{ secrets.LAYOUT_AZURE_CLIENT_ID }}
-          LAYOUT_AZURE_CLIENT_SECRET: ${{ secrets.LAYOUT_AZURE_CLIENT_SECRET }}
-          LAYOUT_AZURE_TENANT_ID: ${{ secrets.LAYOUT_AZURE_TENANT_ID }}
+          LAYOUT_AWS_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_ACCESS_KEY }}
+          LAYOUT_AWS_SECRET_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_SECRET_ACCESS_KEY }}
           COMMENT_ID: ${{ inputs.comment_id }}
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
@@ -554,32 +607,22 @@ jobs:
 
           dhctl_log_file="${DHCTL_LOG_FILE}-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           echo "DHCTL log file: $dhctl_log_file"
-
           docker run --rm \
-            -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
-            -e PREFIX=${PREFIX} \
-            -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
-            -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
-            -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
-            -e CRI=${CRI} \
-            -e PROVIDER=${PROVIDER:-not_provided} \
-            -e MASTER_CONNECTION_STRING=${SSH_MASTER_CONNECTION_STRING:-} \
-            -e LAYOUT=${LAYOUT:-not_provided} \
-            -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
-            -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
-            -e LAYOUT_AZURE_SUBSCRIPTION_ID=${LAYOUT_AZURE_SUBSCRIPTION_ID:-not_provided} \
-            -e LAYOUT_AZURE_CLIENT_ID=${LAYOUT_AZURE_CLIENT_ID:-not_provided} \
-            -e LAYOUT_AZURE_CLIENT_SECRET=${LAYOUT_AZURE_CLIENT_SECRET:-not_provided} \
-            -e LAYOUT_AZURE_TENANT_ID=${LAYOUT_AZURE_TENANT_ID:-not_provided} \
-            -v $(pwd)/testing:/deckhouse/testing \
-            -v ${TMP_DIR_PATH}:/tmp \
-            --user $(id -u):$(id -u) \
-            -v /etc/group:/etc/group:ro \
-            -v /etc/passwd:/etc/passwd:ro \
-            -v /etc/shadow:/etc/shadow:ro \
-            -w /deckhouse \
-          ${INSTALL_IMAGE_NAME} \
-          bash /deckhouse/testing/cloud_layouts/script.sh cleanup
+          -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
+          -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
+          -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
+          -e CRI=${CRI} \
+          -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_DEFAULT_REGION=eu-central-1 \
+          -e LAYOUT=${LAYOUT} \
+          -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
+          -e CRI=${CRI} \
+          -v $(pwd)/testing:/deckhouse/testing \
+          -v ${TMP_DIR_PATH}:/tmp \
+          --user $(id -u):$(id -u) \
+          ${TERRAFORM_IMAGE_NAME} \
+          bash /deckhouse/testing/cloud_layouts/script_eks.sh cleanup
 
         # </template: e2e_run_template>
 
@@ -588,7 +631,7 @@ jobs:
         if: ${{ failure() }}
         uses: actions/upload-artifact@v2
         with:
-          name: failed_cluster_state_azure_docker_1_22
+          name: failed_cluster_state_eks_docker_1_22
           path: |
             ${{ steps.setup.outputs.tmp-dir-path}}/dhctl
             ${{ steps.setup.outputs.tmp-dir-path}}/*.tfstate
@@ -597,7 +640,7 @@ jobs:
         if: ${{ steps.setup.outputs.dhctl-log-file }}
         uses: actions/upload-artifact@v2
         with:
-          name: test_output_azure_docker_1_22
+          name: test_output_eks_docker_1_22
           path: |
             ${{ steps.setup.outputs.dhctl-log-file}}*
             testing/cloud_layouts/
@@ -627,7 +670,7 @@ jobs:
           github-token: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
           script: |
             const statusConfig = 'job,separate';
-            const name = 'e2e: Azure, Docker, Kubernetes 1.22';
+            const name = 'e2e: EKS, Docker, Kubernetes 1.22';
             const needsContext = JSON.parse(process.env.NEEDS_CONTEXT);
             const jobContext = JSON.parse(process.env.JOB_CONTEXT);
             const stepsContext = JSON.parse(process.env.STEPS_CONTEXT);
@@ -648,7 +691,7 @@ jobs:
 
   # <template: e2e_run_job_template>
   run_docker_1_23:
-    name: "e2e: Azure, Docker, Kubernetes 1.23"
+    name: "e2e: EKS, Docker, Kubernetes 1.23"
     needs:
       - check_e2e_labels
       - git_info
@@ -658,14 +701,14 @@ jobs:
       run_id: ${{ github.run_id }}
       # need for find state in artifact
       cluster_prefix: ${{ steps.setup.outputs.dhctl-prefix }}
-      ran_for: "azure;Standard;docker;1.23"
+      ran_for: "eks;WithoutNAT;docker;1.23"
       failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.failed_cluster_stayed }}
       issue_number: ${{ inputs.issue_number }}
       install_image_path: ${{ steps.setup.outputs.install-image-path }}
     env:
-      PROVIDER: Azure
+      PROVIDER: EKS
       CRI: Docker
-      LAYOUT: Standard
+      LAYOUT: WithoutNAT
       KUBERNETES_VERSION: "1.23"
       EVENT_LABEL: ${{ github.event.label.name }}
     runs-on: [self-hosted, e2e-common]
@@ -693,7 +736,7 @@ jobs:
         with:
           github-token: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
           script: |
-            const name = 'e2e: Azure, Docker, Kubernetes 1.23';
+            const name = 'e2e: EKS, Docker, Kubernetes 1.23';
 
             const ci = require('./.github/scripts/js/ci');
             return await ci.updateCommentOnStart({github, context, core, name})
@@ -859,13 +902,13 @@ jobs:
 
           echo '::echo::off'
 
-      - name: "Run e2e test: Azure/Docker/1.23"
+      - name: "Run e2e test: EKS/Docker/1.23"
         id: e2e_test_run
         timeout-minutes: 60
         env:
-          PROVIDER: Azure
+          PROVIDER: EKS
           CRI: Docker
-          LAYOUT: Standard
+          LAYOUT: WithoutNAT
           KUBERNETES_VERSION: "1.23"
           LAYOUT_DECKHOUSE_DOCKERCFG: ${{ secrets.LAYOUT_DECKHOUSE_DOCKERCFG }}
           LAYOUT_SSH_KEY: ${{ secrets.LAYOUT_SSH_KEY}}
@@ -876,10 +919,8 @@ jobs:
           DECKHOUSE_IMAGE_TAG: ${{ steps.setup.outputs.deckhouse-image-tag }}
           INITIAL_IMAGE_TAG: ${{ steps.setup.outputs.initial-image-tag }}
         # <template: e2e_run_template>
-          LAYOUT_AZURE_SUBSCRIPTION_ID: ${{ secrets.LAYOUT_AZURE_SUBSCRIPTION_ID }}
-          LAYOUT_AZURE_CLIENT_ID: ${{ secrets.LAYOUT_AZURE_CLIENT_ID }}
-          LAYOUT_AZURE_CLIENT_SECRET: ${{ secrets.LAYOUT_AZURE_CLIENT_SECRET }}
-          LAYOUT_AZURE_TENANT_ID: ${{ secrets.LAYOUT_AZURE_TENANT_ID }}
+          LAYOUT_AWS_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_ACCESS_KEY }}
+          LAYOUT_AWS_SECRET_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_SECRET_ACCESS_KEY }}
           COMMENT_ID: ${{ inputs.comment_id }}
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
@@ -913,32 +954,89 @@ jobs:
 
           $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" "$ssh_connect_str_file" > "${dhctl_log_file}-wait-log" 2>&1 &
 
+          docker run --rm \
+          -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
+          -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
+          -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
+          -e CRI=${CRI} \
+          -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_DEFAULT_REGION=eu-central-1 \
+          -e LAYOUT=${LAYOUT} \
+          -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
+          -e CRI=${CRI} \
+          -v $(pwd)/testing:/deckhouse/testing \
+          -v ${TMP_DIR_PATH}:/tmp \
+          --user $(id -u):$(id -u) \
+          ${TERRAFORM_IMAGE_NAME} \
+          bash /deckhouse/testing/cloud_layouts/script_eks.sh run-test
+          docker run --rm \
+          -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
+          -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
+          -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
+          -e LAYOUT=${LAYOUT:-not_provided} \
+          -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
+          -e CRI=${CRI} \
+          -v "$PWD/config.yml:/config.yml" \
+          -v ${TMP_DIR_PATH}:/tmp \
+          -v "$PWD/resources.yml:/resources.yml" \
+          -v $(pwd)/testing:/deckhouse/testing \
+          ${INSTALL_IMAGE_NAME} \
+          dhctl bootstrap-phase install-deckhouse \
+            --kubeconfig=/tmp/eks-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}.kubeconfig \
+            --config=/deckhouse/testing/cloud_layouts/EKS/WithoutNAT/configuration.yaml
 
           docker run --rm \
-            -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
-            -e PREFIX=${PREFIX} \
-            -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
-            -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
-            -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
-            -e CRI=${CRI} \
-            -e PROVIDER=${PROVIDER:-not_provided} \
-            -e MASTER_CONNECTION_STRING=${SSH_MASTER_CONNECTION_STRING:-} \
-            -e LAYOUT=${LAYOUT:-not_provided} \
-            -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
-            -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
-            -e LAYOUT_AZURE_SUBSCRIPTION_ID=${LAYOUT_AZURE_SUBSCRIPTION_ID:-not_provided} \
-            -e LAYOUT_AZURE_CLIENT_ID=${LAYOUT_AZURE_CLIENT_ID:-not_provided} \
-            -e LAYOUT_AZURE_CLIENT_SECRET=${LAYOUT_AZURE_CLIENT_SECRET:-not_provided} \
-            -e LAYOUT_AZURE_TENANT_ID=${LAYOUT_AZURE_TENANT_ID:-not_provided} \
-            -v $(pwd)/testing:/deckhouse/testing \
-            -v ${TMP_DIR_PATH}:/tmp \
-            --user $(id -u):$(id -u) \
-            -v /etc/group:/etc/group:ro \
-            -v /etc/passwd:/etc/passwd:ro \
-            -v /etc/shadow:/etc/shadow:ro \
-            -w /deckhouse \
+          -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
+          -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
+          -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
+          -e LAYOUT=${LAYOUT:-not_provided} \
+          -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
+          -e CRI=${CRI} \
+          -v "$PWD/config.yml:/config.yml" \
+          -v ${TMP_DIR_PATH}:/tmp \
+          -v "$PWD/resources.yml:/resources.yml" \
+          -v $(pwd)/testing:/deckhouse/testing \
           ${INSTALL_IMAGE_NAME} \
-          bash /deckhouse/testing/cloud_layouts/script.sh run-test
+          dhctl bootstrap-phase create-resources \
+            --kubeconfig=/tmp/eks-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}.kubeconfig \
+            --resources=/deckhouse/testing/cloud_layouts/EKS/WithoutNAT/resources.yaml
+
+          docker run --rm \
+          -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
+          -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
+          -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
+          -e CRI=${CRI} \
+          -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_DEFAULT_REGION=eu-central-1 \
+          -e LAYOUT=${LAYOUT} \
+          -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
+          -e CRI=${CRI} \
+          -e KUBECONFIG=/tmp/eks-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}.kubeconfig \
+          -v $(pwd)/testing:/deckhouse/testing \
+          -v ${TMP_DIR_PATH}:/tmp \
+          --user $(id -u):$(id -u) \
+          ${TERRAFORM_IMAGE_NAME} \
+          bash /deckhouse/testing/cloud_layouts/script_eks.sh wait_deckhouse_ready
+
+          docker run --rm \
+          -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
+          -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
+          -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
+          -e CRI=${CRI} \
+          -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_DEFAULT_REGION=eu-central-1 \
+          -e LAYOUT=${LAYOUT} \
+          -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
+          -e CRI=${CRI} \
+          -e KUBECONFIG=/tmp/eks-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}.kubeconfig \
+          -v $(pwd)/testing:/deckhouse/testing \
+          -v ${TMP_DIR_PATH}:/tmp \
+          --user $(id -u):$(id -u) \
+          ${TERRAFORM_IMAGE_NAME} \
+          bash /deckhouse/testing/cloud_layouts/script_eks.sh wait_cluster_ready
 
         # </template: e2e_run_template>
       - name: Read connection string
@@ -966,9 +1064,9 @@ jobs:
         id: cleanup_cluster
         timeout-minutes: 60
         env:
-          PROVIDER: Azure
+          PROVIDER: EKS
           CRI: Docker
-          LAYOUT: Standard
+          LAYOUT: WithoutNAT
           KUBERNETES_VERSION: "1.23"
           LAYOUT_DECKHOUSE_DOCKERCFG: ${{ secrets.LAYOUT_DECKHOUSE_DOCKERCFG }}
           LAYOUT_SSH_KEY: ${{ secrets.LAYOUT_SSH_KEY}}
@@ -978,10 +1076,8 @@ jobs:
           TERRAFORM_IMAGE_NAME: ${{ steps.setup.outputs.terraform-image-name }}
           DECKHOUSE_IMAGE_TAG: ${{ steps.setup.outputs.deckhouse-image-tag }}
         # <template: e2e_run_template>
-          LAYOUT_AZURE_SUBSCRIPTION_ID: ${{ secrets.LAYOUT_AZURE_SUBSCRIPTION_ID }}
-          LAYOUT_AZURE_CLIENT_ID: ${{ secrets.LAYOUT_AZURE_CLIENT_ID }}
-          LAYOUT_AZURE_CLIENT_SECRET: ${{ secrets.LAYOUT_AZURE_CLIENT_SECRET }}
-          LAYOUT_AZURE_TENANT_ID: ${{ secrets.LAYOUT_AZURE_TENANT_ID }}
+          LAYOUT_AWS_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_ACCESS_KEY }}
+          LAYOUT_AWS_SECRET_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_SECRET_ACCESS_KEY }}
           COMMENT_ID: ${{ inputs.comment_id }}
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
@@ -1004,32 +1100,22 @@ jobs:
 
           dhctl_log_file="${DHCTL_LOG_FILE}-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           echo "DHCTL log file: $dhctl_log_file"
-
           docker run --rm \
-            -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
-            -e PREFIX=${PREFIX} \
-            -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
-            -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
-            -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
-            -e CRI=${CRI} \
-            -e PROVIDER=${PROVIDER:-not_provided} \
-            -e MASTER_CONNECTION_STRING=${SSH_MASTER_CONNECTION_STRING:-} \
-            -e LAYOUT=${LAYOUT:-not_provided} \
-            -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
-            -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
-            -e LAYOUT_AZURE_SUBSCRIPTION_ID=${LAYOUT_AZURE_SUBSCRIPTION_ID:-not_provided} \
-            -e LAYOUT_AZURE_CLIENT_ID=${LAYOUT_AZURE_CLIENT_ID:-not_provided} \
-            -e LAYOUT_AZURE_CLIENT_SECRET=${LAYOUT_AZURE_CLIENT_SECRET:-not_provided} \
-            -e LAYOUT_AZURE_TENANT_ID=${LAYOUT_AZURE_TENANT_ID:-not_provided} \
-            -v $(pwd)/testing:/deckhouse/testing \
-            -v ${TMP_DIR_PATH}:/tmp \
-            --user $(id -u):$(id -u) \
-            -v /etc/group:/etc/group:ro \
-            -v /etc/passwd:/etc/passwd:ro \
-            -v /etc/shadow:/etc/shadow:ro \
-            -w /deckhouse \
-          ${INSTALL_IMAGE_NAME} \
-          bash /deckhouse/testing/cloud_layouts/script.sh cleanup
+          -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
+          -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
+          -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
+          -e CRI=${CRI} \
+          -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_DEFAULT_REGION=eu-central-1 \
+          -e LAYOUT=${LAYOUT} \
+          -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
+          -e CRI=${CRI} \
+          -v $(pwd)/testing:/deckhouse/testing \
+          -v ${TMP_DIR_PATH}:/tmp \
+          --user $(id -u):$(id -u) \
+          ${TERRAFORM_IMAGE_NAME} \
+          bash /deckhouse/testing/cloud_layouts/script_eks.sh cleanup
 
         # </template: e2e_run_template>
 
@@ -1038,7 +1124,7 @@ jobs:
         if: ${{ failure() }}
         uses: actions/upload-artifact@v2
         with:
-          name: failed_cluster_state_azure_docker_1_23
+          name: failed_cluster_state_eks_docker_1_23
           path: |
             ${{ steps.setup.outputs.tmp-dir-path}}/dhctl
             ${{ steps.setup.outputs.tmp-dir-path}}/*.tfstate
@@ -1047,7 +1133,7 @@ jobs:
         if: ${{ steps.setup.outputs.dhctl-log-file }}
         uses: actions/upload-artifact@v2
         with:
-          name: test_output_azure_docker_1_23
+          name: test_output_eks_docker_1_23
           path: |
             ${{ steps.setup.outputs.dhctl-log-file}}*
             testing/cloud_layouts/
@@ -1077,7 +1163,7 @@ jobs:
           github-token: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
           script: |
             const statusConfig = 'job,separate';
-            const name = 'e2e: Azure, Docker, Kubernetes 1.23';
+            const name = 'e2e: EKS, Docker, Kubernetes 1.23';
             const needsContext = JSON.parse(process.env.NEEDS_CONTEXT);
             const jobContext = JSON.parse(process.env.JOB_CONTEXT);
             const stepsContext = JSON.parse(process.env.STEPS_CONTEXT);
@@ -1098,7 +1184,7 @@ jobs:
 
   # <template: e2e_run_job_template>
   run_docker_1_24:
-    name: "e2e: Azure, Docker, Kubernetes 1.24"
+    name: "e2e: EKS, Docker, Kubernetes 1.24"
     needs:
       - check_e2e_labels
       - git_info
@@ -1108,14 +1194,14 @@ jobs:
       run_id: ${{ github.run_id }}
       # need for find state in artifact
       cluster_prefix: ${{ steps.setup.outputs.dhctl-prefix }}
-      ran_for: "azure;Standard;docker;1.24"
+      ran_for: "eks;WithoutNAT;docker;1.24"
       failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.failed_cluster_stayed }}
       issue_number: ${{ inputs.issue_number }}
       install_image_path: ${{ steps.setup.outputs.install-image-path }}
     env:
-      PROVIDER: Azure
+      PROVIDER: EKS
       CRI: Docker
-      LAYOUT: Standard
+      LAYOUT: WithoutNAT
       KUBERNETES_VERSION: "1.24"
       EVENT_LABEL: ${{ github.event.label.name }}
     runs-on: [self-hosted, e2e-common]
@@ -1143,7 +1229,7 @@ jobs:
         with:
           github-token: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
           script: |
-            const name = 'e2e: Azure, Docker, Kubernetes 1.24';
+            const name = 'e2e: EKS, Docker, Kubernetes 1.24';
 
             const ci = require('./.github/scripts/js/ci');
             return await ci.updateCommentOnStart({github, context, core, name})
@@ -1309,13 +1395,13 @@ jobs:
 
           echo '::echo::off'
 
-      - name: "Run e2e test: Azure/Docker/1.24"
+      - name: "Run e2e test: EKS/Docker/1.24"
         id: e2e_test_run
         timeout-minutes: 60
         env:
-          PROVIDER: Azure
+          PROVIDER: EKS
           CRI: Docker
-          LAYOUT: Standard
+          LAYOUT: WithoutNAT
           KUBERNETES_VERSION: "1.24"
           LAYOUT_DECKHOUSE_DOCKERCFG: ${{ secrets.LAYOUT_DECKHOUSE_DOCKERCFG }}
           LAYOUT_SSH_KEY: ${{ secrets.LAYOUT_SSH_KEY}}
@@ -1326,10 +1412,8 @@ jobs:
           DECKHOUSE_IMAGE_TAG: ${{ steps.setup.outputs.deckhouse-image-tag }}
           INITIAL_IMAGE_TAG: ${{ steps.setup.outputs.initial-image-tag }}
         # <template: e2e_run_template>
-          LAYOUT_AZURE_SUBSCRIPTION_ID: ${{ secrets.LAYOUT_AZURE_SUBSCRIPTION_ID }}
-          LAYOUT_AZURE_CLIENT_ID: ${{ secrets.LAYOUT_AZURE_CLIENT_ID }}
-          LAYOUT_AZURE_CLIENT_SECRET: ${{ secrets.LAYOUT_AZURE_CLIENT_SECRET }}
-          LAYOUT_AZURE_TENANT_ID: ${{ secrets.LAYOUT_AZURE_TENANT_ID }}
+          LAYOUT_AWS_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_ACCESS_KEY }}
+          LAYOUT_AWS_SECRET_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_SECRET_ACCESS_KEY }}
           COMMENT_ID: ${{ inputs.comment_id }}
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
@@ -1363,32 +1447,89 @@ jobs:
 
           $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" "$ssh_connect_str_file" > "${dhctl_log_file}-wait-log" 2>&1 &
 
+          docker run --rm \
+          -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
+          -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
+          -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
+          -e CRI=${CRI} \
+          -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_DEFAULT_REGION=eu-central-1 \
+          -e LAYOUT=${LAYOUT} \
+          -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
+          -e CRI=${CRI} \
+          -v $(pwd)/testing:/deckhouse/testing \
+          -v ${TMP_DIR_PATH}:/tmp \
+          --user $(id -u):$(id -u) \
+          ${TERRAFORM_IMAGE_NAME} \
+          bash /deckhouse/testing/cloud_layouts/script_eks.sh run-test
+          docker run --rm \
+          -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
+          -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
+          -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
+          -e LAYOUT=${LAYOUT:-not_provided} \
+          -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
+          -e CRI=${CRI} \
+          -v "$PWD/config.yml:/config.yml" \
+          -v ${TMP_DIR_PATH}:/tmp \
+          -v "$PWD/resources.yml:/resources.yml" \
+          -v $(pwd)/testing:/deckhouse/testing \
+          ${INSTALL_IMAGE_NAME} \
+          dhctl bootstrap-phase install-deckhouse \
+            --kubeconfig=/tmp/eks-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}.kubeconfig \
+            --config=/deckhouse/testing/cloud_layouts/EKS/WithoutNAT/configuration.yaml
 
           docker run --rm \
-            -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
-            -e PREFIX=${PREFIX} \
-            -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
-            -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
-            -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
-            -e CRI=${CRI} \
-            -e PROVIDER=${PROVIDER:-not_provided} \
-            -e MASTER_CONNECTION_STRING=${SSH_MASTER_CONNECTION_STRING:-} \
-            -e LAYOUT=${LAYOUT:-not_provided} \
-            -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
-            -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
-            -e LAYOUT_AZURE_SUBSCRIPTION_ID=${LAYOUT_AZURE_SUBSCRIPTION_ID:-not_provided} \
-            -e LAYOUT_AZURE_CLIENT_ID=${LAYOUT_AZURE_CLIENT_ID:-not_provided} \
-            -e LAYOUT_AZURE_CLIENT_SECRET=${LAYOUT_AZURE_CLIENT_SECRET:-not_provided} \
-            -e LAYOUT_AZURE_TENANT_ID=${LAYOUT_AZURE_TENANT_ID:-not_provided} \
-            -v $(pwd)/testing:/deckhouse/testing \
-            -v ${TMP_DIR_PATH}:/tmp \
-            --user $(id -u):$(id -u) \
-            -v /etc/group:/etc/group:ro \
-            -v /etc/passwd:/etc/passwd:ro \
-            -v /etc/shadow:/etc/shadow:ro \
-            -w /deckhouse \
+          -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
+          -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
+          -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
+          -e LAYOUT=${LAYOUT:-not_provided} \
+          -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
+          -e CRI=${CRI} \
+          -v "$PWD/config.yml:/config.yml" \
+          -v ${TMP_DIR_PATH}:/tmp \
+          -v "$PWD/resources.yml:/resources.yml" \
+          -v $(pwd)/testing:/deckhouse/testing \
           ${INSTALL_IMAGE_NAME} \
-          bash /deckhouse/testing/cloud_layouts/script.sh run-test
+          dhctl bootstrap-phase create-resources \
+            --kubeconfig=/tmp/eks-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}.kubeconfig \
+            --resources=/deckhouse/testing/cloud_layouts/EKS/WithoutNAT/resources.yaml
+
+          docker run --rm \
+          -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
+          -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
+          -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
+          -e CRI=${CRI} \
+          -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_DEFAULT_REGION=eu-central-1 \
+          -e LAYOUT=${LAYOUT} \
+          -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
+          -e CRI=${CRI} \
+          -e KUBECONFIG=/tmp/eks-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}.kubeconfig \
+          -v $(pwd)/testing:/deckhouse/testing \
+          -v ${TMP_DIR_PATH}:/tmp \
+          --user $(id -u):$(id -u) \
+          ${TERRAFORM_IMAGE_NAME} \
+          bash /deckhouse/testing/cloud_layouts/script_eks.sh wait_deckhouse_ready
+
+          docker run --rm \
+          -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
+          -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
+          -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
+          -e CRI=${CRI} \
+          -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_DEFAULT_REGION=eu-central-1 \
+          -e LAYOUT=${LAYOUT} \
+          -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
+          -e CRI=${CRI} \
+          -e KUBECONFIG=/tmp/eks-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}.kubeconfig \
+          -v $(pwd)/testing:/deckhouse/testing \
+          -v ${TMP_DIR_PATH}:/tmp \
+          --user $(id -u):$(id -u) \
+          ${TERRAFORM_IMAGE_NAME} \
+          bash /deckhouse/testing/cloud_layouts/script_eks.sh wait_cluster_ready
 
         # </template: e2e_run_template>
       - name: Read connection string
@@ -1416,9 +1557,9 @@ jobs:
         id: cleanup_cluster
         timeout-minutes: 60
         env:
-          PROVIDER: Azure
+          PROVIDER: EKS
           CRI: Docker
-          LAYOUT: Standard
+          LAYOUT: WithoutNAT
           KUBERNETES_VERSION: "1.24"
           LAYOUT_DECKHOUSE_DOCKERCFG: ${{ secrets.LAYOUT_DECKHOUSE_DOCKERCFG }}
           LAYOUT_SSH_KEY: ${{ secrets.LAYOUT_SSH_KEY}}
@@ -1428,10 +1569,8 @@ jobs:
           TERRAFORM_IMAGE_NAME: ${{ steps.setup.outputs.terraform-image-name }}
           DECKHOUSE_IMAGE_TAG: ${{ steps.setup.outputs.deckhouse-image-tag }}
         # <template: e2e_run_template>
-          LAYOUT_AZURE_SUBSCRIPTION_ID: ${{ secrets.LAYOUT_AZURE_SUBSCRIPTION_ID }}
-          LAYOUT_AZURE_CLIENT_ID: ${{ secrets.LAYOUT_AZURE_CLIENT_ID }}
-          LAYOUT_AZURE_CLIENT_SECRET: ${{ secrets.LAYOUT_AZURE_CLIENT_SECRET }}
-          LAYOUT_AZURE_TENANT_ID: ${{ secrets.LAYOUT_AZURE_TENANT_ID }}
+          LAYOUT_AWS_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_ACCESS_KEY }}
+          LAYOUT_AWS_SECRET_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_SECRET_ACCESS_KEY }}
           COMMENT_ID: ${{ inputs.comment_id }}
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
@@ -1454,32 +1593,22 @@ jobs:
 
           dhctl_log_file="${DHCTL_LOG_FILE}-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           echo "DHCTL log file: $dhctl_log_file"
-
           docker run --rm \
-            -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
-            -e PREFIX=${PREFIX} \
-            -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
-            -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
-            -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
-            -e CRI=${CRI} \
-            -e PROVIDER=${PROVIDER:-not_provided} \
-            -e MASTER_CONNECTION_STRING=${SSH_MASTER_CONNECTION_STRING:-} \
-            -e LAYOUT=${LAYOUT:-not_provided} \
-            -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
-            -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
-            -e LAYOUT_AZURE_SUBSCRIPTION_ID=${LAYOUT_AZURE_SUBSCRIPTION_ID:-not_provided} \
-            -e LAYOUT_AZURE_CLIENT_ID=${LAYOUT_AZURE_CLIENT_ID:-not_provided} \
-            -e LAYOUT_AZURE_CLIENT_SECRET=${LAYOUT_AZURE_CLIENT_SECRET:-not_provided} \
-            -e LAYOUT_AZURE_TENANT_ID=${LAYOUT_AZURE_TENANT_ID:-not_provided} \
-            -v $(pwd)/testing:/deckhouse/testing \
-            -v ${TMP_DIR_PATH}:/tmp \
-            --user $(id -u):$(id -u) \
-            -v /etc/group:/etc/group:ro \
-            -v /etc/passwd:/etc/passwd:ro \
-            -v /etc/shadow:/etc/shadow:ro \
-            -w /deckhouse \
-          ${INSTALL_IMAGE_NAME} \
-          bash /deckhouse/testing/cloud_layouts/script.sh cleanup
+          -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
+          -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
+          -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
+          -e CRI=${CRI} \
+          -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_DEFAULT_REGION=eu-central-1 \
+          -e LAYOUT=${LAYOUT} \
+          -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
+          -e CRI=${CRI} \
+          -v $(pwd)/testing:/deckhouse/testing \
+          -v ${TMP_DIR_PATH}:/tmp \
+          --user $(id -u):$(id -u) \
+          ${TERRAFORM_IMAGE_NAME} \
+          bash /deckhouse/testing/cloud_layouts/script_eks.sh cleanup
 
         # </template: e2e_run_template>
 
@@ -1488,7 +1617,7 @@ jobs:
         if: ${{ failure() }}
         uses: actions/upload-artifact@v2
         with:
-          name: failed_cluster_state_azure_docker_1_24
+          name: failed_cluster_state_eks_docker_1_24
           path: |
             ${{ steps.setup.outputs.tmp-dir-path}}/dhctl
             ${{ steps.setup.outputs.tmp-dir-path}}/*.tfstate
@@ -1497,7 +1626,7 @@ jobs:
         if: ${{ steps.setup.outputs.dhctl-log-file }}
         uses: actions/upload-artifact@v2
         with:
-          name: test_output_azure_docker_1_24
+          name: test_output_eks_docker_1_24
           path: |
             ${{ steps.setup.outputs.dhctl-log-file}}*
             testing/cloud_layouts/
@@ -1527,7 +1656,7 @@ jobs:
           github-token: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
           script: |
             const statusConfig = 'job,separate';
-            const name = 'e2e: Azure, Docker, Kubernetes 1.24';
+            const name = 'e2e: EKS, Docker, Kubernetes 1.24';
             const needsContext = JSON.parse(process.env.NEEDS_CONTEXT);
             const jobContext = JSON.parse(process.env.JOB_CONTEXT);
             const stepsContext = JSON.parse(process.env.STEPS_CONTEXT);
@@ -1548,7 +1677,7 @@ jobs:
 
   # <template: e2e_run_job_template>
   run_docker_1_25:
-    name: "e2e: Azure, Docker, Kubernetes 1.25"
+    name: "e2e: EKS, Docker, Kubernetes 1.25"
     needs:
       - check_e2e_labels
       - git_info
@@ -1558,14 +1687,14 @@ jobs:
       run_id: ${{ github.run_id }}
       # need for find state in artifact
       cluster_prefix: ${{ steps.setup.outputs.dhctl-prefix }}
-      ran_for: "azure;Standard;docker;1.25"
+      ran_for: "eks;WithoutNAT;docker;1.25"
       failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.failed_cluster_stayed }}
       issue_number: ${{ inputs.issue_number }}
       install_image_path: ${{ steps.setup.outputs.install-image-path }}
     env:
-      PROVIDER: Azure
+      PROVIDER: EKS
       CRI: Docker
-      LAYOUT: Standard
+      LAYOUT: WithoutNAT
       KUBERNETES_VERSION: "1.25"
       EVENT_LABEL: ${{ github.event.label.name }}
     runs-on: [self-hosted, e2e-common]
@@ -1593,7 +1722,7 @@ jobs:
         with:
           github-token: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
           script: |
-            const name = 'e2e: Azure, Docker, Kubernetes 1.25';
+            const name = 'e2e: EKS, Docker, Kubernetes 1.25';
 
             const ci = require('./.github/scripts/js/ci');
             return await ci.updateCommentOnStart({github, context, core, name})
@@ -1759,13 +1888,13 @@ jobs:
 
           echo '::echo::off'
 
-      - name: "Run e2e test: Azure/Docker/1.25"
+      - name: "Run e2e test: EKS/Docker/1.25"
         id: e2e_test_run
         timeout-minutes: 60
         env:
-          PROVIDER: Azure
+          PROVIDER: EKS
           CRI: Docker
-          LAYOUT: Standard
+          LAYOUT: WithoutNAT
           KUBERNETES_VERSION: "1.25"
           LAYOUT_DECKHOUSE_DOCKERCFG: ${{ secrets.LAYOUT_DECKHOUSE_DOCKERCFG }}
           LAYOUT_SSH_KEY: ${{ secrets.LAYOUT_SSH_KEY}}
@@ -1776,10 +1905,8 @@ jobs:
           DECKHOUSE_IMAGE_TAG: ${{ steps.setup.outputs.deckhouse-image-tag }}
           INITIAL_IMAGE_TAG: ${{ steps.setup.outputs.initial-image-tag }}
         # <template: e2e_run_template>
-          LAYOUT_AZURE_SUBSCRIPTION_ID: ${{ secrets.LAYOUT_AZURE_SUBSCRIPTION_ID }}
-          LAYOUT_AZURE_CLIENT_ID: ${{ secrets.LAYOUT_AZURE_CLIENT_ID }}
-          LAYOUT_AZURE_CLIENT_SECRET: ${{ secrets.LAYOUT_AZURE_CLIENT_SECRET }}
-          LAYOUT_AZURE_TENANT_ID: ${{ secrets.LAYOUT_AZURE_TENANT_ID }}
+          LAYOUT_AWS_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_ACCESS_KEY }}
+          LAYOUT_AWS_SECRET_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_SECRET_ACCESS_KEY }}
           COMMENT_ID: ${{ inputs.comment_id }}
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
@@ -1813,32 +1940,89 @@ jobs:
 
           $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" "$ssh_connect_str_file" > "${dhctl_log_file}-wait-log" 2>&1 &
 
+          docker run --rm \
+          -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
+          -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
+          -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
+          -e CRI=${CRI} \
+          -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_DEFAULT_REGION=eu-central-1 \
+          -e LAYOUT=${LAYOUT} \
+          -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
+          -e CRI=${CRI} \
+          -v $(pwd)/testing:/deckhouse/testing \
+          -v ${TMP_DIR_PATH}:/tmp \
+          --user $(id -u):$(id -u) \
+          ${TERRAFORM_IMAGE_NAME} \
+          bash /deckhouse/testing/cloud_layouts/script_eks.sh run-test
+          docker run --rm \
+          -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
+          -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
+          -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
+          -e LAYOUT=${LAYOUT:-not_provided} \
+          -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
+          -e CRI=${CRI} \
+          -v "$PWD/config.yml:/config.yml" \
+          -v ${TMP_DIR_PATH}:/tmp \
+          -v "$PWD/resources.yml:/resources.yml" \
+          -v $(pwd)/testing:/deckhouse/testing \
+          ${INSTALL_IMAGE_NAME} \
+          dhctl bootstrap-phase install-deckhouse \
+            --kubeconfig=/tmp/eks-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}.kubeconfig \
+            --config=/deckhouse/testing/cloud_layouts/EKS/WithoutNAT/configuration.yaml
 
           docker run --rm \
-            -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
-            -e PREFIX=${PREFIX} \
-            -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
-            -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
-            -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
-            -e CRI=${CRI} \
-            -e PROVIDER=${PROVIDER:-not_provided} \
-            -e MASTER_CONNECTION_STRING=${SSH_MASTER_CONNECTION_STRING:-} \
-            -e LAYOUT=${LAYOUT:-not_provided} \
-            -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
-            -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
-            -e LAYOUT_AZURE_SUBSCRIPTION_ID=${LAYOUT_AZURE_SUBSCRIPTION_ID:-not_provided} \
-            -e LAYOUT_AZURE_CLIENT_ID=${LAYOUT_AZURE_CLIENT_ID:-not_provided} \
-            -e LAYOUT_AZURE_CLIENT_SECRET=${LAYOUT_AZURE_CLIENT_SECRET:-not_provided} \
-            -e LAYOUT_AZURE_TENANT_ID=${LAYOUT_AZURE_TENANT_ID:-not_provided} \
-            -v $(pwd)/testing:/deckhouse/testing \
-            -v ${TMP_DIR_PATH}:/tmp \
-            --user $(id -u):$(id -u) \
-            -v /etc/group:/etc/group:ro \
-            -v /etc/passwd:/etc/passwd:ro \
-            -v /etc/shadow:/etc/shadow:ro \
-            -w /deckhouse \
+          -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
+          -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
+          -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
+          -e LAYOUT=${LAYOUT:-not_provided} \
+          -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
+          -e CRI=${CRI} \
+          -v "$PWD/config.yml:/config.yml" \
+          -v ${TMP_DIR_PATH}:/tmp \
+          -v "$PWD/resources.yml:/resources.yml" \
+          -v $(pwd)/testing:/deckhouse/testing \
           ${INSTALL_IMAGE_NAME} \
-          bash /deckhouse/testing/cloud_layouts/script.sh run-test
+          dhctl bootstrap-phase create-resources \
+            --kubeconfig=/tmp/eks-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}.kubeconfig \
+            --resources=/deckhouse/testing/cloud_layouts/EKS/WithoutNAT/resources.yaml
+
+          docker run --rm \
+          -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
+          -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
+          -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
+          -e CRI=${CRI} \
+          -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_DEFAULT_REGION=eu-central-1 \
+          -e LAYOUT=${LAYOUT} \
+          -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
+          -e CRI=${CRI} \
+          -e KUBECONFIG=/tmp/eks-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}.kubeconfig \
+          -v $(pwd)/testing:/deckhouse/testing \
+          -v ${TMP_DIR_PATH}:/tmp \
+          --user $(id -u):$(id -u) \
+          ${TERRAFORM_IMAGE_NAME} \
+          bash /deckhouse/testing/cloud_layouts/script_eks.sh wait_deckhouse_ready
+
+          docker run --rm \
+          -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
+          -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
+          -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
+          -e CRI=${CRI} \
+          -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_DEFAULT_REGION=eu-central-1 \
+          -e LAYOUT=${LAYOUT} \
+          -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
+          -e CRI=${CRI} \
+          -e KUBECONFIG=/tmp/eks-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}.kubeconfig \
+          -v $(pwd)/testing:/deckhouse/testing \
+          -v ${TMP_DIR_PATH}:/tmp \
+          --user $(id -u):$(id -u) \
+          ${TERRAFORM_IMAGE_NAME} \
+          bash /deckhouse/testing/cloud_layouts/script_eks.sh wait_cluster_ready
 
         # </template: e2e_run_template>
       - name: Read connection string
@@ -1866,9 +2050,9 @@ jobs:
         id: cleanup_cluster
         timeout-minutes: 60
         env:
-          PROVIDER: Azure
+          PROVIDER: EKS
           CRI: Docker
-          LAYOUT: Standard
+          LAYOUT: WithoutNAT
           KUBERNETES_VERSION: "1.25"
           LAYOUT_DECKHOUSE_DOCKERCFG: ${{ secrets.LAYOUT_DECKHOUSE_DOCKERCFG }}
           LAYOUT_SSH_KEY: ${{ secrets.LAYOUT_SSH_KEY}}
@@ -1878,10 +2062,8 @@ jobs:
           TERRAFORM_IMAGE_NAME: ${{ steps.setup.outputs.terraform-image-name }}
           DECKHOUSE_IMAGE_TAG: ${{ steps.setup.outputs.deckhouse-image-tag }}
         # <template: e2e_run_template>
-          LAYOUT_AZURE_SUBSCRIPTION_ID: ${{ secrets.LAYOUT_AZURE_SUBSCRIPTION_ID }}
-          LAYOUT_AZURE_CLIENT_ID: ${{ secrets.LAYOUT_AZURE_CLIENT_ID }}
-          LAYOUT_AZURE_CLIENT_SECRET: ${{ secrets.LAYOUT_AZURE_CLIENT_SECRET }}
-          LAYOUT_AZURE_TENANT_ID: ${{ secrets.LAYOUT_AZURE_TENANT_ID }}
+          LAYOUT_AWS_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_ACCESS_KEY }}
+          LAYOUT_AWS_SECRET_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_SECRET_ACCESS_KEY }}
           COMMENT_ID: ${{ inputs.comment_id }}
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
@@ -1904,32 +2086,22 @@ jobs:
 
           dhctl_log_file="${DHCTL_LOG_FILE}-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           echo "DHCTL log file: $dhctl_log_file"
-
           docker run --rm \
-            -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
-            -e PREFIX=${PREFIX} \
-            -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
-            -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
-            -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
-            -e CRI=${CRI} \
-            -e PROVIDER=${PROVIDER:-not_provided} \
-            -e MASTER_CONNECTION_STRING=${SSH_MASTER_CONNECTION_STRING:-} \
-            -e LAYOUT=${LAYOUT:-not_provided} \
-            -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
-            -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
-            -e LAYOUT_AZURE_SUBSCRIPTION_ID=${LAYOUT_AZURE_SUBSCRIPTION_ID:-not_provided} \
-            -e LAYOUT_AZURE_CLIENT_ID=${LAYOUT_AZURE_CLIENT_ID:-not_provided} \
-            -e LAYOUT_AZURE_CLIENT_SECRET=${LAYOUT_AZURE_CLIENT_SECRET:-not_provided} \
-            -e LAYOUT_AZURE_TENANT_ID=${LAYOUT_AZURE_TENANT_ID:-not_provided} \
-            -v $(pwd)/testing:/deckhouse/testing \
-            -v ${TMP_DIR_PATH}:/tmp \
-            --user $(id -u):$(id -u) \
-            -v /etc/group:/etc/group:ro \
-            -v /etc/passwd:/etc/passwd:ro \
-            -v /etc/shadow:/etc/shadow:ro \
-            -w /deckhouse \
-          ${INSTALL_IMAGE_NAME} \
-          bash /deckhouse/testing/cloud_layouts/script.sh cleanup
+          -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
+          -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
+          -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
+          -e CRI=${CRI} \
+          -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_DEFAULT_REGION=eu-central-1 \
+          -e LAYOUT=${LAYOUT} \
+          -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
+          -e CRI=${CRI} \
+          -v $(pwd)/testing:/deckhouse/testing \
+          -v ${TMP_DIR_PATH}:/tmp \
+          --user $(id -u):$(id -u) \
+          ${TERRAFORM_IMAGE_NAME} \
+          bash /deckhouse/testing/cloud_layouts/script_eks.sh cleanup
 
         # </template: e2e_run_template>
 
@@ -1938,7 +2110,7 @@ jobs:
         if: ${{ failure() }}
         uses: actions/upload-artifact@v2
         with:
-          name: failed_cluster_state_azure_docker_1_25
+          name: failed_cluster_state_eks_docker_1_25
           path: |
             ${{ steps.setup.outputs.tmp-dir-path}}/dhctl
             ${{ steps.setup.outputs.tmp-dir-path}}/*.tfstate
@@ -1947,7 +2119,7 @@ jobs:
         if: ${{ steps.setup.outputs.dhctl-log-file }}
         uses: actions/upload-artifact@v2
         with:
-          name: test_output_azure_docker_1_25
+          name: test_output_eks_docker_1_25
           path: |
             ${{ steps.setup.outputs.dhctl-log-file}}*
             testing/cloud_layouts/
@@ -1977,7 +2149,7 @@ jobs:
           github-token: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
           script: |
             const statusConfig = 'job,separate';
-            const name = 'e2e: Azure, Docker, Kubernetes 1.25';
+            const name = 'e2e: EKS, Docker, Kubernetes 1.25';
             const needsContext = JSON.parse(process.env.NEEDS_CONTEXT);
             const jobContext = JSON.parse(process.env.JOB_CONTEXT);
             const stepsContext = JSON.parse(process.env.STEPS_CONTEXT);
@@ -1998,7 +2170,7 @@ jobs:
 
   # <template: e2e_run_job_template>
   run_docker_1_26:
-    name: "e2e: Azure, Docker, Kubernetes 1.26"
+    name: "e2e: EKS, Docker, Kubernetes 1.26"
     needs:
       - check_e2e_labels
       - git_info
@@ -2008,14 +2180,14 @@ jobs:
       run_id: ${{ github.run_id }}
       # need for find state in artifact
       cluster_prefix: ${{ steps.setup.outputs.dhctl-prefix }}
-      ran_for: "azure;Standard;docker;1.26"
+      ran_for: "eks;WithoutNAT;docker;1.26"
       failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.failed_cluster_stayed }}
       issue_number: ${{ inputs.issue_number }}
       install_image_path: ${{ steps.setup.outputs.install-image-path }}
     env:
-      PROVIDER: Azure
+      PROVIDER: EKS
       CRI: Docker
-      LAYOUT: Standard
+      LAYOUT: WithoutNAT
       KUBERNETES_VERSION: "1.26"
       EVENT_LABEL: ${{ github.event.label.name }}
     runs-on: [self-hosted, e2e-common]
@@ -2043,7 +2215,7 @@ jobs:
         with:
           github-token: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
           script: |
-            const name = 'e2e: Azure, Docker, Kubernetes 1.26';
+            const name = 'e2e: EKS, Docker, Kubernetes 1.26';
 
             const ci = require('./.github/scripts/js/ci');
             return await ci.updateCommentOnStart({github, context, core, name})
@@ -2209,13 +2381,13 @@ jobs:
 
           echo '::echo::off'
 
-      - name: "Run e2e test: Azure/Docker/1.26"
+      - name: "Run e2e test: EKS/Docker/1.26"
         id: e2e_test_run
         timeout-minutes: 60
         env:
-          PROVIDER: Azure
+          PROVIDER: EKS
           CRI: Docker
-          LAYOUT: Standard
+          LAYOUT: WithoutNAT
           KUBERNETES_VERSION: "1.26"
           LAYOUT_DECKHOUSE_DOCKERCFG: ${{ secrets.LAYOUT_DECKHOUSE_DOCKERCFG }}
           LAYOUT_SSH_KEY: ${{ secrets.LAYOUT_SSH_KEY}}
@@ -2226,10 +2398,8 @@ jobs:
           DECKHOUSE_IMAGE_TAG: ${{ steps.setup.outputs.deckhouse-image-tag }}
           INITIAL_IMAGE_TAG: ${{ steps.setup.outputs.initial-image-tag }}
         # <template: e2e_run_template>
-          LAYOUT_AZURE_SUBSCRIPTION_ID: ${{ secrets.LAYOUT_AZURE_SUBSCRIPTION_ID }}
-          LAYOUT_AZURE_CLIENT_ID: ${{ secrets.LAYOUT_AZURE_CLIENT_ID }}
-          LAYOUT_AZURE_CLIENT_SECRET: ${{ secrets.LAYOUT_AZURE_CLIENT_SECRET }}
-          LAYOUT_AZURE_TENANT_ID: ${{ secrets.LAYOUT_AZURE_TENANT_ID }}
+          LAYOUT_AWS_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_ACCESS_KEY }}
+          LAYOUT_AWS_SECRET_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_SECRET_ACCESS_KEY }}
           COMMENT_ID: ${{ inputs.comment_id }}
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
@@ -2263,32 +2433,89 @@ jobs:
 
           $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" "$ssh_connect_str_file" > "${dhctl_log_file}-wait-log" 2>&1 &
 
+          docker run --rm \
+          -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
+          -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
+          -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
+          -e CRI=${CRI} \
+          -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_DEFAULT_REGION=eu-central-1 \
+          -e LAYOUT=${LAYOUT} \
+          -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
+          -e CRI=${CRI} \
+          -v $(pwd)/testing:/deckhouse/testing \
+          -v ${TMP_DIR_PATH}:/tmp \
+          --user $(id -u):$(id -u) \
+          ${TERRAFORM_IMAGE_NAME} \
+          bash /deckhouse/testing/cloud_layouts/script_eks.sh run-test
+          docker run --rm \
+          -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
+          -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
+          -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
+          -e LAYOUT=${LAYOUT:-not_provided} \
+          -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
+          -e CRI=${CRI} \
+          -v "$PWD/config.yml:/config.yml" \
+          -v ${TMP_DIR_PATH}:/tmp \
+          -v "$PWD/resources.yml:/resources.yml" \
+          -v $(pwd)/testing:/deckhouse/testing \
+          ${INSTALL_IMAGE_NAME} \
+          dhctl bootstrap-phase install-deckhouse \
+            --kubeconfig=/tmp/eks-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}.kubeconfig \
+            --config=/deckhouse/testing/cloud_layouts/EKS/WithoutNAT/configuration.yaml
 
           docker run --rm \
-            -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
-            -e PREFIX=${PREFIX} \
-            -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
-            -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
-            -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
-            -e CRI=${CRI} \
-            -e PROVIDER=${PROVIDER:-not_provided} \
-            -e MASTER_CONNECTION_STRING=${SSH_MASTER_CONNECTION_STRING:-} \
-            -e LAYOUT=${LAYOUT:-not_provided} \
-            -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
-            -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
-            -e LAYOUT_AZURE_SUBSCRIPTION_ID=${LAYOUT_AZURE_SUBSCRIPTION_ID:-not_provided} \
-            -e LAYOUT_AZURE_CLIENT_ID=${LAYOUT_AZURE_CLIENT_ID:-not_provided} \
-            -e LAYOUT_AZURE_CLIENT_SECRET=${LAYOUT_AZURE_CLIENT_SECRET:-not_provided} \
-            -e LAYOUT_AZURE_TENANT_ID=${LAYOUT_AZURE_TENANT_ID:-not_provided} \
-            -v $(pwd)/testing:/deckhouse/testing \
-            -v ${TMP_DIR_PATH}:/tmp \
-            --user $(id -u):$(id -u) \
-            -v /etc/group:/etc/group:ro \
-            -v /etc/passwd:/etc/passwd:ro \
-            -v /etc/shadow:/etc/shadow:ro \
-            -w /deckhouse \
+          -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
+          -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
+          -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
+          -e LAYOUT=${LAYOUT:-not_provided} \
+          -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
+          -e CRI=${CRI} \
+          -v "$PWD/config.yml:/config.yml" \
+          -v ${TMP_DIR_PATH}:/tmp \
+          -v "$PWD/resources.yml:/resources.yml" \
+          -v $(pwd)/testing:/deckhouse/testing \
           ${INSTALL_IMAGE_NAME} \
-          bash /deckhouse/testing/cloud_layouts/script.sh run-test
+          dhctl bootstrap-phase create-resources \
+            --kubeconfig=/tmp/eks-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}.kubeconfig \
+            --resources=/deckhouse/testing/cloud_layouts/EKS/WithoutNAT/resources.yaml
+
+          docker run --rm \
+          -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
+          -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
+          -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
+          -e CRI=${CRI} \
+          -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_DEFAULT_REGION=eu-central-1 \
+          -e LAYOUT=${LAYOUT} \
+          -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
+          -e CRI=${CRI} \
+          -e KUBECONFIG=/tmp/eks-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}.kubeconfig \
+          -v $(pwd)/testing:/deckhouse/testing \
+          -v ${TMP_DIR_PATH}:/tmp \
+          --user $(id -u):$(id -u) \
+          ${TERRAFORM_IMAGE_NAME} \
+          bash /deckhouse/testing/cloud_layouts/script_eks.sh wait_deckhouse_ready
+
+          docker run --rm \
+          -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
+          -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
+          -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
+          -e CRI=${CRI} \
+          -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_DEFAULT_REGION=eu-central-1 \
+          -e LAYOUT=${LAYOUT} \
+          -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
+          -e CRI=${CRI} \
+          -e KUBECONFIG=/tmp/eks-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}.kubeconfig \
+          -v $(pwd)/testing:/deckhouse/testing \
+          -v ${TMP_DIR_PATH}:/tmp \
+          --user $(id -u):$(id -u) \
+          ${TERRAFORM_IMAGE_NAME} \
+          bash /deckhouse/testing/cloud_layouts/script_eks.sh wait_cluster_ready
 
         # </template: e2e_run_template>
       - name: Read connection string
@@ -2316,9 +2543,9 @@ jobs:
         id: cleanup_cluster
         timeout-minutes: 60
         env:
-          PROVIDER: Azure
+          PROVIDER: EKS
           CRI: Docker
-          LAYOUT: Standard
+          LAYOUT: WithoutNAT
           KUBERNETES_VERSION: "1.26"
           LAYOUT_DECKHOUSE_DOCKERCFG: ${{ secrets.LAYOUT_DECKHOUSE_DOCKERCFG }}
           LAYOUT_SSH_KEY: ${{ secrets.LAYOUT_SSH_KEY}}
@@ -2328,10 +2555,8 @@ jobs:
           TERRAFORM_IMAGE_NAME: ${{ steps.setup.outputs.terraform-image-name }}
           DECKHOUSE_IMAGE_TAG: ${{ steps.setup.outputs.deckhouse-image-tag }}
         # <template: e2e_run_template>
-          LAYOUT_AZURE_SUBSCRIPTION_ID: ${{ secrets.LAYOUT_AZURE_SUBSCRIPTION_ID }}
-          LAYOUT_AZURE_CLIENT_ID: ${{ secrets.LAYOUT_AZURE_CLIENT_ID }}
-          LAYOUT_AZURE_CLIENT_SECRET: ${{ secrets.LAYOUT_AZURE_CLIENT_SECRET }}
-          LAYOUT_AZURE_TENANT_ID: ${{ secrets.LAYOUT_AZURE_TENANT_ID }}
+          LAYOUT_AWS_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_ACCESS_KEY }}
+          LAYOUT_AWS_SECRET_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_SECRET_ACCESS_KEY }}
           COMMENT_ID: ${{ inputs.comment_id }}
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
@@ -2354,32 +2579,22 @@ jobs:
 
           dhctl_log_file="${DHCTL_LOG_FILE}-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           echo "DHCTL log file: $dhctl_log_file"
-
           docker run --rm \
-            -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
-            -e PREFIX=${PREFIX} \
-            -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
-            -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
-            -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
-            -e CRI=${CRI} \
-            -e PROVIDER=${PROVIDER:-not_provided} \
-            -e MASTER_CONNECTION_STRING=${SSH_MASTER_CONNECTION_STRING:-} \
-            -e LAYOUT=${LAYOUT:-not_provided} \
-            -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
-            -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
-            -e LAYOUT_AZURE_SUBSCRIPTION_ID=${LAYOUT_AZURE_SUBSCRIPTION_ID:-not_provided} \
-            -e LAYOUT_AZURE_CLIENT_ID=${LAYOUT_AZURE_CLIENT_ID:-not_provided} \
-            -e LAYOUT_AZURE_CLIENT_SECRET=${LAYOUT_AZURE_CLIENT_SECRET:-not_provided} \
-            -e LAYOUT_AZURE_TENANT_ID=${LAYOUT_AZURE_TENANT_ID:-not_provided} \
-            -v $(pwd)/testing:/deckhouse/testing \
-            -v ${TMP_DIR_PATH}:/tmp \
-            --user $(id -u):$(id -u) \
-            -v /etc/group:/etc/group:ro \
-            -v /etc/passwd:/etc/passwd:ro \
-            -v /etc/shadow:/etc/shadow:ro \
-            -w /deckhouse \
-          ${INSTALL_IMAGE_NAME} \
-          bash /deckhouse/testing/cloud_layouts/script.sh cleanup
+          -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
+          -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
+          -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
+          -e CRI=${CRI} \
+          -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_DEFAULT_REGION=eu-central-1 \
+          -e LAYOUT=${LAYOUT} \
+          -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
+          -e CRI=${CRI} \
+          -v $(pwd)/testing:/deckhouse/testing \
+          -v ${TMP_DIR_PATH}:/tmp \
+          --user $(id -u):$(id -u) \
+          ${TERRAFORM_IMAGE_NAME} \
+          bash /deckhouse/testing/cloud_layouts/script_eks.sh cleanup
 
         # </template: e2e_run_template>
 
@@ -2388,7 +2603,7 @@ jobs:
         if: ${{ failure() }}
         uses: actions/upload-artifact@v2
         with:
-          name: failed_cluster_state_azure_docker_1_26
+          name: failed_cluster_state_eks_docker_1_26
           path: |
             ${{ steps.setup.outputs.tmp-dir-path}}/dhctl
             ${{ steps.setup.outputs.tmp-dir-path}}/*.tfstate
@@ -2397,7 +2612,7 @@ jobs:
         if: ${{ steps.setup.outputs.dhctl-log-file }}
         uses: actions/upload-artifact@v2
         with:
-          name: test_output_azure_docker_1_26
+          name: test_output_eks_docker_1_26
           path: |
             ${{ steps.setup.outputs.dhctl-log-file}}*
             testing/cloud_layouts/
@@ -2427,7 +2642,7 @@ jobs:
           github-token: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
           script: |
             const statusConfig = 'job,separate';
-            const name = 'e2e: Azure, Docker, Kubernetes 1.26';
+            const name = 'e2e: EKS, Docker, Kubernetes 1.26';
             const needsContext = JSON.parse(process.env.NEEDS_CONTEXT);
             const jobContext = JSON.parse(process.env.JOB_CONTEXT);
             const stepsContext = JSON.parse(process.env.STEPS_CONTEXT);
@@ -2448,7 +2663,7 @@ jobs:
 
   # <template: e2e_run_job_template>
   run_containerd_1_22:
-    name: "e2e: Azure, Containerd, Kubernetes 1.22"
+    name: "e2e: EKS, Containerd, Kubernetes 1.22"
     needs:
       - check_e2e_labels
       - git_info
@@ -2458,14 +2673,14 @@ jobs:
       run_id: ${{ github.run_id }}
       # need for find state in artifact
       cluster_prefix: ${{ steps.setup.outputs.dhctl-prefix }}
-      ran_for: "azure;Standard;containerd;1.22"
+      ran_for: "eks;WithoutNAT;containerd;1.22"
       failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.failed_cluster_stayed }}
       issue_number: ${{ inputs.issue_number }}
       install_image_path: ${{ steps.setup.outputs.install-image-path }}
     env:
-      PROVIDER: Azure
+      PROVIDER: EKS
       CRI: Containerd
-      LAYOUT: Standard
+      LAYOUT: WithoutNAT
       KUBERNETES_VERSION: "1.22"
       EVENT_LABEL: ${{ github.event.label.name }}
     runs-on: [self-hosted, e2e-common]
@@ -2493,7 +2708,7 @@ jobs:
         with:
           github-token: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
           script: |
-            const name = 'e2e: Azure, Containerd, Kubernetes 1.22';
+            const name = 'e2e: EKS, Containerd, Kubernetes 1.22';
 
             const ci = require('./.github/scripts/js/ci');
             return await ci.updateCommentOnStart({github, context, core, name})
@@ -2659,13 +2874,13 @@ jobs:
 
           echo '::echo::off'
 
-      - name: "Run e2e test: Azure/Containerd/1.22"
+      - name: "Run e2e test: EKS/Containerd/1.22"
         id: e2e_test_run
         timeout-minutes: 60
         env:
-          PROVIDER: Azure
+          PROVIDER: EKS
           CRI: Containerd
-          LAYOUT: Standard
+          LAYOUT: WithoutNAT
           KUBERNETES_VERSION: "1.22"
           LAYOUT_DECKHOUSE_DOCKERCFG: ${{ secrets.LAYOUT_DECKHOUSE_DOCKERCFG }}
           LAYOUT_SSH_KEY: ${{ secrets.LAYOUT_SSH_KEY}}
@@ -2676,10 +2891,8 @@ jobs:
           DECKHOUSE_IMAGE_TAG: ${{ steps.setup.outputs.deckhouse-image-tag }}
           INITIAL_IMAGE_TAG: ${{ steps.setup.outputs.initial-image-tag }}
         # <template: e2e_run_template>
-          LAYOUT_AZURE_SUBSCRIPTION_ID: ${{ secrets.LAYOUT_AZURE_SUBSCRIPTION_ID }}
-          LAYOUT_AZURE_CLIENT_ID: ${{ secrets.LAYOUT_AZURE_CLIENT_ID }}
-          LAYOUT_AZURE_CLIENT_SECRET: ${{ secrets.LAYOUT_AZURE_CLIENT_SECRET }}
-          LAYOUT_AZURE_TENANT_ID: ${{ secrets.LAYOUT_AZURE_TENANT_ID }}
+          LAYOUT_AWS_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_ACCESS_KEY }}
+          LAYOUT_AWS_SECRET_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_SECRET_ACCESS_KEY }}
           COMMENT_ID: ${{ inputs.comment_id }}
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
@@ -2713,32 +2926,89 @@ jobs:
 
           $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" "$ssh_connect_str_file" > "${dhctl_log_file}-wait-log" 2>&1 &
 
+          docker run --rm \
+          -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
+          -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
+          -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
+          -e CRI=${CRI} \
+          -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_DEFAULT_REGION=eu-central-1 \
+          -e LAYOUT=${LAYOUT} \
+          -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
+          -e CRI=${CRI} \
+          -v $(pwd)/testing:/deckhouse/testing \
+          -v ${TMP_DIR_PATH}:/tmp \
+          --user $(id -u):$(id -u) \
+          ${TERRAFORM_IMAGE_NAME} \
+          bash /deckhouse/testing/cloud_layouts/script_eks.sh run-test
+          docker run --rm \
+          -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
+          -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
+          -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
+          -e LAYOUT=${LAYOUT:-not_provided} \
+          -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
+          -e CRI=${CRI} \
+          -v "$PWD/config.yml:/config.yml" \
+          -v ${TMP_DIR_PATH}:/tmp \
+          -v "$PWD/resources.yml:/resources.yml" \
+          -v $(pwd)/testing:/deckhouse/testing \
+          ${INSTALL_IMAGE_NAME} \
+          dhctl bootstrap-phase install-deckhouse \
+            --kubeconfig=/tmp/eks-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}.kubeconfig \
+            --config=/deckhouse/testing/cloud_layouts/EKS/WithoutNAT/configuration.yaml
 
           docker run --rm \
-            -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
-            -e PREFIX=${PREFIX} \
-            -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
-            -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
-            -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
-            -e CRI=${CRI} \
-            -e PROVIDER=${PROVIDER:-not_provided} \
-            -e MASTER_CONNECTION_STRING=${SSH_MASTER_CONNECTION_STRING:-} \
-            -e LAYOUT=${LAYOUT:-not_provided} \
-            -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
-            -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
-            -e LAYOUT_AZURE_SUBSCRIPTION_ID=${LAYOUT_AZURE_SUBSCRIPTION_ID:-not_provided} \
-            -e LAYOUT_AZURE_CLIENT_ID=${LAYOUT_AZURE_CLIENT_ID:-not_provided} \
-            -e LAYOUT_AZURE_CLIENT_SECRET=${LAYOUT_AZURE_CLIENT_SECRET:-not_provided} \
-            -e LAYOUT_AZURE_TENANT_ID=${LAYOUT_AZURE_TENANT_ID:-not_provided} \
-            -v $(pwd)/testing:/deckhouse/testing \
-            -v ${TMP_DIR_PATH}:/tmp \
-            --user $(id -u):$(id -u) \
-            -v /etc/group:/etc/group:ro \
-            -v /etc/passwd:/etc/passwd:ro \
-            -v /etc/shadow:/etc/shadow:ro \
-            -w /deckhouse \
+          -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
+          -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
+          -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
+          -e LAYOUT=${LAYOUT:-not_provided} \
+          -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
+          -e CRI=${CRI} \
+          -v "$PWD/config.yml:/config.yml" \
+          -v ${TMP_DIR_PATH}:/tmp \
+          -v "$PWD/resources.yml:/resources.yml" \
+          -v $(pwd)/testing:/deckhouse/testing \
           ${INSTALL_IMAGE_NAME} \
-          bash /deckhouse/testing/cloud_layouts/script.sh run-test
+          dhctl bootstrap-phase create-resources \
+            --kubeconfig=/tmp/eks-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}.kubeconfig \
+            --resources=/deckhouse/testing/cloud_layouts/EKS/WithoutNAT/resources.yaml
+
+          docker run --rm \
+          -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
+          -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
+          -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
+          -e CRI=${CRI} \
+          -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_DEFAULT_REGION=eu-central-1 \
+          -e LAYOUT=${LAYOUT} \
+          -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
+          -e CRI=${CRI} \
+          -e KUBECONFIG=/tmp/eks-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}.kubeconfig \
+          -v $(pwd)/testing:/deckhouse/testing \
+          -v ${TMP_DIR_PATH}:/tmp \
+          --user $(id -u):$(id -u) \
+          ${TERRAFORM_IMAGE_NAME} \
+          bash /deckhouse/testing/cloud_layouts/script_eks.sh wait_deckhouse_ready
+
+          docker run --rm \
+          -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
+          -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
+          -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
+          -e CRI=${CRI} \
+          -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_DEFAULT_REGION=eu-central-1 \
+          -e LAYOUT=${LAYOUT} \
+          -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
+          -e CRI=${CRI} \
+          -e KUBECONFIG=/tmp/eks-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}.kubeconfig \
+          -v $(pwd)/testing:/deckhouse/testing \
+          -v ${TMP_DIR_PATH}:/tmp \
+          --user $(id -u):$(id -u) \
+          ${TERRAFORM_IMAGE_NAME} \
+          bash /deckhouse/testing/cloud_layouts/script_eks.sh wait_cluster_ready
 
         # </template: e2e_run_template>
       - name: Read connection string
@@ -2766,9 +3036,9 @@ jobs:
         id: cleanup_cluster
         timeout-minutes: 60
         env:
-          PROVIDER: Azure
+          PROVIDER: EKS
           CRI: Containerd
-          LAYOUT: Standard
+          LAYOUT: WithoutNAT
           KUBERNETES_VERSION: "1.22"
           LAYOUT_DECKHOUSE_DOCKERCFG: ${{ secrets.LAYOUT_DECKHOUSE_DOCKERCFG }}
           LAYOUT_SSH_KEY: ${{ secrets.LAYOUT_SSH_KEY}}
@@ -2778,10 +3048,8 @@ jobs:
           TERRAFORM_IMAGE_NAME: ${{ steps.setup.outputs.terraform-image-name }}
           DECKHOUSE_IMAGE_TAG: ${{ steps.setup.outputs.deckhouse-image-tag }}
         # <template: e2e_run_template>
-          LAYOUT_AZURE_SUBSCRIPTION_ID: ${{ secrets.LAYOUT_AZURE_SUBSCRIPTION_ID }}
-          LAYOUT_AZURE_CLIENT_ID: ${{ secrets.LAYOUT_AZURE_CLIENT_ID }}
-          LAYOUT_AZURE_CLIENT_SECRET: ${{ secrets.LAYOUT_AZURE_CLIENT_SECRET }}
-          LAYOUT_AZURE_TENANT_ID: ${{ secrets.LAYOUT_AZURE_TENANT_ID }}
+          LAYOUT_AWS_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_ACCESS_KEY }}
+          LAYOUT_AWS_SECRET_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_SECRET_ACCESS_KEY }}
           COMMENT_ID: ${{ inputs.comment_id }}
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
@@ -2804,32 +3072,22 @@ jobs:
 
           dhctl_log_file="${DHCTL_LOG_FILE}-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           echo "DHCTL log file: $dhctl_log_file"
-
           docker run --rm \
-            -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
-            -e PREFIX=${PREFIX} \
-            -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
-            -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
-            -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
-            -e CRI=${CRI} \
-            -e PROVIDER=${PROVIDER:-not_provided} \
-            -e MASTER_CONNECTION_STRING=${SSH_MASTER_CONNECTION_STRING:-} \
-            -e LAYOUT=${LAYOUT:-not_provided} \
-            -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
-            -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
-            -e LAYOUT_AZURE_SUBSCRIPTION_ID=${LAYOUT_AZURE_SUBSCRIPTION_ID:-not_provided} \
-            -e LAYOUT_AZURE_CLIENT_ID=${LAYOUT_AZURE_CLIENT_ID:-not_provided} \
-            -e LAYOUT_AZURE_CLIENT_SECRET=${LAYOUT_AZURE_CLIENT_SECRET:-not_provided} \
-            -e LAYOUT_AZURE_TENANT_ID=${LAYOUT_AZURE_TENANT_ID:-not_provided} \
-            -v $(pwd)/testing:/deckhouse/testing \
-            -v ${TMP_DIR_PATH}:/tmp \
-            --user $(id -u):$(id -u) \
-            -v /etc/group:/etc/group:ro \
-            -v /etc/passwd:/etc/passwd:ro \
-            -v /etc/shadow:/etc/shadow:ro \
-            -w /deckhouse \
-          ${INSTALL_IMAGE_NAME} \
-          bash /deckhouse/testing/cloud_layouts/script.sh cleanup
+          -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
+          -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
+          -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
+          -e CRI=${CRI} \
+          -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_DEFAULT_REGION=eu-central-1 \
+          -e LAYOUT=${LAYOUT} \
+          -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
+          -e CRI=${CRI} \
+          -v $(pwd)/testing:/deckhouse/testing \
+          -v ${TMP_DIR_PATH}:/tmp \
+          --user $(id -u):$(id -u) \
+          ${TERRAFORM_IMAGE_NAME} \
+          bash /deckhouse/testing/cloud_layouts/script_eks.sh cleanup
 
         # </template: e2e_run_template>
 
@@ -2838,7 +3096,7 @@ jobs:
         if: ${{ failure() }}
         uses: actions/upload-artifact@v2
         with:
-          name: failed_cluster_state_azure_containerd_1_22
+          name: failed_cluster_state_eks_containerd_1_22
           path: |
             ${{ steps.setup.outputs.tmp-dir-path}}/dhctl
             ${{ steps.setup.outputs.tmp-dir-path}}/*.tfstate
@@ -2847,7 +3105,7 @@ jobs:
         if: ${{ steps.setup.outputs.dhctl-log-file }}
         uses: actions/upload-artifact@v2
         with:
-          name: test_output_azure_containerd_1_22
+          name: test_output_eks_containerd_1_22
           path: |
             ${{ steps.setup.outputs.dhctl-log-file}}*
             testing/cloud_layouts/
@@ -2877,7 +3135,7 @@ jobs:
           github-token: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
           script: |
             const statusConfig = 'job,separate';
-            const name = 'e2e: Azure, Containerd, Kubernetes 1.22';
+            const name = 'e2e: EKS, Containerd, Kubernetes 1.22';
             const needsContext = JSON.parse(process.env.NEEDS_CONTEXT);
             const jobContext = JSON.parse(process.env.JOB_CONTEXT);
             const stepsContext = JSON.parse(process.env.STEPS_CONTEXT);
@@ -2898,7 +3156,7 @@ jobs:
 
   # <template: e2e_run_job_template>
   run_containerd_1_23:
-    name: "e2e: Azure, Containerd, Kubernetes 1.23"
+    name: "e2e: EKS, Containerd, Kubernetes 1.23"
     needs:
       - check_e2e_labels
       - git_info
@@ -2908,14 +3166,14 @@ jobs:
       run_id: ${{ github.run_id }}
       # need for find state in artifact
       cluster_prefix: ${{ steps.setup.outputs.dhctl-prefix }}
-      ran_for: "azure;Standard;containerd;1.23"
+      ran_for: "eks;WithoutNAT;containerd;1.23"
       failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.failed_cluster_stayed }}
       issue_number: ${{ inputs.issue_number }}
       install_image_path: ${{ steps.setup.outputs.install-image-path }}
     env:
-      PROVIDER: Azure
+      PROVIDER: EKS
       CRI: Containerd
-      LAYOUT: Standard
+      LAYOUT: WithoutNAT
       KUBERNETES_VERSION: "1.23"
       EVENT_LABEL: ${{ github.event.label.name }}
     runs-on: [self-hosted, e2e-common]
@@ -2943,7 +3201,7 @@ jobs:
         with:
           github-token: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
           script: |
-            const name = 'e2e: Azure, Containerd, Kubernetes 1.23';
+            const name = 'e2e: EKS, Containerd, Kubernetes 1.23';
 
             const ci = require('./.github/scripts/js/ci');
             return await ci.updateCommentOnStart({github, context, core, name})
@@ -3109,13 +3367,13 @@ jobs:
 
           echo '::echo::off'
 
-      - name: "Run e2e test: Azure/Containerd/1.23"
+      - name: "Run e2e test: EKS/Containerd/1.23"
         id: e2e_test_run
         timeout-minutes: 60
         env:
-          PROVIDER: Azure
+          PROVIDER: EKS
           CRI: Containerd
-          LAYOUT: Standard
+          LAYOUT: WithoutNAT
           KUBERNETES_VERSION: "1.23"
           LAYOUT_DECKHOUSE_DOCKERCFG: ${{ secrets.LAYOUT_DECKHOUSE_DOCKERCFG }}
           LAYOUT_SSH_KEY: ${{ secrets.LAYOUT_SSH_KEY}}
@@ -3126,10 +3384,8 @@ jobs:
           DECKHOUSE_IMAGE_TAG: ${{ steps.setup.outputs.deckhouse-image-tag }}
           INITIAL_IMAGE_TAG: ${{ steps.setup.outputs.initial-image-tag }}
         # <template: e2e_run_template>
-          LAYOUT_AZURE_SUBSCRIPTION_ID: ${{ secrets.LAYOUT_AZURE_SUBSCRIPTION_ID }}
-          LAYOUT_AZURE_CLIENT_ID: ${{ secrets.LAYOUT_AZURE_CLIENT_ID }}
-          LAYOUT_AZURE_CLIENT_SECRET: ${{ secrets.LAYOUT_AZURE_CLIENT_SECRET }}
-          LAYOUT_AZURE_TENANT_ID: ${{ secrets.LAYOUT_AZURE_TENANT_ID }}
+          LAYOUT_AWS_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_ACCESS_KEY }}
+          LAYOUT_AWS_SECRET_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_SECRET_ACCESS_KEY }}
           COMMENT_ID: ${{ inputs.comment_id }}
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
@@ -3163,32 +3419,89 @@ jobs:
 
           $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" "$ssh_connect_str_file" > "${dhctl_log_file}-wait-log" 2>&1 &
 
+          docker run --rm \
+          -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
+          -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
+          -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
+          -e CRI=${CRI} \
+          -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_DEFAULT_REGION=eu-central-1 \
+          -e LAYOUT=${LAYOUT} \
+          -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
+          -e CRI=${CRI} \
+          -v $(pwd)/testing:/deckhouse/testing \
+          -v ${TMP_DIR_PATH}:/tmp \
+          --user $(id -u):$(id -u) \
+          ${TERRAFORM_IMAGE_NAME} \
+          bash /deckhouse/testing/cloud_layouts/script_eks.sh run-test
+          docker run --rm \
+          -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
+          -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
+          -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
+          -e LAYOUT=${LAYOUT:-not_provided} \
+          -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
+          -e CRI=${CRI} \
+          -v "$PWD/config.yml:/config.yml" \
+          -v ${TMP_DIR_PATH}:/tmp \
+          -v "$PWD/resources.yml:/resources.yml" \
+          -v $(pwd)/testing:/deckhouse/testing \
+          ${INSTALL_IMAGE_NAME} \
+          dhctl bootstrap-phase install-deckhouse \
+            --kubeconfig=/tmp/eks-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}.kubeconfig \
+            --config=/deckhouse/testing/cloud_layouts/EKS/WithoutNAT/configuration.yaml
 
           docker run --rm \
-            -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
-            -e PREFIX=${PREFIX} \
-            -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
-            -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
-            -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
-            -e CRI=${CRI} \
-            -e PROVIDER=${PROVIDER:-not_provided} \
-            -e MASTER_CONNECTION_STRING=${SSH_MASTER_CONNECTION_STRING:-} \
-            -e LAYOUT=${LAYOUT:-not_provided} \
-            -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
-            -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
-            -e LAYOUT_AZURE_SUBSCRIPTION_ID=${LAYOUT_AZURE_SUBSCRIPTION_ID:-not_provided} \
-            -e LAYOUT_AZURE_CLIENT_ID=${LAYOUT_AZURE_CLIENT_ID:-not_provided} \
-            -e LAYOUT_AZURE_CLIENT_SECRET=${LAYOUT_AZURE_CLIENT_SECRET:-not_provided} \
-            -e LAYOUT_AZURE_TENANT_ID=${LAYOUT_AZURE_TENANT_ID:-not_provided} \
-            -v $(pwd)/testing:/deckhouse/testing \
-            -v ${TMP_DIR_PATH}:/tmp \
-            --user $(id -u):$(id -u) \
-            -v /etc/group:/etc/group:ro \
-            -v /etc/passwd:/etc/passwd:ro \
-            -v /etc/shadow:/etc/shadow:ro \
-            -w /deckhouse \
+          -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
+          -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
+          -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
+          -e LAYOUT=${LAYOUT:-not_provided} \
+          -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
+          -e CRI=${CRI} \
+          -v "$PWD/config.yml:/config.yml" \
+          -v ${TMP_DIR_PATH}:/tmp \
+          -v "$PWD/resources.yml:/resources.yml" \
+          -v $(pwd)/testing:/deckhouse/testing \
           ${INSTALL_IMAGE_NAME} \
-          bash /deckhouse/testing/cloud_layouts/script.sh run-test
+          dhctl bootstrap-phase create-resources \
+            --kubeconfig=/tmp/eks-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}.kubeconfig \
+            --resources=/deckhouse/testing/cloud_layouts/EKS/WithoutNAT/resources.yaml
+
+          docker run --rm \
+          -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
+          -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
+          -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
+          -e CRI=${CRI} \
+          -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_DEFAULT_REGION=eu-central-1 \
+          -e LAYOUT=${LAYOUT} \
+          -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
+          -e CRI=${CRI} \
+          -e KUBECONFIG=/tmp/eks-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}.kubeconfig \
+          -v $(pwd)/testing:/deckhouse/testing \
+          -v ${TMP_DIR_PATH}:/tmp \
+          --user $(id -u):$(id -u) \
+          ${TERRAFORM_IMAGE_NAME} \
+          bash /deckhouse/testing/cloud_layouts/script_eks.sh wait_deckhouse_ready
+
+          docker run --rm \
+          -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
+          -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
+          -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
+          -e CRI=${CRI} \
+          -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_DEFAULT_REGION=eu-central-1 \
+          -e LAYOUT=${LAYOUT} \
+          -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
+          -e CRI=${CRI} \
+          -e KUBECONFIG=/tmp/eks-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}.kubeconfig \
+          -v $(pwd)/testing:/deckhouse/testing \
+          -v ${TMP_DIR_PATH}:/tmp \
+          --user $(id -u):$(id -u) \
+          ${TERRAFORM_IMAGE_NAME} \
+          bash /deckhouse/testing/cloud_layouts/script_eks.sh wait_cluster_ready
 
         # </template: e2e_run_template>
       - name: Read connection string
@@ -3216,9 +3529,9 @@ jobs:
         id: cleanup_cluster
         timeout-minutes: 60
         env:
-          PROVIDER: Azure
+          PROVIDER: EKS
           CRI: Containerd
-          LAYOUT: Standard
+          LAYOUT: WithoutNAT
           KUBERNETES_VERSION: "1.23"
           LAYOUT_DECKHOUSE_DOCKERCFG: ${{ secrets.LAYOUT_DECKHOUSE_DOCKERCFG }}
           LAYOUT_SSH_KEY: ${{ secrets.LAYOUT_SSH_KEY}}
@@ -3228,10 +3541,8 @@ jobs:
           TERRAFORM_IMAGE_NAME: ${{ steps.setup.outputs.terraform-image-name }}
           DECKHOUSE_IMAGE_TAG: ${{ steps.setup.outputs.deckhouse-image-tag }}
         # <template: e2e_run_template>
-          LAYOUT_AZURE_SUBSCRIPTION_ID: ${{ secrets.LAYOUT_AZURE_SUBSCRIPTION_ID }}
-          LAYOUT_AZURE_CLIENT_ID: ${{ secrets.LAYOUT_AZURE_CLIENT_ID }}
-          LAYOUT_AZURE_CLIENT_SECRET: ${{ secrets.LAYOUT_AZURE_CLIENT_SECRET }}
-          LAYOUT_AZURE_TENANT_ID: ${{ secrets.LAYOUT_AZURE_TENANT_ID }}
+          LAYOUT_AWS_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_ACCESS_KEY }}
+          LAYOUT_AWS_SECRET_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_SECRET_ACCESS_KEY }}
           COMMENT_ID: ${{ inputs.comment_id }}
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
@@ -3254,32 +3565,22 @@ jobs:
 
           dhctl_log_file="${DHCTL_LOG_FILE}-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           echo "DHCTL log file: $dhctl_log_file"
-
           docker run --rm \
-            -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
-            -e PREFIX=${PREFIX} \
-            -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
-            -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
-            -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
-            -e CRI=${CRI} \
-            -e PROVIDER=${PROVIDER:-not_provided} \
-            -e MASTER_CONNECTION_STRING=${SSH_MASTER_CONNECTION_STRING:-} \
-            -e LAYOUT=${LAYOUT:-not_provided} \
-            -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
-            -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
-            -e LAYOUT_AZURE_SUBSCRIPTION_ID=${LAYOUT_AZURE_SUBSCRIPTION_ID:-not_provided} \
-            -e LAYOUT_AZURE_CLIENT_ID=${LAYOUT_AZURE_CLIENT_ID:-not_provided} \
-            -e LAYOUT_AZURE_CLIENT_SECRET=${LAYOUT_AZURE_CLIENT_SECRET:-not_provided} \
-            -e LAYOUT_AZURE_TENANT_ID=${LAYOUT_AZURE_TENANT_ID:-not_provided} \
-            -v $(pwd)/testing:/deckhouse/testing \
-            -v ${TMP_DIR_PATH}:/tmp \
-            --user $(id -u):$(id -u) \
-            -v /etc/group:/etc/group:ro \
-            -v /etc/passwd:/etc/passwd:ro \
-            -v /etc/shadow:/etc/shadow:ro \
-            -w /deckhouse \
-          ${INSTALL_IMAGE_NAME} \
-          bash /deckhouse/testing/cloud_layouts/script.sh cleanup
+          -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
+          -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
+          -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
+          -e CRI=${CRI} \
+          -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_DEFAULT_REGION=eu-central-1 \
+          -e LAYOUT=${LAYOUT} \
+          -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
+          -e CRI=${CRI} \
+          -v $(pwd)/testing:/deckhouse/testing \
+          -v ${TMP_DIR_PATH}:/tmp \
+          --user $(id -u):$(id -u) \
+          ${TERRAFORM_IMAGE_NAME} \
+          bash /deckhouse/testing/cloud_layouts/script_eks.sh cleanup
 
         # </template: e2e_run_template>
 
@@ -3288,7 +3589,7 @@ jobs:
         if: ${{ failure() }}
         uses: actions/upload-artifact@v2
         with:
-          name: failed_cluster_state_azure_containerd_1_23
+          name: failed_cluster_state_eks_containerd_1_23
           path: |
             ${{ steps.setup.outputs.tmp-dir-path}}/dhctl
             ${{ steps.setup.outputs.tmp-dir-path}}/*.tfstate
@@ -3297,7 +3598,7 @@ jobs:
         if: ${{ steps.setup.outputs.dhctl-log-file }}
         uses: actions/upload-artifact@v2
         with:
-          name: test_output_azure_containerd_1_23
+          name: test_output_eks_containerd_1_23
           path: |
             ${{ steps.setup.outputs.dhctl-log-file}}*
             testing/cloud_layouts/
@@ -3327,7 +3628,7 @@ jobs:
           github-token: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
           script: |
             const statusConfig = 'job,separate';
-            const name = 'e2e: Azure, Containerd, Kubernetes 1.23';
+            const name = 'e2e: EKS, Containerd, Kubernetes 1.23';
             const needsContext = JSON.parse(process.env.NEEDS_CONTEXT);
             const jobContext = JSON.parse(process.env.JOB_CONTEXT);
             const stepsContext = JSON.parse(process.env.STEPS_CONTEXT);
@@ -3348,7 +3649,7 @@ jobs:
 
   # <template: e2e_run_job_template>
   run_containerd_1_24:
-    name: "e2e: Azure, Containerd, Kubernetes 1.24"
+    name: "e2e: EKS, Containerd, Kubernetes 1.24"
     needs:
       - check_e2e_labels
       - git_info
@@ -3358,14 +3659,14 @@ jobs:
       run_id: ${{ github.run_id }}
       # need for find state in artifact
       cluster_prefix: ${{ steps.setup.outputs.dhctl-prefix }}
-      ran_for: "azure;Standard;containerd;1.24"
+      ran_for: "eks;WithoutNAT;containerd;1.24"
       failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.failed_cluster_stayed }}
       issue_number: ${{ inputs.issue_number }}
       install_image_path: ${{ steps.setup.outputs.install-image-path }}
     env:
-      PROVIDER: Azure
+      PROVIDER: EKS
       CRI: Containerd
-      LAYOUT: Standard
+      LAYOUT: WithoutNAT
       KUBERNETES_VERSION: "1.24"
       EVENT_LABEL: ${{ github.event.label.name }}
     runs-on: [self-hosted, e2e-common]
@@ -3393,7 +3694,7 @@ jobs:
         with:
           github-token: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
           script: |
-            const name = 'e2e: Azure, Containerd, Kubernetes 1.24';
+            const name = 'e2e: EKS, Containerd, Kubernetes 1.24';
 
             const ci = require('./.github/scripts/js/ci');
             return await ci.updateCommentOnStart({github, context, core, name})
@@ -3559,13 +3860,13 @@ jobs:
 
           echo '::echo::off'
 
-      - name: "Run e2e test: Azure/Containerd/1.24"
+      - name: "Run e2e test: EKS/Containerd/1.24"
         id: e2e_test_run
         timeout-minutes: 60
         env:
-          PROVIDER: Azure
+          PROVIDER: EKS
           CRI: Containerd
-          LAYOUT: Standard
+          LAYOUT: WithoutNAT
           KUBERNETES_VERSION: "1.24"
           LAYOUT_DECKHOUSE_DOCKERCFG: ${{ secrets.LAYOUT_DECKHOUSE_DOCKERCFG }}
           LAYOUT_SSH_KEY: ${{ secrets.LAYOUT_SSH_KEY}}
@@ -3576,10 +3877,8 @@ jobs:
           DECKHOUSE_IMAGE_TAG: ${{ steps.setup.outputs.deckhouse-image-tag }}
           INITIAL_IMAGE_TAG: ${{ steps.setup.outputs.initial-image-tag }}
         # <template: e2e_run_template>
-          LAYOUT_AZURE_SUBSCRIPTION_ID: ${{ secrets.LAYOUT_AZURE_SUBSCRIPTION_ID }}
-          LAYOUT_AZURE_CLIENT_ID: ${{ secrets.LAYOUT_AZURE_CLIENT_ID }}
-          LAYOUT_AZURE_CLIENT_SECRET: ${{ secrets.LAYOUT_AZURE_CLIENT_SECRET }}
-          LAYOUT_AZURE_TENANT_ID: ${{ secrets.LAYOUT_AZURE_TENANT_ID }}
+          LAYOUT_AWS_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_ACCESS_KEY }}
+          LAYOUT_AWS_SECRET_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_SECRET_ACCESS_KEY }}
           COMMENT_ID: ${{ inputs.comment_id }}
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
@@ -3613,32 +3912,89 @@ jobs:
 
           $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" "$ssh_connect_str_file" > "${dhctl_log_file}-wait-log" 2>&1 &
 
+          docker run --rm \
+          -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
+          -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
+          -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
+          -e CRI=${CRI} \
+          -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_DEFAULT_REGION=eu-central-1 \
+          -e LAYOUT=${LAYOUT} \
+          -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
+          -e CRI=${CRI} \
+          -v $(pwd)/testing:/deckhouse/testing \
+          -v ${TMP_DIR_PATH}:/tmp \
+          --user $(id -u):$(id -u) \
+          ${TERRAFORM_IMAGE_NAME} \
+          bash /deckhouse/testing/cloud_layouts/script_eks.sh run-test
+          docker run --rm \
+          -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
+          -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
+          -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
+          -e LAYOUT=${LAYOUT:-not_provided} \
+          -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
+          -e CRI=${CRI} \
+          -v "$PWD/config.yml:/config.yml" \
+          -v ${TMP_DIR_PATH}:/tmp \
+          -v "$PWD/resources.yml:/resources.yml" \
+          -v $(pwd)/testing:/deckhouse/testing \
+          ${INSTALL_IMAGE_NAME} \
+          dhctl bootstrap-phase install-deckhouse \
+            --kubeconfig=/tmp/eks-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}.kubeconfig \
+            --config=/deckhouse/testing/cloud_layouts/EKS/WithoutNAT/configuration.yaml
 
           docker run --rm \
-            -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
-            -e PREFIX=${PREFIX} \
-            -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
-            -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
-            -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
-            -e CRI=${CRI} \
-            -e PROVIDER=${PROVIDER:-not_provided} \
-            -e MASTER_CONNECTION_STRING=${SSH_MASTER_CONNECTION_STRING:-} \
-            -e LAYOUT=${LAYOUT:-not_provided} \
-            -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
-            -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
-            -e LAYOUT_AZURE_SUBSCRIPTION_ID=${LAYOUT_AZURE_SUBSCRIPTION_ID:-not_provided} \
-            -e LAYOUT_AZURE_CLIENT_ID=${LAYOUT_AZURE_CLIENT_ID:-not_provided} \
-            -e LAYOUT_AZURE_CLIENT_SECRET=${LAYOUT_AZURE_CLIENT_SECRET:-not_provided} \
-            -e LAYOUT_AZURE_TENANT_ID=${LAYOUT_AZURE_TENANT_ID:-not_provided} \
-            -v $(pwd)/testing:/deckhouse/testing \
-            -v ${TMP_DIR_PATH}:/tmp \
-            --user $(id -u):$(id -u) \
-            -v /etc/group:/etc/group:ro \
-            -v /etc/passwd:/etc/passwd:ro \
-            -v /etc/shadow:/etc/shadow:ro \
-            -w /deckhouse \
+          -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
+          -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
+          -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
+          -e LAYOUT=${LAYOUT:-not_provided} \
+          -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
+          -e CRI=${CRI} \
+          -v "$PWD/config.yml:/config.yml" \
+          -v ${TMP_DIR_PATH}:/tmp \
+          -v "$PWD/resources.yml:/resources.yml" \
+          -v $(pwd)/testing:/deckhouse/testing \
           ${INSTALL_IMAGE_NAME} \
-          bash /deckhouse/testing/cloud_layouts/script.sh run-test
+          dhctl bootstrap-phase create-resources \
+            --kubeconfig=/tmp/eks-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}.kubeconfig \
+            --resources=/deckhouse/testing/cloud_layouts/EKS/WithoutNAT/resources.yaml
+
+          docker run --rm \
+          -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
+          -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
+          -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
+          -e CRI=${CRI} \
+          -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_DEFAULT_REGION=eu-central-1 \
+          -e LAYOUT=${LAYOUT} \
+          -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
+          -e CRI=${CRI} \
+          -e KUBECONFIG=/tmp/eks-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}.kubeconfig \
+          -v $(pwd)/testing:/deckhouse/testing \
+          -v ${TMP_DIR_PATH}:/tmp \
+          --user $(id -u):$(id -u) \
+          ${TERRAFORM_IMAGE_NAME} \
+          bash /deckhouse/testing/cloud_layouts/script_eks.sh wait_deckhouse_ready
+
+          docker run --rm \
+          -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
+          -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
+          -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
+          -e CRI=${CRI} \
+          -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_DEFAULT_REGION=eu-central-1 \
+          -e LAYOUT=${LAYOUT} \
+          -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
+          -e CRI=${CRI} \
+          -e KUBECONFIG=/tmp/eks-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}.kubeconfig \
+          -v $(pwd)/testing:/deckhouse/testing \
+          -v ${TMP_DIR_PATH}:/tmp \
+          --user $(id -u):$(id -u) \
+          ${TERRAFORM_IMAGE_NAME} \
+          bash /deckhouse/testing/cloud_layouts/script_eks.sh wait_cluster_ready
 
         # </template: e2e_run_template>
       - name: Read connection string
@@ -3666,9 +4022,9 @@ jobs:
         id: cleanup_cluster
         timeout-minutes: 60
         env:
-          PROVIDER: Azure
+          PROVIDER: EKS
           CRI: Containerd
-          LAYOUT: Standard
+          LAYOUT: WithoutNAT
           KUBERNETES_VERSION: "1.24"
           LAYOUT_DECKHOUSE_DOCKERCFG: ${{ secrets.LAYOUT_DECKHOUSE_DOCKERCFG }}
           LAYOUT_SSH_KEY: ${{ secrets.LAYOUT_SSH_KEY}}
@@ -3678,10 +4034,8 @@ jobs:
           TERRAFORM_IMAGE_NAME: ${{ steps.setup.outputs.terraform-image-name }}
           DECKHOUSE_IMAGE_TAG: ${{ steps.setup.outputs.deckhouse-image-tag }}
         # <template: e2e_run_template>
-          LAYOUT_AZURE_SUBSCRIPTION_ID: ${{ secrets.LAYOUT_AZURE_SUBSCRIPTION_ID }}
-          LAYOUT_AZURE_CLIENT_ID: ${{ secrets.LAYOUT_AZURE_CLIENT_ID }}
-          LAYOUT_AZURE_CLIENT_SECRET: ${{ secrets.LAYOUT_AZURE_CLIENT_SECRET }}
-          LAYOUT_AZURE_TENANT_ID: ${{ secrets.LAYOUT_AZURE_TENANT_ID }}
+          LAYOUT_AWS_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_ACCESS_KEY }}
+          LAYOUT_AWS_SECRET_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_SECRET_ACCESS_KEY }}
           COMMENT_ID: ${{ inputs.comment_id }}
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
@@ -3704,32 +4058,22 @@ jobs:
 
           dhctl_log_file="${DHCTL_LOG_FILE}-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           echo "DHCTL log file: $dhctl_log_file"
-
           docker run --rm \
-            -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
-            -e PREFIX=${PREFIX} \
-            -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
-            -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
-            -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
-            -e CRI=${CRI} \
-            -e PROVIDER=${PROVIDER:-not_provided} \
-            -e MASTER_CONNECTION_STRING=${SSH_MASTER_CONNECTION_STRING:-} \
-            -e LAYOUT=${LAYOUT:-not_provided} \
-            -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
-            -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
-            -e LAYOUT_AZURE_SUBSCRIPTION_ID=${LAYOUT_AZURE_SUBSCRIPTION_ID:-not_provided} \
-            -e LAYOUT_AZURE_CLIENT_ID=${LAYOUT_AZURE_CLIENT_ID:-not_provided} \
-            -e LAYOUT_AZURE_CLIENT_SECRET=${LAYOUT_AZURE_CLIENT_SECRET:-not_provided} \
-            -e LAYOUT_AZURE_TENANT_ID=${LAYOUT_AZURE_TENANT_ID:-not_provided} \
-            -v $(pwd)/testing:/deckhouse/testing \
-            -v ${TMP_DIR_PATH}:/tmp \
-            --user $(id -u):$(id -u) \
-            -v /etc/group:/etc/group:ro \
-            -v /etc/passwd:/etc/passwd:ro \
-            -v /etc/shadow:/etc/shadow:ro \
-            -w /deckhouse \
-          ${INSTALL_IMAGE_NAME} \
-          bash /deckhouse/testing/cloud_layouts/script.sh cleanup
+          -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
+          -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
+          -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
+          -e CRI=${CRI} \
+          -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_DEFAULT_REGION=eu-central-1 \
+          -e LAYOUT=${LAYOUT} \
+          -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
+          -e CRI=${CRI} \
+          -v $(pwd)/testing:/deckhouse/testing \
+          -v ${TMP_DIR_PATH}:/tmp \
+          --user $(id -u):$(id -u) \
+          ${TERRAFORM_IMAGE_NAME} \
+          bash /deckhouse/testing/cloud_layouts/script_eks.sh cleanup
 
         # </template: e2e_run_template>
 
@@ -3738,7 +4082,7 @@ jobs:
         if: ${{ failure() }}
         uses: actions/upload-artifact@v2
         with:
-          name: failed_cluster_state_azure_containerd_1_24
+          name: failed_cluster_state_eks_containerd_1_24
           path: |
             ${{ steps.setup.outputs.tmp-dir-path}}/dhctl
             ${{ steps.setup.outputs.tmp-dir-path}}/*.tfstate
@@ -3747,7 +4091,7 @@ jobs:
         if: ${{ steps.setup.outputs.dhctl-log-file }}
         uses: actions/upload-artifact@v2
         with:
-          name: test_output_azure_containerd_1_24
+          name: test_output_eks_containerd_1_24
           path: |
             ${{ steps.setup.outputs.dhctl-log-file}}*
             testing/cloud_layouts/
@@ -3777,7 +4121,7 @@ jobs:
           github-token: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
           script: |
             const statusConfig = 'job,separate';
-            const name = 'e2e: Azure, Containerd, Kubernetes 1.24';
+            const name = 'e2e: EKS, Containerd, Kubernetes 1.24';
             const needsContext = JSON.parse(process.env.NEEDS_CONTEXT);
             const jobContext = JSON.parse(process.env.JOB_CONTEXT);
             const stepsContext = JSON.parse(process.env.STEPS_CONTEXT);
@@ -3798,7 +4142,7 @@ jobs:
 
   # <template: e2e_run_job_template>
   run_containerd_1_25:
-    name: "e2e: Azure, Containerd, Kubernetes 1.25"
+    name: "e2e: EKS, Containerd, Kubernetes 1.25"
     needs:
       - check_e2e_labels
       - git_info
@@ -3808,14 +4152,14 @@ jobs:
       run_id: ${{ github.run_id }}
       # need for find state in artifact
       cluster_prefix: ${{ steps.setup.outputs.dhctl-prefix }}
-      ran_for: "azure;Standard;containerd;1.25"
+      ran_for: "eks;WithoutNAT;containerd;1.25"
       failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.failed_cluster_stayed }}
       issue_number: ${{ inputs.issue_number }}
       install_image_path: ${{ steps.setup.outputs.install-image-path }}
     env:
-      PROVIDER: Azure
+      PROVIDER: EKS
       CRI: Containerd
-      LAYOUT: Standard
+      LAYOUT: WithoutNAT
       KUBERNETES_VERSION: "1.25"
       EVENT_LABEL: ${{ github.event.label.name }}
     runs-on: [self-hosted, e2e-common]
@@ -3843,7 +4187,7 @@ jobs:
         with:
           github-token: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
           script: |
-            const name = 'e2e: Azure, Containerd, Kubernetes 1.25';
+            const name = 'e2e: EKS, Containerd, Kubernetes 1.25';
 
             const ci = require('./.github/scripts/js/ci');
             return await ci.updateCommentOnStart({github, context, core, name})
@@ -4009,13 +4353,13 @@ jobs:
 
           echo '::echo::off'
 
-      - name: "Run e2e test: Azure/Containerd/1.25"
+      - name: "Run e2e test: EKS/Containerd/1.25"
         id: e2e_test_run
         timeout-minutes: 60
         env:
-          PROVIDER: Azure
+          PROVIDER: EKS
           CRI: Containerd
-          LAYOUT: Standard
+          LAYOUT: WithoutNAT
           KUBERNETES_VERSION: "1.25"
           LAYOUT_DECKHOUSE_DOCKERCFG: ${{ secrets.LAYOUT_DECKHOUSE_DOCKERCFG }}
           LAYOUT_SSH_KEY: ${{ secrets.LAYOUT_SSH_KEY}}
@@ -4026,10 +4370,8 @@ jobs:
           DECKHOUSE_IMAGE_TAG: ${{ steps.setup.outputs.deckhouse-image-tag }}
           INITIAL_IMAGE_TAG: ${{ steps.setup.outputs.initial-image-tag }}
         # <template: e2e_run_template>
-          LAYOUT_AZURE_SUBSCRIPTION_ID: ${{ secrets.LAYOUT_AZURE_SUBSCRIPTION_ID }}
-          LAYOUT_AZURE_CLIENT_ID: ${{ secrets.LAYOUT_AZURE_CLIENT_ID }}
-          LAYOUT_AZURE_CLIENT_SECRET: ${{ secrets.LAYOUT_AZURE_CLIENT_SECRET }}
-          LAYOUT_AZURE_TENANT_ID: ${{ secrets.LAYOUT_AZURE_TENANT_ID }}
+          LAYOUT_AWS_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_ACCESS_KEY }}
+          LAYOUT_AWS_SECRET_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_SECRET_ACCESS_KEY }}
           COMMENT_ID: ${{ inputs.comment_id }}
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
@@ -4063,32 +4405,89 @@ jobs:
 
           $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" "$ssh_connect_str_file" > "${dhctl_log_file}-wait-log" 2>&1 &
 
+          docker run --rm \
+          -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
+          -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
+          -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
+          -e CRI=${CRI} \
+          -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_DEFAULT_REGION=eu-central-1 \
+          -e LAYOUT=${LAYOUT} \
+          -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
+          -e CRI=${CRI} \
+          -v $(pwd)/testing:/deckhouse/testing \
+          -v ${TMP_DIR_PATH}:/tmp \
+          --user $(id -u):$(id -u) \
+          ${TERRAFORM_IMAGE_NAME} \
+          bash /deckhouse/testing/cloud_layouts/script_eks.sh run-test
+          docker run --rm \
+          -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
+          -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
+          -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
+          -e LAYOUT=${LAYOUT:-not_provided} \
+          -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
+          -e CRI=${CRI} \
+          -v "$PWD/config.yml:/config.yml" \
+          -v ${TMP_DIR_PATH}:/tmp \
+          -v "$PWD/resources.yml:/resources.yml" \
+          -v $(pwd)/testing:/deckhouse/testing \
+          ${INSTALL_IMAGE_NAME} \
+          dhctl bootstrap-phase install-deckhouse \
+            --kubeconfig=/tmp/eks-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}.kubeconfig \
+            --config=/deckhouse/testing/cloud_layouts/EKS/WithoutNAT/configuration.yaml
 
           docker run --rm \
-            -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
-            -e PREFIX=${PREFIX} \
-            -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
-            -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
-            -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
-            -e CRI=${CRI} \
-            -e PROVIDER=${PROVIDER:-not_provided} \
-            -e MASTER_CONNECTION_STRING=${SSH_MASTER_CONNECTION_STRING:-} \
-            -e LAYOUT=${LAYOUT:-not_provided} \
-            -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
-            -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
-            -e LAYOUT_AZURE_SUBSCRIPTION_ID=${LAYOUT_AZURE_SUBSCRIPTION_ID:-not_provided} \
-            -e LAYOUT_AZURE_CLIENT_ID=${LAYOUT_AZURE_CLIENT_ID:-not_provided} \
-            -e LAYOUT_AZURE_CLIENT_SECRET=${LAYOUT_AZURE_CLIENT_SECRET:-not_provided} \
-            -e LAYOUT_AZURE_TENANT_ID=${LAYOUT_AZURE_TENANT_ID:-not_provided} \
-            -v $(pwd)/testing:/deckhouse/testing \
-            -v ${TMP_DIR_PATH}:/tmp \
-            --user $(id -u):$(id -u) \
-            -v /etc/group:/etc/group:ro \
-            -v /etc/passwd:/etc/passwd:ro \
-            -v /etc/shadow:/etc/shadow:ro \
-            -w /deckhouse \
+          -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
+          -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
+          -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
+          -e LAYOUT=${LAYOUT:-not_provided} \
+          -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
+          -e CRI=${CRI} \
+          -v "$PWD/config.yml:/config.yml" \
+          -v ${TMP_DIR_PATH}:/tmp \
+          -v "$PWD/resources.yml:/resources.yml" \
+          -v $(pwd)/testing:/deckhouse/testing \
           ${INSTALL_IMAGE_NAME} \
-          bash /deckhouse/testing/cloud_layouts/script.sh run-test
+          dhctl bootstrap-phase create-resources \
+            --kubeconfig=/tmp/eks-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}.kubeconfig \
+            --resources=/deckhouse/testing/cloud_layouts/EKS/WithoutNAT/resources.yaml
+
+          docker run --rm \
+          -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
+          -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
+          -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
+          -e CRI=${CRI} \
+          -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_DEFAULT_REGION=eu-central-1 \
+          -e LAYOUT=${LAYOUT} \
+          -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
+          -e CRI=${CRI} \
+          -e KUBECONFIG=/tmp/eks-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}.kubeconfig \
+          -v $(pwd)/testing:/deckhouse/testing \
+          -v ${TMP_DIR_PATH}:/tmp \
+          --user $(id -u):$(id -u) \
+          ${TERRAFORM_IMAGE_NAME} \
+          bash /deckhouse/testing/cloud_layouts/script_eks.sh wait_deckhouse_ready
+
+          docker run --rm \
+          -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
+          -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
+          -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
+          -e CRI=${CRI} \
+          -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_DEFAULT_REGION=eu-central-1 \
+          -e LAYOUT=${LAYOUT} \
+          -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
+          -e CRI=${CRI} \
+          -e KUBECONFIG=/tmp/eks-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}.kubeconfig \
+          -v $(pwd)/testing:/deckhouse/testing \
+          -v ${TMP_DIR_PATH}:/tmp \
+          --user $(id -u):$(id -u) \
+          ${TERRAFORM_IMAGE_NAME} \
+          bash /deckhouse/testing/cloud_layouts/script_eks.sh wait_cluster_ready
 
         # </template: e2e_run_template>
       - name: Read connection string
@@ -4116,9 +4515,9 @@ jobs:
         id: cleanup_cluster
         timeout-minutes: 60
         env:
-          PROVIDER: Azure
+          PROVIDER: EKS
           CRI: Containerd
-          LAYOUT: Standard
+          LAYOUT: WithoutNAT
           KUBERNETES_VERSION: "1.25"
           LAYOUT_DECKHOUSE_DOCKERCFG: ${{ secrets.LAYOUT_DECKHOUSE_DOCKERCFG }}
           LAYOUT_SSH_KEY: ${{ secrets.LAYOUT_SSH_KEY}}
@@ -4128,10 +4527,8 @@ jobs:
           TERRAFORM_IMAGE_NAME: ${{ steps.setup.outputs.terraform-image-name }}
           DECKHOUSE_IMAGE_TAG: ${{ steps.setup.outputs.deckhouse-image-tag }}
         # <template: e2e_run_template>
-          LAYOUT_AZURE_SUBSCRIPTION_ID: ${{ secrets.LAYOUT_AZURE_SUBSCRIPTION_ID }}
-          LAYOUT_AZURE_CLIENT_ID: ${{ secrets.LAYOUT_AZURE_CLIENT_ID }}
-          LAYOUT_AZURE_CLIENT_SECRET: ${{ secrets.LAYOUT_AZURE_CLIENT_SECRET }}
-          LAYOUT_AZURE_TENANT_ID: ${{ secrets.LAYOUT_AZURE_TENANT_ID }}
+          LAYOUT_AWS_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_ACCESS_KEY }}
+          LAYOUT_AWS_SECRET_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_SECRET_ACCESS_KEY }}
           COMMENT_ID: ${{ inputs.comment_id }}
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
@@ -4154,32 +4551,22 @@ jobs:
 
           dhctl_log_file="${DHCTL_LOG_FILE}-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           echo "DHCTL log file: $dhctl_log_file"
-
           docker run --rm \
-            -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
-            -e PREFIX=${PREFIX} \
-            -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
-            -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
-            -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
-            -e CRI=${CRI} \
-            -e PROVIDER=${PROVIDER:-not_provided} \
-            -e MASTER_CONNECTION_STRING=${SSH_MASTER_CONNECTION_STRING:-} \
-            -e LAYOUT=${LAYOUT:-not_provided} \
-            -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
-            -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
-            -e LAYOUT_AZURE_SUBSCRIPTION_ID=${LAYOUT_AZURE_SUBSCRIPTION_ID:-not_provided} \
-            -e LAYOUT_AZURE_CLIENT_ID=${LAYOUT_AZURE_CLIENT_ID:-not_provided} \
-            -e LAYOUT_AZURE_CLIENT_SECRET=${LAYOUT_AZURE_CLIENT_SECRET:-not_provided} \
-            -e LAYOUT_AZURE_TENANT_ID=${LAYOUT_AZURE_TENANT_ID:-not_provided} \
-            -v $(pwd)/testing:/deckhouse/testing \
-            -v ${TMP_DIR_PATH}:/tmp \
-            --user $(id -u):$(id -u) \
-            -v /etc/group:/etc/group:ro \
-            -v /etc/passwd:/etc/passwd:ro \
-            -v /etc/shadow:/etc/shadow:ro \
-            -w /deckhouse \
-          ${INSTALL_IMAGE_NAME} \
-          bash /deckhouse/testing/cloud_layouts/script.sh cleanup
+          -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
+          -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
+          -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
+          -e CRI=${CRI} \
+          -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_DEFAULT_REGION=eu-central-1 \
+          -e LAYOUT=${LAYOUT} \
+          -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
+          -e CRI=${CRI} \
+          -v $(pwd)/testing:/deckhouse/testing \
+          -v ${TMP_DIR_PATH}:/tmp \
+          --user $(id -u):$(id -u) \
+          ${TERRAFORM_IMAGE_NAME} \
+          bash /deckhouse/testing/cloud_layouts/script_eks.sh cleanup
 
         # </template: e2e_run_template>
 
@@ -4188,7 +4575,7 @@ jobs:
         if: ${{ failure() }}
         uses: actions/upload-artifact@v2
         with:
-          name: failed_cluster_state_azure_containerd_1_25
+          name: failed_cluster_state_eks_containerd_1_25
           path: |
             ${{ steps.setup.outputs.tmp-dir-path}}/dhctl
             ${{ steps.setup.outputs.tmp-dir-path}}/*.tfstate
@@ -4197,7 +4584,7 @@ jobs:
         if: ${{ steps.setup.outputs.dhctl-log-file }}
         uses: actions/upload-artifact@v2
         with:
-          name: test_output_azure_containerd_1_25
+          name: test_output_eks_containerd_1_25
           path: |
             ${{ steps.setup.outputs.dhctl-log-file}}*
             testing/cloud_layouts/
@@ -4227,7 +4614,7 @@ jobs:
           github-token: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
           script: |
             const statusConfig = 'job,separate';
-            const name = 'e2e: Azure, Containerd, Kubernetes 1.25';
+            const name = 'e2e: EKS, Containerd, Kubernetes 1.25';
             const needsContext = JSON.parse(process.env.NEEDS_CONTEXT);
             const jobContext = JSON.parse(process.env.JOB_CONTEXT);
             const stepsContext = JSON.parse(process.env.STEPS_CONTEXT);
@@ -4248,7 +4635,7 @@ jobs:
 
   # <template: e2e_run_job_template>
   run_containerd_1_26:
-    name: "e2e: Azure, Containerd, Kubernetes 1.26"
+    name: "e2e: EKS, Containerd, Kubernetes 1.26"
     needs:
       - check_e2e_labels
       - git_info
@@ -4258,14 +4645,14 @@ jobs:
       run_id: ${{ github.run_id }}
       # need for find state in artifact
       cluster_prefix: ${{ steps.setup.outputs.dhctl-prefix }}
-      ran_for: "azure;Standard;containerd;1.26"
+      ran_for: "eks;WithoutNAT;containerd;1.26"
       failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.failed_cluster_stayed }}
       issue_number: ${{ inputs.issue_number }}
       install_image_path: ${{ steps.setup.outputs.install-image-path }}
     env:
-      PROVIDER: Azure
+      PROVIDER: EKS
       CRI: Containerd
-      LAYOUT: Standard
+      LAYOUT: WithoutNAT
       KUBERNETES_VERSION: "1.26"
       EVENT_LABEL: ${{ github.event.label.name }}
     runs-on: [self-hosted, e2e-common]
@@ -4293,7 +4680,7 @@ jobs:
         with:
           github-token: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
           script: |
-            const name = 'e2e: Azure, Containerd, Kubernetes 1.26';
+            const name = 'e2e: EKS, Containerd, Kubernetes 1.26';
 
             const ci = require('./.github/scripts/js/ci');
             return await ci.updateCommentOnStart({github, context, core, name})
@@ -4459,13 +4846,13 @@ jobs:
 
           echo '::echo::off'
 
-      - name: "Run e2e test: Azure/Containerd/1.26"
+      - name: "Run e2e test: EKS/Containerd/1.26"
         id: e2e_test_run
         timeout-minutes: 60
         env:
-          PROVIDER: Azure
+          PROVIDER: EKS
           CRI: Containerd
-          LAYOUT: Standard
+          LAYOUT: WithoutNAT
           KUBERNETES_VERSION: "1.26"
           LAYOUT_DECKHOUSE_DOCKERCFG: ${{ secrets.LAYOUT_DECKHOUSE_DOCKERCFG }}
           LAYOUT_SSH_KEY: ${{ secrets.LAYOUT_SSH_KEY}}
@@ -4476,10 +4863,8 @@ jobs:
           DECKHOUSE_IMAGE_TAG: ${{ steps.setup.outputs.deckhouse-image-tag }}
           INITIAL_IMAGE_TAG: ${{ steps.setup.outputs.initial-image-tag }}
         # <template: e2e_run_template>
-          LAYOUT_AZURE_SUBSCRIPTION_ID: ${{ secrets.LAYOUT_AZURE_SUBSCRIPTION_ID }}
-          LAYOUT_AZURE_CLIENT_ID: ${{ secrets.LAYOUT_AZURE_CLIENT_ID }}
-          LAYOUT_AZURE_CLIENT_SECRET: ${{ secrets.LAYOUT_AZURE_CLIENT_SECRET }}
-          LAYOUT_AZURE_TENANT_ID: ${{ secrets.LAYOUT_AZURE_TENANT_ID }}
+          LAYOUT_AWS_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_ACCESS_KEY }}
+          LAYOUT_AWS_SECRET_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_SECRET_ACCESS_KEY }}
           COMMENT_ID: ${{ inputs.comment_id }}
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
@@ -4513,32 +4898,89 @@ jobs:
 
           $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" "$ssh_connect_str_file" > "${dhctl_log_file}-wait-log" 2>&1 &
 
+          docker run --rm \
+          -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
+          -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
+          -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
+          -e CRI=${CRI} \
+          -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_DEFAULT_REGION=eu-central-1 \
+          -e LAYOUT=${LAYOUT} \
+          -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
+          -e CRI=${CRI} \
+          -v $(pwd)/testing:/deckhouse/testing \
+          -v ${TMP_DIR_PATH}:/tmp \
+          --user $(id -u):$(id -u) \
+          ${TERRAFORM_IMAGE_NAME} \
+          bash /deckhouse/testing/cloud_layouts/script_eks.sh run-test
+          docker run --rm \
+          -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
+          -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
+          -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
+          -e LAYOUT=${LAYOUT:-not_provided} \
+          -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
+          -e CRI=${CRI} \
+          -v "$PWD/config.yml:/config.yml" \
+          -v ${TMP_DIR_PATH}:/tmp \
+          -v "$PWD/resources.yml:/resources.yml" \
+          -v $(pwd)/testing:/deckhouse/testing \
+          ${INSTALL_IMAGE_NAME} \
+          dhctl bootstrap-phase install-deckhouse \
+            --kubeconfig=/tmp/eks-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}.kubeconfig \
+            --config=/deckhouse/testing/cloud_layouts/EKS/WithoutNAT/configuration.yaml
 
           docker run --rm \
-            -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
-            -e PREFIX=${PREFIX} \
-            -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
-            -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
-            -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
-            -e CRI=${CRI} \
-            -e PROVIDER=${PROVIDER:-not_provided} \
-            -e MASTER_CONNECTION_STRING=${SSH_MASTER_CONNECTION_STRING:-} \
-            -e LAYOUT=${LAYOUT:-not_provided} \
-            -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
-            -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
-            -e LAYOUT_AZURE_SUBSCRIPTION_ID=${LAYOUT_AZURE_SUBSCRIPTION_ID:-not_provided} \
-            -e LAYOUT_AZURE_CLIENT_ID=${LAYOUT_AZURE_CLIENT_ID:-not_provided} \
-            -e LAYOUT_AZURE_CLIENT_SECRET=${LAYOUT_AZURE_CLIENT_SECRET:-not_provided} \
-            -e LAYOUT_AZURE_TENANT_ID=${LAYOUT_AZURE_TENANT_ID:-not_provided} \
-            -v $(pwd)/testing:/deckhouse/testing \
-            -v ${TMP_DIR_PATH}:/tmp \
-            --user $(id -u):$(id -u) \
-            -v /etc/group:/etc/group:ro \
-            -v /etc/passwd:/etc/passwd:ro \
-            -v /etc/shadow:/etc/shadow:ro \
-            -w /deckhouse \
+          -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
+          -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
+          -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
+          -e LAYOUT=${LAYOUT:-not_provided} \
+          -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
+          -e CRI=${CRI} \
+          -v "$PWD/config.yml:/config.yml" \
+          -v ${TMP_DIR_PATH}:/tmp \
+          -v "$PWD/resources.yml:/resources.yml" \
+          -v $(pwd)/testing:/deckhouse/testing \
           ${INSTALL_IMAGE_NAME} \
-          bash /deckhouse/testing/cloud_layouts/script.sh run-test
+          dhctl bootstrap-phase create-resources \
+            --kubeconfig=/tmp/eks-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}.kubeconfig \
+            --resources=/deckhouse/testing/cloud_layouts/EKS/WithoutNAT/resources.yaml
+
+          docker run --rm \
+          -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
+          -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
+          -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
+          -e CRI=${CRI} \
+          -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_DEFAULT_REGION=eu-central-1 \
+          -e LAYOUT=${LAYOUT} \
+          -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
+          -e CRI=${CRI} \
+          -e KUBECONFIG=/tmp/eks-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}.kubeconfig \
+          -v $(pwd)/testing:/deckhouse/testing \
+          -v ${TMP_DIR_PATH}:/tmp \
+          --user $(id -u):$(id -u) \
+          ${TERRAFORM_IMAGE_NAME} \
+          bash /deckhouse/testing/cloud_layouts/script_eks.sh wait_deckhouse_ready
+
+          docker run --rm \
+          -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
+          -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
+          -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
+          -e CRI=${CRI} \
+          -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_DEFAULT_REGION=eu-central-1 \
+          -e LAYOUT=${LAYOUT} \
+          -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
+          -e CRI=${CRI} \
+          -e KUBECONFIG=/tmp/eks-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}.kubeconfig \
+          -v $(pwd)/testing:/deckhouse/testing \
+          -v ${TMP_DIR_PATH}:/tmp \
+          --user $(id -u):$(id -u) \
+          ${TERRAFORM_IMAGE_NAME} \
+          bash /deckhouse/testing/cloud_layouts/script_eks.sh wait_cluster_ready
 
         # </template: e2e_run_template>
       - name: Read connection string
@@ -4566,9 +5008,9 @@ jobs:
         id: cleanup_cluster
         timeout-minutes: 60
         env:
-          PROVIDER: Azure
+          PROVIDER: EKS
           CRI: Containerd
-          LAYOUT: Standard
+          LAYOUT: WithoutNAT
           KUBERNETES_VERSION: "1.26"
           LAYOUT_DECKHOUSE_DOCKERCFG: ${{ secrets.LAYOUT_DECKHOUSE_DOCKERCFG }}
           LAYOUT_SSH_KEY: ${{ secrets.LAYOUT_SSH_KEY}}
@@ -4578,10 +5020,8 @@ jobs:
           TERRAFORM_IMAGE_NAME: ${{ steps.setup.outputs.terraform-image-name }}
           DECKHOUSE_IMAGE_TAG: ${{ steps.setup.outputs.deckhouse-image-tag }}
         # <template: e2e_run_template>
-          LAYOUT_AZURE_SUBSCRIPTION_ID: ${{ secrets.LAYOUT_AZURE_SUBSCRIPTION_ID }}
-          LAYOUT_AZURE_CLIENT_ID: ${{ secrets.LAYOUT_AZURE_CLIENT_ID }}
-          LAYOUT_AZURE_CLIENT_SECRET: ${{ secrets.LAYOUT_AZURE_CLIENT_SECRET }}
-          LAYOUT_AZURE_TENANT_ID: ${{ secrets.LAYOUT_AZURE_TENANT_ID }}
+          LAYOUT_AWS_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_ACCESS_KEY }}
+          LAYOUT_AWS_SECRET_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_SECRET_ACCESS_KEY }}
           COMMENT_ID: ${{ inputs.comment_id }}
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
@@ -4604,32 +5044,22 @@ jobs:
 
           dhctl_log_file="${DHCTL_LOG_FILE}-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           echo "DHCTL log file: $dhctl_log_file"
-
           docker run --rm \
-            -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
-            -e PREFIX=${PREFIX} \
-            -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
-            -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
-            -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
-            -e CRI=${CRI} \
-            -e PROVIDER=${PROVIDER:-not_provided} \
-            -e MASTER_CONNECTION_STRING=${SSH_MASTER_CONNECTION_STRING:-} \
-            -e LAYOUT=${LAYOUT:-not_provided} \
-            -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
-            -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
-            -e LAYOUT_AZURE_SUBSCRIPTION_ID=${LAYOUT_AZURE_SUBSCRIPTION_ID:-not_provided} \
-            -e LAYOUT_AZURE_CLIENT_ID=${LAYOUT_AZURE_CLIENT_ID:-not_provided} \
-            -e LAYOUT_AZURE_CLIENT_SECRET=${LAYOUT_AZURE_CLIENT_SECRET:-not_provided} \
-            -e LAYOUT_AZURE_TENANT_ID=${LAYOUT_AZURE_TENANT_ID:-not_provided} \
-            -v $(pwd)/testing:/deckhouse/testing \
-            -v ${TMP_DIR_PATH}:/tmp \
-            --user $(id -u):$(id -u) \
-            -v /etc/group:/etc/group:ro \
-            -v /etc/passwd:/etc/passwd:ro \
-            -v /etc/shadow:/etc/shadow:ro \
-            -w /deckhouse \
-          ${INSTALL_IMAGE_NAME} \
-          bash /deckhouse/testing/cloud_layouts/script.sh cleanup
+          -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
+          -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
+          -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
+          -e CRI=${CRI} \
+          -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_DEFAULT_REGION=eu-central-1 \
+          -e LAYOUT=${LAYOUT} \
+          -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
+          -e CRI=${CRI} \
+          -v $(pwd)/testing:/deckhouse/testing \
+          -v ${TMP_DIR_PATH}:/tmp \
+          --user $(id -u):$(id -u) \
+          ${TERRAFORM_IMAGE_NAME} \
+          bash /deckhouse/testing/cloud_layouts/script_eks.sh cleanup
 
         # </template: e2e_run_template>
 
@@ -4638,7 +5068,7 @@ jobs:
         if: ${{ failure() }}
         uses: actions/upload-artifact@v2
         with:
-          name: failed_cluster_state_azure_containerd_1_26
+          name: failed_cluster_state_eks_containerd_1_26
           path: |
             ${{ steps.setup.outputs.tmp-dir-path}}/dhctl
             ${{ steps.setup.outputs.tmp-dir-path}}/*.tfstate
@@ -4647,7 +5077,7 @@ jobs:
         if: ${{ steps.setup.outputs.dhctl-log-file }}
         uses: actions/upload-artifact@v2
         with:
-          name: test_output_azure_containerd_1_26
+          name: test_output_eks_containerd_1_26
           path: |
             ${{ steps.setup.outputs.dhctl-log-file}}*
             testing/cloud_layouts/
@@ -4677,7 +5107,7 @@ jobs:
           github-token: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
           script: |
             const statusConfig = 'job,separate';
-            const name = 'e2e: Azure, Containerd, Kubernetes 1.26';
+            const name = 'e2e: EKS, Containerd, Kubernetes 1.26';
             const needsContext = JSON.parse(process.env.NEEDS_CONTEXT);
             const jobContext = JSON.parse(process.env.JOB_CONTEXT);
             const stepsContext = JSON.parse(process.env.STEPS_CONTEXT);
@@ -4704,7 +5134,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       JOB_NAMES: |
-        {"run_containerd_1_22":"e2e: Azure, Containerd, Kubernetes 1.22","run_containerd_1_23":"e2e: Azure, Containerd, Kubernetes 1.23","run_containerd_1_24":"e2e: Azure, Containerd, Kubernetes 1.24","run_containerd_1_25":"e2e: Azure, Containerd, Kubernetes 1.25","run_containerd_1_26":"e2e: Azure, Containerd, Kubernetes 1.26","run_docker_1_22":"e2e: Azure, Docker, Kubernetes 1.22","run_docker_1_23":"e2e: Azure, Docker, Kubernetes 1.23","run_docker_1_24":"e2e: Azure, Docker, Kubernetes 1.24","run_docker_1_25":"e2e: Azure, Docker, Kubernetes 1.25","run_docker_1_26":"e2e: Azure, Docker, Kubernetes 1.26"}
+        {"run_containerd_1_22":"e2e: EKS, Containerd, Kubernetes 1.22","run_containerd_1_23":"e2e: EKS, Containerd, Kubernetes 1.23","run_containerd_1_24":"e2e: EKS, Containerd, Kubernetes 1.24","run_containerd_1_25":"e2e: EKS, Containerd, Kubernetes 1.25","run_containerd_1_26":"e2e: EKS, Containerd, Kubernetes 1.26","run_docker_1_22":"e2e: EKS, Docker, Kubernetes 1.22","run_docker_1_23":"e2e: EKS, Docker, Kubernetes 1.23","run_docker_1_24":"e2e: EKS, Docker, Kubernetes 1.24","run_docker_1_25":"e2e: EKS, Docker, Kubernetes 1.25","run_docker_1_26":"e2e: EKS, Docker, Kubernetes 1.26"}
     steps:
 
       # <template: checkout_step>
@@ -4725,7 +5155,7 @@ jobs:
           github-token: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
           script: |
             const statusConfig = 'workflow,final,no-skipped,restore-separate';
-            const name = 'e2e: Azure';
+            const name = 'e2e: EKS';
             const needsContext = JSON.parse(process.env.NEEDS_CONTEXT);
             const jobContext = JSON.parse(process.env.JOB_CONTEXT);
             const stepsContext = JSON.parse(process.env.STEPS_CONTEXT);
