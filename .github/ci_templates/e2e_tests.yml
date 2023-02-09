@@ -59,6 +59,9 @@
 {!{- if eq $provider "aws" }!}
   LAYOUT_AWS_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_ACCESS_KEY }}
   LAYOUT_AWS_SECRET_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_SECRET_ACCESS_KEY }}
+{!{- else if eq $provider "eks" }!}
+  LAYOUT_AWS_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_ACCESS_KEY }}
+  LAYOUT_AWS_SECRET_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_SECRET_ACCESS_KEY }}
 {!{- else if eq $provider "gcp" }!}
   LAYOUT_GCP_SERVICE_ACCOUT_KEY_JSON: ${{ secrets.LAYOUT_GCP_SERVICE_ACCOUT_KEY_JSON }}
 {!{- else if eq $provider "azure" }!}
@@ -125,6 +128,9 @@ run: |
     -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
     -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
 {!{- if eq $provider "aws" }!}
+    -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
+    -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
+{!{- else if eq $provider "eks" }!}
     -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
     -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
 {!{- else if eq $provider "gcp" }!}

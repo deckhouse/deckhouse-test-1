@@ -72,6 +72,11 @@ Provider specific environment variables:
 \$LAYOUT_AZURE_CLIENT_ID
 \$LAYOUT_AZURE_CLIENT_SECRET
 
+  EKS:
+
+\$LAYOUT_AWS_ACCESS_KEY
+\$LAYOUT_AWS_SECRET_ACCESS_KEY
+
   Openstack:
 
 \$LAYOUT_OS_PASSWORD
@@ -162,10 +167,27 @@ function destroy_static_infra() {
   return $exitCode
 }
 
+function destroy_eks_infra() {
+  >&2 echo "Run destroy_eks_infra from ${terraform_state_file}"
+
+  pushd "$cwd"
+  terraform init -input=false -plugin-dir=/usr/local/share/terraform/plugins || return $?
+  terraform destroy -state="${terraform_state_file}" -input=false -auto-approve || exitCode=$?
+  popd
+
+  return $exitCode
+}
+
 function cleanup() {
   if [[ "$PROVIDER" == "Static" ]]; then
     >&2 echo "Run cleanup ... destroy terraform infra"
     destroy_static_infra || exitCode=$?
+    return $exitCode
+  fi
+
+  if [[ "$PROVIDER" == "EKS" ]]; then
+    >&2 echo "Run cleanup ... destroy terraform infra"
+    destroy_eks_infra || exitCode=$?
     return $exitCode
   fi
 
@@ -311,6 +333,16 @@ function prepare_environment() {
     ssh_user="azureuser"
     ;;
 
+  "EKS")
+    # shellcheck disable=SC2016
+    env AWS_ACCESS_KEY="$(base64 -d <<< "$LAYOUT_AWS_ACCESS_KEY")" AWS_SECRET_ACCESS_KEY="$(base64 -d <<< "$LAYOUT_AWS_SECRET_ACCESS_KEY")" \
+        KUBERNETES_VERSION="$KUBERNETES_VERSION" CRI="$CRI" DEV_BRANCH="$DEV_BRANCH" PREFIX="$PREFIX" DECKHOUSE_DOCKERCFG="$DECKHOUSE_DOCKERCFG" \
+        envsubst '${DECKHOUSE_DOCKERCFG} ${PREFIX} ${DEV_BRANCH} ${KUBERNETES_VERSION} ${CRI} ${AWS_ACCESS_KEY} ${AWS_SECRET_ACCESS_KEY}' \
+        <"$cwd/configuration.tpl.yaml" >"$cwd/configuration.yaml"
+
+    ssh_user="ubuntu"
+    ;;
+
   "OpenStack")
     # shellcheck disable=SC2016
     env OS_PASSWORD="$(base64 -d <<<"$LAYOUT_OS_PASSWORD")" \
@@ -360,6 +392,8 @@ function prepare_environment() {
 function run-test() {
   if [[ "$PROVIDER" == "Static" ]]; then
     bootstrap_static || return $?
+  else if [[ "$PROVIDER" == "EKS" ]]; then
+    bootstrap_eks || return $?
   else
     bootstrap || return $?
   fi
@@ -372,6 +406,86 @@ function run-test() {
     wait_deckhouse_ready || return $?
     wait_cluster_ready || return $?
   fi
+}
+
+function bootstrap_eks() {
+  >&2 echo "Run terraform to create nodes for EKS cluster ..."
+  pushd "$cwd"
+  terraform init -input=false -plugin-dir=/usr/local/share/terraform/plugins || return $?
+  terraform apply -state="${terraform_state_file}" -auto-approve -no-color | tee "$cwd/terraform.log" || return $?
+  popd
+
+  if ! cluster_endpoint="$(grep "cluster_endpoint" "$cwd/terraform.log"| cut -d "=" -f2 | tr -d " ")" ; then
+    >&2 echo "ERROR: can't parse cluster_endpoint from terraform.log"
+    return 1
+  fi
+  if ! cluster_name="$(grep "cluster_name" "$cwd/terraform.log"| cut -d "=" -f2 | tr -d " ")" ; then
+    >&2 echo "ERROR: can't parse cluster_name from terraform.log"
+    return 1
+  fi
+  if ! region="$(grep "region" "$cwd/terraform.log"| cut -d "=" -f2 | tr -d " ")" ; then
+    >&2 echo "ERROR: can't parse region from terraform.log"
+    return 1
+  fi
+
+  _username_="deckhouse-setup"
+  _env_="eks-cluster"
+  _tmp_kubeconfig="tmp_kubeconfig"
+  SECRET_NAME="cluster-admin-secret"
+  KUBECONFIG="tmp_kubeconfig"
+  aws eks --region $region update-kubeconfig --name $cluster_name --kubeconfig $_tmp_kubeconfig
+  export ROLE="cluster-admin"
+  export NS="d8-system"
+  echo "create service account ${_username_} for env ${_env_}"
+  KUBECONFIG=tmp_kubeconfig kubectl create ns d8-system
+  KUBECONFIG=tmp_kubeconfig kubectl create sa $_username_ -n $NS
+  echo "Bind SA ${_username_} with ClusterRole ${ROLE} for environment ${_env_}"
+  KUBECONFIG=tmp_kubeconfig kubectl create clusterrolebinding $_username_ \
+    --serviceaccount=$NS:$_username_ \
+    --clusterrole=${ROLE}
+  KUBECONFIG=tmp_kubeconfig kubectl apply -f - <<EOF
+apiVersion: v1
+kind: Secret
+metadata:
+  name: $_username_-secret
+  namespace: $NS
+  annotations:
+    kubernetes.io/service-account.name: $_username_
+type: kubernetes.io/service-account-token
+EOF
+  TOKEN=$(KUBECONFIG=tmp_kubeconfig kubectl get secrets $_username_-secret -n $NS -o json | jq -r .data.token | base64 -d)
+  CA=$(KUBECONFIG=tmp_kubeconfig kubectl get secrets $_username_-secret -n $NS -o json | jq -r '.data | .["ca.crt"]')
+  SERVER=$(aws eks describe-cluster --name $cluster_name | jq -r .cluster.endpoint)
+  cat <<-EOF > $_username_-$_env_.yaml
+apiVersion: v1
+kind: Config
+users:
+- name: $_username_
+  user:
+    token: $TOKEN
+clusters:
+- cluster:
+    certificate-authority-data: $CA
+    server: $SERVER
+  name: $_username_
+contexts:
+- context:
+    cluster: $_username_
+    user: $_username_
+  name: $_username_
+current-context: $_username_
+EOF
+  echo "Created kubeconfig $_username_-$_env_.yaml"
+  rm $_tmp_kubeconfig
+  echo "Removed tmp_kubeconfig"
+
+  # Bootstrap
+  >&2 echo "Run dhctl bootstrap ..."
+  dhctl bootstrap-phase install-deckhouse --kubeconfig= "$_username_-$_env_.yaml" \
+  --config "$cwd/configuration.yaml" --resources "$cwd/resources.yaml" | tee -a "$bootstrap_log" || return $?
+
+  cat $_username_-$_env_.yaml
+
 }
 
 function bootstrap_static() {
