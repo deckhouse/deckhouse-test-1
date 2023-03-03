@@ -29,6 +29,8 @@ import (
 )
 
 var _ = Describe("Modules :: upmeter :: hooks :: disabled_probes ::", func() {
+
+	// Test Change to sources
 	const initValues = `{"upmeter": { "internal": { "disabledProbes": [] }, "disabledProbes": [] }}`
 
 	Context("smokeMiniDisabled ", func() {
