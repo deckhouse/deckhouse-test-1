@@ -30,3 +30,4 @@ requirements:
 # map of disruptions, associated with a specific release. You have to register check functions before specified release
 disruptions:
   "1.36": ["ingressNginx"] # modules/402-ingress-nginx/requirements/disruption.go
+
