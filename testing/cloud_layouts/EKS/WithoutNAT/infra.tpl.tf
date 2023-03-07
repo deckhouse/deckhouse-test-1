@@ -27,7 +27,7 @@ terraform {
     }
   }
 
-  required_version = "~> 1.3"
+  required_version = "~> 0.13.4"
 }
 
 provider "aws" {
@@ -74,7 +74,7 @@ module "vpc" {
 
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
-  version = "19.5.1"
+  version = "18.31.2"
 
   cluster_name    = local.cluster_name
   cluster_version = "1.24"
