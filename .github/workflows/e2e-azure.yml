@@ -389,7 +389,6 @@ jobs:
           # Print image name in uppercase to prevent hiding non-secret registry host stored in secret.
           echo "⚓️ [$(date -u)] Pull 'dev/install' image '${SAFE_IMAGE_NAME}'."
           docker pull "${INSTALL_IMAGE_NAME}"
-          docker pull "${TERRAFORM_IMAGE_NAME}"
 
           IMAGE_INSTALL_PATH="/${INSTALL_IMAGE_NAME#*/}"
 
@@ -417,7 +416,6 @@ jobs:
           TMP_DIR_PATH: ${{ steps.setup.outputs.tmp-dir-path}}
           PREFIX: ${{ steps.setup.outputs.dhctl-prefix}}
           INSTALL_IMAGE_NAME: ${{ steps.setup.outputs.install-image-name }}
-          TERRAFORM_IMAGE_NAME: ${{ steps.setup.outputs.terraform-image-name }}
           DECKHOUSE_IMAGE_TAG: ${{ steps.setup.outputs.deckhouse-image-tag }}
           INITIAL_IMAGE_TAG: ${{ steps.setup.outputs.initial-image-tag }}
         # <template: e2e_run_template>
@@ -833,7 +831,6 @@ jobs:
           # Print image name in uppercase to prevent hiding non-secret registry host stored in secret.
           echo "⚓️ [$(date -u)] Pull 'dev/install' image '${SAFE_IMAGE_NAME}'."
           docker pull "${INSTALL_IMAGE_NAME}"
-          docker pull "${TERRAFORM_IMAGE_NAME}"
 
           IMAGE_INSTALL_PATH="/${INSTALL_IMAGE_NAME#*/}"
 
@@ -861,7 +858,6 @@ jobs:
           TMP_DIR_PATH: ${{ steps.setup.outputs.tmp-dir-path}}
           PREFIX: ${{ steps.setup.outputs.dhctl-prefix}}
           INSTALL_IMAGE_NAME: ${{ steps.setup.outputs.install-image-name }}
-          TERRAFORM_IMAGE_NAME: ${{ steps.setup.outputs.terraform-image-name }}
           DECKHOUSE_IMAGE_TAG: ${{ steps.setup.outputs.deckhouse-image-tag }}
           INITIAL_IMAGE_TAG: ${{ steps.setup.outputs.initial-image-tag }}
         # <template: e2e_run_template>
@@ -1277,7 +1273,6 @@ jobs:
           # Print image name in uppercase to prevent hiding non-secret registry host stored in secret.
           echo "⚓️ [$(date -u)] Pull 'dev/install' image '${SAFE_IMAGE_NAME}'."
           docker pull "${INSTALL_IMAGE_NAME}"
-          docker pull "${TERRAFORM_IMAGE_NAME}"
 
           IMAGE_INSTALL_PATH="/${INSTALL_IMAGE_NAME#*/}"
 
@@ -1305,7 +1300,6 @@ jobs:
           TMP_DIR_PATH: ${{ steps.setup.outputs.tmp-dir-path}}
           PREFIX: ${{ steps.setup.outputs.dhctl-prefix}}
           INSTALL_IMAGE_NAME: ${{ steps.setup.outputs.install-image-name }}
-          TERRAFORM_IMAGE_NAME: ${{ steps.setup.outputs.terraform-image-name }}
           DECKHOUSE_IMAGE_TAG: ${{ steps.setup.outputs.deckhouse-image-tag }}
           INITIAL_IMAGE_TAG: ${{ steps.setup.outputs.initial-image-tag }}
         # <template: e2e_run_template>
@@ -1721,7 +1715,6 @@ jobs:
           # Print image name in uppercase to prevent hiding non-secret registry host stored in secret.
           echo "⚓️ [$(date -u)] Pull 'dev/install' image '${SAFE_IMAGE_NAME}'."
           docker pull "${INSTALL_IMAGE_NAME}"
-          docker pull "${TERRAFORM_IMAGE_NAME}"
 
           IMAGE_INSTALL_PATH="/${INSTALL_IMAGE_NAME#*/}"
 
@@ -1749,7 +1742,6 @@ jobs:
           TMP_DIR_PATH: ${{ steps.setup.outputs.tmp-dir-path}}
           PREFIX: ${{ steps.setup.outputs.dhctl-prefix}}
           INSTALL_IMAGE_NAME: ${{ steps.setup.outputs.install-image-name }}
-          TERRAFORM_IMAGE_NAME: ${{ steps.setup.outputs.terraform-image-name }}
           DECKHOUSE_IMAGE_TAG: ${{ steps.setup.outputs.deckhouse-image-tag }}
           INITIAL_IMAGE_TAG: ${{ steps.setup.outputs.initial-image-tag }}
         # <template: e2e_run_template>
@@ -2165,7 +2157,6 @@ jobs:
           # Print image name in uppercase to prevent hiding non-secret registry host stored in secret.
           echo "⚓️ [$(date -u)] Pull 'dev/install' image '${SAFE_IMAGE_NAME}'."
           docker pull "${INSTALL_IMAGE_NAME}"
-          docker pull "${TERRAFORM_IMAGE_NAME}"
 
           IMAGE_INSTALL_PATH="/${INSTALL_IMAGE_NAME#*/}"
 
@@ -2193,7 +2184,6 @@ jobs:
           TMP_DIR_PATH: ${{ steps.setup.outputs.tmp-dir-path}}
           PREFIX: ${{ steps.setup.outputs.dhctl-prefix}}
           INSTALL_IMAGE_NAME: ${{ steps.setup.outputs.install-image-name }}
-          TERRAFORM_IMAGE_NAME: ${{ steps.setup.outputs.terraform-image-name }}
           DECKHOUSE_IMAGE_TAG: ${{ steps.setup.outputs.deckhouse-image-tag }}
           INITIAL_IMAGE_TAG: ${{ steps.setup.outputs.initial-image-tag }}
         # <template: e2e_run_template>
@@ -2609,7 +2599,6 @@ jobs:
           # Print image name in uppercase to prevent hiding non-secret registry host stored in secret.
           echo "⚓️ [$(date -u)] Pull 'dev/install' image '${SAFE_IMAGE_NAME}'."
           docker pull "${INSTALL_IMAGE_NAME}"
-          docker pull "${TERRAFORM_IMAGE_NAME}"
 
           IMAGE_INSTALL_PATH="/${INSTALL_IMAGE_NAME#*/}"
 
@@ -2637,7 +2626,6 @@ jobs:
           TMP_DIR_PATH: ${{ steps.setup.outputs.tmp-dir-path}}
           PREFIX: ${{ steps.setup.outputs.dhctl-prefix}}
           INSTALL_IMAGE_NAME: ${{ steps.setup.outputs.install-image-name }}
-          TERRAFORM_IMAGE_NAME: ${{ steps.setup.outputs.terraform-image-name }}
           DECKHOUSE_IMAGE_TAG: ${{ steps.setup.outputs.deckhouse-image-tag }}
           INITIAL_IMAGE_TAG: ${{ steps.setup.outputs.initial-image-tag }}
         # <template: e2e_run_template>
@@ -3053,7 +3041,6 @@ jobs:
           # Print image name in uppercase to prevent hiding non-secret registry host stored in secret.
           echo "⚓️ [$(date -u)] Pull 'dev/install' image '${SAFE_IMAGE_NAME}'."
           docker pull "${INSTALL_IMAGE_NAME}"
-          docker pull "${TERRAFORM_IMAGE_NAME}"
 
           IMAGE_INSTALL_PATH="/${INSTALL_IMAGE_NAME#*/}"
 
@@ -3081,7 +3068,6 @@ jobs:
           TMP_DIR_PATH: ${{ steps.setup.outputs.tmp-dir-path}}
           PREFIX: ${{ steps.setup.outputs.dhctl-prefix}}
           INSTALL_IMAGE_NAME: ${{ steps.setup.outputs.install-image-name }}
-          TERRAFORM_IMAGE_NAME: ${{ steps.setup.outputs.terraform-image-name }}
           DECKHOUSE_IMAGE_TAG: ${{ steps.setup.outputs.deckhouse-image-tag }}
           INITIAL_IMAGE_TAG: ${{ steps.setup.outputs.initial-image-tag }}
         # <template: e2e_run_template>
@@ -3497,7 +3483,6 @@ jobs:
           # Print image name in uppercase to prevent hiding non-secret registry host stored in secret.
           echo "⚓️ [$(date -u)] Pull 'dev/install' image '${SAFE_IMAGE_NAME}'."
           docker pull "${INSTALL_IMAGE_NAME}"
-          docker pull "${TERRAFORM_IMAGE_NAME}"
 
           IMAGE_INSTALL_PATH="/${INSTALL_IMAGE_NAME#*/}"
 
@@ -3525,7 +3510,6 @@ jobs:
           TMP_DIR_PATH: ${{ steps.setup.outputs.tmp-dir-path}}
           PREFIX: ${{ steps.setup.outputs.dhctl-prefix}}
           INSTALL_IMAGE_NAME: ${{ steps.setup.outputs.install-image-name }}
-          TERRAFORM_IMAGE_NAME: ${{ steps.setup.outputs.terraform-image-name }}
           DECKHOUSE_IMAGE_TAG: ${{ steps.setup.outputs.deckhouse-image-tag }}
           INITIAL_IMAGE_TAG: ${{ steps.setup.outputs.initial-image-tag }}
         # <template: e2e_run_template>
@@ -3941,7 +3925,6 @@ jobs:
           # Print image name in uppercase to prevent hiding non-secret registry host stored in secret.
           echo "⚓️ [$(date -u)] Pull 'dev/install' image '${SAFE_IMAGE_NAME}'."
           docker pull "${INSTALL_IMAGE_NAME}"
-          docker pull "${TERRAFORM_IMAGE_NAME}"
 
           IMAGE_INSTALL_PATH="/${INSTALL_IMAGE_NAME#*/}"
 
@@ -3969,7 +3952,6 @@ jobs:
           TMP_DIR_PATH: ${{ steps.setup.outputs.tmp-dir-path}}
           PREFIX: ${{ steps.setup.outputs.dhctl-prefix}}
           INSTALL_IMAGE_NAME: ${{ steps.setup.outputs.install-image-name }}
-          TERRAFORM_IMAGE_NAME: ${{ steps.setup.outputs.terraform-image-name }}
           DECKHOUSE_IMAGE_TAG: ${{ steps.setup.outputs.deckhouse-image-tag }}
           INITIAL_IMAGE_TAG: ${{ steps.setup.outputs.initial-image-tag }}
         # <template: e2e_run_template>
@@ -4385,7 +4367,6 @@ jobs:
           # Print image name in uppercase to prevent hiding non-secret registry host stored in secret.
           echo "⚓️ [$(date -u)] Pull 'dev/install' image '${SAFE_IMAGE_NAME}'."
           docker pull "${INSTALL_IMAGE_NAME}"
-          docker pull "${TERRAFORM_IMAGE_NAME}"
 
           IMAGE_INSTALL_PATH="/${INSTALL_IMAGE_NAME#*/}"
 
@@ -4413,7 +4394,6 @@ jobs:
           TMP_DIR_PATH: ${{ steps.setup.outputs.tmp-dir-path}}
           PREFIX: ${{ steps.setup.outputs.dhctl-prefix}}
           INSTALL_IMAGE_NAME: ${{ steps.setup.outputs.install-image-name }}
-          TERRAFORM_IMAGE_NAME: ${{ steps.setup.outputs.terraform-image-name }}
           DECKHOUSE_IMAGE_TAG: ${{ steps.setup.outputs.deckhouse-image-tag }}
           INITIAL_IMAGE_TAG: ${{ steps.setup.outputs.initial-image-tag }}
         # <template: e2e_run_template>
