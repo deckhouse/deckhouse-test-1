@@ -36,6 +36,8 @@ else
   ingress=""
 fi
 
+exit 1
+
 availability=""
 attempts=50
 # With sleep timeout of 30s, we have 25 minutes period in total to catch the 100% availability from upmeter
