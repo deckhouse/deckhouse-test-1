@@ -478,7 +478,41 @@ jobs:
           -v ${TMP_DIR_PATH}:/tmp \
           --user $(id -u):$(id -u) \
           ${TERRAFORM_IMAGE_NAME} \
-          ls -lh /deckhouse/testing/ && ls -lh /deckhouse/testing/
+          ls -lh /deckhouse
+
+          docker run --rm \
+          -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
+          -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
+          -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
+          -e CRI=${CRI} \
+          -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_DEFAULT_REGION=eu-central-1 \
+          -e LAYOUT=${LAYOUT} \
+          -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
+          -e CRI=${CRI} \
+          -v $(pwd)/testing:/deckhouse/testing \
+          -v ${TMP_DIR_PATH}:/tmp \
+          --user $(id -u):$(id -u) \
+          ${TERRAFORM_IMAGE_NAME} \
+          ls -lh /deckhouse/testing/
+
+          docker run --rm \
+          -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
+          -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
+          -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
+          -e CRI=${CRI} \
+          -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_DEFAULT_REGION=eu-central-1 \
+          -e LAYOUT=${LAYOUT} \
+          -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
+          -e CRI=${CRI} \
+          -v $(pwd)/testing:/deckhouse/testing \
+          -v ${TMP_DIR_PATH}:/tmp \
+          --user $(id -u):$(id -u) \
+          ${TERRAFORM_IMAGE_NAME} \
+          ls -lh /deckhouse/testing/cloud_layouts
 
           docker run --rm \
           -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
@@ -643,7 +677,41 @@ jobs:
           -v ${TMP_DIR_PATH}:/tmp \
           --user $(id -u):$(id -u) \
           ${TERRAFORM_IMAGE_NAME} \
-          ls -lh /deckhouse/testing/ && ls -lh /deckhouse/testing/
+          ls -lh /deckhouse
+
+          docker run --rm \
+          -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
+          -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
+          -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
+          -e CRI=${CRI} \
+          -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_DEFAULT_REGION=eu-central-1 \
+          -e LAYOUT=${LAYOUT} \
+          -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
+          -e CRI=${CRI} \
+          -v $(pwd)/testing:/deckhouse/testing \
+          -v ${TMP_DIR_PATH}:/tmp \
+          --user $(id -u):$(id -u) \
+          ${TERRAFORM_IMAGE_NAME} \
+          ls -lh /deckhouse/testing/
+
+          docker run --rm \
+          -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
+          -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
+          -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
+          -e CRI=${CRI} \
+          -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_DEFAULT_REGION=eu-central-1 \
+          -e LAYOUT=${LAYOUT} \
+          -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
+          -e CRI=${CRI} \
+          -v $(pwd)/testing:/deckhouse/testing \
+          -v ${TMP_DIR_PATH}:/tmp \
+          --user $(id -u):$(id -u) \
+          ${TERRAFORM_IMAGE_NAME} \
+          ls -lh /deckhouse/testing/cloud_layouts
 
           docker run --rm \
           -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
@@ -1009,7 +1077,41 @@ jobs:
           -v ${TMP_DIR_PATH}:/tmp \
           --user $(id -u):$(id -u) \
           ${TERRAFORM_IMAGE_NAME} \
-          ls -lh /deckhouse/testing/ && ls -lh /deckhouse/testing/
+          ls -lh /deckhouse
+
+          docker run --rm \
+          -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
+          -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
+          -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
+          -e CRI=${CRI} \
+          -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_DEFAULT_REGION=eu-central-1 \
+          -e LAYOUT=${LAYOUT} \
+          -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
+          -e CRI=${CRI} \
+          -v $(pwd)/testing:/deckhouse/testing \
+          -v ${TMP_DIR_PATH}:/tmp \
+          --user $(id -u):$(id -u) \
+          ${TERRAFORM_IMAGE_NAME} \
+          ls -lh /deckhouse/testing/
+
+          docker run --rm \
+          -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
+          -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
+          -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
+          -e CRI=${CRI} \
+          -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_DEFAULT_REGION=eu-central-1 \
+          -e LAYOUT=${LAYOUT} \
+          -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
+          -e CRI=${CRI} \
+          -v $(pwd)/testing:/deckhouse/testing \
+          -v ${TMP_DIR_PATH}:/tmp \
+          --user $(id -u):$(id -u) \
+          ${TERRAFORM_IMAGE_NAME} \
+          ls -lh /deckhouse/testing/cloud_layouts
 
           docker run --rm \
           -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
@@ -1174,7 +1276,41 @@ jobs:
           -v ${TMP_DIR_PATH}:/tmp \
           --user $(id -u):$(id -u) \
           ${TERRAFORM_IMAGE_NAME} \
-          ls -lh /deckhouse/testing/ && ls -lh /deckhouse/testing/
+          ls -lh /deckhouse
+
+          docker run --rm \
+          -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
+          -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
+          -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
+          -e CRI=${CRI} \
+          -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_DEFAULT_REGION=eu-central-1 \
+          -e LAYOUT=${LAYOUT} \
+          -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
+          -e CRI=${CRI} \
+          -v $(pwd)/testing:/deckhouse/testing \
+          -v ${TMP_DIR_PATH}:/tmp \
+          --user $(id -u):$(id -u) \
+          ${TERRAFORM_IMAGE_NAME} \
+          ls -lh /deckhouse/testing/
+
+          docker run --rm \
+          -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
+          -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
+          -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
+          -e CRI=${CRI} \
+          -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_DEFAULT_REGION=eu-central-1 \
+          -e LAYOUT=${LAYOUT} \
+          -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
+          -e CRI=${CRI} \
+          -v $(pwd)/testing:/deckhouse/testing \
+          -v ${TMP_DIR_PATH}:/tmp \
+          --user $(id -u):$(id -u) \
+          ${TERRAFORM_IMAGE_NAME} \
+          ls -lh /deckhouse/testing/cloud_layouts
 
           docker run --rm \
           -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
@@ -1540,7 +1676,41 @@ jobs:
           -v ${TMP_DIR_PATH}:/tmp \
           --user $(id -u):$(id -u) \
           ${TERRAFORM_IMAGE_NAME} \
-          ls -lh /deckhouse/testing/ && ls -lh /deckhouse/testing/
+          ls -lh /deckhouse
+
+          docker run --rm \
+          -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
+          -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
+          -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
+          -e CRI=${CRI} \
+          -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_DEFAULT_REGION=eu-central-1 \
+          -e LAYOUT=${LAYOUT} \
+          -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
+          -e CRI=${CRI} \
+          -v $(pwd)/testing:/deckhouse/testing \
+          -v ${TMP_DIR_PATH}:/tmp \
+          --user $(id -u):$(id -u) \
+          ${TERRAFORM_IMAGE_NAME} \
+          ls -lh /deckhouse/testing/
+
+          docker run --rm \
+          -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
+          -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
+          -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
+          -e CRI=${CRI} \
+          -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_DEFAULT_REGION=eu-central-1 \
+          -e LAYOUT=${LAYOUT} \
+          -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
+          -e CRI=${CRI} \
+          -v $(pwd)/testing:/deckhouse/testing \
+          -v ${TMP_DIR_PATH}:/tmp \
+          --user $(id -u):$(id -u) \
+          ${TERRAFORM_IMAGE_NAME} \
+          ls -lh /deckhouse/testing/cloud_layouts
 
           docker run --rm \
           -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
@@ -1705,7 +1875,41 @@ jobs:
           -v ${TMP_DIR_PATH}:/tmp \
           --user $(id -u):$(id -u) \
           ${TERRAFORM_IMAGE_NAME} \
-          ls -lh /deckhouse/testing/ && ls -lh /deckhouse/testing/
+          ls -lh /deckhouse
+
+          docker run --rm \
+          -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
+          -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
+          -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
+          -e CRI=${CRI} \
+          -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_DEFAULT_REGION=eu-central-1 \
+          -e LAYOUT=${LAYOUT} \
+          -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
+          -e CRI=${CRI} \
+          -v $(pwd)/testing:/deckhouse/testing \
+          -v ${TMP_DIR_PATH}:/tmp \
+          --user $(id -u):$(id -u) \
+          ${TERRAFORM_IMAGE_NAME} \
+          ls -lh /deckhouse/testing/
+
+          docker run --rm \
+          -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
+          -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
+          -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
+          -e CRI=${CRI} \
+          -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_DEFAULT_REGION=eu-central-1 \
+          -e LAYOUT=${LAYOUT} \
+          -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
+          -e CRI=${CRI} \
+          -v $(pwd)/testing:/deckhouse/testing \
+          -v ${TMP_DIR_PATH}:/tmp \
+          --user $(id -u):$(id -u) \
+          ${TERRAFORM_IMAGE_NAME} \
+          ls -lh /deckhouse/testing/cloud_layouts
 
           docker run --rm \
           -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
@@ -2071,7 +2275,41 @@ jobs:
           -v ${TMP_DIR_PATH}:/tmp \
           --user $(id -u):$(id -u) \
           ${TERRAFORM_IMAGE_NAME} \
-          ls -lh /deckhouse/testing/ && ls -lh /deckhouse/testing/
+          ls -lh /deckhouse
+
+          docker run --rm \
+          -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
+          -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
+          -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
+          -e CRI=${CRI} \
+          -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_DEFAULT_REGION=eu-central-1 \
+          -e LAYOUT=${LAYOUT} \
+          -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
+          -e CRI=${CRI} \
+          -v $(pwd)/testing:/deckhouse/testing \
+          -v ${TMP_DIR_PATH}:/tmp \
+          --user $(id -u):$(id -u) \
+          ${TERRAFORM_IMAGE_NAME} \
+          ls -lh /deckhouse/testing/
+
+          docker run --rm \
+          -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
+          -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
+          -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
+          -e CRI=${CRI} \
+          -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_DEFAULT_REGION=eu-central-1 \
+          -e LAYOUT=${LAYOUT} \
+          -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
+          -e CRI=${CRI} \
+          -v $(pwd)/testing:/deckhouse/testing \
+          -v ${TMP_DIR_PATH}:/tmp \
+          --user $(id -u):$(id -u) \
+          ${TERRAFORM_IMAGE_NAME} \
+          ls -lh /deckhouse/testing/cloud_layouts
 
           docker run --rm \
           -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
@@ -2236,7 +2474,41 @@ jobs:
           -v ${TMP_DIR_PATH}:/tmp \
           --user $(id -u):$(id -u) \
           ${TERRAFORM_IMAGE_NAME} \
-          ls -lh /deckhouse/testing/ && ls -lh /deckhouse/testing/
+          ls -lh /deckhouse
+
+          docker run --rm \
+          -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
+          -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
+          -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
+          -e CRI=${CRI} \
+          -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_DEFAULT_REGION=eu-central-1 \
+          -e LAYOUT=${LAYOUT} \
+          -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
+          -e CRI=${CRI} \
+          -v $(pwd)/testing:/deckhouse/testing \
+          -v ${TMP_DIR_PATH}:/tmp \
+          --user $(id -u):$(id -u) \
+          ${TERRAFORM_IMAGE_NAME} \
+          ls -lh /deckhouse/testing/
+
+          docker run --rm \
+          -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
+          -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
+          -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
+          -e CRI=${CRI} \
+          -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_DEFAULT_REGION=eu-central-1 \
+          -e LAYOUT=${LAYOUT} \
+          -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
+          -e CRI=${CRI} \
+          -v $(pwd)/testing:/deckhouse/testing \
+          -v ${TMP_DIR_PATH}:/tmp \
+          --user $(id -u):$(id -u) \
+          ${TERRAFORM_IMAGE_NAME} \
+          ls -lh /deckhouse/testing/cloud_layouts
 
           docker run --rm \
           -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
@@ -2602,7 +2874,41 @@ jobs:
           -v ${TMP_DIR_PATH}:/tmp \
           --user $(id -u):$(id -u) \
           ${TERRAFORM_IMAGE_NAME} \
-          ls -lh /deckhouse/testing/ && ls -lh /deckhouse/testing/
+          ls -lh /deckhouse
+
+          docker run --rm \
+          -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
+          -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
+          -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
+          -e CRI=${CRI} \
+          -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_DEFAULT_REGION=eu-central-1 \
+          -e LAYOUT=${LAYOUT} \
+          -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
+          -e CRI=${CRI} \
+          -v $(pwd)/testing:/deckhouse/testing \
+          -v ${TMP_DIR_PATH}:/tmp \
+          --user $(id -u):$(id -u) \
+          ${TERRAFORM_IMAGE_NAME} \
+          ls -lh /deckhouse/testing/
+
+          docker run --rm \
+          -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
+          -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
+          -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
+          -e CRI=${CRI} \
+          -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_DEFAULT_REGION=eu-central-1 \
+          -e LAYOUT=${LAYOUT} \
+          -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
+          -e CRI=${CRI} \
+          -v $(pwd)/testing:/deckhouse/testing \
+          -v ${TMP_DIR_PATH}:/tmp \
+          --user $(id -u):$(id -u) \
+          ${TERRAFORM_IMAGE_NAME} \
+          ls -lh /deckhouse/testing/cloud_layouts
 
           docker run --rm \
           -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
@@ -2767,7 +3073,41 @@ jobs:
           -v ${TMP_DIR_PATH}:/tmp \
           --user $(id -u):$(id -u) \
           ${TERRAFORM_IMAGE_NAME} \
-          ls -lh /deckhouse/testing/ && ls -lh /deckhouse/testing/
+          ls -lh /deckhouse
+
+          docker run --rm \
+          -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
+          -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
+          -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
+          -e CRI=${CRI} \
+          -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_DEFAULT_REGION=eu-central-1 \
+          -e LAYOUT=${LAYOUT} \
+          -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
+          -e CRI=${CRI} \
+          -v $(pwd)/testing:/deckhouse/testing \
+          -v ${TMP_DIR_PATH}:/tmp \
+          --user $(id -u):$(id -u) \
+          ${TERRAFORM_IMAGE_NAME} \
+          ls -lh /deckhouse/testing/
+
+          docker run --rm \
+          -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
+          -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
+          -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
+          -e CRI=${CRI} \
+          -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_DEFAULT_REGION=eu-central-1 \
+          -e LAYOUT=${LAYOUT} \
+          -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
+          -e CRI=${CRI} \
+          -v $(pwd)/testing:/deckhouse/testing \
+          -v ${TMP_DIR_PATH}:/tmp \
+          --user $(id -u):$(id -u) \
+          ${TERRAFORM_IMAGE_NAME} \
+          ls -lh /deckhouse/testing/cloud_layouts
 
           docker run --rm \
           -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
@@ -3133,7 +3473,41 @@ jobs:
           -v ${TMP_DIR_PATH}:/tmp \
           --user $(id -u):$(id -u) \
           ${TERRAFORM_IMAGE_NAME} \
-          ls -lh /deckhouse/testing/ && ls -lh /deckhouse/testing/
+          ls -lh /deckhouse
+
+          docker run --rm \
+          -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
+          -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
+          -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
+          -e CRI=${CRI} \
+          -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_DEFAULT_REGION=eu-central-1 \
+          -e LAYOUT=${LAYOUT} \
+          -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
+          -e CRI=${CRI} \
+          -v $(pwd)/testing:/deckhouse/testing \
+          -v ${TMP_DIR_PATH}:/tmp \
+          --user $(id -u):$(id -u) \
+          ${TERRAFORM_IMAGE_NAME} \
+          ls -lh /deckhouse/testing/
+
+          docker run --rm \
+          -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
+          -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
+          -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
+          -e CRI=${CRI} \
+          -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_DEFAULT_REGION=eu-central-1 \
+          -e LAYOUT=${LAYOUT} \
+          -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
+          -e CRI=${CRI} \
+          -v $(pwd)/testing:/deckhouse/testing \
+          -v ${TMP_DIR_PATH}:/tmp \
+          --user $(id -u):$(id -u) \
+          ${TERRAFORM_IMAGE_NAME} \
+          ls -lh /deckhouse/testing/cloud_layouts
 
           docker run --rm \
           -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
@@ -3298,7 +3672,41 @@ jobs:
           -v ${TMP_DIR_PATH}:/tmp \
           --user $(id -u):$(id -u) \
           ${TERRAFORM_IMAGE_NAME} \
-          ls -lh /deckhouse/testing/ && ls -lh /deckhouse/testing/
+          ls -lh /deckhouse
+
+          docker run --rm \
+          -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
+          -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
+          -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
+          -e CRI=${CRI} \
+          -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_DEFAULT_REGION=eu-central-1 \
+          -e LAYOUT=${LAYOUT} \
+          -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
+          -e CRI=${CRI} \
+          -v $(pwd)/testing:/deckhouse/testing \
+          -v ${TMP_DIR_PATH}:/tmp \
+          --user $(id -u):$(id -u) \
+          ${TERRAFORM_IMAGE_NAME} \
+          ls -lh /deckhouse/testing/
+
+          docker run --rm \
+          -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
+          -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
+          -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
+          -e CRI=${CRI} \
+          -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_DEFAULT_REGION=eu-central-1 \
+          -e LAYOUT=${LAYOUT} \
+          -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
+          -e CRI=${CRI} \
+          -v $(pwd)/testing:/deckhouse/testing \
+          -v ${TMP_DIR_PATH}:/tmp \
+          --user $(id -u):$(id -u) \
+          ${TERRAFORM_IMAGE_NAME} \
+          ls -lh /deckhouse/testing/cloud_layouts
 
           docker run --rm \
           -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
@@ -3664,7 +4072,41 @@ jobs:
           -v ${TMP_DIR_PATH}:/tmp \
           --user $(id -u):$(id -u) \
           ${TERRAFORM_IMAGE_NAME} \
-          ls -lh /deckhouse/testing/ && ls -lh /deckhouse/testing/
+          ls -lh /deckhouse
+
+          docker run --rm \
+          -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
+          -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
+          -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
+          -e CRI=${CRI} \
+          -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_DEFAULT_REGION=eu-central-1 \
+          -e LAYOUT=${LAYOUT} \
+          -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
+          -e CRI=${CRI} \
+          -v $(pwd)/testing:/deckhouse/testing \
+          -v ${TMP_DIR_PATH}:/tmp \
+          --user $(id -u):$(id -u) \
+          ${TERRAFORM_IMAGE_NAME} \
+          ls -lh /deckhouse/testing/
+
+          docker run --rm \
+          -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
+          -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
+          -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
+          -e CRI=${CRI} \
+          -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_DEFAULT_REGION=eu-central-1 \
+          -e LAYOUT=${LAYOUT} \
+          -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
+          -e CRI=${CRI} \
+          -v $(pwd)/testing:/deckhouse/testing \
+          -v ${TMP_DIR_PATH}:/tmp \
+          --user $(id -u):$(id -u) \
+          ${TERRAFORM_IMAGE_NAME} \
+          ls -lh /deckhouse/testing/cloud_layouts
 
           docker run --rm \
           -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
@@ -3829,7 +4271,41 @@ jobs:
           -v ${TMP_DIR_PATH}:/tmp \
           --user $(id -u):$(id -u) \
           ${TERRAFORM_IMAGE_NAME} \
-          ls -lh /deckhouse/testing/ && ls -lh /deckhouse/testing/
+          ls -lh /deckhouse
+
+          docker run --rm \
+          -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
+          -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
+          -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
+          -e CRI=${CRI} \
+          -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_DEFAULT_REGION=eu-central-1 \
+          -e LAYOUT=${LAYOUT} \
+          -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
+          -e CRI=${CRI} \
+          -v $(pwd)/testing:/deckhouse/testing \
+          -v ${TMP_DIR_PATH}:/tmp \
+          --user $(id -u):$(id -u) \
+          ${TERRAFORM_IMAGE_NAME} \
+          ls -lh /deckhouse/testing/
+
+          docker run --rm \
+          -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
+          -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
+          -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
+          -e CRI=${CRI} \
+          -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_DEFAULT_REGION=eu-central-1 \
+          -e LAYOUT=${LAYOUT} \
+          -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
+          -e CRI=${CRI} \
+          -v $(pwd)/testing:/deckhouse/testing \
+          -v ${TMP_DIR_PATH}:/tmp \
+          --user $(id -u):$(id -u) \
+          ${TERRAFORM_IMAGE_NAME} \
+          ls -lh /deckhouse/testing/cloud_layouts
 
           docker run --rm \
           -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
@@ -4195,7 +4671,41 @@ jobs:
           -v ${TMP_DIR_PATH}:/tmp \
           --user $(id -u):$(id -u) \
           ${TERRAFORM_IMAGE_NAME} \
-          ls -lh /deckhouse/testing/ && ls -lh /deckhouse/testing/
+          ls -lh /deckhouse
+
+          docker run --rm \
+          -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
+          -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
+          -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
+          -e CRI=${CRI} \
+          -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_DEFAULT_REGION=eu-central-1 \
+          -e LAYOUT=${LAYOUT} \
+          -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
+          -e CRI=${CRI} \
+          -v $(pwd)/testing:/deckhouse/testing \
+          -v ${TMP_DIR_PATH}:/tmp \
+          --user $(id -u):$(id -u) \
+          ${TERRAFORM_IMAGE_NAME} \
+          ls -lh /deckhouse/testing/
+
+          docker run --rm \
+          -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
+          -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
+          -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
+          -e CRI=${CRI} \
+          -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_DEFAULT_REGION=eu-central-1 \
+          -e LAYOUT=${LAYOUT} \
+          -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
+          -e CRI=${CRI} \
+          -v $(pwd)/testing:/deckhouse/testing \
+          -v ${TMP_DIR_PATH}:/tmp \
+          --user $(id -u):$(id -u) \
+          ${TERRAFORM_IMAGE_NAME} \
+          ls -lh /deckhouse/testing/cloud_layouts
 
           docker run --rm \
           -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
@@ -4360,7 +4870,41 @@ jobs:
           -v ${TMP_DIR_PATH}:/tmp \
           --user $(id -u):$(id -u) \
           ${TERRAFORM_IMAGE_NAME} \
-          ls -lh /deckhouse/testing/ && ls -lh /deckhouse/testing/
+          ls -lh /deckhouse
+
+          docker run --rm \
+          -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
+          -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
+          -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
+          -e CRI=${CRI} \
+          -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_DEFAULT_REGION=eu-central-1 \
+          -e LAYOUT=${LAYOUT} \
+          -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
+          -e CRI=${CRI} \
+          -v $(pwd)/testing:/deckhouse/testing \
+          -v ${TMP_DIR_PATH}:/tmp \
+          --user $(id -u):$(id -u) \
+          ${TERRAFORM_IMAGE_NAME} \
+          ls -lh /deckhouse/testing/
+
+          docker run --rm \
+          -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
+          -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
+          -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
+          -e CRI=${CRI} \
+          -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_DEFAULT_REGION=eu-central-1 \
+          -e LAYOUT=${LAYOUT} \
+          -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
+          -e CRI=${CRI} \
+          -v $(pwd)/testing:/deckhouse/testing \
+          -v ${TMP_DIR_PATH}:/tmp \
+          --user $(id -u):$(id -u) \
+          ${TERRAFORM_IMAGE_NAME} \
+          ls -lh /deckhouse/testing/cloud_layouts
 
           docker run --rm \
           -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
@@ -4726,7 +5270,41 @@ jobs:
           -v ${TMP_DIR_PATH}:/tmp \
           --user $(id -u):$(id -u) \
           ${TERRAFORM_IMAGE_NAME} \
-          ls -lh /deckhouse/testing/ && ls -lh /deckhouse/testing/
+          ls -lh /deckhouse
+
+          docker run --rm \
+          -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
+          -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
+          -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
+          -e CRI=${CRI} \
+          -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_DEFAULT_REGION=eu-central-1 \
+          -e LAYOUT=${LAYOUT} \
+          -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
+          -e CRI=${CRI} \
+          -v $(pwd)/testing:/deckhouse/testing \
+          -v ${TMP_DIR_PATH}:/tmp \
+          --user $(id -u):$(id -u) \
+          ${TERRAFORM_IMAGE_NAME} \
+          ls -lh /deckhouse/testing/
+
+          docker run --rm \
+          -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
+          -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
+          -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
+          -e CRI=${CRI} \
+          -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_DEFAULT_REGION=eu-central-1 \
+          -e LAYOUT=${LAYOUT} \
+          -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
+          -e CRI=${CRI} \
+          -v $(pwd)/testing:/deckhouse/testing \
+          -v ${TMP_DIR_PATH}:/tmp \
+          --user $(id -u):$(id -u) \
+          ${TERRAFORM_IMAGE_NAME} \
+          ls -lh /deckhouse/testing/cloud_layouts
 
           docker run --rm \
           -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
@@ -4891,7 +5469,41 @@ jobs:
           -v ${TMP_DIR_PATH}:/tmp \
           --user $(id -u):$(id -u) \
           ${TERRAFORM_IMAGE_NAME} \
-          ls -lh /deckhouse/testing/ && ls -lh /deckhouse/testing/
+          ls -lh /deckhouse
+
+          docker run --rm \
+          -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
+          -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
+          -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
+          -e CRI=${CRI} \
+          -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_DEFAULT_REGION=eu-central-1 \
+          -e LAYOUT=${LAYOUT} \
+          -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
+          -e CRI=${CRI} \
+          -v $(pwd)/testing:/deckhouse/testing \
+          -v ${TMP_DIR_PATH}:/tmp \
+          --user $(id -u):$(id -u) \
+          ${TERRAFORM_IMAGE_NAME} \
+          ls -lh /deckhouse/testing/
+
+          docker run --rm \
+          -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
+          -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
+          -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
+          -e CRI=${CRI} \
+          -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_DEFAULT_REGION=eu-central-1 \
+          -e LAYOUT=${LAYOUT} \
+          -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
+          -e CRI=${CRI} \
+          -v $(pwd)/testing:/deckhouse/testing \
+          -v ${TMP_DIR_PATH}:/tmp \
+          --user $(id -u):$(id -u) \
+          ${TERRAFORM_IMAGE_NAME} \
+          ls -lh /deckhouse/testing/cloud_layouts
 
           docker run --rm \
           -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
@@ -5257,7 +5869,41 @@ jobs:
           -v ${TMP_DIR_PATH}:/tmp \
           --user $(id -u):$(id -u) \
           ${TERRAFORM_IMAGE_NAME} \
-          ls -lh /deckhouse/testing/ && ls -lh /deckhouse/testing/
+          ls -lh /deckhouse
+
+          docker run --rm \
+          -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
+          -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
+          -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
+          -e CRI=${CRI} \
+          -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_DEFAULT_REGION=eu-central-1 \
+          -e LAYOUT=${LAYOUT} \
+          -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
+          -e CRI=${CRI} \
+          -v $(pwd)/testing:/deckhouse/testing \
+          -v ${TMP_DIR_PATH}:/tmp \
+          --user $(id -u):$(id -u) \
+          ${TERRAFORM_IMAGE_NAME} \
+          ls -lh /deckhouse/testing/
+
+          docker run --rm \
+          -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
+          -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
+          -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
+          -e CRI=${CRI} \
+          -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_DEFAULT_REGION=eu-central-1 \
+          -e LAYOUT=${LAYOUT} \
+          -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
+          -e CRI=${CRI} \
+          -v $(pwd)/testing:/deckhouse/testing \
+          -v ${TMP_DIR_PATH}:/tmp \
+          --user $(id -u):$(id -u) \
+          ${TERRAFORM_IMAGE_NAME} \
+          ls -lh /deckhouse/testing/cloud_layouts
 
           docker run --rm \
           -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
@@ -5422,7 +6068,41 @@ jobs:
           -v ${TMP_DIR_PATH}:/tmp \
           --user $(id -u):$(id -u) \
           ${TERRAFORM_IMAGE_NAME} \
-          ls -lh /deckhouse/testing/ && ls -lh /deckhouse/testing/
+          ls -lh /deckhouse
+
+          docker run --rm \
+          -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
+          -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
+          -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
+          -e CRI=${CRI} \
+          -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_DEFAULT_REGION=eu-central-1 \
+          -e LAYOUT=${LAYOUT} \
+          -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
+          -e CRI=${CRI} \
+          -v $(pwd)/testing:/deckhouse/testing \
+          -v ${TMP_DIR_PATH}:/tmp \
+          --user $(id -u):$(id -u) \
+          ${TERRAFORM_IMAGE_NAME} \
+          ls -lh /deckhouse/testing/
+
+          docker run --rm \
+          -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
+          -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
+          -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
+          -e CRI=${CRI} \
+          -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
+          -e LAYOUT_AWS_DEFAULT_REGION=eu-central-1 \
+          -e LAYOUT=${LAYOUT} \
+          -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
+          -e CRI=${CRI} \
+          -v $(pwd)/testing:/deckhouse/testing \
+          -v ${TMP_DIR_PATH}:/tmp \
+          --user $(id -u):$(id -u) \
+          ${TERRAFORM_IMAGE_NAME} \
+          ls -lh /deckhouse/testing/cloud_layouts
 
           docker run --rm \
           -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
