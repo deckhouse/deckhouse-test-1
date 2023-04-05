@@ -370,20 +370,16 @@ jobs:
           IMAGE_TAG=${CI_COMMIT_REF_SLUG}${REPO_SUFFIX:+-${REPO_SUFFIX}}
 
           INSTALL_IMAGE_NAME=
-          TERRAFORM_IMAGE_NAME=
           if [[ -n ${CI_COMMIT_BRANCH} ]]; then
             # CI_COMMIT_REF_SLUG is a 'prNUM' for dev branches or 'main' for default branch.
             INSTALL_IMAGE_NAME=${BRANCH_REGISTRY_PATH}/install:${IMAGE_TAG}
-            TERRAFORM_IMAGE_NAME=${BRANCH_REGISTRY_PATH}/e2e-terraform:${IMAGE_TAG}
           fi
           if [[ -n ${CI_COMMIT_TAG} ]] ; then
             REGISTRY_SUFFIX=$(echo ${WERF_ENV} | tr '[:upper:]' '[:lower:]') # CE/EE/FE -> ce/ee/fe
             INSTALL_IMAGE_NAME=${SEMVER_REGISTRY_PATH}/${REGISTRY_SUFFIX}/install:${CI_COMMIT_REF_SLUG}
-            TERRAFORM_IMAGE_NAME=${SEMVER_REGISTRY_PATH}/${REGISTRY_SUFFIX}/e2e-terraform:${CI_COMMIT_REF_SLUG}
           fi
           if [[ -n ${INITIAL_REF_SLUG} ]] ; then
             INSTALL_IMAGE_NAME=${BRANCH_REGISTRY_PATH}/install:${INITIAL_IMAGE_TAG}
-            TERRAFORM_IMAGE_NAME=${BRANCH_REGISTRY_PATH}/e2e-terraform:${INITIAL_IMAGE_TAG}
             git fetch origin ${INITIAL_REF_SLUG}
             git checkout origin/${INITIAL_REF_SLUG} -- testing/cloud_layouts
           fi
@@ -402,7 +398,6 @@ jobs:
           echo "::set-output name=dhctl-log-file::${TMP_DIR_PATH}/dhctl.log"
           echo "::set-output name=dhctl-prefix::${DHCTL_PREFIX}"
           echo "::set-output name=install-image-name::${INSTALL_IMAGE_NAME}"
-          echo "::set-output name=terraform-image-name::${TERRAFORM_IMAGE_NAME}"
           echo "::set-output name=deckhouse-image-tag::${IMAGE_TAG}"
           echo "::set-output name=initial-image-tag::${INITIAL_IMAGE_TAG}"
           echo "::set-output name=install-image-path::${IMAGE_INSTALL_PATH}"
@@ -525,7 +520,6 @@ jobs:
           TMP_DIR_PATH: ${{ steps.setup.outputs.tmp-dir-path}}
           PREFIX: ${{ steps.setup.outputs.dhctl-prefix}}
           INSTALL_IMAGE_NAME: ${{ steps.setup.outputs.install-image-name }}
-          TERRAFORM_IMAGE_NAME: ${{ steps.setup.outputs.terraform-image-name }}
           DECKHOUSE_IMAGE_TAG: ${{ steps.setup.outputs.deckhouse-image-tag }}
         # <template: e2e_run_template>
           LAYOUT_AZURE_SUBSCRIPTION_ID: ${{ secrets.LAYOUT_AZURE_SUBSCRIPTION_ID }}
@@ -820,20 +814,16 @@ jobs:
           IMAGE_TAG=${CI_COMMIT_REF_SLUG}${REPO_SUFFIX:+-${REPO_SUFFIX}}
 
           INSTALL_IMAGE_NAME=
-          TERRAFORM_IMAGE_NAME=
           if [[ -n ${CI_COMMIT_BRANCH} ]]; then
             # CI_COMMIT_REF_SLUG is a 'prNUM' for dev branches or 'main' for default branch.
             INSTALL_IMAGE_NAME=${BRANCH_REGISTRY_PATH}/install:${IMAGE_TAG}
-            TERRAFORM_IMAGE_NAME=${BRANCH_REGISTRY_PATH}/e2e-terraform:${IMAGE_TAG}
           fi
           if [[ -n ${CI_COMMIT_TAG} ]] ; then
             REGISTRY_SUFFIX=$(echo ${WERF_ENV} | tr '[:upper:]' '[:lower:]') # CE/EE/FE -> ce/ee/fe
             INSTALL_IMAGE_NAME=${SEMVER_REGISTRY_PATH}/${REGISTRY_SUFFIX}/install:${CI_COMMIT_REF_SLUG}
-            TERRAFORM_IMAGE_NAME=${SEMVER_REGISTRY_PATH}/${REGISTRY_SUFFIX}/e2e-terraform:${CI_COMMIT_REF_SLUG}
           fi
           if [[ -n ${INITIAL_REF_SLUG} ]] ; then
             INSTALL_IMAGE_NAME=${BRANCH_REGISTRY_PATH}/install:${INITIAL_IMAGE_TAG}
-            TERRAFORM_IMAGE_NAME=${BRANCH_REGISTRY_PATH}/e2e-terraform:${INITIAL_IMAGE_TAG}
             git fetch origin ${INITIAL_REF_SLUG}
             git checkout origin/${INITIAL_REF_SLUG} -- testing/cloud_layouts
           fi
@@ -852,7 +842,6 @@ jobs:
           echo "::set-output name=dhctl-log-file::${TMP_DIR_PATH}/dhctl.log"
           echo "::set-output name=dhctl-prefix::${DHCTL_PREFIX}"
           echo "::set-output name=install-image-name::${INSTALL_IMAGE_NAME}"
-          echo "::set-output name=terraform-image-name::${TERRAFORM_IMAGE_NAME}"
           echo "::set-output name=deckhouse-image-tag::${IMAGE_TAG}"
           echo "::set-output name=initial-image-tag::${INITIAL_IMAGE_TAG}"
           echo "::set-output name=install-image-path::${IMAGE_INSTALL_PATH}"
@@ -975,7 +964,6 @@ jobs:
           TMP_DIR_PATH: ${{ steps.setup.outputs.tmp-dir-path}}
           PREFIX: ${{ steps.setup.outputs.dhctl-prefix}}
           INSTALL_IMAGE_NAME: ${{ steps.setup.outputs.install-image-name }}
-          TERRAFORM_IMAGE_NAME: ${{ steps.setup.outputs.terraform-image-name }}
           DECKHOUSE_IMAGE_TAG: ${{ steps.setup.outputs.deckhouse-image-tag }}
         # <template: e2e_run_template>
           LAYOUT_AZURE_SUBSCRIPTION_ID: ${{ secrets.LAYOUT_AZURE_SUBSCRIPTION_ID }}
@@ -1270,20 +1258,16 @@ jobs:
           IMAGE_TAG=${CI_COMMIT_REF_SLUG}${REPO_SUFFIX:+-${REPO_SUFFIX}}
 
           INSTALL_IMAGE_NAME=
-          TERRAFORM_IMAGE_NAME=
           if [[ -n ${CI_COMMIT_BRANCH} ]]; then
             # CI_COMMIT_REF_SLUG is a 'prNUM' for dev branches or 'main' for default branch.
             INSTALL_IMAGE_NAME=${BRANCH_REGISTRY_PATH}/install:${IMAGE_TAG}
-            TERRAFORM_IMAGE_NAME=${BRANCH_REGISTRY_PATH}/e2e-terraform:${IMAGE_TAG}
           fi
           if [[ -n ${CI_COMMIT_TAG} ]] ; then
             REGISTRY_SUFFIX=$(echo ${WERF_ENV} | tr '[:upper:]' '[:lower:]') # CE/EE/FE -> ce/ee/fe
             INSTALL_IMAGE_NAME=${SEMVER_REGISTRY_PATH}/${REGISTRY_SUFFIX}/install:${CI_COMMIT_REF_SLUG}
-            TERRAFORM_IMAGE_NAME=${SEMVER_REGISTRY_PATH}/${REGISTRY_SUFFIX}/e2e-terraform:${CI_COMMIT_REF_SLUG}
           fi
           if [[ -n ${INITIAL_REF_SLUG} ]] ; then
             INSTALL_IMAGE_NAME=${BRANCH_REGISTRY_PATH}/install:${INITIAL_IMAGE_TAG}
-            TERRAFORM_IMAGE_NAME=${BRANCH_REGISTRY_PATH}/e2e-terraform:${INITIAL_IMAGE_TAG}
             git fetch origin ${INITIAL_REF_SLUG}
             git checkout origin/${INITIAL_REF_SLUG} -- testing/cloud_layouts
           fi
@@ -1302,7 +1286,6 @@ jobs:
           echo "::set-output name=dhctl-log-file::${TMP_DIR_PATH}/dhctl.log"
           echo "::set-output name=dhctl-prefix::${DHCTL_PREFIX}"
           echo "::set-output name=install-image-name::${INSTALL_IMAGE_NAME}"
-          echo "::set-output name=terraform-image-name::${TERRAFORM_IMAGE_NAME}"
           echo "::set-output name=deckhouse-image-tag::${IMAGE_TAG}"
           echo "::set-output name=initial-image-tag::${INITIAL_IMAGE_TAG}"
           echo "::set-output name=install-image-path::${IMAGE_INSTALL_PATH}"
@@ -1425,7 +1408,6 @@ jobs:
           TMP_DIR_PATH: ${{ steps.setup.outputs.tmp-dir-path}}
           PREFIX: ${{ steps.setup.outputs.dhctl-prefix}}
           INSTALL_IMAGE_NAME: ${{ steps.setup.outputs.install-image-name }}
-          TERRAFORM_IMAGE_NAME: ${{ steps.setup.outputs.terraform-image-name }}
           DECKHOUSE_IMAGE_TAG: ${{ steps.setup.outputs.deckhouse-image-tag }}
         # <template: e2e_run_template>
           LAYOUT_AZURE_SUBSCRIPTION_ID: ${{ secrets.LAYOUT_AZURE_SUBSCRIPTION_ID }}
@@ -1720,20 +1702,16 @@ jobs:
           IMAGE_TAG=${CI_COMMIT_REF_SLUG}${REPO_SUFFIX:+-${REPO_SUFFIX}}
 
           INSTALL_IMAGE_NAME=
-          TERRAFORM_IMAGE_NAME=
           if [[ -n ${CI_COMMIT_BRANCH} ]]; then
             # CI_COMMIT_REF_SLUG is a 'prNUM' for dev branches or 'main' for default branch.
             INSTALL_IMAGE_NAME=${BRANCH_REGISTRY_PATH}/install:${IMAGE_TAG}
-            TERRAFORM_IMAGE_NAME=${BRANCH_REGISTRY_PATH}/e2e-terraform:${IMAGE_TAG}
           fi
           if [[ -n ${CI_COMMIT_TAG} ]] ; then
             REGISTRY_SUFFIX=$(echo ${WERF_ENV} | tr '[:upper:]' '[:lower:]') # CE/EE/FE -> ce/ee/fe
             INSTALL_IMAGE_NAME=${SEMVER_REGISTRY_PATH}/${REGISTRY_SUFFIX}/install:${CI_COMMIT_REF_SLUG}
-            TERRAFORM_IMAGE_NAME=${SEMVER_REGISTRY_PATH}/${REGISTRY_SUFFIX}/e2e-terraform:${CI_COMMIT_REF_SLUG}
           fi
           if [[ -n ${INITIAL_REF_SLUG} ]] ; then
             INSTALL_IMAGE_NAME=${BRANCH_REGISTRY_PATH}/install:${INITIAL_IMAGE_TAG}
-            TERRAFORM_IMAGE_NAME=${BRANCH_REGISTRY_PATH}/e2e-terraform:${INITIAL_IMAGE_TAG}
             git fetch origin ${INITIAL_REF_SLUG}
             git checkout origin/${INITIAL_REF_SLUG} -- testing/cloud_layouts
           fi
@@ -1752,7 +1730,6 @@ jobs:
           echo "::set-output name=dhctl-log-file::${TMP_DIR_PATH}/dhctl.log"
           echo "::set-output name=dhctl-prefix::${DHCTL_PREFIX}"
           echo "::set-output name=install-image-name::${INSTALL_IMAGE_NAME}"
-          echo "::set-output name=terraform-image-name::${TERRAFORM_IMAGE_NAME}"
           echo "::set-output name=deckhouse-image-tag::${IMAGE_TAG}"
           echo "::set-output name=initial-image-tag::${INITIAL_IMAGE_TAG}"
           echo "::set-output name=install-image-path::${IMAGE_INSTALL_PATH}"
@@ -1875,7 +1852,6 @@ jobs:
           TMP_DIR_PATH: ${{ steps.setup.outputs.tmp-dir-path}}
           PREFIX: ${{ steps.setup.outputs.dhctl-prefix}}
           INSTALL_IMAGE_NAME: ${{ steps.setup.outputs.install-image-name }}
-          TERRAFORM_IMAGE_NAME: ${{ steps.setup.outputs.terraform-image-name }}
           DECKHOUSE_IMAGE_TAG: ${{ steps.setup.outputs.deckhouse-image-tag }}
         # <template: e2e_run_template>
           LAYOUT_AZURE_SUBSCRIPTION_ID: ${{ secrets.LAYOUT_AZURE_SUBSCRIPTION_ID }}
@@ -2170,20 +2146,16 @@ jobs:
           IMAGE_TAG=${CI_COMMIT_REF_SLUG}${REPO_SUFFIX:+-${REPO_SUFFIX}}
 
           INSTALL_IMAGE_NAME=
-          TERRAFORM_IMAGE_NAME=
           if [[ -n ${CI_COMMIT_BRANCH} ]]; then
             # CI_COMMIT_REF_SLUG is a 'prNUM' for dev branches or 'main' for default branch.
             INSTALL_IMAGE_NAME=${BRANCH_REGISTRY_PATH}/install:${IMAGE_TAG}
-            TERRAFORM_IMAGE_NAME=${BRANCH_REGISTRY_PATH}/e2e-terraform:${IMAGE_TAG}
           fi
           if [[ -n ${CI_COMMIT_TAG} ]] ; then
             REGISTRY_SUFFIX=$(echo ${WERF_ENV} | tr '[:upper:]' '[:lower:]') # CE/EE/FE -> ce/ee/fe
             INSTALL_IMAGE_NAME=${SEMVER_REGISTRY_PATH}/${REGISTRY_SUFFIX}/install:${CI_COMMIT_REF_SLUG}
-            TERRAFORM_IMAGE_NAME=${SEMVER_REGISTRY_PATH}/${REGISTRY_SUFFIX}/e2e-terraform:${CI_COMMIT_REF_SLUG}
           fi
           if [[ -n ${INITIAL_REF_SLUG} ]] ; then
             INSTALL_IMAGE_NAME=${BRANCH_REGISTRY_PATH}/install:${INITIAL_IMAGE_TAG}
-            TERRAFORM_IMAGE_NAME=${BRANCH_REGISTRY_PATH}/e2e-terraform:${INITIAL_IMAGE_TAG}
             git fetch origin ${INITIAL_REF_SLUG}
             git checkout origin/${INITIAL_REF_SLUG} -- testing/cloud_layouts
           fi
@@ -2202,7 +2174,6 @@ jobs:
           echo "::set-output name=dhctl-log-file::${TMP_DIR_PATH}/dhctl.log"
           echo "::set-output name=dhctl-prefix::${DHCTL_PREFIX}"
           echo "::set-output name=install-image-name::${INSTALL_IMAGE_NAME}"
-          echo "::set-output name=terraform-image-name::${TERRAFORM_IMAGE_NAME}"
           echo "::set-output name=deckhouse-image-tag::${IMAGE_TAG}"
           echo "::set-output name=initial-image-tag::${INITIAL_IMAGE_TAG}"
           echo "::set-output name=install-image-path::${IMAGE_INSTALL_PATH}"
@@ -2325,7 +2296,6 @@ jobs:
           TMP_DIR_PATH: ${{ steps.setup.outputs.tmp-dir-path}}
           PREFIX: ${{ steps.setup.outputs.dhctl-prefix}}
           INSTALL_IMAGE_NAME: ${{ steps.setup.outputs.install-image-name }}
-          TERRAFORM_IMAGE_NAME: ${{ steps.setup.outputs.terraform-image-name }}
           DECKHOUSE_IMAGE_TAG: ${{ steps.setup.outputs.deckhouse-image-tag }}
         # <template: e2e_run_template>
           LAYOUT_AZURE_SUBSCRIPTION_ID: ${{ secrets.LAYOUT_AZURE_SUBSCRIPTION_ID }}
@@ -2620,20 +2590,16 @@ jobs:
           IMAGE_TAG=${CI_COMMIT_REF_SLUG}${REPO_SUFFIX:+-${REPO_SUFFIX}}
 
           INSTALL_IMAGE_NAME=
-          TERRAFORM_IMAGE_NAME=
           if [[ -n ${CI_COMMIT_BRANCH} ]]; then
             # CI_COMMIT_REF_SLUG is a 'prNUM' for dev branches or 'main' for default branch.
             INSTALL_IMAGE_NAME=${BRANCH_REGISTRY_PATH}/install:${IMAGE_TAG}
-            TERRAFORM_IMAGE_NAME=${BRANCH_REGISTRY_PATH}/e2e-terraform:${IMAGE_TAG}
           fi
           if [[ -n ${CI_COMMIT_TAG} ]] ; then
             REGISTRY_SUFFIX=$(echo ${WERF_ENV} | tr '[:upper:]' '[:lower:]') # CE/EE/FE -> ce/ee/fe
             INSTALL_IMAGE_NAME=${SEMVER_REGISTRY_PATH}/${REGISTRY_SUFFIX}/install:${CI_COMMIT_REF_SLUG}
-            TERRAFORM_IMAGE_NAME=${SEMVER_REGISTRY_PATH}/${REGISTRY_SUFFIX}/e2e-terraform:${CI_COMMIT_REF_SLUG}
           fi
           if [[ -n ${INITIAL_REF_SLUG} ]] ; then
             INSTALL_IMAGE_NAME=${BRANCH_REGISTRY_PATH}/install:${INITIAL_IMAGE_TAG}
-            TERRAFORM_IMAGE_NAME=${BRANCH_REGISTRY_PATH}/e2e-terraform:${INITIAL_IMAGE_TAG}
             git fetch origin ${INITIAL_REF_SLUG}
             git checkout origin/${INITIAL_REF_SLUG} -- testing/cloud_layouts
           fi
@@ -2652,7 +2618,6 @@ jobs:
           echo "::set-output name=dhctl-log-file::${TMP_DIR_PATH}/dhctl.log"
           echo "::set-output name=dhctl-prefix::${DHCTL_PREFIX}"
           echo "::set-output name=install-image-name::${INSTALL_IMAGE_NAME}"
-          echo "::set-output name=terraform-image-name::${TERRAFORM_IMAGE_NAME}"
           echo "::set-output name=deckhouse-image-tag::${IMAGE_TAG}"
           echo "::set-output name=initial-image-tag::${INITIAL_IMAGE_TAG}"
           echo "::set-output name=install-image-path::${IMAGE_INSTALL_PATH}"
@@ -2775,7 +2740,6 @@ jobs:
           TMP_DIR_PATH: ${{ steps.setup.outputs.tmp-dir-path}}
           PREFIX: ${{ steps.setup.outputs.dhctl-prefix}}
           INSTALL_IMAGE_NAME: ${{ steps.setup.outputs.install-image-name }}
-          TERRAFORM_IMAGE_NAME: ${{ steps.setup.outputs.terraform-image-name }}
           DECKHOUSE_IMAGE_TAG: ${{ steps.setup.outputs.deckhouse-image-tag }}
         # <template: e2e_run_template>
           LAYOUT_AZURE_SUBSCRIPTION_ID: ${{ secrets.LAYOUT_AZURE_SUBSCRIPTION_ID }}
@@ -3070,20 +3034,16 @@ jobs:
           IMAGE_TAG=${CI_COMMIT_REF_SLUG}${REPO_SUFFIX:+-${REPO_SUFFIX}}
 
           INSTALL_IMAGE_NAME=
-          TERRAFORM_IMAGE_NAME=
           if [[ -n ${CI_COMMIT_BRANCH} ]]; then
             # CI_COMMIT_REF_SLUG is a 'prNUM' for dev branches or 'main' for default branch.
             INSTALL_IMAGE_NAME=${BRANCH_REGISTRY_PATH}/install:${IMAGE_TAG}
-            TERRAFORM_IMAGE_NAME=${BRANCH_REGISTRY_PATH}/e2e-terraform:${IMAGE_TAG}
           fi
           if [[ -n ${CI_COMMIT_TAG} ]] ; then
             REGISTRY_SUFFIX=$(echo ${WERF_ENV} | tr '[:upper:]' '[:lower:]') # CE/EE/FE -> ce/ee/fe
             INSTALL_IMAGE_NAME=${SEMVER_REGISTRY_PATH}/${REGISTRY_SUFFIX}/install:${CI_COMMIT_REF_SLUG}
-            TERRAFORM_IMAGE_NAME=${SEMVER_REGISTRY_PATH}/${REGISTRY_SUFFIX}/e2e-terraform:${CI_COMMIT_REF_SLUG}
           fi
           if [[ -n ${INITIAL_REF_SLUG} ]] ; then
             INSTALL_IMAGE_NAME=${BRANCH_REGISTRY_PATH}/install:${INITIAL_IMAGE_TAG}
-            TERRAFORM_IMAGE_NAME=${BRANCH_REGISTRY_PATH}/e2e-terraform:${INITIAL_IMAGE_TAG}
             git fetch origin ${INITIAL_REF_SLUG}
             git checkout origin/${INITIAL_REF_SLUG} -- testing/cloud_layouts
           fi
@@ -3102,7 +3062,6 @@ jobs:
           echo "::set-output name=dhctl-log-file::${TMP_DIR_PATH}/dhctl.log"
           echo "::set-output name=dhctl-prefix::${DHCTL_PREFIX}"
           echo "::set-output name=install-image-name::${INSTALL_IMAGE_NAME}"
-          echo "::set-output name=terraform-image-name::${TERRAFORM_IMAGE_NAME}"
           echo "::set-output name=deckhouse-image-tag::${IMAGE_TAG}"
           echo "::set-output name=initial-image-tag::${INITIAL_IMAGE_TAG}"
           echo "::set-output name=install-image-path::${IMAGE_INSTALL_PATH}"
@@ -3225,7 +3184,6 @@ jobs:
           TMP_DIR_PATH: ${{ steps.setup.outputs.tmp-dir-path}}
           PREFIX: ${{ steps.setup.outputs.dhctl-prefix}}
           INSTALL_IMAGE_NAME: ${{ steps.setup.outputs.install-image-name }}
-          TERRAFORM_IMAGE_NAME: ${{ steps.setup.outputs.terraform-image-name }}
           DECKHOUSE_IMAGE_TAG: ${{ steps.setup.outputs.deckhouse-image-tag }}
         # <template: e2e_run_template>
           LAYOUT_AZURE_SUBSCRIPTION_ID: ${{ secrets.LAYOUT_AZURE_SUBSCRIPTION_ID }}
@@ -3520,20 +3478,16 @@ jobs:
           IMAGE_TAG=${CI_COMMIT_REF_SLUG}${REPO_SUFFIX:+-${REPO_SUFFIX}}
 
           INSTALL_IMAGE_NAME=
-          TERRAFORM_IMAGE_NAME=
           if [[ -n ${CI_COMMIT_BRANCH} ]]; then
             # CI_COMMIT_REF_SLUG is a 'prNUM' for dev branches or 'main' for default branch.
             INSTALL_IMAGE_NAME=${BRANCH_REGISTRY_PATH}/install:${IMAGE_TAG}
-            TERRAFORM_IMAGE_NAME=${BRANCH_REGISTRY_PATH}/e2e-terraform:${IMAGE_TAG}
           fi
           if [[ -n ${CI_COMMIT_TAG} ]] ; then
             REGISTRY_SUFFIX=$(echo ${WERF_ENV} | tr '[:upper:]' '[:lower:]') # CE/EE/FE -> ce/ee/fe
             INSTALL_IMAGE_NAME=${SEMVER_REGISTRY_PATH}/${REGISTRY_SUFFIX}/install:${CI_COMMIT_REF_SLUG}
-            TERRAFORM_IMAGE_NAME=${SEMVER_REGISTRY_PATH}/${REGISTRY_SUFFIX}/e2e-terraform:${CI_COMMIT_REF_SLUG}
           fi
           if [[ -n ${INITIAL_REF_SLUG} ]] ; then
             INSTALL_IMAGE_NAME=${BRANCH_REGISTRY_PATH}/install:${INITIAL_IMAGE_TAG}
-            TERRAFORM_IMAGE_NAME=${BRANCH_REGISTRY_PATH}/e2e-terraform:${INITIAL_IMAGE_TAG}
             git fetch origin ${INITIAL_REF_SLUG}
             git checkout origin/${INITIAL_REF_SLUG} -- testing/cloud_layouts
           fi
@@ -3552,7 +3506,6 @@ jobs:
           echo "::set-output name=dhctl-log-file::${TMP_DIR_PATH}/dhctl.log"
           echo "::set-output name=dhctl-prefix::${DHCTL_PREFIX}"
           echo "::set-output name=install-image-name::${INSTALL_IMAGE_NAME}"
-          echo "::set-output name=terraform-image-name::${TERRAFORM_IMAGE_NAME}"
           echo "::set-output name=deckhouse-image-tag::${IMAGE_TAG}"
           echo "::set-output name=initial-image-tag::${INITIAL_IMAGE_TAG}"
           echo "::set-output name=install-image-path::${IMAGE_INSTALL_PATH}"
@@ -3675,7 +3628,6 @@ jobs:
           TMP_DIR_PATH: ${{ steps.setup.outputs.tmp-dir-path}}
           PREFIX: ${{ steps.setup.outputs.dhctl-prefix}}
           INSTALL_IMAGE_NAME: ${{ steps.setup.outputs.install-image-name }}
-          TERRAFORM_IMAGE_NAME: ${{ steps.setup.outputs.terraform-image-name }}
           DECKHOUSE_IMAGE_TAG: ${{ steps.setup.outputs.deckhouse-image-tag }}
         # <template: e2e_run_template>
           LAYOUT_AZURE_SUBSCRIPTION_ID: ${{ secrets.LAYOUT_AZURE_SUBSCRIPTION_ID }}
@@ -3970,20 +3922,16 @@ jobs:
           IMAGE_TAG=${CI_COMMIT_REF_SLUG}${REPO_SUFFIX:+-${REPO_SUFFIX}}
 
           INSTALL_IMAGE_NAME=
-          TERRAFORM_IMAGE_NAME=
           if [[ -n ${CI_COMMIT_BRANCH} ]]; then
             # CI_COMMIT_REF_SLUG is a 'prNUM' for dev branches or 'main' for default branch.
             INSTALL_IMAGE_NAME=${BRANCH_REGISTRY_PATH}/install:${IMAGE_TAG}
-            TERRAFORM_IMAGE_NAME=${BRANCH_REGISTRY_PATH}/e2e-terraform:${IMAGE_TAG}
           fi
           if [[ -n ${CI_COMMIT_TAG} ]] ; then
             REGISTRY_SUFFIX=$(echo ${WERF_ENV} | tr '[:upper:]' '[:lower:]') # CE/EE/FE -> ce/ee/fe
             INSTALL_IMAGE_NAME=${SEMVER_REGISTRY_PATH}/${REGISTRY_SUFFIX}/install:${CI_COMMIT_REF_SLUG}
-            TERRAFORM_IMAGE_NAME=${SEMVER_REGISTRY_PATH}/${REGISTRY_SUFFIX}/e2e-terraform:${CI_COMMIT_REF_SLUG}
           fi
           if [[ -n ${INITIAL_REF_SLUG} ]] ; then
             INSTALL_IMAGE_NAME=${BRANCH_REGISTRY_PATH}/install:${INITIAL_IMAGE_TAG}
-            TERRAFORM_IMAGE_NAME=${BRANCH_REGISTRY_PATH}/e2e-terraform:${INITIAL_IMAGE_TAG}
             git fetch origin ${INITIAL_REF_SLUG}
             git checkout origin/${INITIAL_REF_SLUG} -- testing/cloud_layouts
           fi
@@ -4002,7 +3950,6 @@ jobs:
           echo "::set-output name=dhctl-log-file::${TMP_DIR_PATH}/dhctl.log"
           echo "::set-output name=dhctl-prefix::${DHCTL_PREFIX}"
           echo "::set-output name=install-image-name::${INSTALL_IMAGE_NAME}"
-          echo "::set-output name=terraform-image-name::${TERRAFORM_IMAGE_NAME}"
           echo "::set-output name=deckhouse-image-tag::${IMAGE_TAG}"
           echo "::set-output name=initial-image-tag::${INITIAL_IMAGE_TAG}"
           echo "::set-output name=install-image-path::${IMAGE_INSTALL_PATH}"
@@ -4125,7 +4072,6 @@ jobs:
           TMP_DIR_PATH: ${{ steps.setup.outputs.tmp-dir-path}}
           PREFIX: ${{ steps.setup.outputs.dhctl-prefix}}
           INSTALL_IMAGE_NAME: ${{ steps.setup.outputs.install-image-name }}
-          TERRAFORM_IMAGE_NAME: ${{ steps.setup.outputs.terraform-image-name }}
           DECKHOUSE_IMAGE_TAG: ${{ steps.setup.outputs.deckhouse-image-tag }}
         # <template: e2e_run_template>
           LAYOUT_AZURE_SUBSCRIPTION_ID: ${{ secrets.LAYOUT_AZURE_SUBSCRIPTION_ID }}
@@ -4420,20 +4366,16 @@ jobs:
           IMAGE_TAG=${CI_COMMIT_REF_SLUG}${REPO_SUFFIX:+-${REPO_SUFFIX}}
 
           INSTALL_IMAGE_NAME=
-          TERRAFORM_IMAGE_NAME=
           if [[ -n ${CI_COMMIT_BRANCH} ]]; then
             # CI_COMMIT_REF_SLUG is a 'prNUM' for dev branches or 'main' for default branch.
             INSTALL_IMAGE_NAME=${BRANCH_REGISTRY_PATH}/install:${IMAGE_TAG}
-            TERRAFORM_IMAGE_NAME=${BRANCH_REGISTRY_PATH}/e2e-terraform:${IMAGE_TAG}
           fi
           if [[ -n ${CI_COMMIT_TAG} ]] ; then
             REGISTRY_SUFFIX=$(echo ${WERF_ENV} | tr '[:upper:]' '[:lower:]') # CE/EE/FE -> ce/ee/fe
             INSTALL_IMAGE_NAME=${SEMVER_REGISTRY_PATH}/${REGISTRY_SUFFIX}/install:${CI_COMMIT_REF_SLUG}
-            TERRAFORM_IMAGE_NAME=${SEMVER_REGISTRY_PATH}/${REGISTRY_SUFFIX}/e2e-terraform:${CI_COMMIT_REF_SLUG}
           fi
           if [[ -n ${INITIAL_REF_SLUG} ]] ; then
             INSTALL_IMAGE_NAME=${BRANCH_REGISTRY_PATH}/install:${INITIAL_IMAGE_TAG}
-            TERRAFORM_IMAGE_NAME=${BRANCH_REGISTRY_PATH}/e2e-terraform:${INITIAL_IMAGE_TAG}
             git fetch origin ${INITIAL_REF_SLUG}
             git checkout origin/${INITIAL_REF_SLUG} -- testing/cloud_layouts
           fi
@@ -4452,7 +4394,6 @@ jobs:
           echo "::set-output name=dhctl-log-file::${TMP_DIR_PATH}/dhctl.log"
           echo "::set-output name=dhctl-prefix::${DHCTL_PREFIX}"
           echo "::set-output name=install-image-name::${INSTALL_IMAGE_NAME}"
-          echo "::set-output name=terraform-image-name::${TERRAFORM_IMAGE_NAME}"
           echo "::set-output name=deckhouse-image-tag::${IMAGE_TAG}"
           echo "::set-output name=initial-image-tag::${INITIAL_IMAGE_TAG}"
           echo "::set-output name=install-image-path::${IMAGE_INSTALL_PATH}"
@@ -4575,7 +4516,6 @@ jobs:
           TMP_DIR_PATH: ${{ steps.setup.outputs.tmp-dir-path}}
           PREFIX: ${{ steps.setup.outputs.dhctl-prefix}}
           INSTALL_IMAGE_NAME: ${{ steps.setup.outputs.install-image-name }}
-          TERRAFORM_IMAGE_NAME: ${{ steps.setup.outputs.terraform-image-name }}
           DECKHOUSE_IMAGE_TAG: ${{ steps.setup.outputs.deckhouse-image-tag }}
         # <template: e2e_run_template>
           LAYOUT_AZURE_SUBSCRIPTION_ID: ${{ secrets.LAYOUT_AZURE_SUBSCRIPTION_ID }}
