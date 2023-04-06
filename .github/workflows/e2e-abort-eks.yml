@@ -193,12 +193,15 @@ jobs:
 
           arrPath=(${INSTALL_IMAGE_PATH//:/ })
           DECKHOUSE_IMAGE_TAG="${arrPath[1]}"
+          IMAGE_TAG=${CI_COMMIT_REF_SLUG}${REPO_SUFFIX:+-${REPO_SUFFIX}}
+          BRANCH_REGISTRY_PATH="${DEV_REGISTRY_PATH}"
+          TERRAFORM_IMAGE_NAME=${BRANCH_REGISTRY_PATH}/e2e-terraform:${IMAGE_TAG}
 
           echo '::echo::on'
           echo "::set-output name=tmp-dir-path::${TMP_DIR_PATH}"
           echo "::set-output name=install-image-full::${INSTALL_IMAGE_NAME}"
           echo "::set-output name=deckhouse-image-tag::${DECKHOUSE_IMAGE_TAG}"
-          echo "::set-output name=terraform-image-tag::${TERRAFORM_IMAGE_TAG}"
+          echo "::set-output name=terraform-image-name::${TERRAFORM_IMAGE_NAME}"
           echo "::set-output name=initial-image-tag::${INITIAL_IMAGE_TAG}"
 
           echo '::echo::off'
@@ -448,12 +451,15 @@ jobs:
 
           arrPath=(${INSTALL_IMAGE_PATH//:/ })
           DECKHOUSE_IMAGE_TAG="${arrPath[1]}"
+          IMAGE_TAG=${CI_COMMIT_REF_SLUG}${REPO_SUFFIX:+-${REPO_SUFFIX}}
+          BRANCH_REGISTRY_PATH="${DEV_REGISTRY_PATH}"
+          TERRAFORM_IMAGE_NAME=${BRANCH_REGISTRY_PATH}/e2e-terraform:${IMAGE_TAG}
 
           echo '::echo::on'
           echo "::set-output name=tmp-dir-path::${TMP_DIR_PATH}"
           echo "::set-output name=install-image-full::${INSTALL_IMAGE_NAME}"
           echo "::set-output name=deckhouse-image-tag::${DECKHOUSE_IMAGE_TAG}"
-          echo "::set-output name=terraform-image-tag::${TERRAFORM_IMAGE_TAG}"
+          echo "::set-output name=terraform-image-name::${TERRAFORM_IMAGE_NAME}"
           echo "::set-output name=initial-image-tag::${INITIAL_IMAGE_TAG}"
 
           echo '::echo::off'
@@ -703,12 +709,15 @@ jobs:
 
           arrPath=(${INSTALL_IMAGE_PATH//:/ })
           DECKHOUSE_IMAGE_TAG="${arrPath[1]}"
+          IMAGE_TAG=${CI_COMMIT_REF_SLUG}${REPO_SUFFIX:+-${REPO_SUFFIX}}
+          BRANCH_REGISTRY_PATH="${DEV_REGISTRY_PATH}"
+          TERRAFORM_IMAGE_NAME=${BRANCH_REGISTRY_PATH}/e2e-terraform:${IMAGE_TAG}
 
           echo '::echo::on'
           echo "::set-output name=tmp-dir-path::${TMP_DIR_PATH}"
           echo "::set-output name=install-image-full::${INSTALL_IMAGE_NAME}"
           echo "::set-output name=deckhouse-image-tag::${DECKHOUSE_IMAGE_TAG}"
-          echo "::set-output name=terraform-image-tag::${TERRAFORM_IMAGE_TAG}"
+          echo "::set-output name=terraform-image-name::${TERRAFORM_IMAGE_NAME}"
           echo "::set-output name=initial-image-tag::${INITIAL_IMAGE_TAG}"
 
           echo '::echo::off'
@@ -958,12 +967,15 @@ jobs:
 
           arrPath=(${INSTALL_IMAGE_PATH//:/ })
           DECKHOUSE_IMAGE_TAG="${arrPath[1]}"
+          IMAGE_TAG=${CI_COMMIT_REF_SLUG}${REPO_SUFFIX:+-${REPO_SUFFIX}}
+          BRANCH_REGISTRY_PATH="${DEV_REGISTRY_PATH}"
+          TERRAFORM_IMAGE_NAME=${BRANCH_REGISTRY_PATH}/e2e-terraform:${IMAGE_TAG}
 
           echo '::echo::on'
           echo "::set-output name=tmp-dir-path::${TMP_DIR_PATH}"
           echo "::set-output name=install-image-full::${INSTALL_IMAGE_NAME}"
           echo "::set-output name=deckhouse-image-tag::${DECKHOUSE_IMAGE_TAG}"
-          echo "::set-output name=terraform-image-tag::${TERRAFORM_IMAGE_TAG}"
+          echo "::set-output name=terraform-image-name::${TERRAFORM_IMAGE_NAME}"
           echo "::set-output name=initial-image-tag::${INITIAL_IMAGE_TAG}"
 
           echo '::echo::off'
@@ -1213,12 +1225,15 @@ jobs:
 
           arrPath=(${INSTALL_IMAGE_PATH//:/ })
           DECKHOUSE_IMAGE_TAG="${arrPath[1]}"
+          IMAGE_TAG=${CI_COMMIT_REF_SLUG}${REPO_SUFFIX:+-${REPO_SUFFIX}}
+          BRANCH_REGISTRY_PATH="${DEV_REGISTRY_PATH}"
+          TERRAFORM_IMAGE_NAME=${BRANCH_REGISTRY_PATH}/e2e-terraform:${IMAGE_TAG}
 
           echo '::echo::on'
           echo "::set-output name=tmp-dir-path::${TMP_DIR_PATH}"
           echo "::set-output name=install-image-full::${INSTALL_IMAGE_NAME}"
           echo "::set-output name=deckhouse-image-tag::${DECKHOUSE_IMAGE_TAG}"
-          echo "::set-output name=terraform-image-tag::${TERRAFORM_IMAGE_TAG}"
+          echo "::set-output name=terraform-image-name::${TERRAFORM_IMAGE_NAME}"
           echo "::set-output name=initial-image-tag::${INITIAL_IMAGE_TAG}"
 
           echo '::echo::off'
@@ -1468,12 +1483,15 @@ jobs:
 
           arrPath=(${INSTALL_IMAGE_PATH//:/ })
           DECKHOUSE_IMAGE_TAG="${arrPath[1]}"
+          IMAGE_TAG=${CI_COMMIT_REF_SLUG}${REPO_SUFFIX:+-${REPO_SUFFIX}}
+          BRANCH_REGISTRY_PATH="${DEV_REGISTRY_PATH}"
+          TERRAFORM_IMAGE_NAME=${BRANCH_REGISTRY_PATH}/e2e-terraform:${IMAGE_TAG}
 
           echo '::echo::on'
           echo "::set-output name=tmp-dir-path::${TMP_DIR_PATH}"
           echo "::set-output name=install-image-full::${INSTALL_IMAGE_NAME}"
           echo "::set-output name=deckhouse-image-tag::${DECKHOUSE_IMAGE_TAG}"
-          echo "::set-output name=terraform-image-tag::${TERRAFORM_IMAGE_TAG}"
+          echo "::set-output name=terraform-image-name::${TERRAFORM_IMAGE_NAME}"
           echo "::set-output name=initial-image-tag::${INITIAL_IMAGE_TAG}"
 
           echo '::echo::off'
@@ -1723,12 +1741,15 @@ jobs:
 
           arrPath=(${INSTALL_IMAGE_PATH//:/ })
           DECKHOUSE_IMAGE_TAG="${arrPath[1]}"
+          IMAGE_TAG=${CI_COMMIT_REF_SLUG}${REPO_SUFFIX:+-${REPO_SUFFIX}}
+          BRANCH_REGISTRY_PATH="${DEV_REGISTRY_PATH}"
+          TERRAFORM_IMAGE_NAME=${BRANCH_REGISTRY_PATH}/e2e-terraform:${IMAGE_TAG}
 
           echo '::echo::on'
           echo "::set-output name=tmp-dir-path::${TMP_DIR_PATH}"
           echo "::set-output name=install-image-full::${INSTALL_IMAGE_NAME}"
           echo "::set-output name=deckhouse-image-tag::${DECKHOUSE_IMAGE_TAG}"
-          echo "::set-output name=terraform-image-tag::${TERRAFORM_IMAGE_TAG}"
+          echo "::set-output name=terraform-image-name::${TERRAFORM_IMAGE_NAME}"
           echo "::set-output name=initial-image-tag::${INITIAL_IMAGE_TAG}"
 
           echo '::echo::off'
@@ -1978,12 +1999,15 @@ jobs:
 
           arrPath=(${INSTALL_IMAGE_PATH//:/ })
           DECKHOUSE_IMAGE_TAG="${arrPath[1]}"
+          IMAGE_TAG=${CI_COMMIT_REF_SLUG}${REPO_SUFFIX:+-${REPO_SUFFIX}}
+          BRANCH_REGISTRY_PATH="${DEV_REGISTRY_PATH}"
+          TERRAFORM_IMAGE_NAME=${BRANCH_REGISTRY_PATH}/e2e-terraform:${IMAGE_TAG}
 
           echo '::echo::on'
           echo "::set-output name=tmp-dir-path::${TMP_DIR_PATH}"
           echo "::set-output name=install-image-full::${INSTALL_IMAGE_NAME}"
           echo "::set-output name=deckhouse-image-tag::${DECKHOUSE_IMAGE_TAG}"
-          echo "::set-output name=terraform-image-tag::${TERRAFORM_IMAGE_TAG}"
+          echo "::set-output name=terraform-image-name::${TERRAFORM_IMAGE_NAME}"
           echo "::set-output name=initial-image-tag::${INITIAL_IMAGE_TAG}"
 
           echo '::echo::off'
@@ -2233,12 +2257,15 @@ jobs:
 
           arrPath=(${INSTALL_IMAGE_PATH//:/ })
           DECKHOUSE_IMAGE_TAG="${arrPath[1]}"
+          IMAGE_TAG=${CI_COMMIT_REF_SLUG}${REPO_SUFFIX:+-${REPO_SUFFIX}}
+          BRANCH_REGISTRY_PATH="${DEV_REGISTRY_PATH}"
+          TERRAFORM_IMAGE_NAME=${BRANCH_REGISTRY_PATH}/e2e-terraform:${IMAGE_TAG}
 
           echo '::echo::on'
           echo "::set-output name=tmp-dir-path::${TMP_DIR_PATH}"
           echo "::set-output name=install-image-full::${INSTALL_IMAGE_NAME}"
           echo "::set-output name=deckhouse-image-tag::${DECKHOUSE_IMAGE_TAG}"
-          echo "::set-output name=terraform-image-tag::${TERRAFORM_IMAGE_TAG}"
+          echo "::set-output name=terraform-image-name::${TERRAFORM_IMAGE_NAME}"
           echo "::set-output name=initial-image-tag::${INITIAL_IMAGE_TAG}"
 
           echo '::echo::off'
@@ -2488,12 +2515,15 @@ jobs:
 
           arrPath=(${INSTALL_IMAGE_PATH//:/ })
           DECKHOUSE_IMAGE_TAG="${arrPath[1]}"
+          IMAGE_TAG=${CI_COMMIT_REF_SLUG}${REPO_SUFFIX:+-${REPO_SUFFIX}}
+          BRANCH_REGISTRY_PATH="${DEV_REGISTRY_PATH}"
+          TERRAFORM_IMAGE_NAME=${BRANCH_REGISTRY_PATH}/e2e-terraform:${IMAGE_TAG}
 
           echo '::echo::on'
           echo "::set-output name=tmp-dir-path::${TMP_DIR_PATH}"
           echo "::set-output name=install-image-full::${INSTALL_IMAGE_NAME}"
           echo "::set-output name=deckhouse-image-tag::${DECKHOUSE_IMAGE_TAG}"
-          echo "::set-output name=terraform-image-tag::${TERRAFORM_IMAGE_TAG}"
+          echo "::set-output name=terraform-image-name::${TERRAFORM_IMAGE_NAME}"
           echo "::set-output name=initial-image-tag::${INITIAL_IMAGE_TAG}"
 
           echo '::echo::off'
