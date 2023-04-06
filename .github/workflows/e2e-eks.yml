@@ -435,6 +435,7 @@ jobs:
           GITHUB_TOKEN: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           echo "Execute 'script_eks.sh run-test' via 'docker run', using environment:
+            TERRAFORM_IMAGE_NAME=${TERRAFORM_IMAGE_NAME}
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
             INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG}
@@ -594,6 +595,7 @@ jobs:
           GITHUB_TOKEN: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           echo "Execute 'script_eks.sh cleanup' via 'docker run', using environment:
+            TERRAFORM_IMAGE_NAME=${TERRAFORM_IMAGE_NAME}
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
             INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG}
@@ -932,6 +934,7 @@ jobs:
           GITHUB_TOKEN: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           echo "Execute 'script_eks.sh run-test' via 'docker run', using environment:
+            TERRAFORM_IMAGE_NAME=${TERRAFORM_IMAGE_NAME}
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
             INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG}
@@ -1091,6 +1094,7 @@ jobs:
           GITHUB_TOKEN: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           echo "Execute 'script_eks.sh cleanup' via 'docker run', using environment:
+            TERRAFORM_IMAGE_NAME=${TERRAFORM_IMAGE_NAME}
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
             INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG}
@@ -1429,6 +1433,7 @@ jobs:
           GITHUB_TOKEN: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           echo "Execute 'script_eks.sh run-test' via 'docker run', using environment:
+            TERRAFORM_IMAGE_NAME=${TERRAFORM_IMAGE_NAME}
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
             INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG}
@@ -1588,6 +1593,7 @@ jobs:
           GITHUB_TOKEN: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           echo "Execute 'script_eks.sh cleanup' via 'docker run', using environment:
+            TERRAFORM_IMAGE_NAME=${TERRAFORM_IMAGE_NAME}
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
             INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG}
@@ -1926,6 +1932,7 @@ jobs:
           GITHUB_TOKEN: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           echo "Execute 'script_eks.sh run-test' via 'docker run', using environment:
+            TERRAFORM_IMAGE_NAME=${TERRAFORM_IMAGE_NAME}
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
             INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG}
@@ -2085,6 +2092,7 @@ jobs:
           GITHUB_TOKEN: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           echo "Execute 'script_eks.sh cleanup' via 'docker run', using environment:
+            TERRAFORM_IMAGE_NAME=${TERRAFORM_IMAGE_NAME}
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
             INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG}
@@ -2423,6 +2431,7 @@ jobs:
           GITHUB_TOKEN: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           echo "Execute 'script_eks.sh run-test' via 'docker run', using environment:
+            TERRAFORM_IMAGE_NAME=${TERRAFORM_IMAGE_NAME}
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
             INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG}
@@ -2582,6 +2591,7 @@ jobs:
           GITHUB_TOKEN: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           echo "Execute 'script_eks.sh cleanup' via 'docker run', using environment:
+            TERRAFORM_IMAGE_NAME=${TERRAFORM_IMAGE_NAME}
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
             INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG}
@@ -2920,6 +2930,7 @@ jobs:
           GITHUB_TOKEN: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           echo "Execute 'script_eks.sh run-test' via 'docker run', using environment:
+            TERRAFORM_IMAGE_NAME=${TERRAFORM_IMAGE_NAME}
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
             INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG}
@@ -3079,6 +3090,7 @@ jobs:
           GITHUB_TOKEN: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           echo "Execute 'script_eks.sh cleanup' via 'docker run', using environment:
+            TERRAFORM_IMAGE_NAME=${TERRAFORM_IMAGE_NAME}
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
             INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG}
@@ -3417,6 +3429,7 @@ jobs:
           GITHUB_TOKEN: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           echo "Execute 'script_eks.sh run-test' via 'docker run', using environment:
+            TERRAFORM_IMAGE_NAME=${TERRAFORM_IMAGE_NAME}
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
             INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG}
@@ -3576,6 +3589,7 @@ jobs:
           GITHUB_TOKEN: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           echo "Execute 'script_eks.sh cleanup' via 'docker run', using environment:
+            TERRAFORM_IMAGE_NAME=${TERRAFORM_IMAGE_NAME}
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
             INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG}
@@ -3914,6 +3928,7 @@ jobs:
           GITHUB_TOKEN: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           echo "Execute 'script_eks.sh run-test' via 'docker run', using environment:
+            TERRAFORM_IMAGE_NAME=${TERRAFORM_IMAGE_NAME}
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
             INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG}
@@ -4073,6 +4088,7 @@ jobs:
           GITHUB_TOKEN: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           echo "Execute 'script_eks.sh cleanup' via 'docker run', using environment:
+            TERRAFORM_IMAGE_NAME=${TERRAFORM_IMAGE_NAME}
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
             INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG}
@@ -4411,6 +4427,7 @@ jobs:
           GITHUB_TOKEN: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           echo "Execute 'script_eks.sh run-test' via 'docker run', using environment:
+            TERRAFORM_IMAGE_NAME=${TERRAFORM_IMAGE_NAME}
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
             INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG}
@@ -4570,6 +4587,7 @@ jobs:
           GITHUB_TOKEN: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           echo "Execute 'script_eks.sh cleanup' via 'docker run', using environment:
+            TERRAFORM_IMAGE_NAME=${TERRAFORM_IMAGE_NAME}
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
             INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG}
@@ -4908,6 +4926,7 @@ jobs:
           GITHUB_TOKEN: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           echo "Execute 'script_eks.sh run-test' via 'docker run', using environment:
+            TERRAFORM_IMAGE_NAME=${TERRAFORM_IMAGE_NAME}
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
             INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG}
@@ -5067,6 +5086,7 @@ jobs:
           GITHUB_TOKEN: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           echo "Execute 'script_eks.sh cleanup' via 'docker run', using environment:
+            TERRAFORM_IMAGE_NAME=${TERRAFORM_IMAGE_NAME}
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
             INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG}
