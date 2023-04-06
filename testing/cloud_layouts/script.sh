@@ -87,6 +87,7 @@ Provider specific environment variables:
 EOF
 )
 
+
 set -Eeo pipefail
 shopt -s inherit_errexit
 shopt -s failglob
