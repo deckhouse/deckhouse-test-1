@@ -18,7 +18,7 @@ require (
 	github.com/ghodss/yaml v1.0.0
 	github.com/go-openapi/spec v0.19.8
 	github.com/gojuno/minimock/v3 v3.0.8
-	github.com/golang/protobuf v1.5.2
+	github.com/golang/protobuf v1.5.3
 	github.com/google/go-cmp v0.5.8
 	github.com/google/go-containerregistry v0.5.1
 	github.com/google/uuid v1.2.0
@@ -29,7 +29,7 @@ require (
 	github.com/imdario/mergo v0.3.12
 	github.com/kyokomi/emoji v2.1.0+incompatible
 	github.com/mitchellh/hashstructure/v2 v2.0.2
-	github.com/mitchellh/mapstructure v1.4.1
+	github.com/mitchellh/mapstructure v1.4.1 // indirect
 	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826
 	github.com/onsi/ginkgo v1.16.5
 	github.com/onsi/gomega v1.20.2
