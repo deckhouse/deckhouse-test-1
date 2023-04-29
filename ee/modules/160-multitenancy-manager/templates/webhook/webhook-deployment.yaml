@@ -1,0 +1,116 @@
+{{- define "manager_resources" }}
+cpu: 16m
+memory: 64Mi
+{{- end }}
+
+{{- if (.Values.global.enabledModules | has "vertical-pod-autoscaler-crd") }}
+---
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  {{- include "name.namespace" (list $ "webhook") | nindent 2 }}
+  {{- include "webhook.labels" . | nindent 2 }}
+spec:
+  targetRef:
+    apiVersion: "apps/v1"
+    kind: Deployment
+    {{- include "name" (list $ "webhook") | nindent 4 }}
+  updatePolicy:
+    updateMode: "Auto"
+  resourcePolicy:
+    containerPolicies:
+    - containerName: webhook
+      minAllowed:
+        {{- include "manager_resources" . | nindent 8 }}
+      maxAllowed:
+        cpu: 64m
+        memory: 128Mi
+    {{- include "helm_lib_vpa_kube_rbac_proxy_resources" . | nindent 4 }}
+{{- end }}
+
+{{- $webHookPort := 9443 }}
+{{- $webHookHost := "0.0.0.0" }}
+{{- $healtzAddr := "127.0.0.1:8081" }}
+{{- $metricsAddr := "127.0.0.1:8080" }}
+{{- $certsDir := printf "/etc/ssl/%s" .Chart.Name }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  {{- include "name.namespace" (list $ "webhook") | nindent 2 }}
+  {{- include "webhook.labels" . | nindent 2 }}
+spec:
+  {{- include "helm_lib_deployment_strategy_and_replicas_for_ha" . | nindent 2 }}
+  revisionHistoryLimit: 2
+  selector:
+    {{- include "webhook.labels" . | nindent 4 }}
+  template:
+    metadata:
+      labels:
+        {{- include "webhook.labels" . | nindent 8 }}
+    spec:
+      {{- include "helm_lib_node_selector" (tuple . "system") | nindent 6 }}
+      {{- include "helm_lib_tolerations" (tuple . "system") | nindent 6 }}
+      {{- include "helm_lib_priority_class" (tuple . "production-high") | nindent 6 }}
+      {{- include "helm_lib_pod_anti_affinity_for_ha" (list . (dict "app" "webhook-handler")) | nindent 6 }}
+      {{- include "helm_lib_module_pod_security_context_run_as_user_nobody" . | nindent 6 }}
+      containers:
+      - name: webhook
+        image: {{ include "helm_lib_module_image" (list . "webhook") }}
+        {{- include "helm_lib_module_container_security_context_read_only_root_filesystem" . | nindent 8 }}
+        args:
+        - --certs.dir={{ $certsDir | quote }}
+        - --metrics.address={{ $metricsAddr | quote }}
+        - --healthz.address={{ $healtzAddr | quote }}
+        - --webhook.port={{ $webHookPort | quote }}
+        - --webhook.host={{ $webHookPort | quote }}
+        imagePullPolicy: 'IfNotPresent'
+        livenessProbe:
+          exec:
+            command:
+            - curl
+            - -ksS
+            - --cert
+            - {{ $certsDir }}/tls.crt
+            - --key
+            - {{ $certsDir }}/tls.key
+            - https://${{ $healtzAddr }}/healthz
+          # Wait for one minute before restarting the container to avoid crashloopbackoofs in case if apiserver restarts
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          successThreshold: 1
+          failureThreshold: 6
+        ports:
+        - containerPort: {{ $webHookPort }}
+          name: webhook-server
+          protocol: TCP
+        resources:
+          requests:
+            {{- if not ( .Values.global.enabledModules | has "vertical-pod-autoscaler-crd") }}
+            {{- include "manager_resources" . | nindent 12 }}
+            {{- end }}
+        volumeMounts:
+        - mountPath: {{ $certsDir }}
+          name: cert
+          readOnly: true
+      dnsPolicy: ClusterFirst
+      hostNetwork: false
+      imagePullSecrets:
+        - name: deckhouse-registry
+      terminationGracePeriodSeconds: 60
+      volumes:
+      - name: cert
+        secret:
+          defaultMode: 420
+          secretName: {{ (include "name" (list $ "webhook") | fromYaml).name }}
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  {{- include "name.namespace" (list $ "webhook") | nindent 2 }}
+  {{- include "webhook.labels" . | nindent 2 }}
+spec:
+  minAvailable: {{ include "helm_lib_is_ha_to_value" (list . 1 0) }}
+  selector:
+    matchLabels:
+      {{- include "webhook.labels" . | nindent 6 }}

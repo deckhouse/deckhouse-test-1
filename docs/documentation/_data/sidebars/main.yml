@@ -906,6 +906,16 @@ entries:
                   url: /modules/140-user-authz/cr.html
             - title: FAQ
               url: /modules/140-user-authz/faq.html
+        - title: multitenancy-manager
+          folders:
+            - title:
+                en: Description
+                ru: Описание
+              url: /modules/160-multitenancy-manager/
+            - title:
+                en: Configuration
+                ru: Настройки
+              url: /modules/160-multitenancy-manager/configuration.html
         - title:
             en: Admission Policy
             ru: Политики контроля доступа

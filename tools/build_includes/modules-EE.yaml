@@ -44,6 +44,11 @@
   stageDependencies:
     setup:
         - '**/*.go'
+- add: /ee/modules/160-multitenancy-manager
+  to: /deckhouse/modules/160-multitenancy-manager
+  stageDependencies:
+    setup:
+        - '**/*.go'
 - add: /ee/modules/350-node-local-dns
   to: /deckhouse/modules/350-node-local-dns
   stageDependencies:
@@ -81,6 +86,11 @@
         - '**/*.go'
 - add: /ee/modules/650-runtime-audit-engine
   to: /deckhouse/modules/650-runtime-audit-engine
+  stageDependencies:
+    setup:
+        - '**/*.go'
+- add: /ee/modules/modules
+  to: /deckhouse/modules/modules
   stageDependencies:
     setup:
         - '**/*.go'

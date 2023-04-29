@@ -280,6 +280,9 @@ var DefaultImagesDigests = map[string]interface{}{
 	"monitoringPing": map[string]interface{}{
 		"monitoringPing": "imageHash-monitoringPing-monitoringPing",
 	},
+	"multitenancyManager": map[string]interface{}{
+		"webhook": "imageHash-multitenancyManager-webhook",
+	},
 	"networkGateway": map[string]interface{}{
 		"dnsmasq": "imageHash-networkGateway-dnsmasq",
 		"snat":    "imageHash-networkGateway-snat",
