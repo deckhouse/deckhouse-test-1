@@ -38,11 +38,15 @@ spec:
           spec:
             properties:
               namespaceMetadata:
+                description: NamespaceMetadata is metadata to apply to Project namespaces
                 type: object
-              openAPI: {}
+              openAPI:
+                description: OpenApi spec for tempaltes
               resourcesTemplate:
+                description: Resource templates
                 type: string
               subjects:
+                description: Subjects to apply access to project
                 items:
                   oneOf:
                   - properties:

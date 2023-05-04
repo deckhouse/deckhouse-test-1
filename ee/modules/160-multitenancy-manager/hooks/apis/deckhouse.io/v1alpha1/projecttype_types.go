@@ -40,15 +40,19 @@ const OneOfForSubjects = `
 `
 
 type ProjectTypeSpec struct {
+	// Subjects to apply access to project
 	Subjects []AuthorizationRule `json:"subjects,omitempty"`
 
 	// +optional
+	// NamespaceMetadata is metadata to apply to Project namespaces
 	NamespaceMetadata metav1.ObjectMeta `json:"namespaceMetadata,omitempty"`
 
 	// +kubebuilder:validation:PreserveUnknownFields
 	// +kubebuilder:validation:Schemaless
+	// OpenApi spec for tempaltes
 	OpenAPI *apiext.JSON `json:"openAPI,omitempty"`
 
+	// Resource templates
 	ResourcesTemplate ResourceTemplate `json:"resourcesTemplate,omitempty"`
 }
 

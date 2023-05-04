@@ -1,0 +1,41 @@
+spec:
+  Versions:
+  - name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: ""
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+          kind:
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+          metadata:
+            description: ""
+          spec:
+            description: ""
+            properties:
+              namespaceMetadata:
+                description: NamespaceMetadata is metadata to apply to Project namespaces
+              openAPI:
+                description: OpenApi spec for tempaltes
+              resourcesTemplate:
+                description: Resource templates
+              subjects:
+                description: Subjects to apply access to project
+                items:
+                  description: ""
+                  properties:
+                    kind:
+                      description: ""
+                    name:
+                      description: ""
+                    namespace:
+                      description: ""
+                    role:
+                      description: ""
+          status:
+            description: ""
