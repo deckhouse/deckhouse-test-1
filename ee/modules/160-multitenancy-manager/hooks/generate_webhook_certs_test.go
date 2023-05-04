@@ -23,7 +23,7 @@ import (
 )
 
 const (
-	initValuesString       = `{"multitenancyManager":{}}`
+	initValuesString       = `{"multitenancyManager":{"internal":{}}}`
 	initConfigValuesString = `{}`
 )
 
@@ -103,39 +103,38 @@ var _ = Describe("Multitenancy Manager hooks :: gen webhook certs ::", func() {
 
 		It("Cert data must be stored in values", func() {
 			Expect(f).To(ExecuteSuccessfully())
-			Expect(f.ValuesGet("userAuthz.internal.webhookCertificate.ca").String()).To(Equal("a\n"))
-			Expect(f.ValuesGet("userAuthz.internal.webhookCertificate.crt").String()).To(Equal("b\n"))
-			Expect(f.ValuesGet("userAuthz.internal.webhookCertificate.key").String()).To(Equal("c\n"))
+			Expect(f.ValuesGet("multitenancyManager.internal.webhookCertificate.ca").String()).To(Equal("a\n"))
+			Expect(f.ValuesGet("multitenancyManager.internal.webhookCertificate.crt").String()).To(Equal("b\n"))
+			Expect(f.ValuesGet("multitenancyManager.internal.webhookCertificate.key").String()).To(Equal("c\n"))
 		})
 	})
 
-	Context("Empty cluster with multitenancy, onBeforeHelm", func() {
+	Context("Empty cluster, onBeforeHelm", func() {
 		BeforeEach(func() {
 			// TODO we need to unset cluster state between contexts.
 			f.BindingContexts.Set(f.KubeStateSet(``))
 			f.BindingContexts.Set(f.GenerateBeforeHelmContext())
-			f.ValuesSet("userAuthz.enableMultiTenancy", true)
 			f.RunHook()
 		})
 
 		It("New cert data must be generated and stored to values", func() {
 			Expect(f).To(ExecuteSuccessfully())
-			Expect(f.ValuesGet("userAuthz.internal.webhookCertificate.ca").Exists()).To(BeTrue())
-			Expect(f.ValuesGet("userAuthz.internal.webhookCertificate.crt").Exists()).To(BeTrue())
-			Expect(f.ValuesGet("userAuthz.internal.webhookCertificate.key").Exists()).To(BeTrue())
+			Expect(f.ValuesGet("multitenancyManager.internal.webhookCertificate.ca").Exists()).To(BeTrue())
+			Expect(f.ValuesGet("multitenancyManager.internal.webhookCertificate.crt").Exists()).To(BeTrue())
+			Expect(f.ValuesGet("multitenancyManager.internal.webhookCertificate.key").Exists()).To(BeTrue())
 
 			certPool := x509.NewCertPool()
-			ok := certPool.AppendCertsFromPEM([]byte(f.ValuesGet("userAuthz.internal.webhookCertificate.ca").String()))
+			ok := certPool.AppendCertsFromPEM([]byte(f.ValuesGet("multitenancyManager.internal.webhookCertificate.ca").String()))
 			Expect(ok).To(BeTrue())
 
-			block, _ := pem.Decode([]byte(f.ValuesGet("userAuthz.internal.webhookCertificate.crt").String()))
+			block, _ := pem.Decode([]byte(f.ValuesGet("multitenancyManager.internal.webhookCertificate.crt").String()))
 			Expect(block).ShouldNot(BeNil())
 
 			cert, err := x509.ParseCertificate(block.Bytes)
 			Expect(err).ShouldNot(HaveOccurred())
 
 			opts := x509.VerifyOptions{
-				DNSName: "127.0.0.1",
+				DNSName: "multitenancy-manager-webhook",
 				Roots:   certPool,
 			}
 

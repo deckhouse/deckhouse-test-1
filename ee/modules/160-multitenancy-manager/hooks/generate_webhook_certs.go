@@ -8,8 +8,6 @@ package hooks
 import (
 	"fmt"
 
-	"github.com/flant/addon-operator/pkg/module_manager/go_hook"
-
 	"github.com/deckhouse/deckhouse/ee/modules/160-multitenancy-manager/hooks/internal"
 	"github.com/deckhouse/deckhouse/go_lib/hooks/tls_certificate"
 )
@@ -18,14 +16,13 @@ const (
 	certificateSecretName = "multitenancy-manager-webhook"
 )
 
-var ErrSkip = fmt.Errorf("skipping")
-
 var _ = tls_certificate.RegisterInternalTLSHook(tls_certificate.GenSelfSignedTLSHookConf{
-	BeforeHookCheck: func(input *go_hook.HookInput) bool {
-		return len(input.Snapshots[tls_certificate.SnapshotKey]) > 0
-	},
-	SANs: tls_certificate.DefaultSANs([]string{"127.0.0.1"}),
-	CN:   "127.0.0.1",
+	SANs: tls_certificate.DefaultSANs([]string{
+		fmt.Sprintf("%s.%s.svc", certificateSecretName, internal.Namespace),
+		fmt.Sprintf("%s.%s", certificateSecretName, internal.Namespace),
+		certificateSecretName,
+	}),
+	CN: certificateSecretName,
 
 	Namespace:            internal.Namespace,
 	TLSSecretName:        certificateSecretName,
