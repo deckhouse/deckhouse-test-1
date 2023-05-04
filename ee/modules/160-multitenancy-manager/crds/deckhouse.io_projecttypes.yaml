@@ -39,7 +39,9 @@ spec:
             properties:
               namespaceMetadata:
                 type: object
-              resourcesTemplate: {}
+              openAPI: {}
+              resourcesTemplate:
+                type: string
               subjects:
                 items:
                   oneOf:

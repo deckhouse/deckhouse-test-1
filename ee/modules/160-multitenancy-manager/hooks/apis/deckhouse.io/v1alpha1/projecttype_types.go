@@ -14,9 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-//go:generate controller-gen crd:ignoreUnexportedFields=true,allowDangerousTypes=false paths=./ output:dir=../../../../crds/
-//go:generate controller-gen object:headerFile="../../../../hack/boilerplate.go.txt",year=2023 paths=./ output:dir=./
-
 // +kubebuilder:object:generate=true
 // +kubebuilder:validation:Required
 // +groupName=deckhouse.io
@@ -33,6 +30,7 @@ import (
 
 	"github.com/Masterminds/sprig/v3"
 	"github.com/go-openapi/spec"
+	apiext "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -60,7 +58,7 @@ type ProjectTypeSpec struct {
 
 	// +kubebuilder:validation:PreserveUnknownFields
 	// +kubebuilder:validation:Schemaless
-	OpenAPI interface{} `json:"openAPI,omitempty"`
+	OpenAPI *apiext.JSON `json:"openAPI,omitempty"`
 
 	ResourcesTemplate ResourceTemplate `json:"resourcesTemplate,omitempty"`
 }
@@ -88,7 +86,7 @@ func (p *ProjectTypeSpec) LoadOpenAPISchema() (*spec.Schema, error) {
 	return schema, nil
 }
 
-// +kubebuilder:validation:OneOf=./projecttype_types.go=OneOfForSubjects
+// +kubebuilder:validation:OneOf=/deckhouse/ee/modules/160-multitenancy-manager/hooks/apis/deckhouse.io/v1alpha1/projecttype_types.go=OneOfForSubjects
 type AuthorizationRule struct {
 	// +kubebuilder:validation:Enum=ServiceAccount;User;Group
 	Kind string `json:"kind,omitempty"`
