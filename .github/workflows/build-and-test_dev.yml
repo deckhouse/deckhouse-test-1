@@ -431,6 +431,7 @@ jobs:
       - name: Run go generate
         run: |
 
+          (cd /tmp && wget -O controller_gen.zip https://github.com/alex123012/deckhouse-controller-tools/archive/refs/heads/master.zip && unzip controller_gen.zip && cd deckhouse-controller-tools-master && CGO_ENABLED=0 go build -ldflags '-s -w -extldflags "-static"' -o /usr/local/bin/controller-gen -mod=vendor ./cmd/controller-gen)
           (cd tools && go generate)
           (cd modules/500-upmeter/hooks/smokemini/internal/snapshot && go generate)
 
