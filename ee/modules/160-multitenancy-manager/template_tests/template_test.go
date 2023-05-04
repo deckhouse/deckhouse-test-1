@@ -6,8 +6,8 @@ Licensed under the Deckhouse Platform Enterprise Edition (EE) license. See https
 package template_tests
 
 import (
-	"os"
-	"strings"
+	"encoding/base64"
+	"fmt"
 	"testing"
 
 	. "github.com/onsi/ginkgo"
@@ -22,9 +22,6 @@ func Test(t *testing.T) {
 }
 
 const globalValues = `
-modulesImages:
-  registry:
-    base: registry.deckhouse.io/deckhouse/ee
 discovery:
   d8SpecificNodeCountByRole:
     system: 1
@@ -33,38 +30,31 @@ discovery:
 var _ = Describe("Module :: multitenancy-manager :: helm template ::", func() {
 	f := SetupHelmConfig(``)
 
-	renderMap := make(map[string]string)
-
 	BeforeEach(func() {
 		f.ValuesSetFromYaml("global", globalValues)
 		f.ValuesSet("global.modulesImages", GetModulesImages())
 	})
 
-	AfterSuite(func() {
-		builder := strings.Builder{}
-		for k, v := range renderMap {
-			builder.WriteString("\n# ")
-			builder.WriteString(k)
-			builder.WriteString("\n")
-			builder.WriteString(v)
-
-		}
-		err := os.WriteFile("/tmp/rendered_templates.yaml", []byte(builder.String()), 0644)
-		Expect(err).ShouldNot(HaveOccurred())
-	})
-
-	Context("", func() {
+	Context("webhook secret", func() {
 		BeforeEach(func() {
-			f.ValuesSet("multitenancyManager.internal.webhookCertificate.ca", "test")
-			f.ValuesSet("multitenancyManager.internal.webhookCertificate.crt", "test")
-			f.ValuesSet("multitenancyManager.internal.webhookCertificate.key", "test")
+			f.ValuesSet("multitenancyManager.internal.webhookCertificate.ca", "test-ca")
+			f.ValuesSet("multitenancyManager.internal.webhookCertificate.crt", "test-crt")
+			f.ValuesSet("multitenancyManager.internal.webhookCertificate.key", "test-key")
 
-			f.HelmRender(WithRenderOutput(renderMap))
+			f.HelmRender()
 		})
 
-		It("Should create a ClusterRoleBinding for each additionalRole", func() {
+		It("Should create a Secret for webhook", func() {
 			Expect(f.RenderError).ShouldNot(HaveOccurred())
+			secret := f.KubernetesResource("Secret", "d8-multitenancy-manager", "multitenancy-manager-webhook")
+			Expect(secret.Exists()).To(BeTrue())
+			b64SecretData := fmt.Sprintf(
+				`{"ca.crt":"%s","tls.crt":"%s","tls.key":"%s"}`,
+				base64.StdEncoding.EncodeToString([]byte("test-ca")),
+				base64.StdEncoding.EncodeToString([]byte("test-crt")),
+				base64.StdEncoding.EncodeToString([]byte("test-key")),
+			)
+			Expect(secret.Field("data").String()).To(Equal(b64SecretData))
 		})
-
 	})
 })

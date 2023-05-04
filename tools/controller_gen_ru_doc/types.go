@@ -17,9 +17,8 @@ limitations under the License.
 package main
 
 import (
+	"bytes"
 	"encoding/json"
-
-	apiext "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 )
 
 type ruCustomResourceDefinition struct {
@@ -41,10 +40,10 @@ type ruCustomResourceValidation struct {
 
 type JSONSchemaProps struct {
 	Description string                     `json:"description"`
-	Default     *apiext.JSON               `json:"default,omitempty"`
+	Default     *JSON                      `json:"default,omitempty"`
 	Items       *JSONSchemaPropsOrArray    `json:"items,omitempty"`
 	Properties  map[string]JSONSchemaProps `json:"properties,omitempty"`
-	Example     *apiext.JSON               `json:"example,omitempty"`
+	Example     *JSON                      `json:"example,omitempty"`
 }
 
 type JSONSchemaPropsOrArray struct {
@@ -78,5 +77,26 @@ func (s *JSONSchemaPropsOrArray) UnmarshalJSON(data []byte) error {
 		}
 	}
 	*s = nw
+	return nil
+}
+
+type JSON struct {
+	Raw []byte
+}
+
+var null = []byte(`null`)
+
+func (s JSON) MarshalJSON() ([]byte, error) {
+	if len(s.Raw) > 0 {
+		return s.Raw, nil
+	}
+	return null, nil
+
+}
+
+func (s *JSON) UnmarshalJSON(data []byte) error {
+	if len(data) > 0 && !bytes.Equal(data, null) {
+		s.Raw = data
+	}
 	return nil
 }
