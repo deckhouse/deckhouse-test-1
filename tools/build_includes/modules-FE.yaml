@@ -99,8 +99,3 @@
   stageDependencies:
     setup:
         - '**/*.go'
-- add: /ee/modules/modules
-  to: /deckhouse/modules/modules
-  stageDependencies:
-    setup:
-        - '**/*.go'

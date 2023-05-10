@@ -16,6 +16,6 @@ limitations under the License.
 
 package main
 
-//go:generate controller-gen crd:ignoreUnexportedFields=true,allowDangerousTypes=false paths=../ee/modules/160-multitenancy-manager/hooks/apis/deckhouse.io/v1alpha1/ output:dir=../ee/modules/160-multitenancy-manager/crds/
-//go:generate controller-gen object:headerFile="../ee/modules/160-multitenancy-manager/hack/boilerplate.go.txt",year=2023 paths=../ee/modules/160-multitenancy-manager/hooks/apis/deckhouse.io/v1alpha1/ output:dir=../ee/modules/160-multitenancy-manager/hooks/apis/deckhouse.io/v1alpha1/
+//go:generate go run sigs.k8s.io/controller-tools/cmd/controller-gen crd:ignoreUnexportedFields=true,allowDangerousTypes=false paths=../ee/modules/160-multitenancy-manager/hooks/apis/deckhouse.io/v1alpha1/ output:dir=../ee/modules/160-multitenancy-manager/crds/
+//go:generate go run sigs.k8s.io/controller-tools/cmd/controller-gen object:headerFile="../ee/modules/160-multitenancy-manager/hack/boilerplate.go.txt",year=2023 paths=../ee/modules/160-multitenancy-manager/hooks/apis/deckhouse.io/v1alpha1/ output:dir=../ee/modules/160-multitenancy-manager/hooks/apis/deckhouse.io/v1alpha1/
 //go:generate go run ./controller_gen_ru_doc/ ../ee/modules/160-multitenancy-manager/crds
