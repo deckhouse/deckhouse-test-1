@@ -79,7 +79,7 @@ func (p *ProjectTypeSpec) LoadOpenAPISchema() (*spec.Schema, error) {
 	return schema, nil
 }
 
-// +kubebuilder:validation:OneOf=/deckhouse/ee/modules/160-multitenancy-manager/hooks/apis/deckhouse.io/v1alpha1/projecttype_types.go=OneOfForSubjects
+// +kubebuilder:validation:OneOf=../ee/modules/160-multitenancy-manager/hooks/apis/deckhouse.io/v1alpha1/projecttype_types.go=OneOfForSubjects
 type AuthorizationRule struct {
 	// +kubebuilder:validation:Enum=ServiceAccount;User;Group
 	Kind string `json:"kind,omitempty"`
