@@ -177,7 +177,7 @@ lint-markdown-fix: ## Run markdown linter and fix problems automatically.
 
 .PHONY: generate render-workflow
 generate: bin/werf ## Run all generate-* jobs in bulk.
-	cd tools; go generate
+	cd tools; CGO_ENABLED=0 go generate
 
 render-workflow: ## Generate CI workflow instructions.
 	./.github/render-workflows.sh
