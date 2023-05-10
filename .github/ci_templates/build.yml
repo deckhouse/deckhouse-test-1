@@ -13,8 +13,7 @@ steps:
       go-version: 1.19
 
   - name: Run go generate
-    run: |
-      (make generate)
+    run: make generate
 
   - name: Check generated code
     run: |
