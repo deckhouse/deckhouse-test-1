@@ -79,7 +79,7 @@ jobs:
         id: started_at
         run: |
           unixTimestamp=$(date +%s)
-          echo "::set-output name=started_at::${unixTimestamp}"
+          echo "started_at=${unixTimestamp}" >> $GITHUB_OUTPUT
       # </template: started_at_output>
 
 
@@ -229,7 +229,7 @@ jobs:
         id: started_at
         run: |
           unixTimestamp=$(date +%s)
-          echo "::set-output name=started_at::${unixTimestamp}"
+          echo "started_at=${unixTimestamp}" >> $GITHUB_OUTPUT
       # </template: started_at_output>
 
       # <template: checkout_from_event_ref_step>
@@ -402,13 +402,13 @@ jobs:
           IMAGE_INSTALL_PATH="/${INSTALL_IMAGE_NAME#*/}"
 
           echo '::echo::on'
-          echo "::set-output name=tmp-dir-path::${TMP_DIR_PATH}"
-          echo "::set-output name=dhctl-log-file::${TMP_DIR_PATH}/dhctl.log"
-          echo "::set-output name=dhctl-prefix::${DHCTL_PREFIX}"
-          echo "::set-output name=install-image-name::${INSTALL_IMAGE_NAME}"
-          echo "::set-output name=deckhouse-image-tag::${IMAGE_TAG}"
-          echo "::set-output name=initial-image-tag::${INITIAL_IMAGE_TAG}"
-          echo "::set-output name=install-image-path::${IMAGE_INSTALL_PATH}"
+          echo "tmp-dir-path=${TMP_DIR_PATH}" >> $GITHUB_OUTPUT
+          echo "dhctl-log-file=${TMP_DIR_PATH}/dhctl.log" >> $GITHUB_OUTPUT
+          echo "dhctl-prefix=${DHCTL_PREFIX}" >> $GITHUB_OUTPUT
+          echo "install-image-name=${INSTALL_IMAGE_NAME}" >> $GITHUB_OUTPUT
+          echo "deckhouse-image-tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
+          echo "initial-image-tag=${INITIAL_IMAGE_TAG}" >> $GITHUB_OUTPUT
+          echo "install-image-path=${IMAGE_INSTALL_PATH}" >> $GITHUB_OUTPUT
 
           echo '::echo::off'
 
@@ -684,7 +684,7 @@ jobs:
         id: started_at
         run: |
           unixTimestamp=$(date +%s)
-          echo "::set-output name=started_at::${unixTimestamp}"
+          echo "started_at=${unixTimestamp}" >> $GITHUB_OUTPUT
       # </template: started_at_output>
 
       # <template: checkout_from_event_ref_step>
@@ -857,13 +857,13 @@ jobs:
           IMAGE_INSTALL_PATH="/${INSTALL_IMAGE_NAME#*/}"
 
           echo '::echo::on'
-          echo "::set-output name=tmp-dir-path::${TMP_DIR_PATH}"
-          echo "::set-output name=dhctl-log-file::${TMP_DIR_PATH}/dhctl.log"
-          echo "::set-output name=dhctl-prefix::${DHCTL_PREFIX}"
-          echo "::set-output name=install-image-name::${INSTALL_IMAGE_NAME}"
-          echo "::set-output name=deckhouse-image-tag::${IMAGE_TAG}"
-          echo "::set-output name=initial-image-tag::${INITIAL_IMAGE_TAG}"
-          echo "::set-output name=install-image-path::${IMAGE_INSTALL_PATH}"
+          echo "tmp-dir-path=${TMP_DIR_PATH}" >> $GITHUB_OUTPUT
+          echo "dhctl-log-file=${TMP_DIR_PATH}/dhctl.log" >> $GITHUB_OUTPUT
+          echo "dhctl-prefix=${DHCTL_PREFIX}" >> $GITHUB_OUTPUT
+          echo "install-image-name=${INSTALL_IMAGE_NAME}" >> $GITHUB_OUTPUT
+          echo "deckhouse-image-tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
+          echo "initial-image-tag=${INITIAL_IMAGE_TAG}" >> $GITHUB_OUTPUT
+          echo "install-image-path=${IMAGE_INSTALL_PATH}" >> $GITHUB_OUTPUT
 
           echo '::echo::off'
 
@@ -1139,7 +1139,7 @@ jobs:
         id: started_at
         run: |
           unixTimestamp=$(date +%s)
-          echo "::set-output name=started_at::${unixTimestamp}"
+          echo "started_at=${unixTimestamp}" >> $GITHUB_OUTPUT
       # </template: started_at_output>
 
       # <template: checkout_from_event_ref_step>
@@ -1312,13 +1312,13 @@ jobs:
           IMAGE_INSTALL_PATH="/${INSTALL_IMAGE_NAME#*/}"
 
           echo '::echo::on'
-          echo "::set-output name=tmp-dir-path::${TMP_DIR_PATH}"
-          echo "::set-output name=dhctl-log-file::${TMP_DIR_PATH}/dhctl.log"
-          echo "::set-output name=dhctl-prefix::${DHCTL_PREFIX}"
-          echo "::set-output name=install-image-name::${INSTALL_IMAGE_NAME}"
-          echo "::set-output name=deckhouse-image-tag::${IMAGE_TAG}"
-          echo "::set-output name=initial-image-tag::${INITIAL_IMAGE_TAG}"
-          echo "::set-output name=install-image-path::${IMAGE_INSTALL_PATH}"
+          echo "tmp-dir-path=${TMP_DIR_PATH}" >> $GITHUB_OUTPUT
+          echo "dhctl-log-file=${TMP_DIR_PATH}/dhctl.log" >> $GITHUB_OUTPUT
+          echo "dhctl-prefix=${DHCTL_PREFIX}" >> $GITHUB_OUTPUT
+          echo "install-image-name=${INSTALL_IMAGE_NAME}" >> $GITHUB_OUTPUT
+          echo "deckhouse-image-tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
+          echo "initial-image-tag=${INITIAL_IMAGE_TAG}" >> $GITHUB_OUTPUT
+          echo "install-image-path=${IMAGE_INSTALL_PATH}" >> $GITHUB_OUTPUT
 
           echo '::echo::off'
 
@@ -1594,7 +1594,7 @@ jobs:
         id: started_at
         run: |
           unixTimestamp=$(date +%s)
-          echo "::set-output name=started_at::${unixTimestamp}"
+          echo "started_at=${unixTimestamp}" >> $GITHUB_OUTPUT
       # </template: started_at_output>
 
       # <template: checkout_from_event_ref_step>
@@ -1767,13 +1767,13 @@ jobs:
           IMAGE_INSTALL_PATH="/${INSTALL_IMAGE_NAME#*/}"
 
           echo '::echo::on'
-          echo "::set-output name=tmp-dir-path::${TMP_DIR_PATH}"
-          echo "::set-output name=dhctl-log-file::${TMP_DIR_PATH}/dhctl.log"
-          echo "::set-output name=dhctl-prefix::${DHCTL_PREFIX}"
-          echo "::set-output name=install-image-name::${INSTALL_IMAGE_NAME}"
-          echo "::set-output name=deckhouse-image-tag::${IMAGE_TAG}"
-          echo "::set-output name=initial-image-tag::${INITIAL_IMAGE_TAG}"
-          echo "::set-output name=install-image-path::${IMAGE_INSTALL_PATH}"
+          echo "tmp-dir-path=${TMP_DIR_PATH}" >> $GITHUB_OUTPUT
+          echo "dhctl-log-file=${TMP_DIR_PATH}/dhctl.log" >> $GITHUB_OUTPUT
+          echo "dhctl-prefix=${DHCTL_PREFIX}" >> $GITHUB_OUTPUT
+          echo "install-image-name=${INSTALL_IMAGE_NAME}" >> $GITHUB_OUTPUT
+          echo "deckhouse-image-tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
+          echo "initial-image-tag=${INITIAL_IMAGE_TAG}" >> $GITHUB_OUTPUT
+          echo "install-image-path=${IMAGE_INSTALL_PATH}" >> $GITHUB_OUTPUT
 
           echo '::echo::off'
 
@@ -2049,7 +2049,7 @@ jobs:
         id: started_at
         run: |
           unixTimestamp=$(date +%s)
-          echo "::set-output name=started_at::${unixTimestamp}"
+          echo "started_at=${unixTimestamp}" >> $GITHUB_OUTPUT
       # </template: started_at_output>
 
       # <template: checkout_from_event_ref_step>
@@ -2222,13 +2222,13 @@ jobs:
           IMAGE_INSTALL_PATH="/${INSTALL_IMAGE_NAME#*/}"
 
           echo '::echo::on'
-          echo "::set-output name=tmp-dir-path::${TMP_DIR_PATH}"
-          echo "::set-output name=dhctl-log-file::${TMP_DIR_PATH}/dhctl.log"
-          echo "::set-output name=dhctl-prefix::${DHCTL_PREFIX}"
-          echo "::set-output name=install-image-name::${INSTALL_IMAGE_NAME}"
-          echo "::set-output name=deckhouse-image-tag::${IMAGE_TAG}"
-          echo "::set-output name=initial-image-tag::${INITIAL_IMAGE_TAG}"
-          echo "::set-output name=install-image-path::${IMAGE_INSTALL_PATH}"
+          echo "tmp-dir-path=${TMP_DIR_PATH}" >> $GITHUB_OUTPUT
+          echo "dhctl-log-file=${TMP_DIR_PATH}/dhctl.log" >> $GITHUB_OUTPUT
+          echo "dhctl-prefix=${DHCTL_PREFIX}" >> $GITHUB_OUTPUT
+          echo "install-image-name=${INSTALL_IMAGE_NAME}" >> $GITHUB_OUTPUT
+          echo "deckhouse-image-tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
+          echo "initial-image-tag=${INITIAL_IMAGE_TAG}" >> $GITHUB_OUTPUT
+          echo "install-image-path=${IMAGE_INSTALL_PATH}" >> $GITHUB_OUTPUT
 
           echo '::echo::off'
 
@@ -2504,7 +2504,7 @@ jobs:
         id: started_at
         run: |
           unixTimestamp=$(date +%s)
-          echo "::set-output name=started_at::${unixTimestamp}"
+          echo "started_at=${unixTimestamp}" >> $GITHUB_OUTPUT
       # </template: started_at_output>
 
       # <template: checkout_from_event_ref_step>
@@ -2677,13 +2677,13 @@ jobs:
           IMAGE_INSTALL_PATH="/${INSTALL_IMAGE_NAME#*/}"
 
           echo '::echo::on'
-          echo "::set-output name=tmp-dir-path::${TMP_DIR_PATH}"
-          echo "::set-output name=dhctl-log-file::${TMP_DIR_PATH}/dhctl.log"
-          echo "::set-output name=dhctl-prefix::${DHCTL_PREFIX}"
-          echo "::set-output name=install-image-name::${INSTALL_IMAGE_NAME}"
-          echo "::set-output name=deckhouse-image-tag::${IMAGE_TAG}"
-          echo "::set-output name=initial-image-tag::${INITIAL_IMAGE_TAG}"
-          echo "::set-output name=install-image-path::${IMAGE_INSTALL_PATH}"
+          echo "tmp-dir-path=${TMP_DIR_PATH}" >> $GITHUB_OUTPUT
+          echo "dhctl-log-file=${TMP_DIR_PATH}/dhctl.log" >> $GITHUB_OUTPUT
+          echo "dhctl-prefix=${DHCTL_PREFIX}" >> $GITHUB_OUTPUT
+          echo "install-image-name=${INSTALL_IMAGE_NAME}" >> $GITHUB_OUTPUT
+          echo "deckhouse-image-tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
+          echo "initial-image-tag=${INITIAL_IMAGE_TAG}" >> $GITHUB_OUTPUT
+          echo "install-image-path=${IMAGE_INSTALL_PATH}" >> $GITHUB_OUTPUT
 
           echo '::echo::off'
 
@@ -2959,7 +2959,7 @@ jobs:
         id: started_at
         run: |
           unixTimestamp=$(date +%s)
-          echo "::set-output name=started_at::${unixTimestamp}"
+          echo "started_at=${unixTimestamp}" >> $GITHUB_OUTPUT
       # </template: started_at_output>
 
       # <template: checkout_from_event_ref_step>
@@ -3132,13 +3132,13 @@ jobs:
           IMAGE_INSTALL_PATH="/${INSTALL_IMAGE_NAME#*/}"
 
           echo '::echo::on'
-          echo "::set-output name=tmp-dir-path::${TMP_DIR_PATH}"
-          echo "::set-output name=dhctl-log-file::${TMP_DIR_PATH}/dhctl.log"
-          echo "::set-output name=dhctl-prefix::${DHCTL_PREFIX}"
-          echo "::set-output name=install-image-name::${INSTALL_IMAGE_NAME}"
-          echo "::set-output name=deckhouse-image-tag::${IMAGE_TAG}"
-          echo "::set-output name=initial-image-tag::${INITIAL_IMAGE_TAG}"
-          echo "::set-output name=install-image-path::${IMAGE_INSTALL_PATH}"
+          echo "tmp-dir-path=${TMP_DIR_PATH}" >> $GITHUB_OUTPUT
+          echo "dhctl-log-file=${TMP_DIR_PATH}/dhctl.log" >> $GITHUB_OUTPUT
+          echo "dhctl-prefix=${DHCTL_PREFIX}" >> $GITHUB_OUTPUT
+          echo "install-image-name=${INSTALL_IMAGE_NAME}" >> $GITHUB_OUTPUT
+          echo "deckhouse-image-tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
+          echo "initial-image-tag=${INITIAL_IMAGE_TAG}" >> $GITHUB_OUTPUT
+          echo "install-image-path=${IMAGE_INSTALL_PATH}" >> $GITHUB_OUTPUT
 
           echo '::echo::off'
 
@@ -3414,7 +3414,7 @@ jobs:
         id: started_at
         run: |
           unixTimestamp=$(date +%s)
-          echo "::set-output name=started_at::${unixTimestamp}"
+          echo "started_at=${unixTimestamp}" >> $GITHUB_OUTPUT
       # </template: started_at_output>
 
       # <template: checkout_from_event_ref_step>
@@ -3587,13 +3587,13 @@ jobs:
           IMAGE_INSTALL_PATH="/${INSTALL_IMAGE_NAME#*/}"
 
           echo '::echo::on'
-          echo "::set-output name=tmp-dir-path::${TMP_DIR_PATH}"
-          echo "::set-output name=dhctl-log-file::${TMP_DIR_PATH}/dhctl.log"
-          echo "::set-output name=dhctl-prefix::${DHCTL_PREFIX}"
-          echo "::set-output name=install-image-name::${INSTALL_IMAGE_NAME}"
-          echo "::set-output name=deckhouse-image-tag::${IMAGE_TAG}"
-          echo "::set-output name=initial-image-tag::${INITIAL_IMAGE_TAG}"
-          echo "::set-output name=install-image-path::${IMAGE_INSTALL_PATH}"
+          echo "tmp-dir-path=${TMP_DIR_PATH}" >> $GITHUB_OUTPUT
+          echo "dhctl-log-file=${TMP_DIR_PATH}/dhctl.log" >> $GITHUB_OUTPUT
+          echo "dhctl-prefix=${DHCTL_PREFIX}" >> $GITHUB_OUTPUT
+          echo "install-image-name=${INSTALL_IMAGE_NAME}" >> $GITHUB_OUTPUT
+          echo "deckhouse-image-tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
+          echo "initial-image-tag=${INITIAL_IMAGE_TAG}" >> $GITHUB_OUTPUT
+          echo "install-image-path=${IMAGE_INSTALL_PATH}" >> $GITHUB_OUTPUT
 
           echo '::echo::off'
 
@@ -3869,7 +3869,7 @@ jobs:
         id: started_at
         run: |
           unixTimestamp=$(date +%s)
-          echo "::set-output name=started_at::${unixTimestamp}"
+          echo "started_at=${unixTimestamp}" >> $GITHUB_OUTPUT
       # </template: started_at_output>
 
       # <template: checkout_from_event_ref_step>
@@ -4042,13 +4042,13 @@ jobs:
           IMAGE_INSTALL_PATH="/${INSTALL_IMAGE_NAME#*/}"
 
           echo '::echo::on'
-          echo "::set-output name=tmp-dir-path::${TMP_DIR_PATH}"
-          echo "::set-output name=dhctl-log-file::${TMP_DIR_PATH}/dhctl.log"
-          echo "::set-output name=dhctl-prefix::${DHCTL_PREFIX}"
-          echo "::set-output name=install-image-name::${INSTALL_IMAGE_NAME}"
-          echo "::set-output name=deckhouse-image-tag::${IMAGE_TAG}"
-          echo "::set-output name=initial-image-tag::${INITIAL_IMAGE_TAG}"
-          echo "::set-output name=install-image-path::${IMAGE_INSTALL_PATH}"
+          echo "tmp-dir-path=${TMP_DIR_PATH}" >> $GITHUB_OUTPUT
+          echo "dhctl-log-file=${TMP_DIR_PATH}/dhctl.log" >> $GITHUB_OUTPUT
+          echo "dhctl-prefix=${DHCTL_PREFIX}" >> $GITHUB_OUTPUT
+          echo "install-image-name=${INSTALL_IMAGE_NAME}" >> $GITHUB_OUTPUT
+          echo "deckhouse-image-tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
+          echo "initial-image-tag=${INITIAL_IMAGE_TAG}" >> $GITHUB_OUTPUT
+          echo "install-image-path=${IMAGE_INSTALL_PATH}" >> $GITHUB_OUTPUT
 
           echo '::echo::off'
 
@@ -4324,7 +4324,7 @@ jobs:
         id: started_at
         run: |
           unixTimestamp=$(date +%s)
-          echo "::set-output name=started_at::${unixTimestamp}"
+          echo "started_at=${unixTimestamp}" >> $GITHUB_OUTPUT
       # </template: started_at_output>
 
       # <template: checkout_from_event_ref_step>
@@ -4497,13 +4497,13 @@ jobs:
           IMAGE_INSTALL_PATH="/${INSTALL_IMAGE_NAME#*/}"
 
           echo '::echo::on'
-          echo "::set-output name=tmp-dir-path::${TMP_DIR_PATH}"
-          echo "::set-output name=dhctl-log-file::${TMP_DIR_PATH}/dhctl.log"
-          echo "::set-output name=dhctl-prefix::${DHCTL_PREFIX}"
-          echo "::set-output name=install-image-name::${INSTALL_IMAGE_NAME}"
-          echo "::set-output name=deckhouse-image-tag::${IMAGE_TAG}"
-          echo "::set-output name=initial-image-tag::${INITIAL_IMAGE_TAG}"
-          echo "::set-output name=install-image-path::${IMAGE_INSTALL_PATH}"
+          echo "tmp-dir-path=${TMP_DIR_PATH}" >> $GITHUB_OUTPUT
+          echo "dhctl-log-file=${TMP_DIR_PATH}/dhctl.log" >> $GITHUB_OUTPUT
+          echo "dhctl-prefix=${DHCTL_PREFIX}" >> $GITHUB_OUTPUT
+          echo "install-image-name=${INSTALL_IMAGE_NAME}" >> $GITHUB_OUTPUT
+          echo "deckhouse-image-tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
+          echo "initial-image-tag=${INITIAL_IMAGE_TAG}" >> $GITHUB_OUTPUT
+          echo "install-image-path=${IMAGE_INSTALL_PATH}" >> $GITHUB_OUTPUT
 
           echo '::echo::off'
 
@@ -4779,7 +4779,7 @@ jobs:
         id: started_at
         run: |
           unixTimestamp=$(date +%s)
-          echo "::set-output name=started_at::${unixTimestamp}"
+          echo "started_at=${unixTimestamp}" >> $GITHUB_OUTPUT
       # </template: started_at_output>
 
       # <template: checkout_from_event_ref_step>
@@ -4952,13 +4952,13 @@ jobs:
           IMAGE_INSTALL_PATH="/${INSTALL_IMAGE_NAME#*/}"
 
           echo '::echo::on'
-          echo "::set-output name=tmp-dir-path::${TMP_DIR_PATH}"
-          echo "::set-output name=dhctl-log-file::${TMP_DIR_PATH}/dhctl.log"
-          echo "::set-output name=dhctl-prefix::${DHCTL_PREFIX}"
-          echo "::set-output name=install-image-name::${INSTALL_IMAGE_NAME}"
-          echo "::set-output name=deckhouse-image-tag::${IMAGE_TAG}"
-          echo "::set-output name=initial-image-tag::${INITIAL_IMAGE_TAG}"
-          echo "::set-output name=install-image-path::${IMAGE_INSTALL_PATH}"
+          echo "tmp-dir-path=${TMP_DIR_PATH}" >> $GITHUB_OUTPUT
+          echo "dhctl-log-file=${TMP_DIR_PATH}/dhctl.log" >> $GITHUB_OUTPUT
+          echo "dhctl-prefix=${DHCTL_PREFIX}" >> $GITHUB_OUTPUT
+          echo "install-image-name=${INSTALL_IMAGE_NAME}" >> $GITHUB_OUTPUT
+          echo "deckhouse-image-tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
+          echo "initial-image-tag=${INITIAL_IMAGE_TAG}" >> $GITHUB_OUTPUT
+          echo "install-image-path=${IMAGE_INSTALL_PATH}" >> $GITHUB_OUTPUT
 
           echo '::echo::off'
 
@@ -5234,7 +5234,7 @@ jobs:
         id: started_at
         run: |
           unixTimestamp=$(date +%s)
-          echo "::set-output name=started_at::${unixTimestamp}"
+          echo "started_at=${unixTimestamp}" >> $GITHUB_OUTPUT
       # </template: started_at_output>
 
       # <template: checkout_from_event_ref_step>
@@ -5407,13 +5407,13 @@ jobs:
           IMAGE_INSTALL_PATH="/${INSTALL_IMAGE_NAME#*/}"
 
           echo '::echo::on'
-          echo "::set-output name=tmp-dir-path::${TMP_DIR_PATH}"
-          echo "::set-output name=dhctl-log-file::${TMP_DIR_PATH}/dhctl.log"
-          echo "::set-output name=dhctl-prefix::${DHCTL_PREFIX}"
-          echo "::set-output name=install-image-name::${INSTALL_IMAGE_NAME}"
-          echo "::set-output name=deckhouse-image-tag::${IMAGE_TAG}"
-          echo "::set-output name=initial-image-tag::${INITIAL_IMAGE_TAG}"
-          echo "::set-output name=install-image-path::${IMAGE_INSTALL_PATH}"
+          echo "tmp-dir-path=${TMP_DIR_PATH}" >> $GITHUB_OUTPUT
+          echo "dhctl-log-file=${TMP_DIR_PATH}/dhctl.log" >> $GITHUB_OUTPUT
+          echo "dhctl-prefix=${DHCTL_PREFIX}" >> $GITHUB_OUTPUT
+          echo "install-image-name=${INSTALL_IMAGE_NAME}" >> $GITHUB_OUTPUT
+          echo "deckhouse-image-tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
+          echo "initial-image-tag=${INITIAL_IMAGE_TAG}" >> $GITHUB_OUTPUT
+          echo "install-image-path=${IMAGE_INSTALL_PATH}" >> $GITHUB_OUTPUT
 
           echo '::echo::off'
 

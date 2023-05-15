@@ -180,7 +180,7 @@ jobs:
         id: started_at
         run: |
           unixTimestamp=$(date +%s)
-          echo "::set-output name=started_at::${unixTimestamp}"
+          echo "started_at=${unixTimestamp}" >> $GITHUB_OUTPUT
       # </template: started_at_output>
 
       # <template: checkout_from_event_ref_step>
