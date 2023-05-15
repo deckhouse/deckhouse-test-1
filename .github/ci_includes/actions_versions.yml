@@ -1,6 +1,6 @@
 "actions/cache": "actions/cache@v2.1.7"
 "actions/checkout": "actions/checkout@v2.4.0"
-"actions/github-script": "actions/github-script@v5.0.0"
+"actions/github-script": "actions/github-script@v5.2.0"
 "actions/download-artifact": "actions/download-artifact@v2"
 "actions/upload-artifact": "actions/upload-artifact@v2"
 "docker/login-action": "docker/login-action@v1.10.0"

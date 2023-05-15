@@ -32,7 +32,7 @@ jobs:
     steps:
       - name: Check conditions for release issue
         id: check
-        uses: actions/github-script@v5.0.0
+        uses: actions/github-script@v5.2.0
         with:
           script: |
             if (!context.payload.comment.body.startsWith('/')) {
@@ -94,7 +94,7 @@ jobs:
 
       # </template: checkout_step>
       - name: Run workflow
-        uses: actions/github-script@v5.0.0
+        uses: actions/github-script@v5.2.0
         with:
           github-token: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
           script: |
@@ -115,7 +115,7 @@ jobs:
 
       # </template: checkout_step>
       - name: Run workflow
-        uses: actions/github-script@v5.0.0
+        uses: actions/github-script@v5.2.0
         with:
           github-token: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
           script: |
@@ -137,7 +137,7 @@ jobs:
       # </template: checkout_step>
       - name: Find milestone
         id: milestone
-        uses: actions/github-script@v5.0.0
+        uses: actions/github-script@v5.2.0
         with:
           result-encoding: json
           script: |
