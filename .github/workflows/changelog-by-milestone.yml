@@ -100,8 +100,8 @@ jobs:
 
           count="$(echo $milestones | jq '. | length')"
 
-          echo "::set-output name=list::${milestones}"
-          echo "::set-output name=count::${count}"
+          echo "list=${milestones}" >> $GITHUB_OUTPUT
+          echo "count=${count}" >> $GITHUB_OUTPUT
 
     outputs:
       list: ${{ steps.milestones.outputs.list }}

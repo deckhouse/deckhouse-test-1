@@ -63,7 +63,7 @@ jobs:
         id: started_at
         run: |
           unixTimestamp=$(date +%s)
-          echo "::set-output name=started_at::${unixTimestamp}"
+          echo "started_at=${unixTimestamp}" >> $GITHUB_OUTPUT
       # </template: started_at_output>
 
 
@@ -184,7 +184,7 @@ jobs:
         id: started_at
         run: |
           unixTimestamp=$(date +%s)
-          echo "::set-output name=started_at::${unixTimestamp}"
+          echo "started_at=${unixTimestamp}" >> $GITHUB_OUTPUT
       # </template: started_at_output>
 
       # <template: checkout_step>
@@ -282,7 +282,7 @@ jobs:
         id: started_at
         run: |
           unixTimestamp=$(date +%s)
-          echo "::set-output name=started_at::${unixTimestamp}"
+          echo "started_at=${unixTimestamp}" >> $GITHUB_OUTPUT
       # </template: started_at_output>
 
       # <template: checkout_step>
@@ -373,7 +373,7 @@ jobs:
         id: started_at
         run: |
           unixTimestamp=$(date +%s)
-          echo "::set-output name=started_at::${unixTimestamp}"
+          echo "started_at=${unixTimestamp}" >> $GITHUB_OUTPUT
       # </template: started_at_output>
 
 
@@ -600,7 +600,7 @@ jobs:
           # Print image name in uppercase to prevent hiding non-secret registry host stored in secret.
           echo "Tests image name: '${TESTS_IMAGE_NAME}'" | tr '[:lower:]' '[:upper:]'
           # Encode as gzip+base64 to evade github's SecretMasker error: "Skip output since it may contain secret".
-          echo "::set-output name=tests_image_name::$(echo ${TESTS_IMAGE_NAME} | gzip | base64 -w0)"
+          echo "tests_image_name=$(echo ${TESTS_IMAGE_NAME} | gzip | base64 -w0)" >> $GITHUB_OUTPUT
 
       - name: Cleanup
         if: ${{ always() }}
@@ -661,7 +661,7 @@ jobs:
         id: started_at
         run: |
           unixTimestamp=$(date +%s)
-          echo "::set-output name=started_at::${unixTimestamp}"
+          echo "started_at=${unixTimestamp}" >> $GITHUB_OUTPUT
       # </template: started_at_output>
 
 
@@ -888,7 +888,7 @@ jobs:
           # Print image name in uppercase to prevent hiding non-secret registry host stored in secret.
           echo "Tests image name: '${TESTS_IMAGE_NAME}'" | tr '[:lower:]' '[:upper:]'
           # Encode as gzip+base64 to evade github's SecretMasker error: "Skip output since it may contain secret".
-          echo "::set-output name=tests_image_name::$(echo ${TESTS_IMAGE_NAME} | gzip | base64 -w0)"
+          echo "tests_image_name=$(echo ${TESTS_IMAGE_NAME} | gzip | base64 -w0)" >> $GITHUB_OUTPUT
 
       - name: Cleanup
         if: ${{ always() }}
@@ -949,7 +949,7 @@ jobs:
         id: started_at
         run: |
           unixTimestamp=$(date +%s)
-          echo "::set-output name=started_at::${unixTimestamp}"
+          echo "started_at=${unixTimestamp}" >> $GITHUB_OUTPUT
       # </template: started_at_output>
 
 
@@ -1176,7 +1176,7 @@ jobs:
           # Print image name in uppercase to prevent hiding non-secret registry host stored in secret.
           echo "Tests image name: '${TESTS_IMAGE_NAME}'" | tr '[:lower:]' '[:upper:]'
           # Encode as gzip+base64 to evade github's SecretMasker error: "Skip output since it may contain secret".
-          echo "::set-output name=tests_image_name::$(echo ${TESTS_IMAGE_NAME} | gzip | base64 -w0)"
+          echo "tests_image_name=$(echo ${TESTS_IMAGE_NAME} | gzip | base64 -w0)" >> $GITHUB_OUTPUT
 
       - name: Cleanup
         if: ${{ always() }}
@@ -1230,7 +1230,7 @@ jobs:
         id: started_at
         run: |
           unixTimestamp=$(date +%s)
-          echo "::set-output name=started_at::${unixTimestamp}"
+          echo "started_at=${unixTimestamp}" >> $GITHUB_OUTPUT
       # </template: started_at_output>
 
       # <template: checkout_full_step>
@@ -1348,7 +1348,7 @@ jobs:
         id: started_at
         run: |
           unixTimestamp=$(date +%s)
-          echo "::set-output name=started_at::${unixTimestamp}"
+          echo "started_at=${unixTimestamp}" >> $GITHUB_OUTPUT
       # </template: started_at_output>
 
       # <template: checkout_full_step>
@@ -1466,7 +1466,7 @@ jobs:
         id: started_at
         run: |
           unixTimestamp=$(date +%s)
-          echo "::set-output name=started_at::${unixTimestamp}"
+          echo "started_at=${unixTimestamp}" >> $GITHUB_OUTPUT
       # </template: started_at_output>
 
       # <template: checkout_full_step>
@@ -1580,7 +1580,7 @@ jobs:
         id: started_at
         run: |
           unixTimestamp=$(date +%s)
-          echo "::set-output name=started_at::${unixTimestamp}"
+          echo "started_at=${unixTimestamp}" >> $GITHUB_OUTPUT
       # </template: started_at_output>
 
       # <template: checkout_full_step>
@@ -1695,7 +1695,7 @@ jobs:
         id: started_at
         run: |
           unixTimestamp=$(date +%s)
-          echo "::set-output name=started_at::${unixTimestamp}"
+          echo "started_at=${unixTimestamp}" >> $GITHUB_OUTPUT
       # </template: started_at_output>
 
       # <template: checkout_full_step>
@@ -1818,7 +1818,7 @@ jobs:
         id: started_at
         run: |
           unixTimestamp=$(date +%s)
-          echo "::set-output name=started_at::${unixTimestamp}"
+          echo "started_at=${unixTimestamp}" >> $GITHUB_OUTPUT
       # </template: started_at_output>
 
       # <template: checkout_full_step>
@@ -1941,7 +1941,7 @@ jobs:
         id: started_at
         run: |
           unixTimestamp=$(date +%s)
-          echo "::set-output name=started_at::${unixTimestamp}"
+          echo "started_at=${unixTimestamp}" >> $GITHUB_OUTPUT
       # </template: started_at_output>
 
       # <template: checkout_full_step>
@@ -2065,7 +2065,7 @@ jobs:
         id: started_at
         run: |
           unixTimestamp=$(date +%s)
-          echo "::set-output name=started_at::${unixTimestamp}"
+          echo "started_at=${unixTimestamp}" >> $GITHUB_OUTPUT
       # </template: started_at_output>
 
       # <template: checkout_full_step>
@@ -2257,7 +2257,7 @@ jobs:
         id: started_at
         run: |
           unixTimestamp=$(date +%s)
-          echo "::set-output name=started_at::${unixTimestamp}"
+          echo "started_at=${unixTimestamp}" >> $GITHUB_OUTPUT
       # </template: started_at_output>
 
       # <template: checkout_full_step>
@@ -2381,7 +2381,7 @@ jobs:
         id: started_at
         run: |
           unixTimestamp=$(date +%s)
-          echo "::set-output name=started_at::${unixTimestamp}"
+          echo "started_at=${unixTimestamp}" >> $GITHUB_OUTPUT
       # </template: started_at_output>
 
       # <template: checkout_full_step>
