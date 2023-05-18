@@ -69,3 +69,4 @@ done
 
 run_deckhouse
 exit "${EXITCODE}"
+ 
