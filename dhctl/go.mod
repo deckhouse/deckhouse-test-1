@@ -7,7 +7,7 @@ require (
 	github.com/Masterminds/sprig/v3 v3.2.2
 	github.com/alessio/shellescape v1.4.1
 	github.com/fatih/color v1.9.0
-	github.com/flant/kube-client v0.25.0
+	github.com/flant/kube-client v0.26.1
 	github.com/flant/logboek v0.3.4
 	github.com/fsnotify/fsnotify v1.5.1
 	github.com/go-openapi/spec v0.19.8
