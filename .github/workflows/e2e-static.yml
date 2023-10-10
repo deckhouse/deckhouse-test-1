@@ -22,7 +22,7 @@ on:
   workflow_dispatch:
     inputs:
       issue_id:
-        description: 'ID of issue where label was set'
+        description: 'ID of issue where label was set:'
         required: false
       issue_number:
         description: 'Number of issue where label was set'
