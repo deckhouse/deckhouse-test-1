@@ -54,14 +54,6 @@ on:
 
   pull_request:
     types: [labeled]
-jobs:
-  labels:
-    name: if Label linstor
-    if: github.event.label.name == 'e2e/run/linstor'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Print to console
-        run: echo "linstor test run-2"
 
 env:
 
@@ -79,6 +71,15 @@ env:
 # Usually you run e2e and wait until it ends.
 
 jobs:
+
+  labels:
+    name: if Label linstor
+    if: github.event.label.name == 'e2e/run/linstor'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Print to console
+        run: echo "linstor test run-2"
+
   started_at:
     name: Save start timestamp
     outputs:
