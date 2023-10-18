@@ -424,6 +424,7 @@ jobs:
           CRI: Containerd
           LAYOUT: Static
           KUBERNETES_VERSION: "1.24"
+          EVENT_LABEL: ${{ github.event.label.name }}
           LAYOUT_DECKHOUSE_DOCKERCFG: ${{ secrets.LAYOUT_DECKHOUSE_DOCKERCFG }}
           LAYOUT_SSH_KEY: ${{ secrets.LAYOUT_SSH_KEY}}
           TMP_DIR_PATH: ${{ steps.setup.outputs.tmp-dir-path}}

@@ -779,6 +779,17 @@ function wait_cluster_ready() {
   # fi
   # echo "Linstor test suite: success"
 
+  if [[ "$EVENT_LABEL" == "e2e/run/linstor" ]]; then
+    if ! run_linstor_tests; then
+      >&2 echo -n "Linstor tests failed"
+      >&2 echo -n "Fetch Deckhouse logs after test ..."
+      $ssh_command -i "$ssh_private_key_path" $ssh_bastion "$ssh_user@$master_ip" sudo su -c /bin/bash > "$logs/deckhouse.json.log" <<<"${testLog}"
+      return 1
+    fi
+  fi
+  echo "Linstor test suite: success"
+
+
   test_failed=
 
   testScript=$(cat "$(pwd)/testing/cloud_layouts/script.d/wait_cluster_ready/test_script.sh")
