@@ -174,31 +174,31 @@ jobs:
 
   # </template: git_info_job>
 
-  # <template: check_e2e_labels_job>
-  check_e2e_labels:
-    name: Check e2e labels
-    runs-on: ubuntu-latest
-    outputs:
+  # # <template: check_e2e_labels_job>
+  # check_e2e_labels:
+  #   name: Check e2e labels
+  #   runs-on: ubuntu-latest
+  #   outputs:
 
-      run_containerd_1_24: ${{ steps.check.outputs.run_containerd_1_24 }}
+  #     run_containerd_1_24: ${{ steps.check.outputs.run_containerd_1_24 }}
 
-    steps:
+  #   steps:
 
-      # <template: checkout_step>
-      - name: Checkout sources
-        uses: actions/checkout@v3.5.2
+  #     # <template: checkout_step>
+  #     - name: Checkout sources
+  #       uses: actions/checkout@v3.5.2
 
-      # </template: checkout_step>
-      - name: Check e2e labels
-        id: check
-        uses: actions/github-script@v6.4.1
-        with:
-          script: |
-            const provider = 'static';
+  #     # </template: checkout_step>
+  #     - name: Check e2e labels
+  #       id: check
+  #       uses: actions/github-script@v6.4.1
+  #       with:
+  #         script: |
+  #           const provider = 'static';
 
-            const ci = require('./.github/scripts/js/ci');
-            return await ci.checkE2ELabels({github, context, core, provider});
-  # </template: check_e2e_labels_job>
+  #           const ci = require('./.github/scripts/js/ci');
+  #           return await ci.checkE2ELabels({github, context, core, provider});
+  # # </template: check_e2e_labels_job>
 
 
   # <template: e2e_run_job_template>
