@@ -78,7 +78,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Print to console
-        run: echo "linstor test run-2"
+        run: echo ${{ github.event.label.name }}
 
   started_at:
     name: Save start timestamp
