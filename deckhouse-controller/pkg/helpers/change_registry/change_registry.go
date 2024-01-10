@@ -197,11 +197,6 @@ func updateImagePullSecret(ctx context.Context, kubeCl *kclient.KubernetesClient
 }
 
 func newImagePullSecretData(newRepo name.Repository, authConfig authn.AuthConfig, caContent string) (map[string]string, error) {
-	// var authCfg authn.AuthConfig
-	// if authConfig.Username != "" && authConfig.Password != "" {
-	// 	authCfg.Auth = base64.StdEncoding.EncodeToString([]byte(authConfig.Username + ":" + authConfig.Password))
-	// }
-
 	authConfBytes, err := json.Marshal(
 		map[string]map[string]*dockerCfgAuthEntry{
 			"auths": {
