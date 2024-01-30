@@ -13,7 +13,7 @@
 // limitations under the License.
 
 package hooks
-// comment just for run workflow for dev build
+// comment just for run workflow for dev build. Update comment
 import (
 	"fmt"
 
