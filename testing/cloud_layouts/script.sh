@@ -159,7 +159,7 @@ function destroy_static_infra() {
   >&2 echo "Run destroy_static_infra from ${terraform_state_file}"
 
   pushd "$cwd"
-  terraform init -input=false -lock=false -plugin-dir=/usr/local/share/terraform/plugins || return $?
+  terraform init -input=false -plugin-dir=/usr/local/share/terraform/plugins || return $?
   terraform destroy -state="${terraform_state_file}" -input=false -auto-approve || exitCode=$?
   popd
 
@@ -410,7 +410,7 @@ function run-test() {
 function bootstrap_static() {
   >&2 echo "Run terraform to create nodes for Static cluster ..."
   pushd "$cwd"
-  terraform init -input=false -lock=false -plugin-dir=/usr/local/share/terraform/plugins || return $?
+  terraform init -input=false -plugin-dir=/usr/local/share/terraform/plugins || return $?
   terraform apply -state="${terraform_state_file}" -auto-approve -no-color | tee "$cwd/terraform.log" || return $?
   popd
 
