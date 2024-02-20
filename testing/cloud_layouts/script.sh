@@ -855,12 +855,19 @@ function parse_master_ip_from_log() {
 function chmod_dirs_for_cleanup(){
   chmod 777 -R $(pwd)/testing
   chmod 777 -R /tmp
-  # temp
   chmod 777 -R $cwd
   chmod 777 -R $root_wd
   chmod 777 -R $bootstrap_log
   chmod 777 -R $ssh_private_key_path
-  chmod 777 -R $(pwd)/
+  echo "chmod for dirs Success"
+  
+  chown 1000:1000 -R $(pwd)/testing
+  chmod 1000:1000 -R /tmp
+  chmod 1000:1000 -R $cwd
+  chmod 1000:1000 -R $root_wd
+  chmod 1000:1000 -R $bootstrap_log
+  chmod 1000:1000 -R $ssh_private_key_path
+  echo "chmod for dirs Success"
 }
 
 function main() {
