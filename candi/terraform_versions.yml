@@ -2,8 +2,6 @@
 # and ee/candi/cloud-providers/*/terraform-modules/versions.tf
 
 version: 0.14.8
-# version: 0.13.4
-# version: 0.15.5
 
 aws:
   namespace: hashicorp
