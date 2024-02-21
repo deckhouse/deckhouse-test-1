@@ -275,20 +275,15 @@ function cleanup() {
 
 function chmod_dirs_for_cleanup() {
   chmod 777 -R "$(pwd)/testing"
+  chmod 777 -R "/deckhouse/testing"
   chmod 777 -R /tmp
-  chmod 777 -R "$cwd"
-  chmod 777 -R "$root_wd"
-  chmod 777 -R "$bootstrap_log"
   echo "chmod for dirs Success"
 
   chown 1000:1000 -R "$(pwd)/testing"
-  chmod 1000:1000 -R /tmp
-  chmod 1000:1000 -R "$cwd"
-  chmod 1000:1000 -R "$root_wd"
-  chmod 1000:1000 -R "$bootstrap_log"
+  chown 1000:1000 -R "/deckhouse/testing"
+  chown 1000:1000 -R /tmp
   echo "chmod for dirs Success"
 }
-
 
 function main() {
    >&2 echo "Start cloud test script"
@@ -327,11 +322,14 @@ function main() {
   esac
   if [[ $exitCode == 0 ]]; then
     echo "E2E test: Success!"
+    chmod_dirs_for_cleanup
   else
     echo "E2E test: fail."
+    chmod_dirs_for_cleanup
   fi
 
   chmod_dirs_for_cleanup
+  echo "exit with code $exitCode"
   exit $exitCode
 }
 
