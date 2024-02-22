@@ -856,12 +856,7 @@ function chmod_dirs_for_cleanup() {
   chmod 777 -R "$(pwd)/testing"
   chmod 777 -R "/deckhouse/testing"
   chmod 777 -R /tmp
-  echo "chmod for dirs Success"
-
-  chown 1000:1000 -R "$(pwd)/testing"
-  chown 1000:1000 -R "/deckhouse/testing"
-  chown 1000:1000 -R /tmp
-  echo "chmod for dirs Success"
+  echo "Rights and owner changed"
 }
 
 function main() {
@@ -895,15 +890,12 @@ function main() {
     ;;
   esac
   if [[ $exitCode == 0 ]]; then
-    chmod_dirs_for_cleanup
     echo "E2E test: Success!"
   else
-    chmod_dirs_for_cleanup
     echo "E2E test: fail."
   fi
 
   chmod_dirs_for_cleanup
-  echo "exit with code $exitCode"
   exit $exitCode
 }
 
