@@ -853,11 +853,12 @@ function parse_master_ip_from_log() {
 }
 
 function chmod_dirs_for_cleanup() {
-  chmod 777 -R "$(pwd)/testing"
-  chmod 777 -R "/deckhouse/testing"
-  chmod 777 -R /tmp
+  chmod -f -R 777 "$(pwd)/testing" || true
+  chmod -f -R 777 "/deckhouse/testing" || true
+  chmod -f -R 777 /tmp || true
   echo "Rights and owner changed"
 }
+
 
 function main() {
   >&2 echo "Start cloud test script"
