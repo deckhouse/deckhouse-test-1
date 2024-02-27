@@ -849,7 +849,7 @@ function parse_master_ip_from_log() {
   # if ! master_ip="$(grep -Po '(?<=master_ip_address_for_ssh = ).+$' "$bootstrap_log")"; then
   # cut -d "=" -f2 | tr -d "\" ")"
   # "$(grep "master_ip_address_for_ssh" "$cwd/terraform.log"| cut -d "=" -f2 | tr -d "\" ")"
-  if ! ip="$(grep "master_ip_address_for_ssh" "$bootstrap_log"| cut -d "=" -f2 | tr -d "\" ")"; then
+  if ! master_ip="$(grep "master_ip_address_for_ssh" "$bootstrap_log"| cut -d "=" -f2 | tr -d "\" ")"; then
     >&2 echo "    ERROR: can't parse master_ip from bootstrap.log"
     return 1
   fi
