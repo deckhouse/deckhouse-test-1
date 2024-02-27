@@ -849,7 +849,8 @@ function parse_master_ip_from_log() {
     >&2 echo "    ERROR: can't parse master_ip from bootstrap.log"
     return 1
   fi
-  echo "${master_ip}"
+  
+  echo "${master_ip}" | sed 's/"//g'
 }
 
 function chmod_dirs_for_cleanup() {
