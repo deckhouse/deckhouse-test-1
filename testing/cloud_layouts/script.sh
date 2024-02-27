@@ -850,7 +850,7 @@ function parse_master_ip_from_log() {
     return 1
   fi
   master_ip=$(echo "${master_ip}" | sed 's/"//g')
-  echo "${master_ip}" | sed 's/"//g'
+  echo "${master_ip}"
 }
 
 function chmod_dirs_for_cleanup() {
