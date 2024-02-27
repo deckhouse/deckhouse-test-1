@@ -121,8 +121,8 @@ function update_comment(){
 
 function wait_master_host_connection_string() {
   local ip
-  # if ! ip="$(grep -Po '(?<=master_ip_address_for_ssh = ).+$' "$log_file")"; then
-  if ! ip="$(grep "master_ip_address_for_ssh" "$log_file"| cut -d "=" -f2 | tr -d "\" ")"; then
+  if ! ip="$(grep -Po '(?<=master_ip_address_for_ssh = ).+$' "$log_file" | sed 's/"//g')"; then
+  # if ! ip="$(grep "master_ip_address_for_ssh" "$log_file"| cut -d "=" -f2 | tr -d "\" ")"; then
     echo "Master ip not found"
     return 1
   fi
@@ -138,8 +138,8 @@ function wait_master_host_connection_string() {
   echo "IP found $master_ip"
 
   local user
-  # if ! user="$(grep -Po '(?<=master_user_name_for_ssh = ).+$' "$log_file")"; then
-  if ! user="$(grep "master_user_name_for_ssh" "$log_file"| cut -d "=" -f2 | tr -d "\" ")"; then
+  if ! user="$(grep -Po '(?<=master_user_name_for_ssh = ).+$' "$log_file" | sed 's/"//g')"; then
+  # if ! user="$(grep "master_user_name_for_ssh" "$log_file"| cut -d "=" -f2 | tr -d "\" ")"; then
     echo "User not found"
     return 1
   fi
@@ -158,8 +158,8 @@ function wait_master_host_connection_string() {
 
 function wait_bastion_host_connection_string() {
   local ip
-  # if ! ip="$(grep -Po '(?<=bastion_ip_address_for_ssh = ).+$' "$log_file")"; then
-  if ! ip="$(grep "bastion_ip_address_for_ssh" "$log_file"| cut -d "=" -f2 | tr -d "\" ")"; then
+  if ! ip="$(grep -Po '(?<=bastion_ip_address_for_ssh = ).+$' "$log_file" | sed 's/"//g')"; then
+  # if ! ip="$(grep "bastion_ip_address_for_ssh" "$log_file"| cut -d "=" -f2 | tr -d "\" ")"; then
     echo "Bastion ip not found"
     return 1
   fi
@@ -175,8 +175,8 @@ function wait_bastion_host_connection_string() {
   echo "IP found $bastion_ip"
 
   local user
-  # if ! user="$(grep -Po '(?<=bastion_user_name_for_ssh = ).+$' "$log_file")"; then
-  if ! user="$(grep "bastion_user_name_for_ssh" "$log_file"| cut -d "=" -f2 | tr -d "\" ")"; then
+  if ! user="$(grep -Po '(?<=bastion_user_name_for_ssh = ).+$' "$log_file" | sed 's/"//g')"; then
+  # if ! user="$(grep "bastion_user_name_for_ssh" "$log_file"| cut -d "=" -f2 | tr -d "\" ")"; then
     echo "Bastion user not found"
     return 1
   fi
