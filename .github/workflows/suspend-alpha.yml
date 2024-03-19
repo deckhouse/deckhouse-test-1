@@ -459,7 +459,7 @@ jobs:
 
           # Variables
           #   1. Edition and channel.
-          # CE/EE/FE/BE/se -> ce/ee/fe/be/se
+          # CE/EE/FE/BE/SE -> ce/ee/fe/be/se
           REGISTRY_SUFFIX=$(echo ${WERF_ENV} | tr '[:upper:]' '[:lower:]')
           RELEASE_CHANNEL=alpha
 
