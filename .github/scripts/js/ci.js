@@ -639,8 +639,6 @@ const parseCommandArgumentAsRef = (cmdArg) => {
  *   /build release-1.30
  *   /e2e/run/aws v1.31.0-alpha.0
  *   /e2e/use/k8s/1.22
- *   /e2e/use/cri/docker
- *   /e2e/use/cri/containerd
  *   /deploy/web/stage v1.3.2
  *   /deploy/alpha - to deploy all editions
  *   /deploy/alpha/ce,ee,fe
@@ -1200,18 +1198,15 @@ Put \`/e2e/use\` options below \`/e2e/run\` command to set specific CRI and Kube
 
 \`\`\`
 /e2e/run/aws main
-/e2e/use/cri/docker
-/e2e/use/cri/containerd
 /e2e/use/k8s/1.20
 /e2e/use/k8s/1.23
 
-This comment will run 4 e2e jobs on AWS with Docker and containerd
+This comment will run 2 e2e jobs on AWS with containerd
 and with Kubernetes version 1.20 and 1.23 using image built from main branch.
 \`\`\`
 
 \`\`\`
 /e2e/run/aws release-1.35 release-1.36
-/e2e/use/cri/containerd
 /e2e/use/k8s/1.23
 
 This comment will create cluster in AWS using Deckhouse built from release-1.35 branch
