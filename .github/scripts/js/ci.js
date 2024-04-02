@@ -488,7 +488,7 @@ const setCRIAndVersionsFromLabels = ({ core, labels }) => {
   }
   if (cri.length === 0) {
     const defaultCRI = e2eDefaults.criName.toLowerCase();
-    core.info(`No 'e2e/use/cri' labels found. Will run e2e with default cri=${defaultCRI}.`);
+    core.info(`Will run e2e with default cri=${defaultCRI}.`);
     cri = [defaultCRI];
   }
   core.endGroup();
@@ -1184,8 +1184,6 @@ You can trigger release related actions by commenting on this issue:
   - \`provider\` is one of \`${availableProviders}\`
   - \`git_ref_1\` is a release-* or main branch
   - \`git_ref_2\` is a release-* or main branch
-- \`/e2e/use/cri/<cri_name>\` specifies which CRI to use for e2e test.
-  - \`cri_name\` is one of \`${availableCRI}\`
 - \`/e2e/use/k8s/<version>\` specifies which Kubernetes version to use for e2e test.
   - \`version\` is one of \`${availableKubernetesVersions}\`
 - \`/build git_ref\` will run build for release related refs.
