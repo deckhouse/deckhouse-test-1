@@ -129,7 +129,7 @@ run: |
 
   $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" "$ssh_connect_str_file" "$bastion_ip_file" > "${dhctl_log_file}-wait-log" 2>&1 &
 {!{ end }!}
-  
+
 {!{- if eq $provider "eks" }!}
   chmod 755 $(pwd)/testing/cloud_layouts/{!{ $script_eks }!}
 
@@ -600,7 +600,7 @@ check_e2e_labels:
     - name: Setup
       id: setup
       env:
-        DECKHOUSE_REGISTRY_HOST: ${{secrets.DECKHOUSE_DEV_REGISTRY_HOST}}
+        DECKHOUSE_REGISTRY_HOST: registry.bravo.hf.flant.com
         DHCTL_PREFIX: ${{ github.event.inputs.cluster_prefix }}
         INSTALL_IMAGE_PATH: ${{ github.event.inputs.installer_image_path }}
       run: |
