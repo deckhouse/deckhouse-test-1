@@ -3,6 +3,7 @@ project: deckhouse
 configVersion: 1
 gitWorktree:
   forceShallowClone: true
+
 ---
 # revisions settings
 {{- $editionsSettings := (.Files.Get "editions.yaml" | fromYaml) }}
