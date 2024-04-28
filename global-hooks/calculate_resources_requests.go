@@ -92,7 +92,7 @@ func calculateResourcesRequests(input *go_hook.HookInput) error {
 		return nil
 	}
 
-	// Hardcoded maximum values for master node resources
+	// Hardcoded maximum values for master node resources test
 	discoveryMasterNodeMilliCPU = hardLimitMilliCPU
 	discoveryMasterNodeMemory = hardLimitMemory
 	for _, snapshot := range snapshots {
