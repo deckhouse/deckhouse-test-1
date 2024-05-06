@@ -57,17 +57,17 @@ git:
       - '**/image'
       - '**/werf*.yaml'
       - '**/docker-compose.yml'
-#  - add: /ee
-#    to: /spelling/ee
-#    stageDependencies:
-#      setup: '**/*'
-#    includePaths:
-#      - '**/*.yaml'
-#      - '**/*.yml'
-#      - '**/*.md'
-#    excludePaths:
-#      - '**/werf*.yaml'
-#      - '**/docker-compose.yml'
+  - add: /ee
+    to: /spelling/ee
+    stageDependencies:
+      setup: '**/*'
+    includePaths:
+      - '**/*.yaml'
+      - '**/*.yml'
+      - '**/*.md'
+    excludePaths:
+      - '**/werf*.yaml'
+      - '**/docker-compose.yml'
 docker:
   ENV:
     LANG: ru_RU.UTF-8
