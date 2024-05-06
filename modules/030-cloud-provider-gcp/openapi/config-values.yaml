@@ -10,7 +10,7 @@ properties:
         description: |
           A list of StorageClass names (or regex expressions for names) to exclude from the creation in the cluster;
         x-examples:
-        - ["pd-standard.*", "pd-ssd-replicated"]
+        - ["pd-standadfgdfgdfgrd.*", "pd-ssd-replicated"]
       default:
         type: string
         description: |
