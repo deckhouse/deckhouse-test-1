@@ -2,19 +2,24 @@
 
 set -e
 
-if [ -n "$1" ]; then
-  arg_target_page=$1
-fi
+HELP_STRING=$(cat <<EOF
+Usage: spell_check.sh [OPTION]
+Run CMD on all kubernetes clusters
 
-if [ -n "$2" ]; then
-  arg_get_plain_text=$2
-fi
-
-script=$(cat <<EOF
-cd /spelling && \
-  /temp/internal/container_spell_check.sh $arg_target_page $arg_get_plain_text
+Optional arguments:
+  FILENAME           the name of the file with a path (relative from the Deckhouse repo)
+  -h, --help         output this message
 EOF
 )
 
-cd docs/site/
-werf run docs-spell-checker --dev --env development  --docker-options="--entrypoint=sh" -- -c "$script"
+if [ -n "$1" ]; then
+  if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+    echo "$HELP_STRING"; exit 1;
+  else
+    FILENAME=$1;
+  fi
+fi
+
+cd ../../docs/site/
+
+werf run docs-spell-checker --config=werf-spell-check.yaml --env development --docker-options="--entrypoint=sh" -- /app/internal/container_spell_check.sh $FILENAME
