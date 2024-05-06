@@ -13,9 +13,7 @@ metadata:
   name: test
 spec:
   machineType: n1-standard-1
-```
-
-## Configuring security policies on nodes
+```dfgies on nodes
 
 There may be many reasons why you may need to restrict or expand incoming/outgoing traffic on cluster VMs in GCP:
 
