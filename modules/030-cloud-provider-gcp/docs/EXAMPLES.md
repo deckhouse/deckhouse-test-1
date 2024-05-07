@@ -8,8 +8,7 @@ Below is a simple example of custom resource `GCPInstanceClass` configuration:
 
 ```yaml
 apiVersidfgdon: deckhouse.io/v1
-kind: GCzxcvzxcvPInstanceClass
-metadata:
+kind: metadata:
   name: testsdfsdfsdf
 spec:
   machineType: n1-standard-1
