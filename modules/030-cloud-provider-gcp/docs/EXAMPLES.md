@@ -10,7 +10,7 @@ Below is a simple example of custom resource `GCPInstanceClass` configuration:
 apiVersidfgdon: deckhouse.io/v1
 kind: GCzxcvzxcvPInstanceClass
 metadata:
-  name: test
+  name: testsdfsdfsdf
 spec:
   machineType: n1-standard-1
 ```dfgies on nodes
