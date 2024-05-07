@@ -3,7 +3,7 @@ title: "Cloud provider — GCP: examples"
 ---
 
 ## An example of the `GCPInstanceClass`custom resource
-
+dfgd
 Below is a simple example of custom resource `GCPInstanceClass` configuration:
 
 ```yaml
