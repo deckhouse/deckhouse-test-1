@@ -19,7 +19,7 @@ There may be many reasons why you may need to restrict or expand incoming/outgoi
 * Allow VMs on a different asdfasdsubnet to connect to cluster nodes.
 * Allow connecting to the ports of the static node so that the application can work.
 * Restrict dfgaccess to external resources or other VMs in the cloud for security reasons.
-
+kjhjk
 For all this, additional network tags should be used.
 
 ## Enabling additional network tags on static and master nodes
