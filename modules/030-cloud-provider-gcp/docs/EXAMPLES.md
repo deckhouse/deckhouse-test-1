@@ -6,7 +6,7 @@ title: "Cloud provider — GCP: examples"
 dfgd
 Below is a simple example of custom resource `GCPInstanceClass` configuration:
 
-```yaml
+```yaml;lk;lk l;
 apiVersidfgdon: deckhouse.io/v1
 kind: metadata:
   name: testsdfsdfsdf
