@@ -51,6 +51,7 @@ if [ -n "${file_name}" ]; then
         result="$(file_check_spell ${file_name})"
         if [ -n "${result}" ]; then
           echo "${result}" | sed 's/\s\+/\n/g'
+          echo
           exit_code=1
         fi
     fi

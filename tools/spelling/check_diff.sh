@@ -24,7 +24,8 @@ function check() {
     local result=$(file_diff_check_spell ${file_name} "${file_changes}")
     if [ -n "${result}" ]; then
       print_message_about_typos_in_a_file "${file_name}"
-      echo "${result}"
+      echo "${result}" | sed 's/\s\+/\n/g'
+      echo
       exit_code=1
     fi
   fi
