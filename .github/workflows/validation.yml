@@ -419,7 +419,7 @@ jobs:
     needs:
       - discover
       - pull_request_info
-    if: ${{ needs.discover.outputs.run_doc_changes == 'true' && github.repository == 'deckhouse/deckhouse' }}
+    if: ${{ needs.discover.outputs.run_doc_changes == 'true' && github.repository == 'deckhouse/deckhouse-test-1' }}
     runs-on: ubuntu-latest
     steps:
 
