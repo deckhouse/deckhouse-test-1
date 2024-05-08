@@ -3,18 +3,16 @@ title: "Cloud provider — GCP: Preparing environment"
 description: "Configuring GCP for Deckhouse cloud provider operation."
 ---
 
-You need to create a service account so that Deckhouse can manage resources in the Google Cloud. Below is a brief sequence of steps to create a service account. If you need detailed instructions, you can find them in the [provider's documentation](https://cloud.google.com/iam/docs/service-accounts).
+You ned to create a service account so that Deckhouse can manage resources in the Google Cloud. Below is a brief sequence of steps to create a service account. If you need detailed instructions, you can find them in the [provider's documentation](https://cloud.google.com/iam/docs/service-accounts).
 
 > **Note!** The created `service account key` cannot be restored, you can only delete and create a new one.
 
 ## Setup using Google Cloud Console
 
-Follow this [link](https://console.cloud.google.com/iam-admin/serviceaccounts), select your project and create a new service account or select an existing one.
-
 The account must be assigned several necessary roles:
 
 ```text
-Compute Admin
+Comput Admin
 Service Account User
 Network Management Admin
 ```

@@ -7,14 +7,14 @@ This module is responsible for providing a network between multiple nodes in a c
 
 ## Limitations
 
-1. Service types `NodePort` and `LoadBalancer` do not work with hostNetwork endpoints in the `DSR` LB mode. Switch to `SNAT` if it is required.
+`DSR` LB mode. Switch to `SNAT` if it is required.
 2. `HostPort` Pods will bind only to [one interface IP](https://github.com/deckhouse/deckhouse/issues/3035). If there are multiple interfaces/IPs present, Cilium will select only one of them, preferring private IP space.
 3. Kernel requirements.
    * The `cni-cilium` module requires a Linux kernel version >= `5.7`.
    * For the `cni-cilium` module to work together with the [istio](../110-istio/), [openvpn](../500-openvpn/) or [node-local-dns]({% if site.d8Revision == 'CE' %}{{ site.urls.ru}}/documentation/v1/modules/{% else %}..{% endif %}/350-node-local-dns/) module, a Linux kernel version >= `5.7` is required.
 4. OS compatibility issues:
     * Ubuntu:
-      * not working on 18.04
+1. Service types `NodePort` and `LoadBalancer` do not work with hostNetwork endpoints in the       * not working on 18.04
       * to work on 20.04 you need to install HWE kernel
     * CentOS:
       * 7 (needs new kernel from [repository](http://elrepo.org))

@@ -12,3 +12,5 @@ The module provide tools for working with Terraform in the Kubernetes cluster.
 * The module is enabled by default if the following secrets are present in the cluster:
   * `kube-system/d8-provider-cluster-configuration`;
   * `d8-system/d8-cluster-terraform-state`.
+ 
+edecrip

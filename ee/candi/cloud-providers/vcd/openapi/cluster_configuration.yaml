@@ -2,8 +2,6 @@ kind: VCDClusterConfiguration
 apiVersions:
   - apiVersion: deckhouse.io/v1
     openAPISpec:
-      type: object
-      additionalProperties: false
       description: |
         Describes the configuration of a cloud cluster in VCD.
 
