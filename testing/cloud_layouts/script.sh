@@ -665,11 +665,11 @@ function bootstrap() {
   eval "$(ssh-agent -s)"
   ssh-add "$ssh_private_key_path"
 
-  # Check if STATIC_BASTION_IP is set and not empty
-  if [[ -n "$STATIC_BASTION_IP" ]]; then
-    ssh_bastion="-J $ssh_user@$STATIC_BASTION_IP"
-    ssh_bastion_params="--ssh-bastion-host $STATIC_BASTION_IP --ssh-bastion-user $ssh_user"
-    >&2 echo "Using static bastion at $STATIC_BASTION_IP"
+  # Check if LAYOUT_STATIC_BASTION_IP is set and not empty
+  if [[ -n "$LAYOUT_STATIC_BASTION_IP" ]]; then
+    ssh_bastion="-J $ssh_user@$LAYOUT_STATIC_BASTION_IP"
+    ssh_bastion_params="--ssh-bastion-host $LAYOUT_STATIC_BASTION_IP --ssh-bastion-user $ssh_user"
+    >&2 echo "Using static bastion at $LAYOUT_STATIC_BASTION_IP"
   else
     ssh_bastion=""
     ssh_bastion_params=""
