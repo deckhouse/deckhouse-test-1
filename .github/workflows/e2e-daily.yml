@@ -2785,14 +2785,14 @@ jobs:
       run_id: ${{ github.run_id }}
       # need for find state in artifact
       cluster_prefix: ${{ steps.setup.outputs.dhctl-prefix }}
-      ran_for: "vclouddirector;WithoutNAT;containerd;1.25"
+      ran_for: "vclouddirector;Standard;containerd;1.25"
       failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.failed_cluster_stayed }}
       issue_number: ${{ inputs.issue_number }}
       install_image_path: ${{ steps.setup.outputs.install-image-path }}
     env:
       PROVIDER: vCloudDirector
       CRI: Containerd
-      LAYOUT: WithoutNAT
+      LAYOUT: Standard
       KUBERNETES_VERSION: "1.25"
       EVENT_LABEL: ${{ github.event.label.name }}
     runs-on: [self-hosted, e2e-common]
@@ -2984,7 +2984,7 @@ jobs:
         env:
           PROVIDER: vCloudDirector
           CRI: Containerd
-          LAYOUT: WithoutNAT
+          LAYOUT: Standard
           KUBERNETES_VERSION: "1.25"
           LAYOUT_DECKHOUSE_DOCKERCFG: ${{ secrets.LAYOUT_DECKHOUSE_DOCKERCFG }}
           LAYOUT_SSH_KEY: ${{ secrets.LAYOUT_SSH_KEY}}
@@ -2994,6 +2994,11 @@ jobs:
           DECKHOUSE_IMAGE_TAG: ${{ steps.setup.outputs.deckhouse-image-tag }}
           INITIAL_IMAGE_TAG: ${{ steps.setup.outputs.initial-image-tag }}
         # <template: e2e_run_template>
+          LAYOUT_VCD_PASSWORD: ${{ secrets.LAYOUT_VCD_PASSWORD }}
+          LAYOUT_VCD_USERNAME: ${{ secrets.LAYOUT_VCD_USERNAME }}
+          LAYOUT_STATIC_BASTION_IP: ${{ secrets.LAYOUT_VCD_STATIC_BASTION_IP }}
+          LAYOUT_VCD_SERVER: ${{ secrets.LAYOUT_VCD_SERVER }}
+          LAYOUT_VCD_ORG: ${{ secrets.LAYOUT_VCD_ORG }}
           COMMENT_ID: ${{ inputs.comment_id }}
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
@@ -3048,7 +3053,7 @@ jobs:
         env:
           PROVIDER: vCloudDirector
           CRI: Containerd
-          LAYOUT: WithoutNAT
+          LAYOUT: Standard
           KUBERNETES_VERSION: "1.25"
           LAYOUT_DECKHOUSE_DOCKERCFG: ${{ secrets.LAYOUT_DECKHOUSE_DOCKERCFG }}
           LAYOUT_SSH_KEY: ${{ secrets.LAYOUT_SSH_KEY}}
@@ -3057,6 +3062,11 @@ jobs:
           INSTALL_IMAGE_NAME: ${{ steps.setup.outputs.install-image-name }}
           DECKHOUSE_IMAGE_TAG: ${{ steps.setup.outputs.deckhouse-image-tag }}
         # <template: e2e_run_template>
+          LAYOUT_VCD_PASSWORD: ${{ secrets.LAYOUT_VCD_PASSWORD }}
+          LAYOUT_VCD_USERNAME: ${{ secrets.LAYOUT_VCD_USERNAME }}
+          LAYOUT_STATIC_BASTION_IP: ${{ secrets.LAYOUT_VCD_STATIC_BASTION_IP }}
+          LAYOUT_VCD_SERVER: ${{ secrets.LAYOUT_VCD_SERVER }}
+          LAYOUT_VCD_ORG: ${{ secrets.LAYOUT_VCD_ORG }}
           COMMENT_ID: ${{ inputs.comment_id }}
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
@@ -3171,7 +3181,7 @@ jobs:
             "labels": {
               "cri": "Containerd",
               "kube_version": "1.25",
-              "layout": "WithoutNAT",
+              "layout": "Standard",
               "provider": "vCloudDirector",
               "trigger": "CloudLayoutTestFailed",
 

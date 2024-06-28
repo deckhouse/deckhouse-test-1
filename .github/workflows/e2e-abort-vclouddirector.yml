@@ -75,11 +75,11 @@ jobs:
   # <template: e2e_run_job_template>
   run_containerd_1_25:
     name: "destroy cluster: vCloudDirector, Containerd, Kubernetes 1.25"
-    if: ${{ github.event.inputs.cri == 'containerd' && github.event.inputs.k8s_version == '1.25' && github.event.inputs.layout == 'WithoutNAT' }}
+    if: ${{ github.event.inputs.cri == 'containerd' && github.event.inputs.k8s_version == '1.25' && github.event.inputs.layout == 'Standard' }}
     env:
       PROVIDER: vCloudDirector
       CRI: Containerd
-      LAYOUT: WithoutNAT
+      LAYOUT: Standard
       KUBERNETES_VERSION: "1.25"
       EVENT_LABEL: ${{ github.event.label.name }}
     runs-on: [self-hosted, e2e-common]
@@ -224,7 +224,7 @@ jobs:
         env:
           PROVIDER: vCloudDirector
           CRI: Containerd
-          LAYOUT: WithoutNAT
+          LAYOUT: Standard
           KUBERNETES_VERSION: "1.25"
           LAYOUT_DECKHOUSE_DOCKERCFG: ${{ secrets.LAYOUT_DECKHOUSE_DOCKERCFG }}
           LAYOUT_SSH_KEY: ${{ secrets.LAYOUT_SSH_KEY}}
@@ -234,6 +234,11 @@ jobs:
           DECKHOUSE_IMAGE_TAG: ${{ steps.setup.outputs.deckhouse-image-tag }}
           SSH_MASTER_CONNECTION_STRING: ${{ github.event.inputs.ssh_master_connection_string }}
         # <template: e2e_run_template>
+          LAYOUT_VCD_PASSWORD: ${{ secrets.LAYOUT_VCD_PASSWORD }}
+          LAYOUT_VCD_USERNAME: ${{ secrets.LAYOUT_VCD_USERNAME }}
+          LAYOUT_STATIC_BASTION_IP: ${{ secrets.LAYOUT_VCD_STATIC_BASTION_IP }}
+          LAYOUT_VCD_SERVER: ${{ secrets.LAYOUT_VCD_SERVER }}
+          LAYOUT_VCD_ORG: ${{ secrets.LAYOUT_VCD_ORG }}
           COMMENT_ID: ${{ inputs.comment_id }}
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
@@ -348,11 +353,11 @@ jobs:
   # <template: e2e_run_job_template>
   run_containerd_1_26:
     name: "destroy cluster: vCloudDirector, Containerd, Kubernetes 1.26"
-    if: ${{ github.event.inputs.cri == 'containerd' && github.event.inputs.k8s_version == '1.26' && github.event.inputs.layout == 'WithoutNAT' }}
+    if: ${{ github.event.inputs.cri == 'containerd' && github.event.inputs.k8s_version == '1.26' && github.event.inputs.layout == 'Standard' }}
     env:
       PROVIDER: vCloudDirector
       CRI: Containerd
-      LAYOUT: WithoutNAT
+      LAYOUT: Standard
       KUBERNETES_VERSION: "1.26"
       EVENT_LABEL: ${{ github.event.label.name }}
     runs-on: [self-hosted, e2e-common]
@@ -497,7 +502,7 @@ jobs:
         env:
           PROVIDER: vCloudDirector
           CRI: Containerd
-          LAYOUT: WithoutNAT
+          LAYOUT: Standard
           KUBERNETES_VERSION: "1.26"
           LAYOUT_DECKHOUSE_DOCKERCFG: ${{ secrets.LAYOUT_DECKHOUSE_DOCKERCFG }}
           LAYOUT_SSH_KEY: ${{ secrets.LAYOUT_SSH_KEY}}
@@ -507,6 +512,11 @@ jobs:
           DECKHOUSE_IMAGE_TAG: ${{ steps.setup.outputs.deckhouse-image-tag }}
           SSH_MASTER_CONNECTION_STRING: ${{ github.event.inputs.ssh_master_connection_string }}
         # <template: e2e_run_template>
+          LAYOUT_VCD_PASSWORD: ${{ secrets.LAYOUT_VCD_PASSWORD }}
+          LAYOUT_VCD_USERNAME: ${{ secrets.LAYOUT_VCD_USERNAME }}
+          LAYOUT_STATIC_BASTION_IP: ${{ secrets.LAYOUT_VCD_STATIC_BASTION_IP }}
+          LAYOUT_VCD_SERVER: ${{ secrets.LAYOUT_VCD_SERVER }}
+          LAYOUT_VCD_ORG: ${{ secrets.LAYOUT_VCD_ORG }}
           COMMENT_ID: ${{ inputs.comment_id }}
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
@@ -621,11 +631,11 @@ jobs:
   # <template: e2e_run_job_template>
   run_containerd_1_27:
     name: "destroy cluster: vCloudDirector, Containerd, Kubernetes 1.27"
-    if: ${{ github.event.inputs.cri == 'containerd' && github.event.inputs.k8s_version == '1.27' && github.event.inputs.layout == 'WithoutNAT' }}
+    if: ${{ github.event.inputs.cri == 'containerd' && github.event.inputs.k8s_version == '1.27' && github.event.inputs.layout == 'Standard' }}
     env:
       PROVIDER: vCloudDirector
       CRI: Containerd
-      LAYOUT: WithoutNAT
+      LAYOUT: Standard
       KUBERNETES_VERSION: "1.27"
       EVENT_LABEL: ${{ github.event.label.name }}
     runs-on: [self-hosted, e2e-common]
@@ -770,7 +780,7 @@ jobs:
         env:
           PROVIDER: vCloudDirector
           CRI: Containerd
-          LAYOUT: WithoutNAT
+          LAYOUT: Standard
           KUBERNETES_VERSION: "1.27"
           LAYOUT_DECKHOUSE_DOCKERCFG: ${{ secrets.LAYOUT_DECKHOUSE_DOCKERCFG }}
           LAYOUT_SSH_KEY: ${{ secrets.LAYOUT_SSH_KEY}}
@@ -780,6 +790,11 @@ jobs:
           DECKHOUSE_IMAGE_TAG: ${{ steps.setup.outputs.deckhouse-image-tag }}
           SSH_MASTER_CONNECTION_STRING: ${{ github.event.inputs.ssh_master_connection_string }}
         # <template: e2e_run_template>
+          LAYOUT_VCD_PASSWORD: ${{ secrets.LAYOUT_VCD_PASSWORD }}
+          LAYOUT_VCD_USERNAME: ${{ secrets.LAYOUT_VCD_USERNAME }}
+          LAYOUT_STATIC_BASTION_IP: ${{ secrets.LAYOUT_VCD_STATIC_BASTION_IP }}
+          LAYOUT_VCD_SERVER: ${{ secrets.LAYOUT_VCD_SERVER }}
+          LAYOUT_VCD_ORG: ${{ secrets.LAYOUT_VCD_ORG }}
           COMMENT_ID: ${{ inputs.comment_id }}
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
@@ -894,11 +909,11 @@ jobs:
   # <template: e2e_run_job_template>
   run_containerd_1_28:
     name: "destroy cluster: vCloudDirector, Containerd, Kubernetes 1.28"
-    if: ${{ github.event.inputs.cri == 'containerd' && github.event.inputs.k8s_version == '1.28' && github.event.inputs.layout == 'WithoutNAT' }}
+    if: ${{ github.event.inputs.cri == 'containerd' && github.event.inputs.k8s_version == '1.28' && github.event.inputs.layout == 'Standard' }}
     env:
       PROVIDER: vCloudDirector
       CRI: Containerd
-      LAYOUT: WithoutNAT
+      LAYOUT: Standard
       KUBERNETES_VERSION: "1.28"
       EVENT_LABEL: ${{ github.event.label.name }}
     runs-on: [self-hosted, e2e-common]
@@ -1043,7 +1058,7 @@ jobs:
         env:
           PROVIDER: vCloudDirector
           CRI: Containerd
-          LAYOUT: WithoutNAT
+          LAYOUT: Standard
           KUBERNETES_VERSION: "1.28"
           LAYOUT_DECKHOUSE_DOCKERCFG: ${{ secrets.LAYOUT_DECKHOUSE_DOCKERCFG }}
           LAYOUT_SSH_KEY: ${{ secrets.LAYOUT_SSH_KEY}}
@@ -1053,6 +1068,11 @@ jobs:
           DECKHOUSE_IMAGE_TAG: ${{ steps.setup.outputs.deckhouse-image-tag }}
           SSH_MASTER_CONNECTION_STRING: ${{ github.event.inputs.ssh_master_connection_string }}
         # <template: e2e_run_template>
+          LAYOUT_VCD_PASSWORD: ${{ secrets.LAYOUT_VCD_PASSWORD }}
+          LAYOUT_VCD_USERNAME: ${{ secrets.LAYOUT_VCD_USERNAME }}
+          LAYOUT_STATIC_BASTION_IP: ${{ secrets.LAYOUT_VCD_STATIC_BASTION_IP }}
+          LAYOUT_VCD_SERVER: ${{ secrets.LAYOUT_VCD_SERVER }}
+          LAYOUT_VCD_ORG: ${{ secrets.LAYOUT_VCD_ORG }}
           COMMENT_ID: ${{ inputs.comment_id }}
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
@@ -1167,11 +1187,11 @@ jobs:
   # <template: e2e_run_job_template>
   run_containerd_1_29:
     name: "destroy cluster: vCloudDirector, Containerd, Kubernetes 1.29"
-    if: ${{ github.event.inputs.cri == 'containerd' && github.event.inputs.k8s_version == '1.29' && github.event.inputs.layout == 'WithoutNAT' }}
+    if: ${{ github.event.inputs.cri == 'containerd' && github.event.inputs.k8s_version == '1.29' && github.event.inputs.layout == 'Standard' }}
     env:
       PROVIDER: vCloudDirector
       CRI: Containerd
-      LAYOUT: WithoutNAT
+      LAYOUT: Standard
       KUBERNETES_VERSION: "1.29"
       EVENT_LABEL: ${{ github.event.label.name }}
     runs-on: [self-hosted, e2e-common]
@@ -1316,7 +1336,7 @@ jobs:
         env:
           PROVIDER: vCloudDirector
           CRI: Containerd
-          LAYOUT: WithoutNAT
+          LAYOUT: Standard
           KUBERNETES_VERSION: "1.29"
           LAYOUT_DECKHOUSE_DOCKERCFG: ${{ secrets.LAYOUT_DECKHOUSE_DOCKERCFG }}
           LAYOUT_SSH_KEY: ${{ secrets.LAYOUT_SSH_KEY}}
@@ -1326,6 +1346,11 @@ jobs:
           DECKHOUSE_IMAGE_TAG: ${{ steps.setup.outputs.deckhouse-image-tag }}
           SSH_MASTER_CONNECTION_STRING: ${{ github.event.inputs.ssh_master_connection_string }}
         # <template: e2e_run_template>
+          LAYOUT_VCD_PASSWORD: ${{ secrets.LAYOUT_VCD_PASSWORD }}
+          LAYOUT_VCD_USERNAME: ${{ secrets.LAYOUT_VCD_USERNAME }}
+          LAYOUT_STATIC_BASTION_IP: ${{ secrets.LAYOUT_VCD_STATIC_BASTION_IP }}
+          LAYOUT_VCD_SERVER: ${{ secrets.LAYOUT_VCD_SERVER }}
+          LAYOUT_VCD_ORG: ${{ secrets.LAYOUT_VCD_ORG }}
           COMMENT_ID: ${{ inputs.comment_id }}
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
@@ -1440,11 +1465,11 @@ jobs:
   # <template: e2e_run_job_template>
   run_containerd_1_30:
     name: "destroy cluster: vCloudDirector, Containerd, Kubernetes 1.30"
-    if: ${{ github.event.inputs.cri == 'containerd' && github.event.inputs.k8s_version == '1.30' && github.event.inputs.layout == 'WithoutNAT' }}
+    if: ${{ github.event.inputs.cri == 'containerd' && github.event.inputs.k8s_version == '1.30' && github.event.inputs.layout == 'Standard' }}
     env:
       PROVIDER: vCloudDirector
       CRI: Containerd
-      LAYOUT: WithoutNAT
+      LAYOUT: Standard
       KUBERNETES_VERSION: "1.30"
       EVENT_LABEL: ${{ github.event.label.name }}
     runs-on: [self-hosted, e2e-common]
@@ -1589,7 +1614,7 @@ jobs:
         env:
           PROVIDER: vCloudDirector
           CRI: Containerd
-          LAYOUT: WithoutNAT
+          LAYOUT: Standard
           KUBERNETES_VERSION: "1.30"
           LAYOUT_DECKHOUSE_DOCKERCFG: ${{ secrets.LAYOUT_DECKHOUSE_DOCKERCFG }}
           LAYOUT_SSH_KEY: ${{ secrets.LAYOUT_SSH_KEY}}
@@ -1599,6 +1624,11 @@ jobs:
           DECKHOUSE_IMAGE_TAG: ${{ steps.setup.outputs.deckhouse-image-tag }}
           SSH_MASTER_CONNECTION_STRING: ${{ github.event.inputs.ssh_master_connection_string }}
         # <template: e2e_run_template>
+          LAYOUT_VCD_PASSWORD: ${{ secrets.LAYOUT_VCD_PASSWORD }}
+          LAYOUT_VCD_USERNAME: ${{ secrets.LAYOUT_VCD_USERNAME }}
+          LAYOUT_STATIC_BASTION_IP: ${{ secrets.LAYOUT_VCD_STATIC_BASTION_IP }}
+          LAYOUT_VCD_SERVER: ${{ secrets.LAYOUT_VCD_SERVER }}
+          LAYOUT_VCD_ORG: ${{ secrets.LAYOUT_VCD_ORG }}
           COMMENT_ID: ${{ inputs.comment_id }}
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
@@ -1713,11 +1743,11 @@ jobs:
   # <template: e2e_run_job_template>
   run_containerd_automatic:
     name: "destroy cluster: vCloudDirector, Containerd, Kubernetes Automatic"
-    if: ${{ github.event.inputs.cri == 'containerd' && github.event.inputs.k8s_version == 'Automatic' && github.event.inputs.layout == 'WithoutNAT' }}
+    if: ${{ github.event.inputs.cri == 'containerd' && github.event.inputs.k8s_version == 'Automatic' && github.event.inputs.layout == 'Standard' }}
     env:
       PROVIDER: vCloudDirector
       CRI: Containerd
-      LAYOUT: WithoutNAT
+      LAYOUT: Standard
       KUBERNETES_VERSION: "Automatic"
       EVENT_LABEL: ${{ github.event.label.name }}
     runs-on: [self-hosted, e2e-common]
@@ -1862,7 +1892,7 @@ jobs:
         env:
           PROVIDER: vCloudDirector
           CRI: Containerd
-          LAYOUT: WithoutNAT
+          LAYOUT: Standard
           KUBERNETES_VERSION: "Automatic"
           LAYOUT_DECKHOUSE_DOCKERCFG: ${{ secrets.LAYOUT_DECKHOUSE_DOCKERCFG }}
           LAYOUT_SSH_KEY: ${{ secrets.LAYOUT_SSH_KEY}}
@@ -1872,6 +1902,11 @@ jobs:
           DECKHOUSE_IMAGE_TAG: ${{ steps.setup.outputs.deckhouse-image-tag }}
           SSH_MASTER_CONNECTION_STRING: ${{ github.event.inputs.ssh_master_connection_string }}
         # <template: e2e_run_template>
+          LAYOUT_VCD_PASSWORD: ${{ secrets.LAYOUT_VCD_PASSWORD }}
+          LAYOUT_VCD_USERNAME: ${{ secrets.LAYOUT_VCD_USERNAME }}
+          LAYOUT_STATIC_BASTION_IP: ${{ secrets.LAYOUT_VCD_STATIC_BASTION_IP }}
+          LAYOUT_VCD_SERVER: ${{ secrets.LAYOUT_VCD_SERVER }}
+          LAYOUT_VCD_ORG: ${{ secrets.LAYOUT_VCD_ORG }}
           COMMENT_ID: ${{ inputs.comment_id }}
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
