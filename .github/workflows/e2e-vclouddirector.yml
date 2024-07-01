@@ -432,7 +432,7 @@ jobs:
         # <template: e2e_run_template>
           LAYOUT_VCD_PASSWORD: ${{ secrets.LAYOUT_VCD_PASSWORD }}
           LAYOUT_VCD_USERNAME: ${{ secrets.LAYOUT_VCD_USERNAME }}
-          LAYOUT_STATIC_BASTION_IP: ${{ secrets.LAYOUT_VCD_STATIC_BASTION_IP }}
+          LAYOUT_STATIC_BASTION_IP: 80.249.129.56
           LAYOUT_VCD_SERVER: ${{ secrets.LAYOUT_VCD_SERVER }}
           LAYOUT_VCD_ORG: ${{ secrets.LAYOUT_VCD_ORG }}
           COMMENT_ID: ${{ inputs.comment_id }}
@@ -493,7 +493,7 @@ jobs:
             -e LAYOUT_VCD_USERNAME=${LAYOUT_VCD_USERNAME:-not_provided} \
             -e LAYOUT_VCD_SERVER=${LAYOUT_VCD_SERVER:-not_provided} \
             -e LAYOUT_VCD_ORG=${LAYOUT_VCD_ORG:-not_provided} \
-            -e LAYOUT_STATIC_BASTION_IP=${LAYOUT_VCD_STATIC_BASTION_IP:-not_provided} \
+            -e LAYOUT_STATIC_BASTION_IP=80.249.129.56 \
             -e USER_RUNNER_ID=${user_runner_id} \
             -v $(pwd)/testing:/deckhouse/testing \
             -v ${TMP_DIR_PATH}:/tmp \
@@ -541,7 +541,7 @@ jobs:
         # <template: e2e_run_template>
           LAYOUT_VCD_PASSWORD: ${{ secrets.LAYOUT_VCD_PASSWORD }}
           LAYOUT_VCD_USERNAME: ${{ secrets.LAYOUT_VCD_USERNAME }}
-          LAYOUT_STATIC_BASTION_IP: ${{ secrets.LAYOUT_VCD_STATIC_BASTION_IP }}
+          LAYOUT_STATIC_BASTION_IP: 80.249.129.56
           LAYOUT_VCD_SERVER: ${{ secrets.LAYOUT_VCD_SERVER }}
           LAYOUT_VCD_ORG: ${{ secrets.LAYOUT_VCD_ORG }}
           COMMENT_ID: ${{ inputs.comment_id }}
@@ -586,7 +586,7 @@ jobs:
             -e LAYOUT_VCD_USERNAME=${LAYOUT_VCD_USERNAME:-not_provided} \
             -e LAYOUT_VCD_SERVER=${LAYOUT_VCD_SERVER:-not_provided} \
             -e LAYOUT_VCD_ORG=${LAYOUT_VCD_ORG:-not_provided} \
-            -e LAYOUT_STATIC_BASTION_IP=${LAYOUT_VCD_STATIC_BASTION_IP:-not_provided} \
+            -e LAYOUT_STATIC_BASTION_IP=80.249.129.56 \
             -e USER_RUNNER_ID=${user_runner_id} \
             -v $(pwd)/testing:/deckhouse/testing \
             -v ${TMP_DIR_PATH}:/tmp \
@@ -911,7 +911,7 @@ jobs:
         # <template: e2e_run_template>
           LAYOUT_VCD_PASSWORD: ${{ secrets.LAYOUT_VCD_PASSWORD }}
           LAYOUT_VCD_USERNAME: ${{ secrets.LAYOUT_VCD_USERNAME }}
-          LAYOUT_STATIC_BASTION_IP: ${{ secrets.LAYOUT_VCD_STATIC_BASTION_IP }}
+          LAYOUT_STATIC_BASTION_IP: 80.249.129.56
           LAYOUT_VCD_SERVER: ${{ secrets.LAYOUT_VCD_SERVER }}
           LAYOUT_VCD_ORG: ${{ secrets.LAYOUT_VCD_ORG }}
           COMMENT_ID: ${{ inputs.comment_id }}
@@ -972,7 +972,7 @@ jobs:
             -e LAYOUT_VCD_USERNAME=${LAYOUT_VCD_USERNAME:-not_provided} \
             -e LAYOUT_VCD_SERVER=${LAYOUT_VCD_SERVER:-not_provided} \
             -e LAYOUT_VCD_ORG=${LAYOUT_VCD_ORG:-not_provided} \
-            -e LAYOUT_STATIC_BASTION_IP=${LAYOUT_VCD_STATIC_BASTION_IP:-not_provided} \
+            -e LAYOUT_STATIC_BASTION_IP=80.249.129.56 \
             -e USER_RUNNER_ID=${user_runner_id} \
             -v $(pwd)/testing:/deckhouse/testing \
             -v ${TMP_DIR_PATH}:/tmp \
@@ -1020,7 +1020,7 @@ jobs:
         # <template: e2e_run_template>
           LAYOUT_VCD_PASSWORD: ${{ secrets.LAYOUT_VCD_PASSWORD }}
           LAYOUT_VCD_USERNAME: ${{ secrets.LAYOUT_VCD_USERNAME }}
-          LAYOUT_STATIC_BASTION_IP: ${{ secrets.LAYOUT_VCD_STATIC_BASTION_IP }}
+          LAYOUT_STATIC_BASTION_IP: 80.249.129.56
           LAYOUT_VCD_SERVER: ${{ secrets.LAYOUT_VCD_SERVER }}
           LAYOUT_VCD_ORG: ${{ secrets.LAYOUT_VCD_ORG }}
           COMMENT_ID: ${{ inputs.comment_id }}
@@ -1065,7 +1065,7 @@ jobs:
             -e LAYOUT_VCD_USERNAME=${LAYOUT_VCD_USERNAME:-not_provided} \
             -e LAYOUT_VCD_SERVER=${LAYOUT_VCD_SERVER:-not_provided} \
             -e LAYOUT_VCD_ORG=${LAYOUT_VCD_ORG:-not_provided} \
-            -e LAYOUT_STATIC_BASTION_IP=${LAYOUT_VCD_STATIC_BASTION_IP:-not_provided} \
+            -e LAYOUT_STATIC_BASTION_IP=80.249.129.56 \
             -e USER_RUNNER_ID=${user_runner_id} \
             -v $(pwd)/testing:/deckhouse/testing \
             -v ${TMP_DIR_PATH}:/tmp \
@@ -1390,7 +1390,7 @@ jobs:
         # <template: e2e_run_template>
           LAYOUT_VCD_PASSWORD: ${{ secrets.LAYOUT_VCD_PASSWORD }}
           LAYOUT_VCD_USERNAME: ${{ secrets.LAYOUT_VCD_USERNAME }}
-          LAYOUT_STATIC_BASTION_IP: ${{ secrets.LAYOUT_VCD_STATIC_BASTION_IP }}
+          LAYOUT_STATIC_BASTION_IP: 80.249.129.56
           LAYOUT_VCD_SERVER: ${{ secrets.LAYOUT_VCD_SERVER }}
           LAYOUT_VCD_ORG: ${{ secrets.LAYOUT_VCD_ORG }}
           COMMENT_ID: ${{ inputs.comment_id }}
@@ -1451,7 +1451,7 @@ jobs:
             -e LAYOUT_VCD_USERNAME=${LAYOUT_VCD_USERNAME:-not_provided} \
             -e LAYOUT_VCD_SERVER=${LAYOUT_VCD_SERVER:-not_provided} \
             -e LAYOUT_VCD_ORG=${LAYOUT_VCD_ORG:-not_provided} \
-            -e LAYOUT_STATIC_BASTION_IP=${LAYOUT_VCD_STATIC_BASTION_IP:-not_provided} \
+            -e LAYOUT_STATIC_BASTION_IP=80.249.129.56 \
             -e USER_RUNNER_ID=${user_runner_id} \
             -v $(pwd)/testing:/deckhouse/testing \
             -v ${TMP_DIR_PATH}:/tmp \
@@ -1499,7 +1499,7 @@ jobs:
         # <template: e2e_run_template>
           LAYOUT_VCD_PASSWORD: ${{ secrets.LAYOUT_VCD_PASSWORD }}
           LAYOUT_VCD_USERNAME: ${{ secrets.LAYOUT_VCD_USERNAME }}
-          LAYOUT_STATIC_BASTION_IP: ${{ secrets.LAYOUT_VCD_STATIC_BASTION_IP }}
+          LAYOUT_STATIC_BASTION_IP: 80.249.129.56
           LAYOUT_VCD_SERVER: ${{ secrets.LAYOUT_VCD_SERVER }}
           LAYOUT_VCD_ORG: ${{ secrets.LAYOUT_VCD_ORG }}
           COMMENT_ID: ${{ inputs.comment_id }}
@@ -1544,7 +1544,7 @@ jobs:
             -e LAYOUT_VCD_USERNAME=${LAYOUT_VCD_USERNAME:-not_provided} \
             -e LAYOUT_VCD_SERVER=${LAYOUT_VCD_SERVER:-not_provided} \
             -e LAYOUT_VCD_ORG=${LAYOUT_VCD_ORG:-not_provided} \
-            -e LAYOUT_STATIC_BASTION_IP=${LAYOUT_VCD_STATIC_BASTION_IP:-not_provided} \
+            -e LAYOUT_STATIC_BASTION_IP=80.249.129.56 \
             -e USER_RUNNER_ID=${user_runner_id} \
             -v $(pwd)/testing:/deckhouse/testing \
             -v ${TMP_DIR_PATH}:/tmp \
@@ -1869,7 +1869,7 @@ jobs:
         # <template: e2e_run_template>
           LAYOUT_VCD_PASSWORD: ${{ secrets.LAYOUT_VCD_PASSWORD }}
           LAYOUT_VCD_USERNAME: ${{ secrets.LAYOUT_VCD_USERNAME }}
-          LAYOUT_STATIC_BASTION_IP: ${{ secrets.LAYOUT_VCD_STATIC_BASTION_IP }}
+          LAYOUT_STATIC_BASTION_IP: 80.249.129.56
           LAYOUT_VCD_SERVER: ${{ secrets.LAYOUT_VCD_SERVER }}
           LAYOUT_VCD_ORG: ${{ secrets.LAYOUT_VCD_ORG }}
           COMMENT_ID: ${{ inputs.comment_id }}
@@ -1930,7 +1930,7 @@ jobs:
             -e LAYOUT_VCD_USERNAME=${LAYOUT_VCD_USERNAME:-not_provided} \
             -e LAYOUT_VCD_SERVER=${LAYOUT_VCD_SERVER:-not_provided} \
             -e LAYOUT_VCD_ORG=${LAYOUT_VCD_ORG:-not_provided} \
-            -e LAYOUT_STATIC_BASTION_IP=${LAYOUT_VCD_STATIC_BASTION_IP:-not_provided} \
+            -e LAYOUT_STATIC_BASTION_IP=80.249.129.56 \
             -e USER_RUNNER_ID=${user_runner_id} \
             -v $(pwd)/testing:/deckhouse/testing \
             -v ${TMP_DIR_PATH}:/tmp \
@@ -1978,7 +1978,7 @@ jobs:
         # <template: e2e_run_template>
           LAYOUT_VCD_PASSWORD: ${{ secrets.LAYOUT_VCD_PASSWORD }}
           LAYOUT_VCD_USERNAME: ${{ secrets.LAYOUT_VCD_USERNAME }}
-          LAYOUT_STATIC_BASTION_IP: ${{ secrets.LAYOUT_VCD_STATIC_BASTION_IP }}
+          LAYOUT_STATIC_BASTION_IP: 80.249.129.56
           LAYOUT_VCD_SERVER: ${{ secrets.LAYOUT_VCD_SERVER }}
           LAYOUT_VCD_ORG: ${{ secrets.LAYOUT_VCD_ORG }}
           COMMENT_ID: ${{ inputs.comment_id }}
@@ -2023,7 +2023,7 @@ jobs:
             -e LAYOUT_VCD_USERNAME=${LAYOUT_VCD_USERNAME:-not_provided} \
             -e LAYOUT_VCD_SERVER=${LAYOUT_VCD_SERVER:-not_provided} \
             -e LAYOUT_VCD_ORG=${LAYOUT_VCD_ORG:-not_provided} \
-            -e LAYOUT_STATIC_BASTION_IP=${LAYOUT_VCD_STATIC_BASTION_IP:-not_provided} \
+            -e LAYOUT_STATIC_BASTION_IP=80.249.129.56 \
             -e USER_RUNNER_ID=${user_runner_id} \
             -v $(pwd)/testing:/deckhouse/testing \
             -v ${TMP_DIR_PATH}:/tmp \
@@ -2348,7 +2348,7 @@ jobs:
         # <template: e2e_run_template>
           LAYOUT_VCD_PASSWORD: ${{ secrets.LAYOUT_VCD_PASSWORD }}
           LAYOUT_VCD_USERNAME: ${{ secrets.LAYOUT_VCD_USERNAME }}
-          LAYOUT_STATIC_BASTION_IP: ${{ secrets.LAYOUT_VCD_STATIC_BASTION_IP }}
+          LAYOUT_STATIC_BASTION_IP: 80.249.129.56
           LAYOUT_VCD_SERVER: ${{ secrets.LAYOUT_VCD_SERVER }}
           LAYOUT_VCD_ORG: ${{ secrets.LAYOUT_VCD_ORG }}
           COMMENT_ID: ${{ inputs.comment_id }}
@@ -2409,7 +2409,7 @@ jobs:
             -e LAYOUT_VCD_USERNAME=${LAYOUT_VCD_USERNAME:-not_provided} \
             -e LAYOUT_VCD_SERVER=${LAYOUT_VCD_SERVER:-not_provided} \
             -e LAYOUT_VCD_ORG=${LAYOUT_VCD_ORG:-not_provided} \
-            -e LAYOUT_STATIC_BASTION_IP=${LAYOUT_VCD_STATIC_BASTION_IP:-not_provided} \
+            -e LAYOUT_STATIC_BASTION_IP=80.249.129.56 \
             -e USER_RUNNER_ID=${user_runner_id} \
             -v $(pwd)/testing:/deckhouse/testing \
             -v ${TMP_DIR_PATH}:/tmp \
@@ -2457,7 +2457,7 @@ jobs:
         # <template: e2e_run_template>
           LAYOUT_VCD_PASSWORD: ${{ secrets.LAYOUT_VCD_PASSWORD }}
           LAYOUT_VCD_USERNAME: ${{ secrets.LAYOUT_VCD_USERNAME }}
-          LAYOUT_STATIC_BASTION_IP: ${{ secrets.LAYOUT_VCD_STATIC_BASTION_IP }}
+          LAYOUT_STATIC_BASTION_IP: 80.249.129.56
           LAYOUT_VCD_SERVER: ${{ secrets.LAYOUT_VCD_SERVER }}
           LAYOUT_VCD_ORG: ${{ secrets.LAYOUT_VCD_ORG }}
           COMMENT_ID: ${{ inputs.comment_id }}
@@ -2502,7 +2502,7 @@ jobs:
             -e LAYOUT_VCD_USERNAME=${LAYOUT_VCD_USERNAME:-not_provided} \
             -e LAYOUT_VCD_SERVER=${LAYOUT_VCD_SERVER:-not_provided} \
             -e LAYOUT_VCD_ORG=${LAYOUT_VCD_ORG:-not_provided} \
-            -e LAYOUT_STATIC_BASTION_IP=${LAYOUT_VCD_STATIC_BASTION_IP:-not_provided} \
+            -e LAYOUT_STATIC_BASTION_IP=80.249.129.56 \
             -e USER_RUNNER_ID=${user_runner_id} \
             -v $(pwd)/testing:/deckhouse/testing \
             -v ${TMP_DIR_PATH}:/tmp \
@@ -2827,7 +2827,7 @@ jobs:
         # <template: e2e_run_template>
           LAYOUT_VCD_PASSWORD: ${{ secrets.LAYOUT_VCD_PASSWORD }}
           LAYOUT_VCD_USERNAME: ${{ secrets.LAYOUT_VCD_USERNAME }}
-          LAYOUT_STATIC_BASTION_IP: ${{ secrets.LAYOUT_VCD_STATIC_BASTION_IP }}
+          LAYOUT_STATIC_BASTION_IP: 80.249.129.56
           LAYOUT_VCD_SERVER: ${{ secrets.LAYOUT_VCD_SERVER }}
           LAYOUT_VCD_ORG: ${{ secrets.LAYOUT_VCD_ORG }}
           COMMENT_ID: ${{ inputs.comment_id }}
@@ -2888,7 +2888,7 @@ jobs:
             -e LAYOUT_VCD_USERNAME=${LAYOUT_VCD_USERNAME:-not_provided} \
             -e LAYOUT_VCD_SERVER=${LAYOUT_VCD_SERVER:-not_provided} \
             -e LAYOUT_VCD_ORG=${LAYOUT_VCD_ORG:-not_provided} \
-            -e LAYOUT_STATIC_BASTION_IP=${LAYOUT_VCD_STATIC_BASTION_IP:-not_provided} \
+            -e LAYOUT_STATIC_BASTION_IP=80.249.129.56 \
             -e USER_RUNNER_ID=${user_runner_id} \
             -v $(pwd)/testing:/deckhouse/testing \
             -v ${TMP_DIR_PATH}:/tmp \
@@ -2936,7 +2936,7 @@ jobs:
         # <template: e2e_run_template>
           LAYOUT_VCD_PASSWORD: ${{ secrets.LAYOUT_VCD_PASSWORD }}
           LAYOUT_VCD_USERNAME: ${{ secrets.LAYOUT_VCD_USERNAME }}
-          LAYOUT_STATIC_BASTION_IP: ${{ secrets.LAYOUT_VCD_STATIC_BASTION_IP }}
+          LAYOUT_STATIC_BASTION_IP: 80.249.129.56
           LAYOUT_VCD_SERVER: ${{ secrets.LAYOUT_VCD_SERVER }}
           LAYOUT_VCD_ORG: ${{ secrets.LAYOUT_VCD_ORG }}
           COMMENT_ID: ${{ inputs.comment_id }}
@@ -2981,7 +2981,7 @@ jobs:
             -e LAYOUT_VCD_USERNAME=${LAYOUT_VCD_USERNAME:-not_provided} \
             -e LAYOUT_VCD_SERVER=${LAYOUT_VCD_SERVER:-not_provided} \
             -e LAYOUT_VCD_ORG=${LAYOUT_VCD_ORG:-not_provided} \
-            -e LAYOUT_STATIC_BASTION_IP=${LAYOUT_VCD_STATIC_BASTION_IP:-not_provided} \
+            -e LAYOUT_STATIC_BASTION_IP=80.249.129.56 \
             -e USER_RUNNER_ID=${user_runner_id} \
             -v $(pwd)/testing:/deckhouse/testing \
             -v ${TMP_DIR_PATH}:/tmp \
@@ -3306,7 +3306,7 @@ jobs:
         # <template: e2e_run_template>
           LAYOUT_VCD_PASSWORD: ${{ secrets.LAYOUT_VCD_PASSWORD }}
           LAYOUT_VCD_USERNAME: ${{ secrets.LAYOUT_VCD_USERNAME }}
-          LAYOUT_STATIC_BASTION_IP: ${{ secrets.LAYOUT_VCD_STATIC_BASTION_IP }}
+          LAYOUT_STATIC_BASTION_IP: 80.249.129.56
           LAYOUT_VCD_SERVER: ${{ secrets.LAYOUT_VCD_SERVER }}
           LAYOUT_VCD_ORG: ${{ secrets.LAYOUT_VCD_ORG }}
           COMMENT_ID: ${{ inputs.comment_id }}
@@ -3367,7 +3367,7 @@ jobs:
             -e LAYOUT_VCD_USERNAME=${LAYOUT_VCD_USERNAME:-not_provided} \
             -e LAYOUT_VCD_SERVER=${LAYOUT_VCD_SERVER:-not_provided} \
             -e LAYOUT_VCD_ORG=${LAYOUT_VCD_ORG:-not_provided} \
-            -e LAYOUT_STATIC_BASTION_IP=${LAYOUT_VCD_STATIC_BASTION_IP:-not_provided} \
+            -e LAYOUT_STATIC_BASTION_IP=80.249.129.56 \
             -e USER_RUNNER_ID=${user_runner_id} \
             -v $(pwd)/testing:/deckhouse/testing \
             -v ${TMP_DIR_PATH}:/tmp \
@@ -3415,7 +3415,7 @@ jobs:
         # <template: e2e_run_template>
           LAYOUT_VCD_PASSWORD: ${{ secrets.LAYOUT_VCD_PASSWORD }}
           LAYOUT_VCD_USERNAME: ${{ secrets.LAYOUT_VCD_USERNAME }}
-          LAYOUT_STATIC_BASTION_IP: ${{ secrets.LAYOUT_VCD_STATIC_BASTION_IP }}
+          LAYOUT_STATIC_BASTION_IP: 80.249.129.56
           LAYOUT_VCD_SERVER: ${{ secrets.LAYOUT_VCD_SERVER }}
           LAYOUT_VCD_ORG: ${{ secrets.LAYOUT_VCD_ORG }}
           COMMENT_ID: ${{ inputs.comment_id }}
@@ -3460,7 +3460,7 @@ jobs:
             -e LAYOUT_VCD_USERNAME=${LAYOUT_VCD_USERNAME:-not_provided} \
             -e LAYOUT_VCD_SERVER=${LAYOUT_VCD_SERVER:-not_provided} \
             -e LAYOUT_VCD_ORG=${LAYOUT_VCD_ORG:-not_provided} \
-            -e LAYOUT_STATIC_BASTION_IP=${LAYOUT_VCD_STATIC_BASTION_IP:-not_provided} \
+            -e LAYOUT_STATIC_BASTION_IP=80.249.129.56 \
             -e USER_RUNNER_ID=${user_runner_id} \
             -v $(pwd)/testing:/deckhouse/testing \
             -v ${TMP_DIR_PATH}:/tmp \
