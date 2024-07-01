@@ -87,7 +87,7 @@ spec:
 apiVersion: deckhouse.io/v1
 kind: VCDInstanceClass
 metadata:
-  name: system
+  name: worker
 spec:
   rootDiskSizeGb: 30
   sizingPolicy: ${VCD_ORG}-MSK
