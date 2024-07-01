@@ -470,6 +470,8 @@ jobs:
           bastion_ip_file=""
           if [[ "${PROVIDER}" == "Static" ]] ; then
             bastion_ip_file="${DHCTL_LOG_FILE}-ssh-bastion-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
+          else if [[ "${PROVIDER}" == "vCloudDirector" ]] ; then
+            bastion_ip_file="${DHCTL_LOG_FILE}-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           fi
 
           echo "ssh_bastion_str_file=${bastion_ip_file}" >> $GITHUB_OUTPUT
@@ -949,6 +951,8 @@ jobs:
           bastion_ip_file=""
           if [[ "${PROVIDER}" == "Static" ]] ; then
             bastion_ip_file="${DHCTL_LOG_FILE}-ssh-bastion-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
+          else if [[ "${PROVIDER}" == "vCloudDirector" ]] ; then
+            bastion_ip_file="${DHCTL_LOG_FILE}-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           fi
 
           echo "ssh_bastion_str_file=${bastion_ip_file}" >> $GITHUB_OUTPUT
@@ -1428,6 +1432,8 @@ jobs:
           bastion_ip_file=""
           if [[ "${PROVIDER}" == "Static" ]] ; then
             bastion_ip_file="${DHCTL_LOG_FILE}-ssh-bastion-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
+          else if [[ "${PROVIDER}" == "vCloudDirector" ]] ; then
+            bastion_ip_file="${DHCTL_LOG_FILE}-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           fi
 
           echo "ssh_bastion_str_file=${bastion_ip_file}" >> $GITHUB_OUTPUT
@@ -1907,6 +1913,8 @@ jobs:
           bastion_ip_file=""
           if [[ "${PROVIDER}" == "Static" ]] ; then
             bastion_ip_file="${DHCTL_LOG_FILE}-ssh-bastion-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
+          else if [[ "${PROVIDER}" == "vCloudDirector" ]] ; then
+            bastion_ip_file="${DHCTL_LOG_FILE}-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           fi
 
           echo "ssh_bastion_str_file=${bastion_ip_file}" >> $GITHUB_OUTPUT
@@ -2386,6 +2394,8 @@ jobs:
           bastion_ip_file=""
           if [[ "${PROVIDER}" == "Static" ]] ; then
             bastion_ip_file="${DHCTL_LOG_FILE}-ssh-bastion-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
+          else if [[ "${PROVIDER}" == "vCloudDirector" ]] ; then
+            bastion_ip_file="${DHCTL_LOG_FILE}-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           fi
 
           echo "ssh_bastion_str_file=${bastion_ip_file}" >> $GITHUB_OUTPUT
@@ -2865,6 +2875,8 @@ jobs:
           bastion_ip_file=""
           if [[ "${PROVIDER}" == "Static" ]] ; then
             bastion_ip_file="${DHCTL_LOG_FILE}-ssh-bastion-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
+          else if [[ "${PROVIDER}" == "vCloudDirector" ]] ; then
+            bastion_ip_file="${DHCTL_LOG_FILE}-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           fi
 
           echo "ssh_bastion_str_file=${bastion_ip_file}" >> $GITHUB_OUTPUT
@@ -3344,6 +3356,8 @@ jobs:
           bastion_ip_file=""
           if [[ "${PROVIDER}" == "Static" ]] ; then
             bastion_ip_file="${DHCTL_LOG_FILE}-ssh-bastion-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
+          else if [[ "${PROVIDER}" == "vCloudDirector" ]] ; then
+            bastion_ip_file="${DHCTL_LOG_FILE}-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           fi
 
           echo "ssh_bastion_str_file=${bastion_ip_file}" >> $GITHUB_OUTPUT
