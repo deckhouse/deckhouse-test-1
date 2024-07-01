@@ -239,7 +239,7 @@ run: |
 {!{- else if eq $provider "vsphere" }!}
     -e LAYOUT_VSPHERE_PASSWORD=${LAYOUT_VSPHERE_PASSWORD:-not_provided} \
     -e LAYOUT_VSPHERE_BASE_DOMAIN=${LAYOUT_VSPHERE_BASE_DOMAIN:-not_provided} \
-{!{- else if eq $provider "vcd" }!}
+{!{- else if eq $provider "vclouddirector" }!}
     -e LAYOUT_VCD_PASSWORD=${LAYOUT_VCD_PASSWORD:-not_provided} \
     -e LAYOUT_VCD_USERNAME=${LAYOUT_VCD_USERNAME:-not_provided} \
     -e LAYOUT_VCD_SERVER=${LAYOUT_VCD_SERVER:-not_provided} \
