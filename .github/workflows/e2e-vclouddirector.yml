@@ -489,6 +489,11 @@ jobs:
             -e LAYOUT=${LAYOUT:-not_provided} \
             -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
+            -e LAYOUT_VCD_PASSWORD=${LAYOUT_VCD_PASSWORD:-not_provided} \
+            -e LAYOUT_VCD_USERNAME=${LAYOUT_VCD_USERNAME:-not_provided} \
+            -e LAYOUT_VCD_SERVER=${LAYOUT_VCD_SERVER:-not_provided} \
+            -e LAYOUT_VCD_ORG=${LAYOUT_VCD_ORG:-not_provided} \
+            -e LAYOUT_STATIC_BASTION_IP=${LAYOUT_VCD_STATIC_BASTION_IP:-not_provided} \
             -e USER_RUNNER_ID=${user_runner_id} \
             -v $(pwd)/testing:/deckhouse/testing \
             -v ${TMP_DIR_PATH}:/tmp \
@@ -577,6 +582,11 @@ jobs:
             -e LAYOUT=${LAYOUT:-not_provided} \
             -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
+            -e LAYOUT_VCD_PASSWORD=${LAYOUT_VCD_PASSWORD:-not_provided} \
+            -e LAYOUT_VCD_USERNAME=${LAYOUT_VCD_USERNAME:-not_provided} \
+            -e LAYOUT_VCD_SERVER=${LAYOUT_VCD_SERVER:-not_provided} \
+            -e LAYOUT_VCD_ORG=${LAYOUT_VCD_ORG:-not_provided} \
+            -e LAYOUT_STATIC_BASTION_IP=${LAYOUT_VCD_STATIC_BASTION_IP:-not_provided} \
             -e USER_RUNNER_ID=${user_runner_id} \
             -v $(pwd)/testing:/deckhouse/testing \
             -v ${TMP_DIR_PATH}:/tmp \
@@ -958,6 +968,11 @@ jobs:
             -e LAYOUT=${LAYOUT:-not_provided} \
             -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
+            -e LAYOUT_VCD_PASSWORD=${LAYOUT_VCD_PASSWORD:-not_provided} \
+            -e LAYOUT_VCD_USERNAME=${LAYOUT_VCD_USERNAME:-not_provided} \
+            -e LAYOUT_VCD_SERVER=${LAYOUT_VCD_SERVER:-not_provided} \
+            -e LAYOUT_VCD_ORG=${LAYOUT_VCD_ORG:-not_provided} \
+            -e LAYOUT_STATIC_BASTION_IP=${LAYOUT_VCD_STATIC_BASTION_IP:-not_provided} \
             -e USER_RUNNER_ID=${user_runner_id} \
             -v $(pwd)/testing:/deckhouse/testing \
             -v ${TMP_DIR_PATH}:/tmp \
@@ -1046,6 +1061,11 @@ jobs:
             -e LAYOUT=${LAYOUT:-not_provided} \
             -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
+            -e LAYOUT_VCD_PASSWORD=${LAYOUT_VCD_PASSWORD:-not_provided} \
+            -e LAYOUT_VCD_USERNAME=${LAYOUT_VCD_USERNAME:-not_provided} \
+            -e LAYOUT_VCD_SERVER=${LAYOUT_VCD_SERVER:-not_provided} \
+            -e LAYOUT_VCD_ORG=${LAYOUT_VCD_ORG:-not_provided} \
+            -e LAYOUT_STATIC_BASTION_IP=${LAYOUT_VCD_STATIC_BASTION_IP:-not_provided} \
             -e USER_RUNNER_ID=${user_runner_id} \
             -v $(pwd)/testing:/deckhouse/testing \
             -v ${TMP_DIR_PATH}:/tmp \
@@ -1427,6 +1447,11 @@ jobs:
             -e LAYOUT=${LAYOUT:-not_provided} \
             -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
+            -e LAYOUT_VCD_PASSWORD=${LAYOUT_VCD_PASSWORD:-not_provided} \
+            -e LAYOUT_VCD_USERNAME=${LAYOUT_VCD_USERNAME:-not_provided} \
+            -e LAYOUT_VCD_SERVER=${LAYOUT_VCD_SERVER:-not_provided} \
+            -e LAYOUT_VCD_ORG=${LAYOUT_VCD_ORG:-not_provided} \
+            -e LAYOUT_STATIC_BASTION_IP=${LAYOUT_VCD_STATIC_BASTION_IP:-not_provided} \
             -e USER_RUNNER_ID=${user_runner_id} \
             -v $(pwd)/testing:/deckhouse/testing \
             -v ${TMP_DIR_PATH}:/tmp \
@@ -1515,6 +1540,11 @@ jobs:
             -e LAYOUT=${LAYOUT:-not_provided} \
             -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
+            -e LAYOUT_VCD_PASSWORD=${LAYOUT_VCD_PASSWORD:-not_provided} \
+            -e LAYOUT_VCD_USERNAME=${LAYOUT_VCD_USERNAME:-not_provided} \
+            -e LAYOUT_VCD_SERVER=${LAYOUT_VCD_SERVER:-not_provided} \
+            -e LAYOUT_VCD_ORG=${LAYOUT_VCD_ORG:-not_provided} \
+            -e LAYOUT_STATIC_BASTION_IP=${LAYOUT_VCD_STATIC_BASTION_IP:-not_provided} \
             -e USER_RUNNER_ID=${user_runner_id} \
             -v $(pwd)/testing:/deckhouse/testing \
             -v ${TMP_DIR_PATH}:/tmp \
@@ -1896,6 +1926,11 @@ jobs:
             -e LAYOUT=${LAYOUT:-not_provided} \
             -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
+            -e LAYOUT_VCD_PASSWORD=${LAYOUT_VCD_PASSWORD:-not_provided} \
+            -e LAYOUT_VCD_USERNAME=${LAYOUT_VCD_USERNAME:-not_provided} \
+            -e LAYOUT_VCD_SERVER=${LAYOUT_VCD_SERVER:-not_provided} \
+            -e LAYOUT_VCD_ORG=${LAYOUT_VCD_ORG:-not_provided} \
+            -e LAYOUT_STATIC_BASTION_IP=${LAYOUT_VCD_STATIC_BASTION_IP:-not_provided} \
             -e USER_RUNNER_ID=${user_runner_id} \
             -v $(pwd)/testing:/deckhouse/testing \
             -v ${TMP_DIR_PATH}:/tmp \
@@ -1984,6 +2019,11 @@ jobs:
             -e LAYOUT=${LAYOUT:-not_provided} \
             -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
+            -e LAYOUT_VCD_PASSWORD=${LAYOUT_VCD_PASSWORD:-not_provided} \
+            -e LAYOUT_VCD_USERNAME=${LAYOUT_VCD_USERNAME:-not_provided} \
+            -e LAYOUT_VCD_SERVER=${LAYOUT_VCD_SERVER:-not_provided} \
+            -e LAYOUT_VCD_ORG=${LAYOUT_VCD_ORG:-not_provided} \
+            -e LAYOUT_STATIC_BASTION_IP=${LAYOUT_VCD_STATIC_BASTION_IP:-not_provided} \
             -e USER_RUNNER_ID=${user_runner_id} \
             -v $(pwd)/testing:/deckhouse/testing \
             -v ${TMP_DIR_PATH}:/tmp \
@@ -2365,6 +2405,11 @@ jobs:
             -e LAYOUT=${LAYOUT:-not_provided} \
             -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
+            -e LAYOUT_VCD_PASSWORD=${LAYOUT_VCD_PASSWORD:-not_provided} \
+            -e LAYOUT_VCD_USERNAME=${LAYOUT_VCD_USERNAME:-not_provided} \
+            -e LAYOUT_VCD_SERVER=${LAYOUT_VCD_SERVER:-not_provided} \
+            -e LAYOUT_VCD_ORG=${LAYOUT_VCD_ORG:-not_provided} \
+            -e LAYOUT_STATIC_BASTION_IP=${LAYOUT_VCD_STATIC_BASTION_IP:-not_provided} \
             -e USER_RUNNER_ID=${user_runner_id} \
             -v $(pwd)/testing:/deckhouse/testing \
             -v ${TMP_DIR_PATH}:/tmp \
@@ -2453,6 +2498,11 @@ jobs:
             -e LAYOUT=${LAYOUT:-not_provided} \
             -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
+            -e LAYOUT_VCD_PASSWORD=${LAYOUT_VCD_PASSWORD:-not_provided} \
+            -e LAYOUT_VCD_USERNAME=${LAYOUT_VCD_USERNAME:-not_provided} \
+            -e LAYOUT_VCD_SERVER=${LAYOUT_VCD_SERVER:-not_provided} \
+            -e LAYOUT_VCD_ORG=${LAYOUT_VCD_ORG:-not_provided} \
+            -e LAYOUT_STATIC_BASTION_IP=${LAYOUT_VCD_STATIC_BASTION_IP:-not_provided} \
             -e USER_RUNNER_ID=${user_runner_id} \
             -v $(pwd)/testing:/deckhouse/testing \
             -v ${TMP_DIR_PATH}:/tmp \
@@ -2834,6 +2884,11 @@ jobs:
             -e LAYOUT=${LAYOUT:-not_provided} \
             -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
+            -e LAYOUT_VCD_PASSWORD=${LAYOUT_VCD_PASSWORD:-not_provided} \
+            -e LAYOUT_VCD_USERNAME=${LAYOUT_VCD_USERNAME:-not_provided} \
+            -e LAYOUT_VCD_SERVER=${LAYOUT_VCD_SERVER:-not_provided} \
+            -e LAYOUT_VCD_ORG=${LAYOUT_VCD_ORG:-not_provided} \
+            -e LAYOUT_STATIC_BASTION_IP=${LAYOUT_VCD_STATIC_BASTION_IP:-not_provided} \
             -e USER_RUNNER_ID=${user_runner_id} \
             -v $(pwd)/testing:/deckhouse/testing \
             -v ${TMP_DIR_PATH}:/tmp \
@@ -2922,6 +2977,11 @@ jobs:
             -e LAYOUT=${LAYOUT:-not_provided} \
             -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
+            -e LAYOUT_VCD_PASSWORD=${LAYOUT_VCD_PASSWORD:-not_provided} \
+            -e LAYOUT_VCD_USERNAME=${LAYOUT_VCD_USERNAME:-not_provided} \
+            -e LAYOUT_VCD_SERVER=${LAYOUT_VCD_SERVER:-not_provided} \
+            -e LAYOUT_VCD_ORG=${LAYOUT_VCD_ORG:-not_provided} \
+            -e LAYOUT_STATIC_BASTION_IP=${LAYOUT_VCD_STATIC_BASTION_IP:-not_provided} \
             -e USER_RUNNER_ID=${user_runner_id} \
             -v $(pwd)/testing:/deckhouse/testing \
             -v ${TMP_DIR_PATH}:/tmp \
@@ -3303,6 +3363,11 @@ jobs:
             -e LAYOUT=${LAYOUT:-not_provided} \
             -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
+            -e LAYOUT_VCD_PASSWORD=${LAYOUT_VCD_PASSWORD:-not_provided} \
+            -e LAYOUT_VCD_USERNAME=${LAYOUT_VCD_USERNAME:-not_provided} \
+            -e LAYOUT_VCD_SERVER=${LAYOUT_VCD_SERVER:-not_provided} \
+            -e LAYOUT_VCD_ORG=${LAYOUT_VCD_ORG:-not_provided} \
+            -e LAYOUT_STATIC_BASTION_IP=${LAYOUT_VCD_STATIC_BASTION_IP:-not_provided} \
             -e USER_RUNNER_ID=${user_runner_id} \
             -v $(pwd)/testing:/deckhouse/testing \
             -v ${TMP_DIR_PATH}:/tmp \
@@ -3391,6 +3456,11 @@ jobs:
             -e LAYOUT=${LAYOUT:-not_provided} \
             -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
+            -e LAYOUT_VCD_PASSWORD=${LAYOUT_VCD_PASSWORD:-not_provided} \
+            -e LAYOUT_VCD_USERNAME=${LAYOUT_VCD_USERNAME:-not_provided} \
+            -e LAYOUT_VCD_SERVER=${LAYOUT_VCD_SERVER:-not_provided} \
+            -e LAYOUT_VCD_ORG=${LAYOUT_VCD_ORG:-not_provided} \
+            -e LAYOUT_STATIC_BASTION_IP=${LAYOUT_VCD_STATIC_BASTION_IP:-not_provided} \
             -e USER_RUNNER_ID=${user_runner_id} \
             -v $(pwd)/testing:/deckhouse/testing \
             -v ${TMP_DIR_PATH}:/tmp \
