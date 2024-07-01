@@ -670,6 +670,10 @@ function bootstrap() {
     ssh_bastion="-J $ssh_user@$LAYOUT_STATIC_BASTION_IP"
     ssh_bastion_params="--ssh-bastion-host $LAYOUT_STATIC_BASTION_IP --ssh-bastion-user $ssh_user"
     >&2 echo "Using static bastion at $LAYOUT_STATIC_BASTION_IP"
+
+    echo "bastion_ip_address_for_ssh = \"$LAYOUT_STATIC_BASTION_IP\"" >> "$bootstrap_log"
+    echo "bastion_user_name_for_ssh = \"$ssh_user\"" >> "$bootstrap_log"
+
   else
     ssh_bastion=""
     ssh_bastion_params=""
