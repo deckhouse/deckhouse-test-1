@@ -132,7 +132,7 @@ function abort_bootstrap_from_cache() {
   dhctl --do-not-write-debug-log-file bootstrap-phase abort \
     --force-abort-from-cache \
     --config "$cwd/configuration.yaml" \
-    --yes-i-am-sane-and-i-understand-what-i-am-doing
+    --yes-i-am-sane-and-i-understand-what-i-am-doing $ssh_bastion_params
 
   return $?
 }
@@ -143,7 +143,7 @@ function abort_bootstrap() {
     --ssh-user "$ssh_user" \
     --ssh-agent-private-keys "$ssh_private_key_path" \
     --config "$cwd/configuration.yaml" \
-    --yes-i-am-sane-and-i-understand-what-i-am-doing
+    --yes-i-am-sane-and-i-understand-what-i-am-doing $ssh_bastion_params
 
   return $?
 }
@@ -154,7 +154,7 @@ function destroy_cluster() {
     --ssh-agent-private-keys "$ssh_private_key_path" \
     --ssh-user "$ssh_user" \
     --ssh-host "$master_ip" \
-    --yes-i-am-sane-and-i-understand-what-i-am-doing
+    --yes-i-am-sane-and-i-understand-what-i-am-doing $ssh_bastion_params
 
   return $?
 }
@@ -196,6 +196,14 @@ function cleanup() {
       if ! master_ip="$(parse_master_ip_from_log)" ; then
         master_ip=""
       fi
+  fi
+
+  # Check if LAYOUT_STATIC_BASTION_IP is set and not empty
+  if [[ -n "$LAYOUT_STATIC_BASTION_IP" ]]; then
+    ssh_bastion_params="--ssh-bastion-host $LAYOUT_STATIC_BASTION_IP --ssh-bastion-user $ssh_user"
+    >&2 echo "Using static bastion at $LAYOUT_STATIC_BASTION_IP"
+  else
+    ssh_bastion_params=""
   fi
 
   >&2 echo "Run cleanup ..."
@@ -711,7 +719,7 @@ function bootstrap() {
 export PATH="/opt/deckhouse/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 export LANG=C
 set -Eeuo pipefail
-kubectl get instance -o json
+kubectl get instance -o json >/dev/null
 kubectl get instance -o json | jq -re '.items | length > 0' >/dev/null
 kubectl get instance -o json | jq -re '.items | map(.status.currentStatus.phase == "Running") | all' >/dev/null
 ENDSSH
