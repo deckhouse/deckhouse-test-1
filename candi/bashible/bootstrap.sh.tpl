@@ -29,7 +29,6 @@ shopt -s failglob
 export BOOTSTRAP_DIR="/var/lib/bashible"
 export TMPDIR="/opt/deckhouse/tmp"
 mkdir -p "$BOOTSTRAP_DIR" "$TMPDIR"
-exec >"${TMPDIR}/bootstrap.log" 2>&1
 
 # Directory contains sensitive information
 chmod 0700 $BOOTSTRAP_DIR
