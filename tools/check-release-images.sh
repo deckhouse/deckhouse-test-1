@@ -84,7 +84,7 @@ check_requirements() {
 
 function cleanup() {
   echo "Cleaning up..."
-  docker rm -f d8-install-${EDITION}-${TAG}
+  docker rm -f d8-install-${EDITION}-${TAG} 2>/dev/null
 }
 
 

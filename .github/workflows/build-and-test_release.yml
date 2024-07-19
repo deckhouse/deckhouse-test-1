@@ -628,6 +628,41 @@ jobs:
           echo "Tests image name: '${TESTS_IMAGE_NAME}'" | tr '[:lower:]' '[:upper:]'
           # Encode as gzip+base64 to evade github's SecretMasker error: "Skip output since it may contain secret".
           echo "tests_image_name=$(echo ${TESTS_IMAGE_NAME} | gzip | base64 -w0)" >> $GITHUB_OUTPUT
+      - name: Check deckhouse images in prod registry
+        if: ${{ github.repository == 'deckhouse/deckhouse' }}
+        id: check_images
+        env:
+          CI_COMMIT_REF_SLUG: ${{needs.git_info.outputs.ci_commit_ref_slug}}
+          DECKHOUSE_REGISTRY_READ_HOST: ${{secrets.DECKHOUSE_REGISTRY_READ_HOST}}
+        run: |
+          EDITION=$(echo ${WERF_ENV} | tr '[:upper:]' '[:lower:]')
+          IMAGE_TAG=${CI_COMMIT_REF_SLUG}
+          IMAGES_PATH=${DECKHOUSE_REGISTRY_READ_HOST}/deckhouse/
+          REGISTRY_URL=${IMAGES_PATH}${EDITION}
+          INSTALL_IMAGE_PATH=${REGISTRY_URL}/install:${TAG}
+
+          echo "Checking images for DKP ${EDITION} ${TAG} (${REGISTRY_URL})"
+          if [ -n "`docker ps -a| grep d8-install-${EDITION}-${TAG}`" ]; then
+            docker rm -f d8-install-${EDITION}-${TAG} 2>/dev/null
+          fi
+
+          docker create --name d8-install-${EDITION}-${TAG} ${INSTALL_IMAGE_PATH}
+
+          IMAGES_SHA=$(docker cp d8-install-${EDITION}-${TAG}:/deckhouse/candi/images_digests.json - | tar -Oxf - | grep -Eo "sha256:[a-f0-9]+")
+
+          for sha in ${IMAGES_SHA}; do
+            echo -n "Checking image ${sha}..."
+            OUT=$(crane manifest ${REGISTRY_URL}@${sha} 2>&1)
+            if [ $? -ne 0 ]; then
+              echo -e "Error!\n"
+              echo $OUT
+              exit 1
+            else
+              echo "ok"
+            fi
+          done
+
+          docker rm -f d8-install-${EDITION}-${TAG} 2>/dev/null
 
       - name: Cleanup
         if: ${{ always() }}
@@ -935,6 +970,41 @@ jobs:
           echo "Tests image name: '${TESTS_IMAGE_NAME}'" | tr '[:lower:]' '[:upper:]'
           # Encode as gzip+base64 to evade github's SecretMasker error: "Skip output since it may contain secret".
           echo "tests_image_name=$(echo ${TESTS_IMAGE_NAME} | gzip | base64 -w0)" >> $GITHUB_OUTPUT
+      - name: Check deckhouse images in prod registry
+        if: ${{ github.repository == 'deckhouse/deckhouse' }}
+        id: check_images
+        env:
+          CI_COMMIT_REF_SLUG: ${{needs.git_info.outputs.ci_commit_ref_slug}}
+          DECKHOUSE_REGISTRY_READ_HOST: ${{secrets.DECKHOUSE_REGISTRY_READ_HOST}}
+        run: |
+          EDITION=$(echo ${WERF_ENV} | tr '[:upper:]' '[:lower:]')
+          IMAGE_TAG=${CI_COMMIT_REF_SLUG}
+          IMAGES_PATH=${DECKHOUSE_REGISTRY_READ_HOST}/deckhouse/
+          REGISTRY_URL=${IMAGES_PATH}${EDITION}
+          INSTALL_IMAGE_PATH=${REGISTRY_URL}/install:${TAG}
+
+          echo "Checking images for DKP ${EDITION} ${TAG} (${REGISTRY_URL})"
+          if [ -n "`docker ps -a| grep d8-install-${EDITION}-${TAG}`" ]; then
+            docker rm -f d8-install-${EDITION}-${TAG} 2>/dev/null
+          fi
+
+          docker create --name d8-install-${EDITION}-${TAG} ${INSTALL_IMAGE_PATH}
+
+          IMAGES_SHA=$(docker cp d8-install-${EDITION}-${TAG}:/deckhouse/candi/images_digests.json - | tar -Oxf - | grep -Eo "sha256:[a-f0-9]+")
+
+          for sha in ${IMAGES_SHA}; do
+            echo -n "Checking image ${sha}..."
+            OUT=$(crane manifest ${REGISTRY_URL}@${sha} 2>&1)
+            if [ $? -ne 0 ]; then
+              echo -e "Error!\n"
+              echo $OUT
+              exit 1
+            else
+              echo "ok"
+            fi
+          done
+
+          docker rm -f d8-install-${EDITION}-${TAG} 2>/dev/null
 
       - name: Cleanup
         if: ${{ always() }}
@@ -1242,6 +1312,41 @@ jobs:
           echo "Tests image name: '${TESTS_IMAGE_NAME}'" | tr '[:lower:]' '[:upper:]'
           # Encode as gzip+base64 to evade github's SecretMasker error: "Skip output since it may contain secret".
           echo "tests_image_name=$(echo ${TESTS_IMAGE_NAME} | gzip | base64 -w0)" >> $GITHUB_OUTPUT
+      - name: Check deckhouse images in prod registry
+        if: ${{ github.repository == 'deckhouse/deckhouse' }}
+        id: check_images
+        env:
+          CI_COMMIT_REF_SLUG: ${{needs.git_info.outputs.ci_commit_ref_slug}}
+          DECKHOUSE_REGISTRY_READ_HOST: ${{secrets.DECKHOUSE_REGISTRY_READ_HOST}}
+        run: |
+          EDITION=$(echo ${WERF_ENV} | tr '[:upper:]' '[:lower:]')
+          IMAGE_TAG=${CI_COMMIT_REF_SLUG}
+          IMAGES_PATH=${DECKHOUSE_REGISTRY_READ_HOST}/deckhouse/
+          REGISTRY_URL=${IMAGES_PATH}${EDITION}
+          INSTALL_IMAGE_PATH=${REGISTRY_URL}/install:${TAG}
+
+          echo "Checking images for DKP ${EDITION} ${TAG} (${REGISTRY_URL})"
+          if [ -n "`docker ps -a| grep d8-install-${EDITION}-${TAG}`" ]; then
+            docker rm -f d8-install-${EDITION}-${TAG} 2>/dev/null
+          fi
+
+          docker create --name d8-install-${EDITION}-${TAG} ${INSTALL_IMAGE_PATH}
+
+          IMAGES_SHA=$(docker cp d8-install-${EDITION}-${TAG}:/deckhouse/candi/images_digests.json - | tar -Oxf - | grep -Eo "sha256:[a-f0-9]+")
+
+          for sha in ${IMAGES_SHA}; do
+            echo -n "Checking image ${sha}..."
+            OUT=$(crane manifest ${REGISTRY_URL}@${sha} 2>&1)
+            if [ $? -ne 0 ]; then
+              echo -e "Error!\n"
+              echo $OUT
+              exit 1
+            else
+              echo "ok"
+            fi
+          done
+
+          docker rm -f d8-install-${EDITION}-${TAG} 2>/dev/null
 
       - name: Cleanup
         if: ${{ always() }}
@@ -1549,6 +1654,41 @@ jobs:
           echo "Tests image name: '${TESTS_IMAGE_NAME}'" | tr '[:lower:]' '[:upper:]'
           # Encode as gzip+base64 to evade github's SecretMasker error: "Skip output since it may contain secret".
           echo "tests_image_name=$(echo ${TESTS_IMAGE_NAME} | gzip | base64 -w0)" >> $GITHUB_OUTPUT
+      - name: Check deckhouse images in prod registry
+        if: ${{ github.repository == 'deckhouse/deckhouse' }}
+        id: check_images
+        env:
+          CI_COMMIT_REF_SLUG: ${{needs.git_info.outputs.ci_commit_ref_slug}}
+          DECKHOUSE_REGISTRY_READ_HOST: ${{secrets.DECKHOUSE_REGISTRY_READ_HOST}}
+        run: |
+          EDITION=$(echo ${WERF_ENV} | tr '[:upper:]' '[:lower:]')
+          IMAGE_TAG=${CI_COMMIT_REF_SLUG}
+          IMAGES_PATH=${DECKHOUSE_REGISTRY_READ_HOST}/deckhouse/
+          REGISTRY_URL=${IMAGES_PATH}${EDITION}
+          INSTALL_IMAGE_PATH=${REGISTRY_URL}/install:${TAG}
+
+          echo "Checking images for DKP ${EDITION} ${TAG} (${REGISTRY_URL})"
+          if [ -n "`docker ps -a| grep d8-install-${EDITION}-${TAG}`" ]; then
+            docker rm -f d8-install-${EDITION}-${TAG} 2>/dev/null
+          fi
+
+          docker create --name d8-install-${EDITION}-${TAG} ${INSTALL_IMAGE_PATH}
+
+          IMAGES_SHA=$(docker cp d8-install-${EDITION}-${TAG}:/deckhouse/candi/images_digests.json - | tar -Oxf - | grep -Eo "sha256:[a-f0-9]+")
+
+          for sha in ${IMAGES_SHA}; do
+            echo -n "Checking image ${sha}..."
+            OUT=$(crane manifest ${REGISTRY_URL}@${sha} 2>&1)
+            if [ $? -ne 0 ]; then
+              echo -e "Error!\n"
+              echo $OUT
+              exit 1
+            else
+              echo "ok"
+            fi
+          done
+
+          docker rm -f d8-install-${EDITION}-${TAG} 2>/dev/null
 
       - name: Cleanup
         if: ${{ always() }}
@@ -1856,6 +1996,41 @@ jobs:
           echo "Tests image name: '${TESTS_IMAGE_NAME}'" | tr '[:lower:]' '[:upper:]'
           # Encode as gzip+base64 to evade github's SecretMasker error: "Skip output since it may contain secret".
           echo "tests_image_name=$(echo ${TESTS_IMAGE_NAME} | gzip | base64 -w0)" >> $GITHUB_OUTPUT
+      - name: Check deckhouse images in prod registry
+        if: ${{ github.repository == 'deckhouse/deckhouse' }}
+        id: check_images
+        env:
+          CI_COMMIT_REF_SLUG: ${{needs.git_info.outputs.ci_commit_ref_slug}}
+          DECKHOUSE_REGISTRY_READ_HOST: ${{secrets.DECKHOUSE_REGISTRY_READ_HOST}}
+        run: |
+          EDITION=$(echo ${WERF_ENV} | tr '[:upper:]' '[:lower:]')
+          IMAGE_TAG=${CI_COMMIT_REF_SLUG}
+          IMAGES_PATH=${DECKHOUSE_REGISTRY_READ_HOST}/deckhouse/
+          REGISTRY_URL=${IMAGES_PATH}${EDITION}
+          INSTALL_IMAGE_PATH=${REGISTRY_URL}/install:${TAG}
+
+          echo "Checking images for DKP ${EDITION} ${TAG} (${REGISTRY_URL})"
+          if [ -n "`docker ps -a| grep d8-install-${EDITION}-${TAG}`" ]; then
+            docker rm -f d8-install-${EDITION}-${TAG} 2>/dev/null
+          fi
+
+          docker create --name d8-install-${EDITION}-${TAG} ${INSTALL_IMAGE_PATH}
+
+          IMAGES_SHA=$(docker cp d8-install-${EDITION}-${TAG}:/deckhouse/candi/images_digests.json - | tar -Oxf - | grep -Eo "sha256:[a-f0-9]+")
+
+          for sha in ${IMAGES_SHA}; do
+            echo -n "Checking image ${sha}..."
+            OUT=$(crane manifest ${REGISTRY_URL}@${sha} 2>&1)
+            if [ $? -ne 0 ]; then
+              echo -e "Error!\n"
+              echo $OUT
+              exit 1
+            else
+              echo "ok"
+            fi
+          done
+
+          docker rm -f d8-install-${EDITION}-${TAG} 2>/dev/null
 
       - name: Cleanup
         if: ${{ always() }}
