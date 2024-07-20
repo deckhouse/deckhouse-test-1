@@ -629,7 +629,8 @@ jobs:
           # Encode as gzip+base64 to evade github's SecretMasker error: "Skip output since it may contain secret".
           echo "tests_image_name=$(echo ${TESTS_IMAGE_NAME} | gzip | base64 -w0)" >> $GITHUB_OUTPUT
       - name: Check deckhouse images in prod registry
-        if: ${{ github.repository == 'deckhouse/deckhouse' }}
+        if: ${{ github.repository == 'deckhouse/deckhouse-test-1' && startsWith(github.ref, 'refs/tags/v') }}
+
         id: check_images
         env:
           CI_COMMIT_REF_SLUG: ${{needs.git_info.outputs.ci_commit_ref_slug}}
@@ -971,7 +972,8 @@ jobs:
           # Encode as gzip+base64 to evade github's SecretMasker error: "Skip output since it may contain secret".
           echo "tests_image_name=$(echo ${TESTS_IMAGE_NAME} | gzip | base64 -w0)" >> $GITHUB_OUTPUT
       - name: Check deckhouse images in prod registry
-        if: ${{ github.repository == 'deckhouse/deckhouse' }}
+        if: ${{ github.repository == 'deckhouse/deckhouse-test-1' && startsWith(github.ref, 'refs/tags/v') }}
+
         id: check_images
         env:
           CI_COMMIT_REF_SLUG: ${{needs.git_info.outputs.ci_commit_ref_slug}}
@@ -1313,7 +1315,8 @@ jobs:
           # Encode as gzip+base64 to evade github's SecretMasker error: "Skip output since it may contain secret".
           echo "tests_image_name=$(echo ${TESTS_IMAGE_NAME} | gzip | base64 -w0)" >> $GITHUB_OUTPUT
       - name: Check deckhouse images in prod registry
-        if: ${{ github.repository == 'deckhouse/deckhouse' }}
+        if: ${{ github.repository == 'deckhouse/deckhouse-test-1' && startsWith(github.ref, 'refs/tags/v') }}
+
         id: check_images
         env:
           CI_COMMIT_REF_SLUG: ${{needs.git_info.outputs.ci_commit_ref_slug}}
@@ -1655,7 +1658,8 @@ jobs:
           # Encode as gzip+base64 to evade github's SecretMasker error: "Skip output since it may contain secret".
           echo "tests_image_name=$(echo ${TESTS_IMAGE_NAME} | gzip | base64 -w0)" >> $GITHUB_OUTPUT
       - name: Check deckhouse images in prod registry
-        if: ${{ github.repository == 'deckhouse/deckhouse' }}
+        if: ${{ github.repository == 'deckhouse/deckhouse-test-1' && startsWith(github.ref, 'refs/tags/v') }}
+
         id: check_images
         env:
           CI_COMMIT_REF_SLUG: ${{needs.git_info.outputs.ci_commit_ref_slug}}
@@ -1997,7 +2001,8 @@ jobs:
           # Encode as gzip+base64 to evade github's SecretMasker error: "Skip output since it may contain secret".
           echo "tests_image_name=$(echo ${TESTS_IMAGE_NAME} | gzip | base64 -w0)" >> $GITHUB_OUTPUT
       - name: Check deckhouse images in prod registry
-        if: ${{ github.repository == 'deckhouse/deckhouse' }}
+        if: ${{ github.repository == 'deckhouse/deckhouse-test-1' && startsWith(github.ref, 'refs/tags/v') }}
+
         id: check_images
         env:
           CI_COMMIT_REF_SLUG: ${{needs.git_info.outputs.ci_commit_ref_slug}}
