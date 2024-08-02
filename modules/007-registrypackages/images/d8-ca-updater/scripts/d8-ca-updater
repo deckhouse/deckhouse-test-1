@@ -26,10 +26,10 @@ detect_bundle(){
   . /etc/os-release
   case "$ID" in
     centos|rocky|almalinux|rhel|redos|rels|rosa|altlinux)
-      echo "redhat" && exit 0 ;;
+      echo "redhat" && exit 0
     ;;
     ubuntu|debian|astra)
-      echo "debian" && exit 0 ;;
+      echo "debian" && exit 0
     ;;
     "")
       >&2 echo "ERROR: Can't determine OS! No ID in /etc/os-release."
