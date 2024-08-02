@@ -1,4 +1,4 @@
-#!/bin/sh -e
+#!/bin/bash
 # Copyright 2024 Flant JSC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,6 +22,13 @@
 
 set -x
 
+# Helper files.  (Some of them are not simple arrays because we spawn
+# subshells later on.)
+TEMPBUNDLE="${ETCCERTSDIR}/${CERTBUNDLE}.new"
+ADDED="$(mktemp -p "${TMPDIR:-/tmp}" "ca-certificates.tmp.XXXXXX")"
+REMOVED="$(mktemp -p "${TMPDIR:-/tmp}" "ca-certificates.tmp.XXXXXX")"
+
+
 detect_bundle(){
   . /etc/os-release
   case "$ID" in
@@ -37,27 +44,6 @@ detect_bundle(){
     ;;
   esac
 }
-
-BUNDLE="$(detect_bundle)"
-
-if [ $BUNDLE == 'debian' ]; then
-  update_ca_debian_bundle
-elif [$BUNDLE == 'redhat' ]; then
-  update_ca_redhat_bundle
-fi
-
-cleanup() {
-  rm -f "$TEMPBUNDLE"
-  rm -f "$ADDED"
-  rm -f "$REMOVED"
-}
-trap cleanup 0
-
-# Helper files.  (Some of them are not simple arrays because we spawn
-# subshells later on.)
-TEMPBUNDLE="${ETCCERTSDIR}/${CERTBUNDLE}.new"
-ADDED="$(mktemp -p "${TMPDIR:-/tmp}" "ca-certificates.tmp.XXXXXX")"
-REMOVED="$(mktemp -p "${TMPDIR:-/tmp}" "ca-certificates.tmp.XXXXXX")"
 
 # Adds a certificate to the list of trusted ones.  This includes a symlink
 # in /etc/ssl/certs to the certificate file and its inclusion into the
@@ -84,6 +70,29 @@ remove() {
     rm -f "$PEM"
     echo "-$PEM" >> "$REMOVED"
   fi
+}
+
+
+update_ca_redhat_bundle() {
+  if command -v p11-kit >/dev/null 2>&1; then
+    >&2 echo "ERROR: p11-kit not found!"
+    exit 1
+  fi
+
+  ln -sf /usr/local/share/d8-ca-certificates/mozilla/*.crt /etc/pki/ca-trust/source/anchors/
+
+  local DEST=/etc/pki/ca-trust/extracted
+
+  # Prevent p11-kit from reading user configuration files.
+  export P11_KIT_NO_USER_CONFIG=1
+
+  # (BEGIN TRUSTED CERTIFICATE)
+  /usr/bin/p11-kit extract --format=openssl-bundle --filter=certificates --overwrite --comment $DEST/openssl/ca-bundle.trust.crt
+  /usr/bin/p11-kit extract --verbose --format=pem-bundle --filter=ca-anchors --overwrite --comment --purpose server-auth $DEST/pem/tls-ca-bundle.pem
+  /usr/bin/p11-kit extract --verbose --format=pem-bundle --filter=ca-anchors --overwrite --comment --purpose email $DEST/pem/email-ca-bundle.pem
+  /usr/bin/p11-kit extract --verbose --format=pem-bundle --filter=ca-anchors --overwrite --comment --purpose code-signing $DEST/pem/objsign-ca-bundle.pem
+  /usr/bin/p11-kit extract --verbose --format=java-cacerts --filter=ca-anchors --overwrite --purpose server-auth $DEST/java/cacerts
+  /usr/bin/p11-kit extract --verbose --format=edk2-cacerts --filter=ca-anchors --overwrite --purpose=server-auth $DEST/edk2/cacerts.bin
 }
 
 update_ca_debian_bundle() {
@@ -206,26 +215,18 @@ update_ca_debian_bundle() {
 
 }
 
-update_ca_redhat_bundle() {
-  if command -v p11-kit >/dev/null 2>&1; then
-    >&2 echo "ERROR: p11-kit not found!"
-    exit 1
-  fi
-
-  ln -sf /usr/local/share/d8-ca-certificates/mozilla/*.crt /etc/pki/ca-trust/source/anchors/
-
-  local DEST=/etc/pki/ca-trust/extracted
-
-  # Prevent p11-kit from reading user configuration files.
-  export P11_KIT_NO_USER_CONFIG=1
-
-  # (BEGIN TRUSTED CERTIFICATE)
-  /usr/bin/p11-kit extract --format=openssl-bundle --filter=certificates --overwrite --comment $DEST/openssl/ca-bundle.trust.crt
-  /usr/bin/p11-kit extract --verbose --format=pem-bundle --filter=ca-anchors --overwrite --comment --purpose server-auth $DEST/pem/tls-ca-bundle.pem
-  /usr/bin/p11-kit extract --verbose --format=pem-bundle --filter=ca-anchors --overwrite --comment --purpose email $DEST/pem/email-ca-bundle.pem
-  /usr/bin/p11-kit extract --verbose --format=pem-bundle --filter=ca-anchors --overwrite --comment --purpose code-signing $DEST/pem/objsign-ca-bundle.pem
-  /usr/bin/p11-kit extract --verbose --format=java-cacerts --filter=ca-anchors --overwrite --purpose server-auth $DEST/java/cacerts
-  /usr/bin/p11-kit extract --verbose --format=edk2-cacerts --filter=ca-anchors --overwrite --purpose=server-auth $DEST/edk2/cacerts.bin
+cleanup() {
+  rm -f "$TEMPBUNDLE"
+  rm -f "$ADDED"
+  rm -f "$REMOVED"
 }
 
-# vim:set et sw=2:
+BUNDLE="$(detect_bundle)"
+
+trap cleanup 0
+
+if [[ "$BUNDLE" == 'debian' ]]; then
+  update_ca_debian_bundle
+elif [[ "$BUNDLE" == 'redhat' ]]; then
+  update_ca_redhat_bundle
+fi
