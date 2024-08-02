@@ -12,26 +12,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-bb-yum-install ca-certificates
+bb-package-install "d8-ca-updater:{{ .images.registrypackages.d8CaUpdater001 }}"
+
 # hack to avoid problems with certs in alpine busybox for kube-apiserver
 if [[ ! -e /etc/ssl/certs/ca-certificates.crt ]]; then
   ln -s /etc/ssl/certs/ca-bundle.crt /etc/ssl/certs/ca-certificates.crt
 fi
 
 {{- if .registry.ca }}
-bb-event-on 'registry-ca-changed' '_update_ca_certificates'
-_update_ca_certificates() {
-  bb-flag-set containerd-need-restart
-  update-ca-trust
-}
 
-bb-sync-file /etc/pki/ca-trust/source/anchors/registry-ca.crt - registry-ca-changed << "EOF"
+bb-sync-file /usr/local/share/d8-ca-certificates/mozilla/registry-ca.crt - registry-ca-changed << "EOF"
 {{ .registry.ca }}
 EOF
+
+bb-flag-set containerd-need-restart
+
 {{- else }}
-if [ -f /etc/pki/ca-trust/source/anchors/registry-ca.crt ]; then
-  rm -f /etc/pki/ca-trust/source/anchors/registry-ca.crt
-  _update_ca_certificates
+if [ -f /usr/local/share/d8-ca-certificates/mozilla/registry-ca.crt ]; then
+  rm -f /usr/local/share/d8-ca-certificates/mozilla/registry-ca.crt
 fi
 {{- end }}
 
+/opt/deckhouse/bin/d8-ca-updater

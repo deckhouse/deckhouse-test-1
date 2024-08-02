@@ -1,0 +1,231 @@
+#!/bin/bash
+# Copyright 2024 Flant JSC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+#
+# d8-ca-updater
+#
+# redhat and debian based distributive use different ways for install ca-certificates. 
+# redhat-based distros use /usr/share/pki/ca-trust-source/ca-bundle.trust.p11-kit file, which contain the complete Mozilla CA store. A system administrator can incorporate additional certificates simply by placing their PEM files under /etc/pki/ca-trust/source or /usr/share/pki/ca-trust-source directory and running companion command update-ca-trust to set things straight. 
+# debian-based distros use /etc/ssl/certs/ca-certificates.crt, which is generated each time by update-ca-certificate command. This command finds certificates in /usr/share/ca-certificates or /usr/local/share/ca-certificates directories and recreate main ca-certificates.crt.
+
+set -x
+
+# Helper files.  (Some of them are not simple arrays because we spawn
+# subshells later on.)
+TEMPBUNDLE="${ETCCERTSDIR}/${CERTBUNDLE}.new"
+ADDED="$(mktemp -p "${TMPDIR:-/tmp}" "ca-certificates.tmp.XXXXXX")"
+REMOVED="$(mktemp -p "${TMPDIR:-/tmp}" "ca-certificates.tmp.XXXXXX")"
+
+
+detect_bundle(){
+  . /etc/os-release
+  case "$ID" in
+    centos|rocky|almalinux|rhel|redos|rels|rosa|altlinux)
+      echo "redhat" && exit 0
+    ;;
+    ubuntu|debian|astra)
+      echo "debian" && exit 0
+    ;;
+    "")
+      >&2 echo "ERROR: Can't determine OS! No ID in /etc/os-release."
+      exit 1
+    ;;
+  esac
+}
+
+# Adds a certificate to the list of trusted ones.  This includes a symlink
+# in /etc/ssl/certs to the certificate file and its inclusion into the
+# bundle.
+add() {
+  CERT="$1"
+  PEM="$ETCCERTSDIR/$(basename "$CERT" .crt | sed -e 's/ /_/g' \
+                                                  -e 's/[()]/=/g' \
+                                                  -e 's/,/_/g').pem"
+  if ! test -e "$PEM" || [ "$(readlink "$PEM")" != "$CERT" ]
+  then
+    ln -sf "$CERT" "$PEM"
+    echo "+$PEM" >> "$ADDED"
+  fi
+  # Add trailing newline to certificate, if it is missing (#635570)
+  sed -e '$a\' "$CERT" >> "$TEMPBUNDLE"
+}
+
+remove() {
+  CERT="$1"
+  PEM="$ETCCERTSDIR/$(basename "$CERT" .crt).pem"
+  if test -L "$PEM"
+  then
+    rm -f "$PEM"
+    echo "-$PEM" >> "$REMOVED"
+  fi
+}
+
+
+update_ca_redhat_bundle() {
+  if ! command -v p11-kit >/dev/null 2>&1; then
+    >&2 echo "ERROR: p11-kit not found!"
+    exit 1
+  fi
+
+  ln -sf /usr/local/share/d8-ca-certificates/mozilla/*.crt /etc/pki/ca-trust/source/anchors/
+
+  local DEST=/etc/pki/ca-trust/extracted
+
+  # Prevent p11-kit from reading user configuration files.
+  export P11_KIT_NO_USER_CONFIG=1
+
+  # (BEGIN TRUSTED CERTIFICATE)
+  /usr/bin/p11-kit extract --format=openssl-bundle --filter=certificates --overwrite --comment $DEST/openssl/ca-bundle.trust.crt
+  /usr/bin/p11-kit extract --verbose --format=pem-bundle --filter=ca-anchors --overwrite --comment --purpose server-auth $DEST/pem/tls-ca-bundle.pem
+  /usr/bin/p11-kit extract --verbose --format=pem-bundle --filter=ca-anchors --overwrite --comment --purpose email $DEST/pem/email-ca-bundle.pem
+  /usr/bin/p11-kit extract --verbose --format=pem-bundle --filter=ca-anchors --overwrite --comment --purpose code-signing $DEST/pem/objsign-ca-bundle.pem
+  /usr/bin/p11-kit extract --verbose --format=java-cacerts --filter=ca-anchors --overwrite --purpose server-auth $DEST/java/cacerts
+}
+
+update_ca_debian_bundle() {
+
+  local CERTSCONF=/etc/ca-certificates.conf
+  local CERTSDIR=/usr/share/ca-certificates
+  local LOCALCERTSDIR=/usr/local/share/ca-certificates
+  local CERTBUNDLE=ca-certificates.crt
+  local ETCCERTSDIR=/etc/ssl/certs
+  local HOOKSDIR=/etc/ca-certificates/update.d
+
+  local verbose=1
+  local fresh=1
+  local default=0
+
+  mkdir -p /usr/local/share/ca-certificates/
+  ln -sf /usr/local/share/d8-ca-certificates/mozilla/*.crt /usr/local/share/ca-certificates/
+
+  cd "$ETCCERTSDIR"
+  if [ "$fresh" = 1 ]; then
+    echo "Clearing symlinks in $ETCCERTSDIR..."
+    find . -type l -print | while read symlink
+    do
+      case $(readlink "$symlink") in
+        $CERTSDIR*|$LOCALCERTSDIR*) rm -f $symlink;;
+      esac
+    done
+    find . -type l -print | while read symlink
+    do
+      test -f "$symlink" || rm -f "$symlink"
+    done
+    echo "done."
+  fi
+
+  echo "Updating certificates in $ETCCERTSDIR..."
+
+  # Add default certificate authorities if requested
+  if [ "$default" = 1 ]; then
+    find -L "$CERTSDIR" -type f -name '*.crt' | sort | while read crt
+    do
+      add "$crt"
+    done
+  fi
+
+  # Handle certificates that should be removed.  This is an explicit act
+  # by prefixing lines in the configuration files with exclamation marks (!).
+  sed -n -e '/^$/d' -e 's/^!//p' "$CERTSCONF" | while read crt
+  do
+    remove "$CERTSDIR/$crt"
+  done
+
+  sed -e '/^$/d' -e '/^#/d' -e '/^!/d' "$CERTSCONF" | while read crt
+  do
+    if ! test -f "$CERTSDIR/$crt"
+    then
+      echo "W: $CERTSDIR/$crt not found, but listed in $CERTSCONF." >&2
+      continue
+    fi
+    add "$CERTSDIR/$crt"
+  done
+
+  # Now process certificate authorities installed by the local system
+  # administrator.
+  if [ -d "$LOCALCERTSDIR" ]
+  then
+    find -L "$LOCALCERTSDIR" -type f -name '*.crt' | sort | while read crt
+    do
+      add "$crt"
+    done
+  fi
+
+  ADDED_CNT=$(wc -l < "$ADDED")
+  REMOVED_CNT=$(wc -l < "$REMOVED")
+
+  if [ "$ADDED_CNT" -gt 0 ] || [ "$REMOVED_CNT" -gt 0 ]
+  then
+    # only run if set of files has changed
+    # Remove orphan symlinks found in ETCCERTSDIR to prevent `openssl rehash`
+    # from exiting with an error. See #895482, #895473.
+    find $ETCCERTSDIR -type l ! -exec test -e {} \; -print | while read orphan
+    do
+      rm -f "$orphan"
+      if [ "$verbose" = 1 ]; then
+        echo "Removed orphan symlink $orphan"
+      fi
+    done
+    if [ "$verbose" = 0 ]
+    then
+      openssl rehash . > /dev/null
+    else
+      openssl rehash -v .
+    fi
+  fi
+
+  # chmod and mv only if TEMPBUNDLE exists or install may fail, #996005
+  if [ -f "$TEMPBUNDLE" ]
+  then
+    chmod 0644 "$TEMPBUNDLE"
+    mv -f "$TEMPBUNDLE" "$CERTBUNDLE"
+    # Restore proper SELinux label after moving the file
+    [ -x /sbin/restorecon ] && /sbin/restorecon "$CERTBUNDLE" >/dev/null 2>&1
+  fi
+
+  echo "$ADDED_CNT added, $REMOVED_CNT removed; done."
+
+  if [ -d "$HOOKSDIR" ]
+  then
+
+    echo "Running hooks in $HOOKSDIR..."
+    VERBOSE_ARG=
+    [ "$verbose" = 0 ] || VERBOSE_ARG="--verbose"
+    eval run-parts "$VERBOSE_ARG" --test -- "$HOOKSDIR" | while read hook
+    do
+      ( cat "$ADDED"
+        cat "$REMOVED" ) | "$hook" || echo "E: $hook exited with code $?."
+    done
+    echo "done."
+
+  fi
+
+}
+
+cleanup() {
+  rm -f "$TEMPBUNDLE"
+  rm -f "$ADDED"
+  rm -f "$REMOVED"
+}
+
+BUNDLE="$(detect_bundle)"
+
+trap cleanup 0
+
+if [[ "$BUNDLE" == 'debian' ]]; then
+  update_ca_debian_bundle
+elif [[ "$BUNDLE" == 'redhat' ]]; then
+  update_ca_redhat_bundle
+fi
