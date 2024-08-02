@@ -14,12 +14,13 @@
 # limitations under the License.
 
 #
-# d8-update-ca-certificates
+# d8-ca-updater
 #
 # redhat and debian based distributive use different ways for install ca-certificates. 
 # redhat-based distros use /usr/share/pki/ca-trust-source/ca-bundle.trust.p11-kit file, which contain the complete Mozilla CA store. A system administrator can incorporate additional certificates simply by placing their PEM files under /etc/pki/ca-trust/source or /usr/share/pki/ca-trust-source directory and running companion command update-ca-trust to set things straight. 
 # debian-based distros use /etc/ssl/certs/ca-certificates.crt, which is generated each time by update-ca-certificate command. This command finds certificates in /usr/share/ca-certificates or /usr/local/share/ca-certificates directories and recreate main ca-certificates.crt.
 
+set -x
 
 detect_bundle(){
   . /etc/os-release
@@ -206,7 +207,6 @@ update_ca_debian_bundle() {
 }
 
 update_ca_redhat_bundle() {
-  set -vx
   if command -v p11-kit >/dev/null 2>&1; then
     >&2 echo "ERROR: p11-kit not found!"
     exit 1
