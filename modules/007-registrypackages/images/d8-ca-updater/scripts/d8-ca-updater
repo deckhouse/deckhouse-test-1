@@ -2,63 +2,18 @@
 #
 # d8-update-ca-certificates
 #
-# Centos and Debian based distributive use different way for install ca-certificates. 
-# Centos based distro used /usr/share/pki/ca-trust-source/ca-bundle.trust.p11-kit file, that holds the complete Mozilla CA store. A system administrator can incorporate additional certificates simply by placing their PEM files under /etc/pki/ca-trust/source or /usr/share/pki/ca-trust-source directory and running companion command update-ca-trust to set things straight. Should the same certificate appear in both source directories but with different trust or policy settings, the dictates under /etc/pki/ca-trust/source prevail.
-# Debian base distro ...
+# redhat and debian based distributive use different ways for install ca-certificates. 
+# redhat-based distros use /usr/share/pki/ca-trust-source/ca-bundle.trust.p11-kit file, which contain the complete Mozilla CA store. A system administrator can incorporate additional certificates simply by placing their PEM files under /etc/pki/ca-trust/source or /usr/share/pki/ca-trust-source directory and running companion command update-ca-trust to set things straight. 
+# debian-based distros use /etc/ssl/certs/ca-certificates.crt, which is generated each time by update-ca-certificate command. This command finds certificates in /usr/share/ca-certificates or /usr/local/share/ca-certificates directories and recreate main ca-certificates.crt.
 
-
-
-verbose=0
-fresh=0
-default=0
-
-while [ $# -gt 0 ];
-do
-  case $1 in
-    --verbose|-v)
-      verbose=1;;
-    --fresh|-f)
-      fresh=1;;
-    --default|-d)
-      default=1
-      fresh=1;;
-    --certsconf)
-      shift
-      CERTSCONF="$1";;
-    --certsdir)
-      shift
-      CERTSDIR="$1";;
-    --localcertsdir)
-      shift
-      LOCALCERTSDIR="$1";;
-    --certbundle)
-      shift
-      CERTBUNDLE="$1";;
-    --etccertsdir)
-      shift
-      ETCCERTSDIR="$1";;
-    --hooksdir)
-      shift
-      HOOKSDIR="$1";;
-    --help|-h|*)
-      echo "$0: [--verbose] [--fresh]"
-      exit;;
-  esac
-  shift
-done
-
-if [ ! -s "$CERTSCONF" ]
-then
-  fresh=1
-fi
 
 detect_bundle(){
   . /etc/os-release
   case "$ID" in
-    centos|rocky|almalinux|rhel)
-      echo "centos" && exit 0 ;;
+    centos|rocky|almalinux|rhel|redos|rels|rosa|altlinux)
+      echo "redhat" && exit 0 ;;
     ;;
-    ubuntu|debian)
+    ubuntu|debian|astra)
       echo "debian" && exit 0 ;;
     ;;
     "")
@@ -72,8 +27,8 @@ BUNDLE="$(detect_bundle)"
 
 if [ $BUNDLE == 'debian' ]; then
   update_ca_debian_bundle
-elif [$BUNDLE == 'centos' ]; then
-  update_ca_centos_bundle
+elif [$BUNDLE == 'redhat' ]; then
+  update_ca_redhat_bundle
 fi
 
 cleanup() {
@@ -124,6 +79,13 @@ update_ca_debian_bundle() {
   local CERTBUNDLE=ca-certificates.crt
   local ETCCERTSDIR=/etc/ssl/certs
   local HOOKSDIR=/etc/ca-certificates/update.d
+
+  local verbose=1
+  local fresh=1
+  local default=0
+
+  mkdir -p /usr/local/share/ca-certificates/
+  ln -sf /usr/local/share/d8-ca-certificates/mozilla/*.crt /usr/local/share/ca-certificates/
 
   cd "$ETCCERTSDIR"
   if [ "$fresh" = 1 ]; then
@@ -229,18 +191,14 @@ update_ca_debian_bundle() {
 
 }
 
-update_ca_centos_bundle() {
+update_ca_redhat_bundle() {
   set -vx
   if command -v p11-kit >/dev/null 2>&1; then
     >&2 echo "ERROR: p11-kit not found!"
     exit 1
   fi
 
-  cd /usr/local/share/d8-ca-certificates/source-debian-ca-bundle/mozilla
-  python3 certdata2pem.py
-
-  /usr/share/ca-certificates/mozilla
-
+  ln -sf /usr/local/share/d8-ca-certificates/mozilla/*.crt /etc/pki/ca-trust/source/anchors/
 
   local DEST=/etc/pki/ca-trust/extracted
 

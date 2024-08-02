@@ -9,7 +9,6 @@ import:
   to: /
   includePaths:
   - certs/
-  - ca-bundle.crt
   - d8-ca-updater
   - install
   - uninstall
@@ -34,8 +33,5 @@ shell:
     - git clone -b master --depth 1 https://salsa.debian.org/debian/ca-certificates.git
     - cd ca-certificates/mozilla 
     - wget -Ocertdata.txt https://hg.mozilla.org/releases/mozilla-release/raw-file/default/security/nss/lib/ckfw/builtins/certdata.txt
-    - wget -Omk-ca-bundle.pl  https://raw.githubusercontent.com/curl/curl/master/scripts/mk-ca-bundle.pl 
-    - perl mk-ca-bundle.pl -n 
-    - mv ca-bundle.crt /ca-bundle.crt
     - python3 certdata2pem.py
     - mv *.crt /certs/

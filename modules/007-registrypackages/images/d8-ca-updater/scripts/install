@@ -14,7 +14,6 @@
 # limitations under the License.
 
 set -Eeo pipefail
-mkdir -p /opt/deckhouse/bin /usr/local/share/d8-ca-certificates/mozilla/ca-bundle
+mkdir -p /opt/deckhouse/bin /usr/local/share/d8-ca-certificates/mozilla/
 cp -f d8-ca-updater /opt/deckhouse/bin
 cp -f certs/* /usr/local/share/d8-ca-certificates/mozilla/
-cp -f ca-bundle.crt /usr/local/share/d8-ca-certificates/mozilla/ca-bundle
