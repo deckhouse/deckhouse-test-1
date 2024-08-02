@@ -35,3 +35,4 @@ shell:
     - wget -Ocertdata.txt https://hg.mozilla.org/releases/mozilla-release/raw-file/default/security/nss/lib/ckfw/builtins/certdata.txt
     - python3 certdata2pem.py
     - mv *.crt /certs/
+    - chmod +x d8-ca-updater
