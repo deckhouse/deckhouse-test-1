@@ -92,7 +92,6 @@ update_ca_redhat_bundle() {
   /usr/bin/p11-kit extract --verbose --format=pem-bundle --filter=ca-anchors --overwrite --comment --purpose email $DEST/pem/email-ca-bundle.pem
   /usr/bin/p11-kit extract --verbose --format=pem-bundle --filter=ca-anchors --overwrite --comment --purpose code-signing $DEST/pem/objsign-ca-bundle.pem
   /usr/bin/p11-kit extract --verbose --format=java-cacerts --filter=ca-anchors --overwrite --purpose server-auth $DEST/java/cacerts
-  /usr/bin/p11-kit extract --verbose --format=edk2-cacerts --filter=ca-anchors --overwrite --purpose=server-auth $DEST/edk2/cacerts.bin
 }
 
 update_ca_debian_bundle() {
