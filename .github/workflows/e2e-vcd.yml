@@ -206,14 +206,14 @@ jobs:
       run_id: ${{ github.run_id }}
       # need for find state in artifact
       cluster_prefix: ${{ steps.setup.outputs.dhctl-prefix }}
-      ran_for: "vcd;WithoutNAT;containerd;1.26"
+      ran_for: "vcd;Standard;containerd;1.26"
       failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.failed_cluster_stayed }}
       issue_number: ${{ inputs.issue_number }}
       install_image_path: ${{ steps.setup.outputs.install-image-path }}
     env:
       PROVIDER: VCD
       CRI: Containerd
-      LAYOUT: WithoutNAT
+      LAYOUT: Standard
       KUBERNETES_VERSION: "1.26"
       EVENT_LABEL: ${{ github.event.label.name }}
     runs-on: [self-hosted, e2e-common]
@@ -419,7 +419,7 @@ jobs:
         env:
           PROVIDER: VCD
           CRI: Containerd
-          LAYOUT: WithoutNAT
+          LAYOUT: Standard
           KUBERNETES_VERSION: "1.26"
           LAYOUT_DECKHOUSE_DOCKERCFG: ${{ secrets.LAYOUT_DECKHOUSE_DOCKERCFG }}
           LAYOUT_SSH_KEY: ${{ secrets.LAYOUT_SSH_KEY}}
@@ -429,6 +429,11 @@ jobs:
           DECKHOUSE_IMAGE_TAG: ${{ steps.setup.outputs.deckhouse-image-tag }}
           INITIAL_IMAGE_TAG: ${{ steps.setup.outputs.initial-image-tag }}
         # <template: e2e_run_template>
+          LAYOUT_VCD_PASSWORD: ${{ secrets.LAYOUT_VCD_PASSWORD }}
+          LAYOUT_VCD_USERNAME: ${{ secrets.LAYOUT_VCD_USERNAME }}
+          LAYOUT_STATIC_BASTION_IP: 80.249.129.56
+          LAYOUT_VCD_SERVER: ${{ secrets.LAYOUT_VCD_SERVER }}
+          LAYOUT_VCD_ORG: ${{ secrets.LAYOUT_VCD_ORG }}
           COMMENT_ID: ${{ inputs.comment_id }}
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
@@ -464,7 +469,7 @@ jobs:
           bastion_ip_file=""
           if [[ "${PROVIDER}" == "Static" ]] ; then
             bastion_ip_file="${DHCTL_LOG_FILE}-ssh-bastion-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
-          elif [[ "${PROVIDER}" == "vCloudDirector" ]] ; then
+          elif [[ "${PROVIDER}" == "VCD" ]] ; then
             bastion_ip_file="${DHCTL_LOG_FILE}-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           fi
 
@@ -485,6 +490,11 @@ jobs:
             -e LAYOUT=${LAYOUT:-not_provided} \
             -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
+            -e LAYOUT_VCD_PASSWORD=${LAYOUT_VCD_PASSWORD:-not_provided} \
+            -e LAYOUT_VCD_USERNAME=${LAYOUT_VCD_USERNAME:-not_provided} \
+            -e LAYOUT_VCD_SERVER=${LAYOUT_VCD_SERVER:-not_provided} \
+            -e LAYOUT_VCD_ORG=${LAYOUT_VCD_ORG:-not_provided} \
+            -e LAYOUT_STATIC_BASTION_IP=80.249.129.56 \
             -e USER_RUNNER_ID=${user_runner_id} \
             -v $(pwd)/testing:/deckhouse/testing \
             -v $(pwd)/release.yaml:/deckhouse/release.yaml \
@@ -522,7 +532,7 @@ jobs:
         env:
           PROVIDER: VCD
           CRI: Containerd
-          LAYOUT: WithoutNAT
+          LAYOUT: Standard
           KUBERNETES_VERSION: "1.26"
           LAYOUT_DECKHOUSE_DOCKERCFG: ${{ secrets.LAYOUT_DECKHOUSE_DOCKERCFG }}
           LAYOUT_SSH_KEY: ${{ secrets.LAYOUT_SSH_KEY}}
@@ -531,6 +541,11 @@ jobs:
           INSTALL_IMAGE_NAME: ${{ steps.setup.outputs.install-image-name }}
           DECKHOUSE_IMAGE_TAG: ${{ steps.setup.outputs.deckhouse-image-tag }}
         # <template: e2e_run_template>
+          LAYOUT_VCD_PASSWORD: ${{ secrets.LAYOUT_VCD_PASSWORD }}
+          LAYOUT_VCD_USERNAME: ${{ secrets.LAYOUT_VCD_USERNAME }}
+          LAYOUT_STATIC_BASTION_IP: 80.249.129.56
+          LAYOUT_VCD_SERVER: ${{ secrets.LAYOUT_VCD_SERVER }}
+          LAYOUT_VCD_ORG: ${{ secrets.LAYOUT_VCD_ORG }}
           COMMENT_ID: ${{ inputs.comment_id }}
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
@@ -569,6 +584,11 @@ jobs:
             -e LAYOUT=${LAYOUT:-not_provided} \
             -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
+            -e LAYOUT_VCD_PASSWORD=${LAYOUT_VCD_PASSWORD:-not_provided} \
+            -e LAYOUT_VCD_USERNAME=${LAYOUT_VCD_USERNAME:-not_provided} \
+            -e LAYOUT_VCD_SERVER=${LAYOUT_VCD_SERVER:-not_provided} \
+            -e LAYOUT_VCD_ORG=${LAYOUT_VCD_ORG:-not_provided} \
+            -e LAYOUT_STATIC_BASTION_IP=80.249.129.56 \
             -e USER_RUNNER_ID=${user_runner_id} \
             -v $(pwd)/testing:/deckhouse/testing \
             -v $(pwd)/release.yaml:/deckhouse/release.yaml \
@@ -669,14 +689,14 @@ jobs:
       run_id: ${{ github.run_id }}
       # need for find state in artifact
       cluster_prefix: ${{ steps.setup.outputs.dhctl-prefix }}
-      ran_for: "vcd;WithoutNAT;containerd;1.27"
+      ran_for: "vcd;Standard;containerd;1.27"
       failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.failed_cluster_stayed }}
       issue_number: ${{ inputs.issue_number }}
       install_image_path: ${{ steps.setup.outputs.install-image-path }}
     env:
       PROVIDER: VCD
       CRI: Containerd
-      LAYOUT: WithoutNAT
+      LAYOUT: Standard
       KUBERNETES_VERSION: "1.27"
       EVENT_LABEL: ${{ github.event.label.name }}
     runs-on: [self-hosted, e2e-common]
@@ -882,7 +902,7 @@ jobs:
         env:
           PROVIDER: VCD
           CRI: Containerd
-          LAYOUT: WithoutNAT
+          LAYOUT: Standard
           KUBERNETES_VERSION: "1.27"
           LAYOUT_DECKHOUSE_DOCKERCFG: ${{ secrets.LAYOUT_DECKHOUSE_DOCKERCFG }}
           LAYOUT_SSH_KEY: ${{ secrets.LAYOUT_SSH_KEY}}
@@ -892,6 +912,11 @@ jobs:
           DECKHOUSE_IMAGE_TAG: ${{ steps.setup.outputs.deckhouse-image-tag }}
           INITIAL_IMAGE_TAG: ${{ steps.setup.outputs.initial-image-tag }}
         # <template: e2e_run_template>
+          LAYOUT_VCD_PASSWORD: ${{ secrets.LAYOUT_VCD_PASSWORD }}
+          LAYOUT_VCD_USERNAME: ${{ secrets.LAYOUT_VCD_USERNAME }}
+          LAYOUT_STATIC_BASTION_IP: 80.249.129.56
+          LAYOUT_VCD_SERVER: ${{ secrets.LAYOUT_VCD_SERVER }}
+          LAYOUT_VCD_ORG: ${{ secrets.LAYOUT_VCD_ORG }}
           COMMENT_ID: ${{ inputs.comment_id }}
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
@@ -927,7 +952,7 @@ jobs:
           bastion_ip_file=""
           if [[ "${PROVIDER}" == "Static" ]] ; then
             bastion_ip_file="${DHCTL_LOG_FILE}-ssh-bastion-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
-          elif [[ "${PROVIDER}" == "vCloudDirector" ]] ; then
+          elif [[ "${PROVIDER}" == "VCD" ]] ; then
             bastion_ip_file="${DHCTL_LOG_FILE}-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           fi
 
@@ -948,6 +973,11 @@ jobs:
             -e LAYOUT=${LAYOUT:-not_provided} \
             -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
+            -e LAYOUT_VCD_PASSWORD=${LAYOUT_VCD_PASSWORD:-not_provided} \
+            -e LAYOUT_VCD_USERNAME=${LAYOUT_VCD_USERNAME:-not_provided} \
+            -e LAYOUT_VCD_SERVER=${LAYOUT_VCD_SERVER:-not_provided} \
+            -e LAYOUT_VCD_ORG=${LAYOUT_VCD_ORG:-not_provided} \
+            -e LAYOUT_STATIC_BASTION_IP=80.249.129.56 \
             -e USER_RUNNER_ID=${user_runner_id} \
             -v $(pwd)/testing:/deckhouse/testing \
             -v $(pwd)/release.yaml:/deckhouse/release.yaml \
@@ -985,7 +1015,7 @@ jobs:
         env:
           PROVIDER: VCD
           CRI: Containerd
-          LAYOUT: WithoutNAT
+          LAYOUT: Standard
           KUBERNETES_VERSION: "1.27"
           LAYOUT_DECKHOUSE_DOCKERCFG: ${{ secrets.LAYOUT_DECKHOUSE_DOCKERCFG }}
           LAYOUT_SSH_KEY: ${{ secrets.LAYOUT_SSH_KEY}}
@@ -994,6 +1024,11 @@ jobs:
           INSTALL_IMAGE_NAME: ${{ steps.setup.outputs.install-image-name }}
           DECKHOUSE_IMAGE_TAG: ${{ steps.setup.outputs.deckhouse-image-tag }}
         # <template: e2e_run_template>
+          LAYOUT_VCD_PASSWORD: ${{ secrets.LAYOUT_VCD_PASSWORD }}
+          LAYOUT_VCD_USERNAME: ${{ secrets.LAYOUT_VCD_USERNAME }}
+          LAYOUT_STATIC_BASTION_IP: 80.249.129.56
+          LAYOUT_VCD_SERVER: ${{ secrets.LAYOUT_VCD_SERVER }}
+          LAYOUT_VCD_ORG: ${{ secrets.LAYOUT_VCD_ORG }}
           COMMENT_ID: ${{ inputs.comment_id }}
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
@@ -1032,6 +1067,11 @@ jobs:
             -e LAYOUT=${LAYOUT:-not_provided} \
             -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
+            -e LAYOUT_VCD_PASSWORD=${LAYOUT_VCD_PASSWORD:-not_provided} \
+            -e LAYOUT_VCD_USERNAME=${LAYOUT_VCD_USERNAME:-not_provided} \
+            -e LAYOUT_VCD_SERVER=${LAYOUT_VCD_SERVER:-not_provided} \
+            -e LAYOUT_VCD_ORG=${LAYOUT_VCD_ORG:-not_provided} \
+            -e LAYOUT_STATIC_BASTION_IP=80.249.129.56 \
             -e USER_RUNNER_ID=${user_runner_id} \
             -v $(pwd)/testing:/deckhouse/testing \
             -v $(pwd)/release.yaml:/deckhouse/release.yaml \
@@ -1132,14 +1172,14 @@ jobs:
       run_id: ${{ github.run_id }}
       # need for find state in artifact
       cluster_prefix: ${{ steps.setup.outputs.dhctl-prefix }}
-      ran_for: "vcd;WithoutNAT;containerd;1.28"
+      ran_for: "vcd;Standard;containerd;1.28"
       failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.failed_cluster_stayed }}
       issue_number: ${{ inputs.issue_number }}
       install_image_path: ${{ steps.setup.outputs.install-image-path }}
     env:
       PROVIDER: VCD
       CRI: Containerd
-      LAYOUT: WithoutNAT
+      LAYOUT: Standard
       KUBERNETES_VERSION: "1.28"
       EVENT_LABEL: ${{ github.event.label.name }}
     runs-on: [self-hosted, e2e-common]
@@ -1345,7 +1385,7 @@ jobs:
         env:
           PROVIDER: VCD
           CRI: Containerd
-          LAYOUT: WithoutNAT
+          LAYOUT: Standard
           KUBERNETES_VERSION: "1.28"
           LAYOUT_DECKHOUSE_DOCKERCFG: ${{ secrets.LAYOUT_DECKHOUSE_DOCKERCFG }}
           LAYOUT_SSH_KEY: ${{ secrets.LAYOUT_SSH_KEY}}
@@ -1355,6 +1395,11 @@ jobs:
           DECKHOUSE_IMAGE_TAG: ${{ steps.setup.outputs.deckhouse-image-tag }}
           INITIAL_IMAGE_TAG: ${{ steps.setup.outputs.initial-image-tag }}
         # <template: e2e_run_template>
+          LAYOUT_VCD_PASSWORD: ${{ secrets.LAYOUT_VCD_PASSWORD }}
+          LAYOUT_VCD_USERNAME: ${{ secrets.LAYOUT_VCD_USERNAME }}
+          LAYOUT_STATIC_BASTION_IP: 80.249.129.56
+          LAYOUT_VCD_SERVER: ${{ secrets.LAYOUT_VCD_SERVER }}
+          LAYOUT_VCD_ORG: ${{ secrets.LAYOUT_VCD_ORG }}
           COMMENT_ID: ${{ inputs.comment_id }}
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
@@ -1390,7 +1435,7 @@ jobs:
           bastion_ip_file=""
           if [[ "${PROVIDER}" == "Static" ]] ; then
             bastion_ip_file="${DHCTL_LOG_FILE}-ssh-bastion-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
-          elif [[ "${PROVIDER}" == "vCloudDirector" ]] ; then
+          elif [[ "${PROVIDER}" == "VCD" ]] ; then
             bastion_ip_file="${DHCTL_LOG_FILE}-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           fi
 
@@ -1411,6 +1456,11 @@ jobs:
             -e LAYOUT=${LAYOUT:-not_provided} \
             -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
+            -e LAYOUT_VCD_PASSWORD=${LAYOUT_VCD_PASSWORD:-not_provided} \
+            -e LAYOUT_VCD_USERNAME=${LAYOUT_VCD_USERNAME:-not_provided} \
+            -e LAYOUT_VCD_SERVER=${LAYOUT_VCD_SERVER:-not_provided} \
+            -e LAYOUT_VCD_ORG=${LAYOUT_VCD_ORG:-not_provided} \
+            -e LAYOUT_STATIC_BASTION_IP=80.249.129.56 \
             -e USER_RUNNER_ID=${user_runner_id} \
             -v $(pwd)/testing:/deckhouse/testing \
             -v $(pwd)/release.yaml:/deckhouse/release.yaml \
@@ -1448,7 +1498,7 @@ jobs:
         env:
           PROVIDER: VCD
           CRI: Containerd
-          LAYOUT: WithoutNAT
+          LAYOUT: Standard
           KUBERNETES_VERSION: "1.28"
           LAYOUT_DECKHOUSE_DOCKERCFG: ${{ secrets.LAYOUT_DECKHOUSE_DOCKERCFG }}
           LAYOUT_SSH_KEY: ${{ secrets.LAYOUT_SSH_KEY}}
@@ -1457,6 +1507,11 @@ jobs:
           INSTALL_IMAGE_NAME: ${{ steps.setup.outputs.install-image-name }}
           DECKHOUSE_IMAGE_TAG: ${{ steps.setup.outputs.deckhouse-image-tag }}
         # <template: e2e_run_template>
+          LAYOUT_VCD_PASSWORD: ${{ secrets.LAYOUT_VCD_PASSWORD }}
+          LAYOUT_VCD_USERNAME: ${{ secrets.LAYOUT_VCD_USERNAME }}
+          LAYOUT_STATIC_BASTION_IP: 80.249.129.56
+          LAYOUT_VCD_SERVER: ${{ secrets.LAYOUT_VCD_SERVER }}
+          LAYOUT_VCD_ORG: ${{ secrets.LAYOUT_VCD_ORG }}
           COMMENT_ID: ${{ inputs.comment_id }}
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
@@ -1495,6 +1550,11 @@ jobs:
             -e LAYOUT=${LAYOUT:-not_provided} \
             -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
+            -e LAYOUT_VCD_PASSWORD=${LAYOUT_VCD_PASSWORD:-not_provided} \
+            -e LAYOUT_VCD_USERNAME=${LAYOUT_VCD_USERNAME:-not_provided} \
+            -e LAYOUT_VCD_SERVER=${LAYOUT_VCD_SERVER:-not_provided} \
+            -e LAYOUT_VCD_ORG=${LAYOUT_VCD_ORG:-not_provided} \
+            -e LAYOUT_STATIC_BASTION_IP=80.249.129.56 \
             -e USER_RUNNER_ID=${user_runner_id} \
             -v $(pwd)/testing:/deckhouse/testing \
             -v $(pwd)/release.yaml:/deckhouse/release.yaml \
@@ -1595,14 +1655,14 @@ jobs:
       run_id: ${{ github.run_id }}
       # need for find state in artifact
       cluster_prefix: ${{ steps.setup.outputs.dhctl-prefix }}
-      ran_for: "vcd;WithoutNAT;containerd;1.29"
+      ran_for: "vcd;Standard;containerd;1.29"
       failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.failed_cluster_stayed }}
       issue_number: ${{ inputs.issue_number }}
       install_image_path: ${{ steps.setup.outputs.install-image-path }}
     env:
       PROVIDER: VCD
       CRI: Containerd
-      LAYOUT: WithoutNAT
+      LAYOUT: Standard
       KUBERNETES_VERSION: "1.29"
       EVENT_LABEL: ${{ github.event.label.name }}
     runs-on: [self-hosted, e2e-common]
@@ -1808,7 +1868,7 @@ jobs:
         env:
           PROVIDER: VCD
           CRI: Containerd
-          LAYOUT: WithoutNAT
+          LAYOUT: Standard
           KUBERNETES_VERSION: "1.29"
           LAYOUT_DECKHOUSE_DOCKERCFG: ${{ secrets.LAYOUT_DECKHOUSE_DOCKERCFG }}
           LAYOUT_SSH_KEY: ${{ secrets.LAYOUT_SSH_KEY}}
@@ -1818,6 +1878,11 @@ jobs:
           DECKHOUSE_IMAGE_TAG: ${{ steps.setup.outputs.deckhouse-image-tag }}
           INITIAL_IMAGE_TAG: ${{ steps.setup.outputs.initial-image-tag }}
         # <template: e2e_run_template>
+          LAYOUT_VCD_PASSWORD: ${{ secrets.LAYOUT_VCD_PASSWORD }}
+          LAYOUT_VCD_USERNAME: ${{ secrets.LAYOUT_VCD_USERNAME }}
+          LAYOUT_STATIC_BASTION_IP: 80.249.129.56
+          LAYOUT_VCD_SERVER: ${{ secrets.LAYOUT_VCD_SERVER }}
+          LAYOUT_VCD_ORG: ${{ secrets.LAYOUT_VCD_ORG }}
           COMMENT_ID: ${{ inputs.comment_id }}
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
@@ -1853,7 +1918,7 @@ jobs:
           bastion_ip_file=""
           if [[ "${PROVIDER}" == "Static" ]] ; then
             bastion_ip_file="${DHCTL_LOG_FILE}-ssh-bastion-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
-          elif [[ "${PROVIDER}" == "vCloudDirector" ]] ; then
+          elif [[ "${PROVIDER}" == "VCD" ]] ; then
             bastion_ip_file="${DHCTL_LOG_FILE}-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           fi
 
@@ -1874,6 +1939,11 @@ jobs:
             -e LAYOUT=${LAYOUT:-not_provided} \
             -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
+            -e LAYOUT_VCD_PASSWORD=${LAYOUT_VCD_PASSWORD:-not_provided} \
+            -e LAYOUT_VCD_USERNAME=${LAYOUT_VCD_USERNAME:-not_provided} \
+            -e LAYOUT_VCD_SERVER=${LAYOUT_VCD_SERVER:-not_provided} \
+            -e LAYOUT_VCD_ORG=${LAYOUT_VCD_ORG:-not_provided} \
+            -e LAYOUT_STATIC_BASTION_IP=80.249.129.56 \
             -e USER_RUNNER_ID=${user_runner_id} \
             -v $(pwd)/testing:/deckhouse/testing \
             -v $(pwd)/release.yaml:/deckhouse/release.yaml \
@@ -1911,7 +1981,7 @@ jobs:
         env:
           PROVIDER: VCD
           CRI: Containerd
-          LAYOUT: WithoutNAT
+          LAYOUT: Standard
           KUBERNETES_VERSION: "1.29"
           LAYOUT_DECKHOUSE_DOCKERCFG: ${{ secrets.LAYOUT_DECKHOUSE_DOCKERCFG }}
           LAYOUT_SSH_KEY: ${{ secrets.LAYOUT_SSH_KEY}}
@@ -1920,6 +1990,11 @@ jobs:
           INSTALL_IMAGE_NAME: ${{ steps.setup.outputs.install-image-name }}
           DECKHOUSE_IMAGE_TAG: ${{ steps.setup.outputs.deckhouse-image-tag }}
         # <template: e2e_run_template>
+          LAYOUT_VCD_PASSWORD: ${{ secrets.LAYOUT_VCD_PASSWORD }}
+          LAYOUT_VCD_USERNAME: ${{ secrets.LAYOUT_VCD_USERNAME }}
+          LAYOUT_STATIC_BASTION_IP: 80.249.129.56
+          LAYOUT_VCD_SERVER: ${{ secrets.LAYOUT_VCD_SERVER }}
+          LAYOUT_VCD_ORG: ${{ secrets.LAYOUT_VCD_ORG }}
           COMMENT_ID: ${{ inputs.comment_id }}
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
@@ -1958,6 +2033,11 @@ jobs:
             -e LAYOUT=${LAYOUT:-not_provided} \
             -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
+            -e LAYOUT_VCD_PASSWORD=${LAYOUT_VCD_PASSWORD:-not_provided} \
+            -e LAYOUT_VCD_USERNAME=${LAYOUT_VCD_USERNAME:-not_provided} \
+            -e LAYOUT_VCD_SERVER=${LAYOUT_VCD_SERVER:-not_provided} \
+            -e LAYOUT_VCD_ORG=${LAYOUT_VCD_ORG:-not_provided} \
+            -e LAYOUT_STATIC_BASTION_IP=80.249.129.56 \
             -e USER_RUNNER_ID=${user_runner_id} \
             -v $(pwd)/testing:/deckhouse/testing \
             -v $(pwd)/release.yaml:/deckhouse/release.yaml \
@@ -2058,14 +2138,14 @@ jobs:
       run_id: ${{ github.run_id }}
       # need for find state in artifact
       cluster_prefix: ${{ steps.setup.outputs.dhctl-prefix }}
-      ran_for: "vcd;WithoutNAT;containerd;1.30"
+      ran_for: "vcd;Standard;containerd;1.30"
       failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.failed_cluster_stayed }}
       issue_number: ${{ inputs.issue_number }}
       install_image_path: ${{ steps.setup.outputs.install-image-path }}
     env:
       PROVIDER: VCD
       CRI: Containerd
-      LAYOUT: WithoutNAT
+      LAYOUT: Standard
       KUBERNETES_VERSION: "1.30"
       EVENT_LABEL: ${{ github.event.label.name }}
     runs-on: [self-hosted, e2e-common]
@@ -2271,7 +2351,7 @@ jobs:
         env:
           PROVIDER: VCD
           CRI: Containerd
-          LAYOUT: WithoutNAT
+          LAYOUT: Standard
           KUBERNETES_VERSION: "1.30"
           LAYOUT_DECKHOUSE_DOCKERCFG: ${{ secrets.LAYOUT_DECKHOUSE_DOCKERCFG }}
           LAYOUT_SSH_KEY: ${{ secrets.LAYOUT_SSH_KEY}}
@@ -2281,6 +2361,11 @@ jobs:
           DECKHOUSE_IMAGE_TAG: ${{ steps.setup.outputs.deckhouse-image-tag }}
           INITIAL_IMAGE_TAG: ${{ steps.setup.outputs.initial-image-tag }}
         # <template: e2e_run_template>
+          LAYOUT_VCD_PASSWORD: ${{ secrets.LAYOUT_VCD_PASSWORD }}
+          LAYOUT_VCD_USERNAME: ${{ secrets.LAYOUT_VCD_USERNAME }}
+          LAYOUT_STATIC_BASTION_IP: 80.249.129.56
+          LAYOUT_VCD_SERVER: ${{ secrets.LAYOUT_VCD_SERVER }}
+          LAYOUT_VCD_ORG: ${{ secrets.LAYOUT_VCD_ORG }}
           COMMENT_ID: ${{ inputs.comment_id }}
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
@@ -2316,7 +2401,7 @@ jobs:
           bastion_ip_file=""
           if [[ "${PROVIDER}" == "Static" ]] ; then
             bastion_ip_file="${DHCTL_LOG_FILE}-ssh-bastion-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
-          elif [[ "${PROVIDER}" == "vCloudDirector" ]] ; then
+          elif [[ "${PROVIDER}" == "VCD" ]] ; then
             bastion_ip_file="${DHCTL_LOG_FILE}-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           fi
 
@@ -2337,6 +2422,11 @@ jobs:
             -e LAYOUT=${LAYOUT:-not_provided} \
             -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
+            -e LAYOUT_VCD_PASSWORD=${LAYOUT_VCD_PASSWORD:-not_provided} \
+            -e LAYOUT_VCD_USERNAME=${LAYOUT_VCD_USERNAME:-not_provided} \
+            -e LAYOUT_VCD_SERVER=${LAYOUT_VCD_SERVER:-not_provided} \
+            -e LAYOUT_VCD_ORG=${LAYOUT_VCD_ORG:-not_provided} \
+            -e LAYOUT_STATIC_BASTION_IP=80.249.129.56 \
             -e USER_RUNNER_ID=${user_runner_id} \
             -v $(pwd)/testing:/deckhouse/testing \
             -v $(pwd)/release.yaml:/deckhouse/release.yaml \
@@ -2374,7 +2464,7 @@ jobs:
         env:
           PROVIDER: VCD
           CRI: Containerd
-          LAYOUT: WithoutNAT
+          LAYOUT: Standard
           KUBERNETES_VERSION: "1.30"
           LAYOUT_DECKHOUSE_DOCKERCFG: ${{ secrets.LAYOUT_DECKHOUSE_DOCKERCFG }}
           LAYOUT_SSH_KEY: ${{ secrets.LAYOUT_SSH_KEY}}
@@ -2383,6 +2473,11 @@ jobs:
           INSTALL_IMAGE_NAME: ${{ steps.setup.outputs.install-image-name }}
           DECKHOUSE_IMAGE_TAG: ${{ steps.setup.outputs.deckhouse-image-tag }}
         # <template: e2e_run_template>
+          LAYOUT_VCD_PASSWORD: ${{ secrets.LAYOUT_VCD_PASSWORD }}
+          LAYOUT_VCD_USERNAME: ${{ secrets.LAYOUT_VCD_USERNAME }}
+          LAYOUT_STATIC_BASTION_IP: 80.249.129.56
+          LAYOUT_VCD_SERVER: ${{ secrets.LAYOUT_VCD_SERVER }}
+          LAYOUT_VCD_ORG: ${{ secrets.LAYOUT_VCD_ORG }}
           COMMENT_ID: ${{ inputs.comment_id }}
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
@@ -2421,6 +2516,11 @@ jobs:
             -e LAYOUT=${LAYOUT:-not_provided} \
             -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
+            -e LAYOUT_VCD_PASSWORD=${LAYOUT_VCD_PASSWORD:-not_provided} \
+            -e LAYOUT_VCD_USERNAME=${LAYOUT_VCD_USERNAME:-not_provided} \
+            -e LAYOUT_VCD_SERVER=${LAYOUT_VCD_SERVER:-not_provided} \
+            -e LAYOUT_VCD_ORG=${LAYOUT_VCD_ORG:-not_provided} \
+            -e LAYOUT_STATIC_BASTION_IP=80.249.129.56 \
             -e USER_RUNNER_ID=${user_runner_id} \
             -v $(pwd)/testing:/deckhouse/testing \
             -v $(pwd)/release.yaml:/deckhouse/release.yaml \
@@ -2521,14 +2621,14 @@ jobs:
       run_id: ${{ github.run_id }}
       # need for find state in artifact
       cluster_prefix: ${{ steps.setup.outputs.dhctl-prefix }}
-      ran_for: "vcd;WithoutNAT;containerd;Automatic"
+      ran_for: "vcd;Standard;containerd;Automatic"
       failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.failed_cluster_stayed }}
       issue_number: ${{ inputs.issue_number }}
       install_image_path: ${{ steps.setup.outputs.install-image-path }}
     env:
       PROVIDER: VCD
       CRI: Containerd
-      LAYOUT: WithoutNAT
+      LAYOUT: Standard
       KUBERNETES_VERSION: "Automatic"
       EVENT_LABEL: ${{ github.event.label.name }}
     runs-on: [self-hosted, e2e-common]
@@ -2734,7 +2834,7 @@ jobs:
         env:
           PROVIDER: VCD
           CRI: Containerd
-          LAYOUT: WithoutNAT
+          LAYOUT: Standard
           KUBERNETES_VERSION: "Automatic"
           LAYOUT_DECKHOUSE_DOCKERCFG: ${{ secrets.LAYOUT_DECKHOUSE_DOCKERCFG }}
           LAYOUT_SSH_KEY: ${{ secrets.LAYOUT_SSH_KEY}}
@@ -2744,6 +2844,11 @@ jobs:
           DECKHOUSE_IMAGE_TAG: ${{ steps.setup.outputs.deckhouse-image-tag }}
           INITIAL_IMAGE_TAG: ${{ steps.setup.outputs.initial-image-tag }}
         # <template: e2e_run_template>
+          LAYOUT_VCD_PASSWORD: ${{ secrets.LAYOUT_VCD_PASSWORD }}
+          LAYOUT_VCD_USERNAME: ${{ secrets.LAYOUT_VCD_USERNAME }}
+          LAYOUT_STATIC_BASTION_IP: 80.249.129.56
+          LAYOUT_VCD_SERVER: ${{ secrets.LAYOUT_VCD_SERVER }}
+          LAYOUT_VCD_ORG: ${{ secrets.LAYOUT_VCD_ORG }}
           COMMENT_ID: ${{ inputs.comment_id }}
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
@@ -2779,7 +2884,7 @@ jobs:
           bastion_ip_file=""
           if [[ "${PROVIDER}" == "Static" ]] ; then
             bastion_ip_file="${DHCTL_LOG_FILE}-ssh-bastion-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
-          elif [[ "${PROVIDER}" == "vCloudDirector" ]] ; then
+          elif [[ "${PROVIDER}" == "VCD" ]] ; then
             bastion_ip_file="${DHCTL_LOG_FILE}-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           fi
 
@@ -2800,6 +2905,11 @@ jobs:
             -e LAYOUT=${LAYOUT:-not_provided} \
             -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
+            -e LAYOUT_VCD_PASSWORD=${LAYOUT_VCD_PASSWORD:-not_provided} \
+            -e LAYOUT_VCD_USERNAME=${LAYOUT_VCD_USERNAME:-not_provided} \
+            -e LAYOUT_VCD_SERVER=${LAYOUT_VCD_SERVER:-not_provided} \
+            -e LAYOUT_VCD_ORG=${LAYOUT_VCD_ORG:-not_provided} \
+            -e LAYOUT_STATIC_BASTION_IP=80.249.129.56 \
             -e USER_RUNNER_ID=${user_runner_id} \
             -v $(pwd)/testing:/deckhouse/testing \
             -v $(pwd)/release.yaml:/deckhouse/release.yaml \
@@ -2837,7 +2947,7 @@ jobs:
         env:
           PROVIDER: VCD
           CRI: Containerd
-          LAYOUT: WithoutNAT
+          LAYOUT: Standard
           KUBERNETES_VERSION: "Automatic"
           LAYOUT_DECKHOUSE_DOCKERCFG: ${{ secrets.LAYOUT_DECKHOUSE_DOCKERCFG }}
           LAYOUT_SSH_KEY: ${{ secrets.LAYOUT_SSH_KEY}}
@@ -2846,6 +2956,11 @@ jobs:
           INSTALL_IMAGE_NAME: ${{ steps.setup.outputs.install-image-name }}
           DECKHOUSE_IMAGE_TAG: ${{ steps.setup.outputs.deckhouse-image-tag }}
         # <template: e2e_run_template>
+          LAYOUT_VCD_PASSWORD: ${{ secrets.LAYOUT_VCD_PASSWORD }}
+          LAYOUT_VCD_USERNAME: ${{ secrets.LAYOUT_VCD_USERNAME }}
+          LAYOUT_STATIC_BASTION_IP: 80.249.129.56
+          LAYOUT_VCD_SERVER: ${{ secrets.LAYOUT_VCD_SERVER }}
+          LAYOUT_VCD_ORG: ${{ secrets.LAYOUT_VCD_ORG }}
           COMMENT_ID: ${{ inputs.comment_id }}
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
@@ -2884,6 +2999,11 @@ jobs:
             -e LAYOUT=${LAYOUT:-not_provided} \
             -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
+            -e LAYOUT_VCD_PASSWORD=${LAYOUT_VCD_PASSWORD:-not_provided} \
+            -e LAYOUT_VCD_USERNAME=${LAYOUT_VCD_USERNAME:-not_provided} \
+            -e LAYOUT_VCD_SERVER=${LAYOUT_VCD_SERVER:-not_provided} \
+            -e LAYOUT_VCD_ORG=${LAYOUT_VCD_ORG:-not_provided} \
+            -e LAYOUT_STATIC_BASTION_IP=80.249.129.56 \
             -e USER_RUNNER_ID=${user_runner_id} \
             -v $(pwd)/testing:/deckhouse/testing \
             -v $(pwd)/release.yaml:/deckhouse/release.yaml \
