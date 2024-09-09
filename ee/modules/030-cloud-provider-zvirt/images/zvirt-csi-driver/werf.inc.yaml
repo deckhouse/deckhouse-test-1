@@ -34,11 +34,10 @@ mount:
 shell:
   install:
     - set -x
-    - export GO_VERSION=${GOLANG_VERSION}
     - export GOPROXY={{ $.GOPROXY }}
     - export VERSION="0.1.0"
     - mkdir -p /dynamix /dynamix/dynamix-csi-driver/src
-    - echo "Hello, world!"
+    - echo "Hello, world! {{ $.CLOUD_PROVIDERS_SOURCE_REPO }}"
     - git clone --depth 1 --branch main {{ $.CLOUD_PROVIDERS_SOURCE_REPO }}/dynamix/dynamix-common /dynamix/dynamix-csi-driver/src
     - echo "Git clone $?"
     - ls -lhR /dynamix
