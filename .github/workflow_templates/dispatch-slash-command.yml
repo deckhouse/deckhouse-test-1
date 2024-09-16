@@ -55,7 +55,7 @@ jobs:
             core.info(`Has 'changelog' label?  ${hasChangelogLabel}`)
             core.info(`Has 'auto' label?       ${hasAutoLabel}`)
 
-            if (isReleaseIssue && (authorAssociation === 'OWNER' || authorAssociation === 'MEMBER' || (isPrivate && authorAssociation === 'COLLABORATOR'))) {
+            if (isReleaseIssue && isPrivate) {
               core.notice(`Comment on release issue with possible slash command.`);
               return core.setOutput('trigger_for_release_issue', 'true');
             }
@@ -71,7 +71,7 @@ jobs:
             // Member is a member of the github organization and the organization is public (here https://github.com/orgs/deckhouse/people)
             // Collaborator is a member of github and the organization is private (here https://github.com/orgs/deckhouse/people)
             // Contributor is a person who is not a member of github, but has contributed to the repository.
-            if (isPR && (authorAssociation === 'OWNER' || authorAssociation === 'MEMBER' || authorAssociation === 'COLLABORATOR')) {
+            if (isPR && isPrivate) {
               core.notice(`Comment on pull request.`);
               return core.setOutput('trigger_for_pull_request', 'true');
             }
