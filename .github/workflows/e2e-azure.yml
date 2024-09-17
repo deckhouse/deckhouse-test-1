@@ -51,10 +51,6 @@ on:
       initial_ref_slug:
         description: 'An image tag to install first and then switch to workflow context ref'
         required: false
-      multimaster:
-        description: 'Use multimaster'
-        required: false
-        type: boolean
 env:
 
   # <template: werf_envs>
@@ -320,7 +316,7 @@ jobs:
           REF_FULL: ${{needs.git_info.outputs.ref_full}}
           INITIAL_REF_SLUG: ${{ github.event.inputs.initial_ref_slug }}
           MANUAL_RUN: "true"
-          MULTIMASTER: ${{ check_e2e_labels.outputs.multimaster }}
+          MULTIMASTER: ${{ needs.check_e2e_labels.outputs.multimaster }}
         run: |
           # Calculate unique prefix for e2e test.
           # GITHUB_RUN_ID is a unique number for each workflow run.
@@ -439,7 +435,7 @@ jobs:
           LAYOUT_SSH_KEY: ${{ secrets.LAYOUT_SSH_KEY}}
           TMP_DIR_PATH: ${{ steps.setup.outputs.tmp-dir-path}}
           PREFIX: ${{ steps.setup.outputs.dhctl-prefix}}
-          MASTER_COUNT: ${{ steps.setup.outputs.multimaster}}
+          MASTER_COUNT: ${{ steps.setup.outputs.master-count}}
           INSTALL_IMAGE_NAME: ${{ steps.setup.outputs.install-image-name }}
           DECKHOUSE_IMAGE_TAG: ${{ steps.setup.outputs.deckhouse-image-tag }}
           INITIAL_IMAGE_TAG: ${{ steps.setup.outputs.initial-image-tag }}
@@ -814,7 +810,7 @@ jobs:
           REF_FULL: ${{needs.git_info.outputs.ref_full}}
           INITIAL_REF_SLUG: ${{ github.event.inputs.initial_ref_slug }}
           MANUAL_RUN: "true"
-          MULTIMASTER: ${{ check_e2e_labels.outputs.multimaster }}
+          MULTIMASTER: ${{ needs.check_e2e_labels.outputs.multimaster }}
         run: |
           # Calculate unique prefix for e2e test.
           # GITHUB_RUN_ID is a unique number for each workflow run.
@@ -933,7 +929,7 @@ jobs:
           LAYOUT_SSH_KEY: ${{ secrets.LAYOUT_SSH_KEY}}
           TMP_DIR_PATH: ${{ steps.setup.outputs.tmp-dir-path}}
           PREFIX: ${{ steps.setup.outputs.dhctl-prefix}}
-          MASTER_COUNT: ${{ steps.setup.outputs.multimaster}}
+          MASTER_COUNT: ${{ steps.setup.outputs.master-count}}
           INSTALL_IMAGE_NAME: ${{ steps.setup.outputs.install-image-name }}
           DECKHOUSE_IMAGE_TAG: ${{ steps.setup.outputs.deckhouse-image-tag }}
           INITIAL_IMAGE_TAG: ${{ steps.setup.outputs.initial-image-tag }}
@@ -1308,7 +1304,7 @@ jobs:
           REF_FULL: ${{needs.git_info.outputs.ref_full}}
           INITIAL_REF_SLUG: ${{ github.event.inputs.initial_ref_slug }}
           MANUAL_RUN: "true"
-          MULTIMASTER: ${{ check_e2e_labels.outputs.multimaster }}
+          MULTIMASTER: ${{ needs.check_e2e_labels.outputs.multimaster }}
         run: |
           # Calculate unique prefix for e2e test.
           # GITHUB_RUN_ID is a unique number for each workflow run.
@@ -1427,7 +1423,7 @@ jobs:
           LAYOUT_SSH_KEY: ${{ secrets.LAYOUT_SSH_KEY}}
           TMP_DIR_PATH: ${{ steps.setup.outputs.tmp-dir-path}}
           PREFIX: ${{ steps.setup.outputs.dhctl-prefix}}
-          MASTER_COUNT: ${{ steps.setup.outputs.multimaster}}
+          MASTER_COUNT: ${{ steps.setup.outputs.master-count}}
           INSTALL_IMAGE_NAME: ${{ steps.setup.outputs.install-image-name }}
           DECKHOUSE_IMAGE_TAG: ${{ steps.setup.outputs.deckhouse-image-tag }}
           INITIAL_IMAGE_TAG: ${{ steps.setup.outputs.initial-image-tag }}
@@ -1802,7 +1798,7 @@ jobs:
           REF_FULL: ${{needs.git_info.outputs.ref_full}}
           INITIAL_REF_SLUG: ${{ github.event.inputs.initial_ref_slug }}
           MANUAL_RUN: "true"
-          MULTIMASTER: ${{ check_e2e_labels.outputs.multimaster }}
+          MULTIMASTER: ${{ needs.check_e2e_labels.outputs.multimaster }}
         run: |
           # Calculate unique prefix for e2e test.
           # GITHUB_RUN_ID is a unique number for each workflow run.
@@ -1921,7 +1917,7 @@ jobs:
           LAYOUT_SSH_KEY: ${{ secrets.LAYOUT_SSH_KEY}}
           TMP_DIR_PATH: ${{ steps.setup.outputs.tmp-dir-path}}
           PREFIX: ${{ steps.setup.outputs.dhctl-prefix}}
-          MASTER_COUNT: ${{ steps.setup.outputs.multimaster}}
+          MASTER_COUNT: ${{ steps.setup.outputs.master-count}}
           INSTALL_IMAGE_NAME: ${{ steps.setup.outputs.install-image-name }}
           DECKHOUSE_IMAGE_TAG: ${{ steps.setup.outputs.deckhouse-image-tag }}
           INITIAL_IMAGE_TAG: ${{ steps.setup.outputs.initial-image-tag }}
@@ -2296,7 +2292,7 @@ jobs:
           REF_FULL: ${{needs.git_info.outputs.ref_full}}
           INITIAL_REF_SLUG: ${{ github.event.inputs.initial_ref_slug }}
           MANUAL_RUN: "true"
-          MULTIMASTER: ${{ check_e2e_labels.outputs.multimaster }}
+          MULTIMASTER: ${{ needs.check_e2e_labels.outputs.multimaster }}
         run: |
           # Calculate unique prefix for e2e test.
           # GITHUB_RUN_ID is a unique number for each workflow run.
@@ -2415,7 +2411,7 @@ jobs:
           LAYOUT_SSH_KEY: ${{ secrets.LAYOUT_SSH_KEY}}
           TMP_DIR_PATH: ${{ steps.setup.outputs.tmp-dir-path}}
           PREFIX: ${{ steps.setup.outputs.dhctl-prefix}}
-          MASTER_COUNT: ${{ steps.setup.outputs.multimaster}}
+          MASTER_COUNT: ${{ steps.setup.outputs.master-count}}
           INSTALL_IMAGE_NAME: ${{ steps.setup.outputs.install-image-name }}
           DECKHOUSE_IMAGE_TAG: ${{ steps.setup.outputs.deckhouse-image-tag }}
           INITIAL_IMAGE_TAG: ${{ steps.setup.outputs.initial-image-tag }}
@@ -2790,7 +2786,7 @@ jobs:
           REF_FULL: ${{needs.git_info.outputs.ref_full}}
           INITIAL_REF_SLUG: ${{ github.event.inputs.initial_ref_slug }}
           MANUAL_RUN: "true"
-          MULTIMASTER: ${{ check_e2e_labels.outputs.multimaster }}
+          MULTIMASTER: ${{ needs.check_e2e_labels.outputs.multimaster }}
         run: |
           # Calculate unique prefix for e2e test.
           # GITHUB_RUN_ID is a unique number for each workflow run.
@@ -2909,7 +2905,7 @@ jobs:
           LAYOUT_SSH_KEY: ${{ secrets.LAYOUT_SSH_KEY}}
           TMP_DIR_PATH: ${{ steps.setup.outputs.tmp-dir-path}}
           PREFIX: ${{ steps.setup.outputs.dhctl-prefix}}
-          MASTER_COUNT: ${{ steps.setup.outputs.multimaster}}
+          MASTER_COUNT: ${{ steps.setup.outputs.master-count}}
           INSTALL_IMAGE_NAME: ${{ steps.setup.outputs.install-image-name }}
           DECKHOUSE_IMAGE_TAG: ${{ steps.setup.outputs.deckhouse-image-tag }}
           INITIAL_IMAGE_TAG: ${{ steps.setup.outputs.initial-image-tag }}
