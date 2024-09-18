@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+var="ewogICJjcmVkZW50aW9uYWwiOiB7CiAgICAidXNlciI6ICJ0ZXN0dXNlciIsCiAgICAicGFzc3dvcmQiOiAiZGVlc2Uwd2llMnRhaHBoMm1vb3lhaVBvb3JpZTBOYWgiCiAgfQp9Cg=="
+echo $var
