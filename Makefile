@@ -182,6 +182,9 @@ lint-markdown-fix: ## Run markdown linter and fix problems automatically.
 	@docker run --rm -v ${PWD}:/workdir ${MDLINTER_IMAGE} \
 		--config testing/markdownlint.yaml -p testing/.markdownlintignore "**/*.md" --fix && (echo 'Fixed successfully.')
 
+gitleaks: ## Run gitleaks
+	@docker run -v ${PWD}:/path zricethezav/gitleaks:latest protect --verbose --redact --staged --source="/path"
+
 ##@ Generate
 
 .PHONY: generate render-workflow
