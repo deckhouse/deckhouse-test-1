@@ -92,6 +92,8 @@ const semVerReleaseTagName = /v(\d+\.\d+)\.\d+/
 const semVerTestTagNameFullMatch = /^test-v?(\d+\.\d+)\.\d+/
 // release-X.Y
 const releaseBranchNameFullMatch = /^release-(\d+\.\d+)$/
+// release-X.Y-test-D
+const releaseBranchNameFullMatch2 = /^release-(\d+\.\d+)-test-\d$/
 
 
 /**
@@ -126,6 +128,11 @@ const fullMatchReleaseBranch = (input) => {
   if (!input) {
     return null
   }
-  return input.match(releaseBranchNameFullMatch)
+  let res = input.match(releaseBranchNameFullMatch)
+  if (res != null) {
+    return res
+  }
+
+  return input.match(releaseBranchNameFullMatch2)
 }
 module.exports.fullMatchReleaseBranch = fullMatchReleaseBranch
