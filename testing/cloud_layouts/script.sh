@@ -304,9 +304,8 @@ function prepare_environment() {
         KUBERNETES_VERSION="$KUBERNETES_VERSION" CRI="$CRI" DEV_BRANCH="$DEV_BRANCH" PREFIX="$PREFIX" DECKHOUSE_DOCKERCFG="$DECKHOUSE_DOCKERCFG" MASTERS_COUNT="$MASTERS_COUNT" \
         envsubst '${DECKHOUSE_DOCKERCFG} ${PREFIX} ${DEV_BRANCH} ${KUBERNETES_VERSION} ${CRI} ${AWS_ACCESS_KEY} ${AWS_SECRET_ACCESS_KEY} ${MASTERS_COUNT}' \
         <"$cwd/configuration.tpl.yaml" >"$cwd/configuration.yaml"
-    cat "$cwd/configuration.yaml"
 
-    ssh_user="ec2-user" #TODO Удалить после отладки
+    ssh_user="ec2-user"
     ;;
 
   "Azure")
@@ -391,6 +390,7 @@ function prepare_environment() {
 
   >&2 echo "Use configuration in directory '$cwd':"
   >&2 ls -la $cwd
+  >&2 cat "$cwd/configuration.yaml"
 }
 
 function write_deckhouse_logs() {
