@@ -1208,3 +1208,7 @@ shell:
     - mv /src-provider-kubernetes/terraform-provider-kubernetes /terraform-provider-kubernetes
     - chmod 755 /terraform-provider-*
     - chown 64535:64535 /terraform-provider-*
+
+
+
+
