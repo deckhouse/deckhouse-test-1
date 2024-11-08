@@ -547,7 +547,7 @@ jobs:
     env:
       WERF_ENV: ${{ needs.pull_request_info.outputs.edition }}
     # <template: build_template>
-    runs-on: [self-hosted, regular, selectel]
+    runs-on: [self-hosted, regular, selectel-test]
     outputs:
       tests_image_name: ${{ steps.build.outputs.tests_image_name }}
     steps:
