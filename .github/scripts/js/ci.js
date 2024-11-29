@@ -478,10 +478,15 @@ const setCRIAndVersionsFromLabels = ({ core, labels, kubernetesDefaultVersion })
   let ver = [];
   let cri = [];
   let multimaster = e2eDefaults.multimaster;
+  let edition = "";
 
   for (const label of labels) {
     const info = knownLabels[label.name];
-    if (!info || info.type !== 'e2e-use') {
+    core.info(`Parsing label '${JSON.stringify(label)}'`)
+    if (info) {
+      core.info(`Recognized as '${JSON.stringify(info)}'`)
+    }
+    if (!info || (info.type !== 'e2e-use' && info.type !== 'edition')) {
       continue;
     }
     if (info.cri) {
@@ -491,6 +496,10 @@ const setCRIAndVersionsFromLabels = ({ core, labels, kubernetesDefaultVersion })
     if (info.ver) {
       core.info(`Detect '${label.name}': use Kubernetes version '${info.ver}'`);
       ver.push(info.ver.replace(/\./g, '_'));
+    }
+    if (info.edition) {
+      core.info(`Detect '${label.name}': use edition '${info.edition}'`);
+      edition = info.edition;
     }
     if (info.multimaster) {
       core.info(`Detect '${label.name}': use Kubernetes multimaster configuration`);
@@ -512,6 +521,7 @@ const setCRIAndVersionsFromLabels = ({ core, labels, kubernetesDefaultVersion })
 
   core.startGroup(`Set outputs`);
   core.setCommandEcho(true);
+  core.setOutput(`edition`, `${edition}`);
   core.setOutput(`multimaster`, `${multimaster}`);
   for (const out_cri of cri) {
     for (const out_ver of ver) {
