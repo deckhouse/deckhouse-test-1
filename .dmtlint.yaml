@@ -4,6 +4,8 @@ linters-settings:
       d8-istio:
       - kube-rbac-proxy
       - operator
+      - istio-proxy
+      - metadata-discovery
       d8-chrony:
       - chrony
       d8-admission-policy-engine:
@@ -96,6 +98,11 @@ linters-settings:
       d8-upmeter:
       - agent
       - kube-rbac-proxy
+      - smoke-mini-a
+      - smoke-mini-b
+      - smoke-mini-c
+      - smoke-mini-d
+      - smoke-mini-e
       dex-authenticator-namespace:
       - redis
       test-namespace:
@@ -109,6 +116,14 @@ linters-settings:
       d8-dashboard:
       - dashboard
       - metrics-scraper
+      - api
+      - auth
+      - web
+      d8-service-with-healthchecks:
+      - agent
+      - controller
+      d8-user-authz:
+      - user-authz-webhook
   openapi:
     enum-file-excludes:
     - prometheus:/openapi/values.yaml:
@@ -132,6 +147,8 @@ linters-settings:
       - "properties.allowedBundles.items"
     - kube-dns:/openapi/values.yaml:
       - "properties.internal.properties.specificNodeType"
+    - descheduler:/openapi/values.yaml:
+      - "properties.internal.properties.deschedulers.items.properties.strategies.properties.removePodsViolatingNodeAffinity.properties.nodeAffinityType.items"
     ha-absolute-keys-excludes:
     - "user-authn:/openapi/config-values.yaml": "properties.publishAPI.properties.https"
   nocyrillic:
@@ -174,6 +191,7 @@ linters-settings:
     - cni-simple-bridge
     - extended-monitoring
     - namespace-configurator
+    - service-with-healthchecks
   rbac:
     skip-check-wildcards:
     - "admission-policy-engine/templates/rbac-for-us.yaml":
@@ -193,6 +211,8 @@ linters-settings:
       - "d8:upmeter:upmeter"
     - "vertical-pod-autoscaler/templates/rbac-for-us.yaml":
       - "d8:vertical-pod-autoscaler:controllers-reader"
+    - "istio/templates/multicluster/api-proxy/rbac-for-us.yaml":
+      - "d8:istio:multicluster:api-proxy"
     skip-object-check-binding:
     - ceph-csi
     - cert-manager
@@ -222,6 +242,8 @@ linters-settings:
     - extended-monitoring
     - prometheus
     - dashboard
+    - service-with-healthchecks
+    - user-authz
   helm:
     skip-module-image-name:
     - "021-cni-cilium/images/cilium/Dockerfile"
@@ -284,6 +306,8 @@ linters-settings:
     - "documentation:builder"
     - "kiali:kiali"
     - "aggregating-proxy:wait-memcached"
+    - "d8-upmeter:upmeter-agent"
+    - "kube-system:webhook"
   monitoring:
     skip-module-checks:
     - "extended-monitoring"
@@ -297,3 +321,17 @@ linters-settings:
     - "dashboard"
     - "dashboard-metrics-scraper"
     - "metrics-scraper"
+    - "api"
+    - "api-proxy"
+    - "auth"
+    - "d8-control-plane-apiserver"
+    - "d8-kube-dns-sts-pods-hosts-appender-webhook"
+    - "ingressgateway"
+    - "smoke-mini-a"
+    - "smoke-mini-b"
+    - "smoke-mini-c"
+    - "smoke-mini-d"
+    - "smoke-mini-e"
+    - "web"
+    skip-vpa-checks:
+    - "d8-system:deckhouse"
