@@ -311,7 +311,7 @@ linters-settings:
     - "kiali:kiali"
     - "aggregating-proxy:wait-memcached"
     - "upmeter-agent:chown-volume-data"
-    - "kube-dns:webhook"
+    - "d8-kube-dns-sts-pods-hosts-appender-webhook:webhook"
   monitoring:
     skip-module-checks:
     - "extended-monitoring"
