@@ -1,4 +1,4 @@
-linters-settings:
+linters-settings: 
   probes:
     probes-excludes:
       d8-istio:
