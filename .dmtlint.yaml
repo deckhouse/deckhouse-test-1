@@ -310,9 +310,8 @@ linters-settings:
     - "documentation:builder"
     - "kiali:kiali"
     - "aggregating-proxy:wait-memcached"
-    - "kube-system:webhook"
     - "upmeter-agent:chown-volume-data"
-    - "webhook:webhook"
+    - "kube-dns:webhook"
   monitoring:
     skip-module-checks:
     - "extended-monitoring"
