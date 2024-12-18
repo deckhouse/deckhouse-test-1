@@ -52,6 +52,7 @@ linters-settings:
       - recommender
       - updater
       - kube-proxy
+      - backup
       d8-system:
       - kube-rbac-proxy
       - web
@@ -103,6 +104,7 @@ linters-settings:
       - smoke-mini-c
       - smoke-mini-d
       - smoke-mini-e
+      - smoke-mini
       dex-authenticator-namespace:
       - redis
       test-namespace:
@@ -122,8 +124,10 @@ linters-settings:
       d8-service-with-healthchecks:
       - agent
       - controller
+      - kube-rbac-proxy
       d8-user-authz:
       - user-authz-webhook
+      - webhook
   openapi:
     enum-file-excludes:
     - prometheus:/openapi/values.yaml:
@@ -306,8 +310,9 @@ linters-settings:
     - "documentation:builder"
     - "kiali:kiali"
     - "aggregating-proxy:wait-memcached"
-    - "d8-upmeter:upmeter-agent"
     - "kube-system:webhook"
+    - "upmeter-agent:chown-volume-data"
+    - "webhook:webhook"
   monitoring:
     skip-module-checks:
     - "extended-monitoring"
@@ -333,5 +338,7 @@ linters-settings:
     - "smoke-mini-d"
     - "smoke-mini-e"
     - "web"
+    - "metadata-exporter"
+    - "prometheus-pp"
     skip-vpa-checks:
     - "d8-system:deckhouse"
