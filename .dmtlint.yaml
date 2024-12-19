@@ -341,3 +341,4 @@ linters-settings:
       - "prometheus-pp"
     skip-vpa-checks:
       - "d8-system:deckhouse"
+
