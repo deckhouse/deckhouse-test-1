@@ -351,7 +351,7 @@ linters-settings:
       - "upmeter-agent:chown-volume-data"
       - "d8-kube-dns-sts-pods-hosts-appender-webhook:webhook"
       - "caps-controller-manager:caps-controller-manager"
-      - "standby-holder-df2BOQP7:reserve-resources"
+      - "standby-holder-name:reserve-resources"
   monitoring:
     skip-module-checks:
       - "extended-monitoring"
@@ -379,7 +379,8 @@ linters-settings:
       - "web"
       - "metadata-exporter"
       - "prometheus-pp"
-      - "standby-holder-JJ80O8c2"
+      - "standby-holder-name"
+      - "machine-controller-manager"
     skip-vpa-checks:
       - "d8-system:deckhouse"
       - "d8-cloud-instance-manager:node-manager"
