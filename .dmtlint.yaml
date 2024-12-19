@@ -284,7 +284,7 @@ linters-settings:
       - cloud-provider-dynamix
       - cloud-provider-huaweicloud
       - cloud-provider-openstack
-      - loud-provider-vcd
+      - cloud-provider-vcd
       - cloud-provider-zvirt
   helm:
     skip-module-image-name:
@@ -351,7 +351,7 @@ linters-settings:
       - "upmeter-agent:chown-volume-data"
       - "d8-kube-dns-sts-pods-hosts-appender-webhook:webhook"
       - "caps-controller-manager:caps-controller-manager"
-      - "reserve-resources:reserve-resources"
+      - "standby-holder-df2BOQP7:reserve-resources"
   monitoring:
     skip-module-checks:
       - "extended-monitoring"
