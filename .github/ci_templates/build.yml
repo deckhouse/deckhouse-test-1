@@ -74,6 +74,8 @@ steps:
       CI_COMMIT_REF_SLUG: ${{needs.pull_request_info.outputs.ref_slug}}
 {!{- end }!}
     run: |
+      echo "THIS IS A TEST BRANCH 1"
+      exit 1
       # Extract REPO_SUFFIX from repository name: trim prefix 'deckhouse/deckhouse-'.
       REPO_SUFFIX=${GITHUB_REPOSITORY#deckhouse/deckhouse-}
       if [[ $REPO_SUFFIX == $GITHUB_REPOSITORY ]] ; then
