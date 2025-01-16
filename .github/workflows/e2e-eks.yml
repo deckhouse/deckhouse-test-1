@@ -575,6 +575,19 @@ jobs:
           /deckhouse/testing/cloud_layouts/script_eks.sh wait_cluster_ready"
 
         # </template: e2e_run_template>
+
+  ################################################### Collect logs when e2e failed ###########################
+      - name: "Creating log artifacts when e2e testing fails"
+        id: create_e2e_tests_logs
+        if: failure() || cancelled()
+        env:
+          SSH_CONNECT_STR_FILE: ${{ steps.e2e_test_run.outputs.ssh_connection_str_file }}
+          SSH_BASTION_STR_FILE: ${{ steps.e2e_test_run.outputs.ssh_bastion_str_file }}
+        run: |
+          echo $SSH_CONNECT_STR_FILE
+          echo $SSH_BASTION_STR_FILE
+
+  ################################################### Collect logs when e2e failed ###########################
       - name: Read connection string
         if: ${{ failure() || cancelled() }}
         id: check_stay_failed_cluster
@@ -1115,6 +1128,19 @@ jobs:
           /deckhouse/testing/cloud_layouts/script_eks.sh wait_cluster_ready"
 
         # </template: e2e_run_template>
+
+  ################################################### Collect logs when e2e failed ###########################
+      - name: "Creating log artifacts when e2e testing fails"
+        id: create_e2e_tests_logs
+        if: failure() || cancelled()
+        env:
+          SSH_CONNECT_STR_FILE: ${{ steps.e2e_test_run.outputs.ssh_connection_str_file }}
+          SSH_BASTION_STR_FILE: ${{ steps.e2e_test_run.outputs.ssh_bastion_str_file }}
+        run: |
+          echo $SSH_CONNECT_STR_FILE
+          echo $SSH_BASTION_STR_FILE
+
+  ################################################### Collect logs when e2e failed ###########################
       - name: Read connection string
         if: ${{ failure() || cancelled() }}
         id: check_stay_failed_cluster
@@ -1655,6 +1681,19 @@ jobs:
           /deckhouse/testing/cloud_layouts/script_eks.sh wait_cluster_ready"
 
         # </template: e2e_run_template>
+
+  ################################################### Collect logs when e2e failed ###########################
+      - name: "Creating log artifacts when e2e testing fails"
+        id: create_e2e_tests_logs
+        if: failure() || cancelled()
+        env:
+          SSH_CONNECT_STR_FILE: ${{ steps.e2e_test_run.outputs.ssh_connection_str_file }}
+          SSH_BASTION_STR_FILE: ${{ steps.e2e_test_run.outputs.ssh_bastion_str_file }}
+        run: |
+          echo $SSH_CONNECT_STR_FILE
+          echo $SSH_BASTION_STR_FILE
+
+  ################################################### Collect logs when e2e failed ###########################
       - name: Read connection string
         if: ${{ failure() || cancelled() }}
         id: check_stay_failed_cluster
@@ -2195,6 +2234,19 @@ jobs:
           /deckhouse/testing/cloud_layouts/script_eks.sh wait_cluster_ready"
 
         # </template: e2e_run_template>
+
+  ################################################### Collect logs when e2e failed ###########################
+      - name: "Creating log artifacts when e2e testing fails"
+        id: create_e2e_tests_logs
+        if: failure() || cancelled()
+        env:
+          SSH_CONNECT_STR_FILE: ${{ steps.e2e_test_run.outputs.ssh_connection_str_file }}
+          SSH_BASTION_STR_FILE: ${{ steps.e2e_test_run.outputs.ssh_bastion_str_file }}
+        run: |
+          echo $SSH_CONNECT_STR_FILE
+          echo $SSH_BASTION_STR_FILE
+
+  ################################################### Collect logs when e2e failed ###########################
       - name: Read connection string
         if: ${{ failure() || cancelled() }}
         id: check_stay_failed_cluster
@@ -2735,6 +2787,19 @@ jobs:
           /deckhouse/testing/cloud_layouts/script_eks.sh wait_cluster_ready"
 
         # </template: e2e_run_template>
+
+  ################################################### Collect logs when e2e failed ###########################
+      - name: "Creating log artifacts when e2e testing fails"
+        id: create_e2e_tests_logs
+        if: failure() || cancelled()
+        env:
+          SSH_CONNECT_STR_FILE: ${{ steps.e2e_test_run.outputs.ssh_connection_str_file }}
+          SSH_BASTION_STR_FILE: ${{ steps.e2e_test_run.outputs.ssh_bastion_str_file }}
+        run: |
+          echo $SSH_CONNECT_STR_FILE
+          echo $SSH_BASTION_STR_FILE
+
+  ################################################### Collect logs when e2e failed ###########################
       - name: Read connection string
         if: ${{ failure() || cancelled() }}
         id: check_stay_failed_cluster
@@ -3275,6 +3340,19 @@ jobs:
           /deckhouse/testing/cloud_layouts/script_eks.sh wait_cluster_ready"
 
         # </template: e2e_run_template>
+
+  ################################################### Collect logs when e2e failed ###########################
+      - name: "Creating log artifacts when e2e testing fails"
+        id: create_e2e_tests_logs
+        if: failure() || cancelled()
+        env:
+          SSH_CONNECT_STR_FILE: ${{ steps.e2e_test_run.outputs.ssh_connection_str_file }}
+          SSH_BASTION_STR_FILE: ${{ steps.e2e_test_run.outputs.ssh_bastion_str_file }}
+        run: |
+          echo $SSH_CONNECT_STR_FILE
+          echo $SSH_BASTION_STR_FILE
+
+  ################################################### Collect logs when e2e failed ###########################
       - name: Read connection string
         if: ${{ failure() || cancelled() }}
         id: check_stay_failed_cluster
@@ -3815,6 +3893,19 @@ jobs:
           /deckhouse/testing/cloud_layouts/script_eks.sh wait_cluster_ready"
 
         # </template: e2e_run_template>
+
+  ################################################### Collect logs when e2e failed ###########################
+      - name: "Creating log artifacts when e2e testing fails"
+        id: create_e2e_tests_logs
+        if: failure() || cancelled()
+        env:
+          SSH_CONNECT_STR_FILE: ${{ steps.e2e_test_run.outputs.ssh_connection_str_file }}
+          SSH_BASTION_STR_FILE: ${{ steps.e2e_test_run.outputs.ssh_bastion_str_file }}
+        run: |
+          echo $SSH_CONNECT_STR_FILE
+          echo $SSH_BASTION_STR_FILE
+
+  ################################################### Collect logs when e2e failed ###########################
       - name: Read connection string
         if: ${{ failure() || cancelled() }}
         id: check_stay_failed_cluster

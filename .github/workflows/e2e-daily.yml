@@ -422,6 +422,10 @@ jobs:
 
         # </template: e2e_run_template>
 
+  ################################################### Collect logs when e2e failed ###########################
+
+  ################################################### Collect logs when e2e failed ###########################
+
       - name: Cleanup bootstrapped cluster
         if: always()
         id: cleanup_cluster
@@ -930,6 +934,10 @@ jobs:
 
         # </template: e2e_run_template>
 
+  ################################################### Collect logs when e2e failed ###########################
+
+  ################################################### Collect logs when e2e failed ###########################
+
       - name: Cleanup bootstrapped cluster
         if: always()
         id: cleanup_cluster
@@ -1395,6 +1403,10 @@ jobs:
 
         # </template: e2e_run_template>
 
+  ################################################### Collect logs when e2e failed ###########################
+
+  ################################################### Collect logs when e2e failed ###########################
+
       - name: Cleanup bootstrapped cluster
         if: always()
         id: cleanup_cluster
@@ -1859,6 +1871,10 @@ jobs:
 
         # </template: e2e_run_template>
 
+  ################################################### Collect logs when e2e failed ###########################
+
+  ################################################### Collect logs when e2e failed ###########################
+
       - name: Cleanup bootstrapped cluster
         if: always()
         id: cleanup_cluster
@@ -2320,6 +2336,10 @@ jobs:
           bash /deckhouse/testing/cloud_layouts/script.sh run-test
 
         # </template: e2e_run_template>
+
+  ################################################### Collect logs when e2e failed ###########################
+
+  ################################################### Collect logs when e2e failed ###########################
 
       - name: Cleanup bootstrapped cluster
         if: always()
@@ -2783,6 +2803,10 @@ jobs:
 
         # </template: e2e_run_template>
 
+  ################################################### Collect logs when e2e failed ###########################
+
+  ################################################### Collect logs when e2e failed ###########################
+
       - name: Cleanup bootstrapped cluster
         if: always()
         id: cleanup_cluster
@@ -3242,6 +3266,10 @@ jobs:
           bash /deckhouse/testing/cloud_layouts/script.sh run-test
 
         # </template: e2e_run_template>
+
+  ################################################### Collect logs when e2e failed ###########################
+
+  ################################################### Collect logs when e2e failed ###########################
 
       - name: Cleanup bootstrapped cluster
         if: always()
@@ -3711,6 +3739,10 @@ jobs:
 
         # </template: e2e_run_template>
 
+  ################################################### Collect logs when e2e failed ###########################
+
+  ################################################### Collect logs when e2e failed ###########################
+
       - name: Cleanup bootstrapped cluster
         if: always()
         id: cleanup_cluster
@@ -4176,6 +4208,10 @@ jobs:
           bash /deckhouse/testing/cloud_layouts/script.sh run-test
 
         # </template: e2e_run_template>
+
+  ################################################### Collect logs when e2e failed ###########################
+
+  ################################################### Collect logs when e2e failed ###########################
 
       - name: Cleanup bootstrapped cluster
         if: always()
