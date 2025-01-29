@@ -63,4 +63,4 @@ jobs:
           MILESTONE_TITLE: ${{ github.event.inputs.tag_name }}
         shell: bash
         run: |
-          python .github/workflows/create_release.py
+          python .github/workflows/scripts/python/create_release.py
