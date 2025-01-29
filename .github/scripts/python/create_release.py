@@ -50,7 +50,7 @@ def create_github_release():
         "tag_name": TAG_NAME,
         "target_commitish": RELEASE_BRANCH,
         "name": RELEASE_NAME,
-        "body": "f{RELEASE_BODY}",
+        "body": f"{RELEASE_BODY}",
         "draft": DRAFT,
         "prerelease": PRERELEASE
     }
