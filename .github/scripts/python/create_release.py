@@ -46,6 +46,7 @@ def create_github_release():
     }
     version = semver.VersionInfo.parse(TAG_NAME[1:])  # Убираем 'v' перед парсингом
     release_branch =f"release-{version.minor}.{version.major}"
+    print(release_branch)
     url = f"{GITHUB_API_URL}/repos/{REPO_OWNER}/{REPO_NAME}/releases"
     data = {
         "tag_name": TAG_NAME,
@@ -62,7 +63,7 @@ def create_github_release():
         print(f"INFO: Release successfully created!")
         print(f"INFO: Release url {response.json().get('html_url')}")
     else:
-        raise Exception(f"ERROR: Failed to create release\nResponse code: {response.status_code}\n Error message: {response.json()}")
+        raise Exception(f"ERROR: Failed to create release\nResponse code: {response.status_code}\nError message: {response.json()}")
 
 
 if __name__ == "__main__":
