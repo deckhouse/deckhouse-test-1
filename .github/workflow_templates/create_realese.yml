@@ -46,7 +46,7 @@ jobs:
         with:
           python-version: '3.9'
       - name: Install dependencies
-        run: pip install requests
+        run: pip install requests semver
       - name: Run Python release script
         env:
           GITHUB_API_URL: https://api.github.com
