@@ -24,10 +24,6 @@ on:
       tag_name:
         description: 'Tag name for the release (e.g., v1.0.0)'
         required: true
-      release_branch: 
-        description: 'Release branch for the release (e.g., release-1.67.9)'
-        required: true
-
 jobs:
   create-release:
     permissions: write-all
@@ -67,7 +63,6 @@ jobs:
           REPO_NAME: ${{ github.event.repository.name }}
           ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAG_NAME: ${{ github.event.inputs.tag_name }}
-          RELEASE_BRANCH: ${{ github.event.inputs.release_branch }}
           RELEASE_BODY: ${{ steps.changelog.outputs.release_markdown }}
           MILESTONE_TITLE: ${{ github.event.inputs.tag_name }}
         shell: bash
