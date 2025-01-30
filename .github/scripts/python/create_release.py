@@ -45,7 +45,7 @@ def create_github_release():
         "Accept": "application/vnd.github.v3+json"
     }
     version = semver.VersionInfo.parse(TAG_NAME[1:])  # Убираем 'v' перед парсингом
-    release_branch =f"release-{version.minor}"
+    release_branch =f"release-{version.minor}.{version.major}"
     url = f"{GITHUB_API_URL}/repos/{REPO_OWNER}/{REPO_NAME}/releases"
     data = {
         "tag_name": TAG_NAME,
