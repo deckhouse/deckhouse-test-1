@@ -29,7 +29,7 @@ docker:
     distro: all
     version: all
     d8: {{ .CandiVersionMap.d8.d8CliVersion }}
- --
+---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact
 final: false
 from: {{ $.Images.BASE_GOLANG_23_BULLSEYE }}
