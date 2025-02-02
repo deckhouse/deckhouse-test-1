@@ -15,6 +15,3 @@ shell:
 image: {{ .ModuleName }}/{{ .ImageName }}
 from: {{ .Images.BASE_ALT_P11 }}
 final: false
-imageSpec:
-  config:
-    user: "64535:64535"
