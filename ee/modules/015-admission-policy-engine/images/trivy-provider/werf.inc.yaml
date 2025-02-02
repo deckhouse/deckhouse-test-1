@@ -8,7 +8,7 @@ import:
     before: setup
 docker:
   ENTRYPOINT: [ "/trivy_provider" ]
- ---
+---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
 fromImage: operator-trivy/trivy-src-artifact
 final: false
