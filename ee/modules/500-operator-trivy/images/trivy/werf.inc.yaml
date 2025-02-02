@@ -8,7 +8,6 @@ import:
   before: setup
 docker:
   ENTRYPOINT: [ "/usr/local/bin/trivy" ]
-  USER: deckhouse:deckhouse
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
 fromImage: common/src-artifact

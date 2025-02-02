@@ -8,7 +8,6 @@ import:
     before: setup
 docker:
   ENTRYPOINT: ["/zvirt-cloud-controller-manager"]
-  USER: deckhouse:deckhouse
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact
 final: false

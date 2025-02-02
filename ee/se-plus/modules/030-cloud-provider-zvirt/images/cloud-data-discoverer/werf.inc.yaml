@@ -8,7 +8,6 @@ import:
     before: setup
 docker:
   ENTRYPOINT: ["/discoverer"]
-  USER: deckhouse:deckhouse
 ---
 {{ $discovererAbsPath := "/deckhouse/ee/se-plus/modules/030-cloud-provider-zvirt/images/cloud-data-discoverer" }}
 {{ $discovererRelPath := printf "%s/modules/030-cloud-provider-zvirt/images/cloud-data-discoverer" $.ModulePath }}

@@ -31,5 +31,4 @@ import:
     to: /sts-pods-hosts-appender-webhook
     before: setup
 docker:
-  USER: 64535
   ENTRYPOINT: ["/sts-pods-hosts-appender-webhook"]

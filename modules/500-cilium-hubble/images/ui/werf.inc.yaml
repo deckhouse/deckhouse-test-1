@@ -56,7 +56,6 @@ import:
   to: /app
   before: install
 docker:
-  USER: 64535
   ENTRYPOINT: [ "/opt/nginx-static/sbin/nginx", "-g", "daemon off;" ]
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-backend
@@ -67,5 +66,4 @@ import:
   to: /usr/local/bin/hubble-ui-backend
   before: install
 docker:
-  USER: 64535
   ENTRYPOINT: ["/usr/local/bin/hubble-ui-backend"]

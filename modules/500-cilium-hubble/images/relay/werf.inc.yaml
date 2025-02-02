@@ -58,5 +58,4 @@ import:
   to: /bin/gops
   before: install
 docker:
-  USER: 64535
   ENTRYPOINT: ["/usr/local/bin/hubble-relay", "serve"]

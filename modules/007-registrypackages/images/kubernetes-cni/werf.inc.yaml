@@ -65,7 +65,6 @@ docker:
     version: all
     kubernetes-cni: {{ $cni_version }}
     flannel: {{ $cni_flannel_version }}
-  USER: 64535
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact-{{ $image_version }}
 final: false

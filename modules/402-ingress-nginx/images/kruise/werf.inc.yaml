@@ -47,4 +47,3 @@ import:
    before: setup
 docker:
   ENTRYPOINT: ["/manager"]
-  USER: 64535

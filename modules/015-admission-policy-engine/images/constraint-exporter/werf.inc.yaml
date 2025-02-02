@@ -8,7 +8,6 @@ import:
     before: setup
 docker:
   ENTRYPOINT: [ "/constraint_exporter" ]
-  USER: deckhouse:deckhouse
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
 fromImage: common/src-artifact

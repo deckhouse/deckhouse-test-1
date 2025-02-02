@@ -35,5 +35,4 @@ import:
   to: /fencing-agent
   before: setup
 docker:
-  USER: 64535
   ENTRYPOINT: ["/fencing-agent"]

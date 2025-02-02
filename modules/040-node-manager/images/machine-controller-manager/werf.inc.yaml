@@ -4,8 +4,7 @@ docker:
   ENV:
     WORKDIR: /
     ENTRYPOINT: "/machine-controller-manager"
-    USER: 64535
-import:
+  port:
 - image: {{ .ModuleName }}/{{ .ImageName }}-artifact
   add: /src/machine-controller-manager
   to: /machine-controller-manager

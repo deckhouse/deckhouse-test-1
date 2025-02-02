@@ -36,7 +36,6 @@ import:
   before: setup
 docker:
   ENTRYPOINT: ["/ovirt-csi-driver"]
-  USER: deckhouse:deckhouse
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact-{{ $image_version }}
 final: false

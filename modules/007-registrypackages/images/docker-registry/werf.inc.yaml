@@ -36,7 +36,6 @@ docker:
     version: all
     docker: {{ $docker_version }}
     cesanta_auth: {{ $docker_auth_version }}
-  USER: 64535
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}-artifact-{{ $image_version }}
 final: false

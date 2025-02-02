@@ -42,5 +42,4 @@ import:
     to: /coredns
     before: setup
 docker:
-  USER: 64535
   ENTRYPOINT: ["/coredns"]

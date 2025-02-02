@@ -54,6 +54,5 @@ docker:
   ENV:
     container: docker
   ENTRYPOINT: ["/cluster-autoscaler"]
-  USER: 64535
   {{- end }}
 {{- end }}

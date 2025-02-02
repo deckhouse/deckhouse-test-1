@@ -33,4 +33,3 @@ import:
   before: setup
 docker:
   ENTRYPOINT: ["/psi-monitor"]
-  USER: 64535

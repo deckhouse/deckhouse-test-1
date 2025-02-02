@@ -12,7 +12,6 @@ import:
     before: setup
 docker:
   ENTRYPOINT: [ "/operator-trivy" ]
-  USER: deckhouse:deckhouse
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
 fromImage: {{ $.ModuleName }}/trivy-src-artifact

@@ -7,5 +7,4 @@ import:
     to: /agent
     before: install
 docker:
-  USER: 64535
   ENTRYPOINT: ["/agent"]

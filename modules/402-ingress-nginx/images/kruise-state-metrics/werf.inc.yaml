@@ -47,4 +47,3 @@ import:
    before: setup
 docker:
   ENTRYPOINT: ["/kruise-state-metrics"]
-  USER: 64535

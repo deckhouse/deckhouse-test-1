@@ -8,7 +8,6 @@ import:
     before: setup
 docker:
   ENTRYPOINT: [ "/report-updater" ]
-  USER: deckhouse:deckhouse
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
 fromImage: common/src-artifact
