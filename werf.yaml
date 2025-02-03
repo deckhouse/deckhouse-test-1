@@ -3,7 +3,7 @@ project: deckhouse
 configVersion: 1
 build:
   imageSpec:
-    author: "Deckhouse Builder <builder@deckhouse.io>"
+    author: "Deckhouse Kubernetes Platform <contact@deckhouse.io>"
     clearHistory: true
     config:
       clearWerfLabels: true
