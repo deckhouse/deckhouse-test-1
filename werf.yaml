@@ -9,7 +9,6 @@ build:
       clearWerfLabels: true
       removeLabels:
         - /.*/
-      user: "64535:64535"
 gitWorktree:
   forceShallowClone: true
 cleanup:
