@@ -6,8 +6,9 @@ import:
     add: /report-updater
     to: /report-updater
     before: setup
-docker:
-  ENTRYPOINT: [ "/report-updater" ]
+imageSpec:
+  config:
+    entrypoint: [ "/report-updater" ]
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
 fromImage: common/src-artifact

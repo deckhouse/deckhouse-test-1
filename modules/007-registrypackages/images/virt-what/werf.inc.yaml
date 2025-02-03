@@ -27,11 +27,9 @@ import:
   - install
   - uninstall
   before: setup
-docker:
-  LABEL:
-    distro: all
-    version: all
-    virt-what: {{ $version }}
+imageSpec:
+  config:
+    labels: {"distro": "all", "version": "all", "virt-what": "{{ $version }}" }
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact-{{ $image_version }}
 final: false

@@ -27,12 +27,9 @@ import:
   - install
   - uninstall
   before: setup
-docker:
-  LABEL:
-    distro: all
-    version: all
-    mke2fs: {{ $version }}
-    fsck: {{ $version }}
+imageSpec:
+  config:
+    labels: { "distro": "all", "version": "all", "mke2fs": "{{ $version }}", "fsck": "{{ $version }}" }
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact-{{ $image_version }}
 final: false

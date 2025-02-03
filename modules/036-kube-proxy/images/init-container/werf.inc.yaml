@@ -30,5 +30,6 @@ import:
     add: /src/entrypoint
     to: /entrypoint
     before: setup
-docker:
-  ENTRYPOINT: ["/entrypoint"]
+imageSpec:
+  config:
+    entrypoint: ["/entrypoint"]

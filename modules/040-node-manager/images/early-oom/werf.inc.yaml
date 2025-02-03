@@ -31,5 +31,6 @@ import:
   add: /src/psi-monitor
   to: /psi-monitor
   before: setup
-docker:
-  ENTRYPOINT: ["/psi-monitor"]
+imageSpec:
+  config:
+    entrypoint: ["/psi-monitor"]

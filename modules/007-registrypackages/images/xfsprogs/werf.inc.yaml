@@ -27,11 +27,9 @@ import:
   - install
   - uninstall
   before: setup
-docker:
-  LABEL:
-    distro: all
-    version: all
-    xfsprogs: {{ $version }}
+imageSpec:
+  config:
+    labels: {"distro": "all", "version": "all", "xfsprogs": "{{ $version }}" }
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact-{{ $image_version }}
 final: false

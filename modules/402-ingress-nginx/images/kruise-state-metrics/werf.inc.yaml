@@ -45,5 +45,6 @@ import:
    add: /tmp/kruise-state-metrics
    to: /kruise-state-metrics
    before: setup
-docker:
-  ENTRYPOINT: ["/kruise-state-metrics"]
+imageSpec:
+  config:
+    entrypoint: ["/kruise-state-metrics"]

@@ -26,11 +26,9 @@ import:
   - install
   - uninstall
   before: setup
-docker:
-  LABEL:
-    distro: all
-    version: all
-    ec2-describe-tags: {{ $version }}
+imageSpec:
+  config:
+    labels: { "distro": "all", "version": "all", "ec2-describe-tags": "{{ $version }}" }
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact-{{ $image_version }}
 final: false

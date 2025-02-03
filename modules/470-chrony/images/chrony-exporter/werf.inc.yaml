@@ -63,8 +63,7 @@ import:
   add: /chrony_exporter/chrony_exporter
   to: /usr/bin/chrony_exporter
   before: install
-docker:
-  EXPOSE:
-    - "9123"
-  ENTRYPOINT:
-    - "/usr/bin/chrony_exporter"
+imageSpec:
+  config:
+    entrypoint: ["/usr/bin/chrony_exporter"]
+    expose: ["9123"]

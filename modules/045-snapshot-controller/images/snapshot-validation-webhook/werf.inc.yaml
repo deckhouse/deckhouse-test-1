@@ -7,9 +7,9 @@ import:
     add: /snapshot-validation-webhook
     to: /snapshot-validation-webhook
     before: setup
-docker:
-  ENTRYPOINT: ["/snapshot-validation-webhook"]
-
+imageSpec:
+  config:
+    entrypoint: ["/snapshot-validation-webhook"]
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
 fromImage: common/src-artifact

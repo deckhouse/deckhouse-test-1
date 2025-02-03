@@ -59,12 +59,9 @@ import:
   - install
   - uninstall
   before: setup
-docker:
-  LABEL:
-    distro: all
-    version: all
-    kubernetes-cni: {{ $cni_version }}
-    flannel: {{ $cni_flannel_version }}
+imageSpec:
+  config:
+    labels: {"distro": "all", "version": "all", "kubernetes-cni": "{{ $cni_version }}", "flannel": "{{ $cni_flannel_version }}" }
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact-{{ $image_version }}
 final: false

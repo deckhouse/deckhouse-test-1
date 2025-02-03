@@ -47,11 +47,9 @@ import:
   - install
   - uninstall
   before: setup
-docker:
-  LABEL:
-    distro: all
-    version: all
-    crictl: {{ $version }}
+imageSpec:
+  config:
+    labels: { "distro": "all", "version": "all", "crictl": "{{ $version }}" }
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact-{{ $image_version }}
 final: false

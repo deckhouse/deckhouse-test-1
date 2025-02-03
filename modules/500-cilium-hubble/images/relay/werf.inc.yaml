@@ -57,5 +57,6 @@ import:
   add: /out/linux/amd64/bin/gops
   to: /bin/gops
   before: install
-docker:
-  ENTRYPOINT: ["/usr/local/bin/hubble-relay", "serve"]
+imageSpec:
+  config:
+    entrypoint: ["/usr/local/bin/hubble-relay", "serve"]

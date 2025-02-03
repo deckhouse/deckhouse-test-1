@@ -1,8 +1,9 @@
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}
 fromImage: common/distroless
-docker:
-  ENTRYPOINT: ["/capz-controller-manager"]
+imageSpec:
+  config:
+    entrypoint: ["/capz-controller-manager"]
 import:
 - image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact
   add: /capz-controller-manager
