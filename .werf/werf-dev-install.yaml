@@ -1,6 +1,9 @@
 ---
 image: dev/install
 fromImage: common/alt-p11
+imageSpec:
+  config:
+    user: "root:root"
 git:
 - add: /
   to: /deckhouse
