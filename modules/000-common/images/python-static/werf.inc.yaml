@@ -32,6 +32,7 @@ shell:
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}-whl
 fromImage: common/alt-p11-artifact
+fromCacheVersion: "2025-02-04 15:00"
 final: false
 shell:
   beforeInstall:
