@@ -1,6 +1,7 @@
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}
 fromImage: common/alt-p11-artifact
+fromCacheVersion: "2025-02-04 21:00"
 final: false
 shell:
   beforeInstall:
