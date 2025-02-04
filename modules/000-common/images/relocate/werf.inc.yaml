@@ -2,6 +2,7 @@
 # base artifact to do relocate
 image: {{ .ModuleName }}/{{ .ImageName }}-artifact
 fromImage: common/alt-p11-artifact
+fromCacheVersion: "2025-02-04 15:00"
 final: false
 git:
 - add: /{{ .ModulePath }}modules/{{ .ModulePriority }}-{{ .ModuleName }}/images/{{ .ImageName }}/binary_replace.sh
