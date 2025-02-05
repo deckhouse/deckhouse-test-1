@@ -232,7 +232,9 @@ cve-report: bin/trivy bin/jq ## Generate CVE report for a Deckhouse release.
 cve-base-images: bin/trivy bin/jq ## Check CVE in our base images.
   ##~ Options: SEVERITY=CRITICAL,HIGH
 	./tools/cve/base-images.sh
-
+cve-base-images-check-default-user: bin/trivy bin/jq ## Check CVE in our base images.
+  ##~ Options: SEVERITY=CRITICAL,HIGH
+	./tools/cve/check-non-root.sh
 ##@ Documentation
 
 .PHONY: docs
