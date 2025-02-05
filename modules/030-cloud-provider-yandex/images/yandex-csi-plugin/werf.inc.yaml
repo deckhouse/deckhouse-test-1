@@ -21,6 +21,7 @@ imageSpec:
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact-{{ $image_version }}
 final: false
+fromCacheVersion: "2025-02-04 21:00"
 fromImage: common/src-artifact
 shell:
   install:
