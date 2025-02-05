@@ -1,6 +1,7 @@
 {{- $binaries := "/bin/sh /bin/chown /bin/chmod /bin/ls /bin/cp /bin/rm /bin/mkdir /bin/nc /bin/sleep /bin/true" }}
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}
+fromCacheVersion: "2025-02-04 21:00"
 fromImage: common/distroless
 import:
 - image: {{ .ModuleName }}/{{ .ImageName }}-artifact
