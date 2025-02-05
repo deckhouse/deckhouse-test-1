@@ -40,7 +40,7 @@ jobs:
           if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
             echo "image_tag=main" >> $GITHUB_OUTPUT
           elif [[ -n "${{ github.event.inputs.pull_request_ref }}" ]]; then
-            PR_NUMBER=$(echo "${{ github.event.inputs.pull_request_ref }}"
+            PR_NUMBER=$(echo "${{ github.event.inputs.pull_request_ref }}")
             echo "image_tag=pr$PR_NUMBER" >> $GITHUB_OUTPUT
           else
             echo "image_tag=unknown" >> $GITHUB_OUTPUT
