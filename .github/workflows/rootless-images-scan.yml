@@ -11,7 +11,7 @@ on:
   workflow_dispatch:
     inputs:
       pull_request_ref:
-        description: 'Pull request reference (e.g., refs/pull/123/head)'
+        description: 'Pull request number (e.g., 123)'
         required: false
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.number || github.ref }}
@@ -43,8 +43,9 @@ jobs:
         run: |
           if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
             echo "image_tag=main" >> $GITHUB_OUTPUT
-          elif [[ "${{ github.event.number }}" != "" ]]; then
-            echo "image_tag=pr${{ github.event.number }}" >> $GITHUB_OUTPUT
+          elif [[ -n "${{ github.event.inputs.pull_request_ref }}" ]]; then
+            PR_NUMBER=$(echo "${{ github.event.inputs.pull_request_ref }}"
+            echo "image_tag=pr${{ PR_NUMBER }}" >> $GITHUB_OUTPUT
           else
             echo "image_tag=unknown" >> $GITHUB_OUTPUT
           fi
