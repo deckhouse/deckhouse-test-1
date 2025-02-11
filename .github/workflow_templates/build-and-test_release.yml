@@ -232,7 +232,7 @@ jobs:
     runs-on: [ self-hosted, regular, selectel ]
     needs:
       - git_info
-      - build_fe
+      # - build_fe
 {!{ tmpl.Exec "security_scan_template" (slice $ctx "main") | strings.Indent 4 }!}
 
 {!{ $jobNames = coll.Merge $jobNames (dict "tests_python_webhooks" "Tests python webhooks") }!}
