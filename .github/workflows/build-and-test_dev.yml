@@ -1013,6 +1013,7 @@ jobs:
       # </template: unlink_bin_step>
     # </template: security_scan_template>
 
+
   check_labels:
     runs-on: ubuntu-latest
     steps:
@@ -1023,6 +1024,7 @@ jobs:
           # for label in "${{ github.event.pull_request.labels[@] }}"; do
           #   echo $label
           # done
+
 
   tests:
     if: ${{ needs.pull_request_info.outputs.changes_not_markdown == 'true' }}
