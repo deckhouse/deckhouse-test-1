@@ -1171,7 +1171,7 @@ const findAndRerunWorkflow = async ({ github, context, core, workflow_id }) => {
 
   core.startGroup(`Retry workflow ${workflow_id} run ${lastRun.id} ...`);
   try {
-    const response = await github.rest.actions.retryWorkflow({
+    const response = await github.rest.actions.rerunWorkflow({
       owner: context.repo.owner,
       repo: context.repo.repo,
       run_id: lastRun.id
