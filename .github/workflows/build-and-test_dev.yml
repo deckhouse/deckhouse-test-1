@@ -1014,13 +1014,15 @@ jobs:
     # </template: security_scan_template>
 
   test-pr:
-  runs-on: [ self-hosted, regular, selectel ]
-  needs:
-    - git_info
-    - pull_request_info
-  steps:
-    - name: echo
-      echo ${{ github.event.pull_request.labels }}
+    name: test pr
+    runs-on: [ self-hosted, regular, selectel ]
+    needs:
+      - git_info
+      - pull_request_info
+    steps:
+      - name: echo
+        run: |
+          echo ${{ github.event.pull_request.labels }}
   tests:
     if: ${{ needs.pull_request_info.outputs.changes_not_markdown == 'true' }}
     name: Tests
