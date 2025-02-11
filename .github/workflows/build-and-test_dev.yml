@@ -950,7 +950,7 @@ jobs:
 
   security_scan_images:
     name: Security scan images
-    # if: contains(github.event.pull_request.labels.*.name, 'security/rootless')
+    if: contains(map(attribute='name', fromJson(needs.pull_request_info.outputs.labels)), 'security/rootless')
     runs-on: [ self-hosted, regular, selectel ]
     needs:
       - git_info
