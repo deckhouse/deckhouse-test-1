@@ -1018,11 +1018,15 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       - git_info
+      - 
     steps:
       - name: check labels
+        env:
+          PR_LABELS: ${{ needs.pull_request_info.outputs.labels }}
         run: |
           echo PPPPP
           echo ${{ github.event_name }}
+          echo $PR_LABELS
           LABELS_JSON="${{ toJson(github.event.pull_request.labels) }}"
 
           # Преобразуем JSON в строку и проходим по лейблам
