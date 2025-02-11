@@ -955,7 +955,7 @@ jobs:
     needs:
       - git_info
       - pull_request_info
-      - build_deckhouse
+      # - build_deckhouse
     # <template: security_scan_template>
     steps:
 

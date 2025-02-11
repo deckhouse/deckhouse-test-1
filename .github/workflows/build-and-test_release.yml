@@ -2934,7 +2934,7 @@ jobs:
     runs-on: [ self-hosted, regular, selectel ]
     needs:
       - git_info
-      - build_fe
+      # - build_fe
     # <template: security_scan_template>
     steps:
 
