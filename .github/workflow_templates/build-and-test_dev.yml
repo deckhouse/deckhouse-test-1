@@ -148,6 +148,7 @@ jobs:
       - pull_request_info
       # - build_deckhouse
 {!{ tmpl.Exec "security_scan_template" (slice $ctx "pr") | strings.Indent 4 }!}
+
   check_labels:
     runs-on: ubuntu-latest
     steps:

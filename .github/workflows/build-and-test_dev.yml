@@ -1019,9 +1019,10 @@ jobs:
       - name: Print labels of the PR
         run: |
           echo "Labels in PR:"
-          for label in "${{ github.event.pull_request.labels[@] }}"; do
-            echo $label
-          done
+          echo ${{ github.event_name }}
+          # for label in "${{ github.event.pull_request.labels[@] }}"; do
+          #   echo $label
+          # done
 
   tests:
     if: ${{ needs.pull_request_info.outputs.changes_not_markdown == 'true' }}
