@@ -1182,7 +1182,12 @@ const findAndRerunWorkflow = async ({ github, context, core, workflow_id }) => {
       core.info(`Bad status code from retryWorkflow: ${JSON.stringify(response)}`);
     }
   } catch (error) {
-    core.info(`Ignore error from retryWorkflow: ${dumpError(error)}`);
+    if (error instanceof Error) {
+      core.error(`Error from retryWorkflow: ${error.message}`);
+      core.error(`Stack trace: ${error.stack}`);
+    } else {
+      core.error(`Unknown error from retryWorkflow: ${JSON.stringify(error)}`);
+    }
   } finally {
     core.endGroup();
   }
