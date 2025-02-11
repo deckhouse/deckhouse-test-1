@@ -1018,7 +1018,7 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       - git_info
-      - 
+      - pull_request_info
     steps:
       - name: check labels
         env:
