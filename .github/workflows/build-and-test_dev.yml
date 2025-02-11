@@ -950,7 +950,7 @@ jobs:
 
   security_scan_images:
     name: Security scan images
-    if: contains(github.event.pull_request.labels.*.name, 'security/rootless')
+    # if: contains(github.event.pull_request.labels.*.name, 'security/rootless')
     runs-on: [ self-hosted, regular, selectel ]
     needs:
       - git_info
@@ -1013,7 +1013,14 @@ jobs:
       # </template: unlink_bin_step>
     # </template: security_scan_template>
 
-
+  test-pr:
+  runs-on: [ self-hosted, regular, selectel ]
+  needs:
+    - git_info
+    - pull_request_info
+  steps:
+    - name: echo
+      echo ${{ github.event.pull_request.labels }}
   tests:
     if: ${{ needs.pull_request_info.outputs.changes_not_markdown == 'true' }}
     name: Tests
