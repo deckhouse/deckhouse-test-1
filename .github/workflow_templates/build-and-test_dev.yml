@@ -148,16 +148,16 @@ jobs:
       - pull_request_info
       # - build_deckhouse
 {!{ tmpl.Exec "security_scan_template" (slice $ctx "pr") | strings.Indent 4 }!}
-  test-pr:
-    name: test pr
-    runs-on: [ self-hosted, regular, selectel ]
-    needs:
-      - git_info
-      - pull_request_info
+  check_labels:
+    runs-on: ubuntu-latest
     steps:
-      - name: echo
+      - name: Print labels of the PR
         run: |
-          echo ${{ github.event.pull_request.labels }}
+          echo "Labels in PR:"
+          for label in "${{ github.event.pull_request.labels[@] }}"; do
+            echo $label
+          done
+
   tests:
     if: ${{ needs.pull_request_info.outputs.changes_not_markdown == 'true' }}
     name: Tests
