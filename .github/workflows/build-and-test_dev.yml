@@ -1026,7 +1026,7 @@ jobs:
           for label in "${{ github.event.pull_request.labels }}"; do
             echo "Label: $label"
           done
-          AAAAAA
+          echo AAAAAA
     
   tests:
     if: ${{ needs.pull_request_info.outputs.changes_not_markdown == 'true' }}
