@@ -1023,7 +1023,7 @@ jobs:
         run: |
           echo PPPPP
           echo ${{ github.event_name }}
-          for label in "${{ github.event.pull_request.labels }}"; do
+          for label in "${{ github.event.pull_request.labels[@] }}"; do
             echo "Label: $label"
           done
           echo AAAAAA
