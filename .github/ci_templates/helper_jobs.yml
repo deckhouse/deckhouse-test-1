@@ -117,9 +117,9 @@ pull_request_info:
     pr_description: ${{ steps.pr_props.outputs.pr_description }}
     diff_url: ${{ steps.pr_props.outputs.diff_url }}
     labels: ${{ steps.pr_props.outputs.labels }}
+    security_rootless_scan: ${{ steps.pr_props.outputs.security_rootless_scan }}
     changes_docs: ${{ steps.changes.outputs.docs }}
     changes_not_markdown: ${{ steps.changes.outputs.not_markdown }}
-    security_rootless_scan: ${{ steps.changes.outputs.security_rootless_scan }}
 
   # Skip pull_request and pull_request_target triggers for PRs authored by deckhouse-BOaTswain, e.g. changelog PRs.
   if: ${{ ! (startsWith(github.event_name, 'pull_request') && github.event.pull_request.user.login == 'deckhouse-BOaTswain') }}
