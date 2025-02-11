@@ -1013,7 +1013,21 @@ jobs:
       # </template: unlink_bin_step>
     # </template: security_scan_template>
 
-
+  check_labels:
+    name: Check labels
+    runs-on: ubuntu-latest
+    needs:
+      - git_info
+    steps:
+      - name: check labels
+        run: |
+          echo PPPPP
+          echo ${{ github.event_name }}
+          for label in "${{ github.event.pull_request.labels }}"; do
+            echo "Label: $label"
+          done
+          AAAAAA
+    
   tests:
     if: ${{ needs.pull_request_info.outputs.changes_not_markdown == 'true' }}
     name: Tests
