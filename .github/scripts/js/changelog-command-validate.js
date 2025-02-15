@@ -41,10 +41,5 @@ function validate(issue) {
   if (!issue.milestone) {
     return 'No milestone, skip.';
   }
-
-  if (issue.milestone.state != 'open') {
-    return `Milestone ${issue.milestone.title} is not open.`;
-  }
-
   return '';
 }
