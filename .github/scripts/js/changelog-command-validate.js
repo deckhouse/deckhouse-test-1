@@ -30,7 +30,7 @@ module.exports = async ({ github, core, context }) => {
     return;
   }
 
-  return issue.milestone && issue.milestone.status == 'open';
+  return issue.milestone;
 };
 
 function validate(issue) {
