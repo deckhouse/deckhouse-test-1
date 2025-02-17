@@ -116,9 +116,9 @@ block-e2e-until-image-is-not-ready:
           const prNum = context.payload.inputs.issue_number;
           console.log(`Check build workflow is completed for branch: ${branchName} PR: ${context.payload.repository.html_url}/pull/${prNum}`);
 
-          const waitForWorkflowIsCompleted = require('./.github/scripts/js/validators/validate-workflow-is-ready')({ github, context, core });
+          const waitForJobInWorkflowIsCompletedWithSuccess = require('./.github/scripts/js/validators/validate-job-in-workflow-is-ready')({ github, context, core });
           try {
-              await waitForWorkflowIsCompleted(branchName, 'Build and test for dev branches');
+              await waitForJobInWorkflowIsCompletedWithSuccess(branchName, 'Build and test for dev branches', 'Build Deckhouse');
           } catch(error) {
               core.setFailed(error);
           }
