@@ -104,24 +104,43 @@ git_info:
 block-e2e-until-image-is-not-ready:
   name: Block e2e until the docker image is not ready
   runs-on: ubuntu-latest
-  if: ${{ github.event.pull_request.user.login != 'deckhouse-BOaTswain' }}
   steps:
     - uses: {!{ index (ds "actions") "actions/checkout" }!}
     - name: Block e2e until the docker image is not ready
       id: block-e2e
+      env:
+        PR_NUMBER: ${{ github.event.pull_request.number }}
+        BASE_BRANCH: ${{ github.event.pull_request.base.ref }}
+        HEAD_BRANCH: ${{ github.event.pull_request.head.ref }}
+        HEAD_SHA: ${{ github.event.pull_request.head.sha }}
       uses: {!{ index (ds "actions") "actions/github-script" }!}
       with:
         script: |
-          const branchName = context.payload.inputs.ci_commit_ref_name;
-          const prNum = context.payload.inputs.issue_number;
-          console.log(`Check build workflow is completed for branch: ${branchName} PR: ${context.payload.repository.html_url}/pull/${prNum}`);
+          const githubAction = require('./.github/scripts/js/helpers/github-actions')({github, context, core})
 
-          const waitForJobInWorkflowIsCompletedWithSuccess = require('./.github/scripts/js/validators/validate-job-in-workflow-is-ready')({ github, context, core });
-          try {
-              await waitForJobInWorkflowIsCompletedWithSuccess(branchName, 'Build and test for dev branches', 'Build Deckhouse');
-          } catch(error) {
-              core.setFailed(error);
+          const isManualHumanRun = context.payload.eventName === 'workflow_dispatch' && context.payload.sender.login != 'deckhouse-BOaTswain';          
+          let branchName = context.payload.inputs.ci_commit_ref_name;
+
+          if (branchName === undefined && isManualHumanRun) {
+            branchName = githubAction.GetBranchNameFromContext(context);
           }
+
+          if (branchName) {
+            let prNum = context.payload.inputs.issue_number;
+            if (prNum === undefined) {
+              const prInfo = await githubAction.GetPullRequestByBranchName('main');
+              prNum = prInfo.number
+            }
+            core.info(`Check build workflow is completed for branch: ${branchName} PR: ${context.payload.repository.html_url}/pull/${prNum}`);
+
+            const { waitForJobInWorkflowIsCompletedWithSuccess } = require('./.github/scripts/js/validators/validate-job-in-workflow-is-ready')({ github, context, core });
+            try {
+                await waitForJobInWorkflowIsCompletedWithSuccess(branchName, 'Build and test for dev branches', 'Build Deckhouse');
+            } catch(error) {
+                core.setFailed(error);
+            }
+          }
+          
 
 # </template: block-e2e-until-image-is-not-ready>
 {!{- end -}!}
