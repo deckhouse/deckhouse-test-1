@@ -1,3 +1,10 @@
+
+
+
+
+
+
+
 <p align="center">
   <img src="https://raw.githubusercontent.com/deckhouse/deckhouse/main/docs/site/images/d8-small-logo.png"/>
 </p>
@@ -30,6 +37,8 @@ A brief overview of essential Deckhouse Platform features, from infrastructure l
 <img src="https://raw.githubusercontent.com/deckhouse/deckhouse/main/docs/site/images/diagrams/structure.svg">
 
 ## CE vs. EE
+
+\
 
 While Deckhouse Platform CE is available free as an Open Source, EE is a commercial version of the platform that can be purchased with a paid subscription. EE's source is also open, but it's neither Open Source nor free to use.
 
