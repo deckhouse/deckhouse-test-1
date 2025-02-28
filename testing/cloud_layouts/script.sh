@@ -126,6 +126,7 @@ LogLevel quiet
 EOF
   # ssh command with common args.
   ssh_command="ssh -F /tmp/cloud-test-ssh-config"
+  scp_command="scp -S /usr/bin/ssh -F /tmp/cloud-test-ssh-config"
 }
 
 function abort_bootstrap_from_cache() {
@@ -363,10 +364,16 @@ function prepare_environment() {
     ;;
 
   "Static")
+    pre_bootstrap_static_setup
     # shellcheck disable=SC2016
     env OS_PASSWORD="$(base64 -d <<<"$LAYOUT_OS_PASSWORD")" \
-        KUBERNETES_VERSION="$KUBERNETES_VERSION" CRI="$CRI" DEV_BRANCH="$DEV_BRANCH" PREFIX="$PREFIX" DECKHOUSE_DOCKERCFG="$DECKHOUSE_DOCKERCFG" \
-        envsubst '${DECKHOUSE_DOCKERCFG} ${PREFIX} ${DEV_BRANCH} ${KUBERNETES_VERSION} ${CRI} ${OS_PASSWORD}' \
+        KUBERNETES_VERSION="$KUBERNETES_VERSION" \
+        CRI="$CRI" \
+        DEV_BRANCH="$DEV_BRANCH" \
+        PREFIX="$PREFIX" \
+        DECKHOUSE_DOCKERCFG="$LOCAL_DECKHOUSE_DOCKERCFG" \
+        IMAGES_REPO=$IMAGES_REPO \
+        envsubst '${DECKHOUSE_DOCKERCFG} ${PREFIX} ${DEV_BRANCH} ${KUBERNETES_VERSION} ${CRI} ${OS_PASSWORD} ${IMAGES_REPO}' \
         <"$cwd/configuration.tpl.yaml" >"$cwd/configuration.yaml"
 
     # shellcheck disable=SC2016
@@ -456,6 +463,7 @@ function test_requirements() {
   release=$(< /deckhouse/release.yaml)
   if [ -z "${release:-}" ]; then return 1; fi
   release=${release//\"/\\\"}
+
 
   >&2 echo "Run script ... "
 
@@ -550,9 +558,30 @@ ENDSC
   return 1
 }
 
+function pre_bootstrap_static_setup() {
+  cd $cwd/registry-mirror
+
+  set -x
+
+  BASTION_INTERNAL_IP=192.168.199.254
+  IMAGES_REPO=${BASTION_INTERNAL_IP}:5000/sys/deckhouse-oss
+
+  LOCAL_REGISTRY_MIRROR_PASSWORD=$(tr -dc A-Za-z0-9 </dev/urandom | head -c 20; echo)
+  LOCAL_REGISTRY_CLUSTER_PASSWORD=$(tr -dc A-Za-z0-9 </dev/urandom | head -c 20; echo)
+
+  LOCAL_REGISTRY_CLUSTER_DOCKERCFG=$(echo "cluster:${LOCAL_REGISTRY_CLUSTER_PASSWORD}" | base64 -w0)
+
+  # emulate using local registry
+  LOCAL_DECKHOUSE_DOCKERCFG=$(echo {\"auths\":{\"${BASTION_INTERNAL_IP}:5000\":{\"auth\":\"${LOCAL_REGISTRY_CLUSTER_DOCKERCFG}\"}}} | base64 -w0)
+
+  set +x
+  cd ..
+}
+
 function bootstrap_static() {
   >&2 echo "Run terraform to create nodes for Static cluster ..."
   pushd "$cwd"
+  
   terraform init -input=false -plugin-dir=/plugins || return $?
   terraform apply -state="${terraform_state_file}" -auto-approve -no-color | tee "$cwd/terraform.log" || return $?
   popd
@@ -646,15 +675,82 @@ function bootstrap_static() {
     sleep 5
   done
 
-  testRunAttempts=20
 
+  tar -cvf $cwd/registry-mirror.tar $cwd/registry-mirror
+  testRunAttempts=20
+  for ((i=1; i<=$testRunAttempts; i++)); do
+    # Install http/https proxy on bastion node
+    $scp_command -i "$ssh_private_key_path" $cwd/registry-mirror.tar "$ssh_user@$bastion_ip:/tmp"
+    if $ssh_command -i "$ssh_private_key_path" "$ssh_user@$bastion_ip" sudo su -c /bin/bash <<ENDSSH; then
+      apt-get update
+      apt-get install -y docker.io docker-compose wget curl
+
+      set -x
+      tar -xvf /tmp/registry-mirror.tar
+      cd deckhouse/testing/cloud_layouts/Static/registry-mirror
+      ./gen-auth-cfg.sh "${LOCAL_REGISTRY_MIRROR_PASSWORD}" "${LOCAL_REGISTRY_CLUSTER_PASSWORD}" > auth_config.yaml
+      ./gen-ssl.sh
+      env BASTION_INTERNAL_IP=${BASTION_INTERNAL_IP} envsubst '\$BASTION_INTERNAL_IP' < registry-config.tpl.yaml > registry-config.yaml
+      docker-compose up -d
+      cd -
+
+      set +x
+ENDSSH
+
+      initial_setup_failed=""
+      break
+    else
+      initial_setup_failed="true"
+      >&2 echo "Initial setup of bastion in progress (attempt #$i of $testRunAttempts). Sleeping 5 seconds ..."
+      sleep 5
+    fi
+  done
+  if [[ $initial_setup_failed == "true" ]] ; then
+    return 1
+  fi
+
+  D8_MIRROR_USER="$(echo ${DECKHOUSE_DOCKERCFG} | base64 -d | awk -F'\"' '{ print $8 }' | base64 -d | cut -d':' -f1)"
+  D8_MIRROR_PASSWORD="$(echo ${DECKHOUSE_DOCKERCFG} | base64 -d | awk -F'\"' '{ print $8 }' | base64 -d | cut -d':' -f2)"
+  testRunAttempts=20
   for ((i=1; i<=$testRunAttempts; i++)); do
     # Install http/https proxy on bastion node
     if $ssh_command -i "$ssh_private_key_path" "$ssh_user@$bastion_ip" sudo su -c /bin/bash <<ENDSSH; then
-       apt-get update
-       apt-get install -y docker.io
+       cat <<'EOF' > /tmp/install-d8-and-pull-push-images.sh
+#!/bin/bash
+set -x
+# get latest d8-cli release
+URL="https://api.github.com/repos/deckhouse/deckhouse-cli/releases/latest"
+DOWNLOAD_URL=\$(wget -qO- "\${URL}" | grep browser_download_url | cut -d '"' -f 4 | grep linux-amd64 | grep -v sha256sum)
+if [ -z "\${DOWNLOAD_URL}" ]; then
+  echo "Failed to retrieve the URL for the download"
+  exit 1
+fi
+# download
+wget -q "\${DOWNLOAD_URL}" -O /tmp/d8.tar.gz
+# install
+file /tmp/d8.tar.gz
+mkdir d8cli
+tar -xf /tmp/d8.tar.gz -C d8cli
+mv ./d8cli/linux-amd64/bin/d8 /usr/bin/d8
+
+d8 --version
+# pull
+d8 mirror pull d8 --source-login ${D8_MIRROR_USER} --source-password ${D8_MIRROR_PASSWORD} \
+  --source "dev-registry.deckhouse.io/sys/deckhouse-oss" --deckhouse-tag "${DEV_BRANCH}"
+# push
+d8 mirror push d8 "${IMAGES_REPO}" --registry-login mirror --registry-password $LOCAL_REGISTRY_MIRROR_PASSWORD
+set +x
+EOF
+       chmod +x /tmp/install-d8-and-pull-push-images.sh
+       /tmp/install-d8-and-pull-push-images.sh
+
+       # cleanup
+       rm -f /tmp/install-d8-and-pull-push-images.sh
+       rm -rf d8
+           
        docker run -d --name='tinyproxy' -p 8888:8888 -e ALLOWED_NETWORKS="127.0.0.1/8 10.0.0.0/8 192.168.0.1/8" mirror.gcr.io/kalaksi/tinyproxy:latest@sha256:561ef49fa0f0a9747db12abdfed9ab3d7de17e95c811126f11e026b3b1754e54
 ENDSSH
+
       initial_setup_failed=""
       break
     else
@@ -794,7 +890,7 @@ ENDSSH
 
   # Bootstrap
   >&2 echo "Run dhctl bootstrap ..."
-  dhctl --do-not-write-debug-log-file bootstrap --resources-timeout="30m" --yes-i-want-to-drop-cache --ssh-bastion-host "$bastion_ip" --ssh-bastion-user="$ssh_user" --ssh-host "$master_ip" --ssh-agent-private-keys "$ssh_private_key_path" --ssh-user "$ssh_user" \
+  dhctl --do-not-write-debug-log-file bootstrap --preflight-skip-registry-credential --resources-timeout="30m" --yes-i-want-to-drop-cache --ssh-bastion-host "$bastion_ip" --ssh-bastion-user="$ssh_user" --ssh-host "$master_ip" --ssh-agent-private-keys "$ssh_private_key_path" --ssh-user "$ssh_user" \
   --config "$cwd/configuration.yaml" --config "$cwd/resources.yaml" | tee -a "$bootstrap_log" || return $?
 
   >&2 echo "==============================================================
