@@ -47,6 +47,5 @@ jobs:
       - name: Bashible validation on ${{ matrix.provider }} provider
         env:
           PROVIDER: ${{ matrix.provider }}
-          REGISTRY: ${{secrets.DECKHOUSE_REGISTRY_READ_HOST}}
         run: |
           ./.github/scripts/validation_bashible.sh
