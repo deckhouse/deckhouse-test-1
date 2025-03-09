@@ -2,7 +2,7 @@
 # THIS FILE IS GENERATED, PLEASE DO NOT EDIT.
 #
 
-name: Run on bashible validation
+name: Bashible validation
 
 on:
   pull_request:
@@ -47,5 +47,6 @@ jobs:
       - name: Bashible validation on ${{ matrix.provider }} provider
         env:
           PROVIDER: ${{ matrix.provider }}
+          REGISTRY: ${{secrets.DECKHOUSE_REGISTRY_READ_HOST}}
         run: |
           ./.github/scripts/validation_bashible.sh
