@@ -3,8 +3,8 @@ name: Bashible validation
 on:
   pull_request:
     paths:
-      - "candi/bashible/*/*.tpl"
-      - "candi/cloud-providers/*/*.tpl"
+      - "candi/bashible/**/*.tpl"
+      - "candi/cloud-providers/**/*.tpl"
 
 jobs:
   bashible_validation:
