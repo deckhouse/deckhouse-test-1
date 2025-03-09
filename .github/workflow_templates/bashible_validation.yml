@@ -1,0 +1,23 @@
+name: Run on bashible validation
+
+on:
+  pull_request:
+    paths:
+      - "candi/bashible/*/*.tpl"
+      - "candi/cloud-providers/*/*.tpl"
+
+jobs:
+  bashible_validation:
+    name: bashible validation
+    runs-on: [self-hosted, regular]
+    strategy:
+      matrix:
+        provider: ["Yandex", "Azure", "AWS", "GCP"]
+    steps:
+  {!{ tmpl.Exec "checkout_step"                . | strings.Indent 6 }!}
+  {!{ tmpl.Exec "login_readonly_registry_step" . | strings.Indent 6 }!}
+      - name: Bashible validation on ${{ matrix.provider }} provider
+        env:
+          PROVIDER: ${{ matrix.provider }}
+        run: |
+          ./.github/scripts/validation_bashible.sh
