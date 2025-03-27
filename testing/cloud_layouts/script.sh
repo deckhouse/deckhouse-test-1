@@ -718,15 +718,8 @@ ENDSSH
     if $ssh_command -i "$ssh_private_key_path" "$ssh_user@$bastion_ip" sudo su -c /bin/bash <<ENDSSH; then
        cat <<'EOF' > /tmp/install-d8-and-pull-push-images.sh
 #!/bin/bash
-# get latest d8-cli release
-URL="https://api.github.com/repos/deckhouse/deckhouse-cli/releases/latest"
-DOWNLOAD_URL=\$(wget -qO- "\${URL}" | grep browser_download_url | cut -d '"' -f 4 | grep linux-amd64 | grep -v sha256sum)
-if [ -z "\${DOWNLOAD_URL}" ]; then
-  echo "Failed to retrieve the URL for the download"
-  exit 1
-fi
 # download
-wget -q "\${DOWNLOAD_URL}" -O /tmp/d8.tar.gz
+wget -q "https://github.com/deckhouse/deckhouse-cli/releases/download/v0.10.5/d8-v0.10.5-linux-amd64.tar.gz" -O /tmp/d8.tar.gz
 # install
 file /tmp/d8.tar.gz
 mkdir d8cli
