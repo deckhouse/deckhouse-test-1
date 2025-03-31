@@ -55,7 +55,6 @@ shell:
     ssh {{ $.SVACE_ANALYZE_SSH_USER }}@{{ $.SVACE_ANALYZE_HOST }} mkdir -p /svace-analyze/{{ $.CI_COMMIT_REF_NAME }}/{{ $.Commit.Hash }}/{{ .ModuleName }}/{{ $.ImageName }}
     tar -c .svace-dir | zstd -T0 | ssh svace@{{ $.SVACE_ANALYZE_HOST }} "tar -x -C /svace-analyze/{{ $.CI_COMMIT_REF_NAME }}/{{ $.Commit.Hash }}/{{ .ModuleName }}/{{ $.ImageName }} --strip-components=1 -I 'zstd -d'"
     rm -rf .svace-dir
-    echo "something"
     {{- else }}
     CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -o /caps-controller-manager cmd/main.go
     {{- end }}  

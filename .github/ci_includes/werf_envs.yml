@@ -10,6 +10,9 @@ GHA_TEST_REGISTRY_PATH: "ghcr.io/${{ github.repository }}"
 # Need for ssh: default.
 DOCKER_BUILDKIT: "1"
 WERF_LOG_TERMINAL_WIDTH: "200"
+# Need for svace integration
+SVACE_ANALYZE_HOST: "${{ secrets.SVACE_ANALYZE_HOST }}"
+SVACE_ANALYZE_SSH_USER: "${{ secrets.SVACE_ANALYZE_SSH_USER }}"
 # </template: werf_envs>
 {!{- end -}!}
 

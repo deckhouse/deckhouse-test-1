@@ -50,6 +50,9 @@ env:
   # Need for ssh: default.
   DOCKER_BUILDKIT: "1"
   WERF_LOG_TERMINAL_WIDTH: "200"
+  # Need for svace integration
+  SVACE_ANALYZE_HOST: "${{ secrets.SVACE_ANALYZE_HOST }}"
+  SVACE_ANALYZE_SSH_USER: "${{ secrets.SVACE_ANALYZE_SSH_USER }}"
   # </template: werf_envs>
 
   # <template: git_source_envs>
@@ -536,6 +539,40 @@ jobs:
           done <<< "$HOST_KEYS"
       # </template: login_git_step>
 
+      # <template: add_ssh_key>
+      - name: Start ssh-agent
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: |
+            ${{ secrets.SVACE_ANALYZE_SSH_PRIVATE_KEY }}
+      - name: Add ssh_known_hosts
+        run: |
+          IPS="${SVACE_ANALYZE_HOST}"
+          REPOS=""
+
+          hosts=${IPS}
+          for repo in $REPOS; do
+              host=$(grep -oP '(?<=@)[^/:]+' <<< ${repo})
+              hosts+=" "${host}
+              host_ips=$(nslookup "$host" | awk '/^Address: / { print $2 }')
+              for host_ip in $host_ips; do
+                  echo "::add-mask::$host_ip"
+              done
+          done
+
+          mkdir -p ~/.ssh
+          touch ~/.ssh/known_hosts
+          for host in $hosts; do
+              HOST_KEYS=$(ssh-keyscan -H "$host" 2>/dev/null)
+              while IFS= read -r KEY_LINE; do
+                  CONSTANT_PART=$(awk '{print $2, $3}' <<< "$KEY_LINE")
+                  if ! grep -q "$CONSTANT_PART" ~/.ssh/known_hosts; then
+                      echo "$KEY_LINE" >> ~/.ssh/known_hosts
+                  fi
+              done <<< "$HOST_KEYS"
+          done
+      # </template: add_ssh_key>
+
       - name: Build and push deckhouse images
         id: build
         env:
@@ -544,6 +581,9 @@ jobs:
           CI_COMMIT_BRANCH: ${{needs.git_info.outputs.ci_commit_branch}}
           CI_COMMIT_REF_NAME: ${{needs.git_info.outputs.ci_commit_ref_name}}
           CI_COMMIT_REF_SLUG: ${{needs.git_info.outputs.ci_commit_ref_slug}}
+          SVACE_ANALYZE_HOST: ${{ secrets.SVACE_ANALYZE_HOST }}
+          SVACE_ANALYZE_SSH_USER: ${{ secrets.SVACE_ANALYZE_SSH_USER }}
+          SVACE_ENABLED: ${{ contains(github.event.pull_request.labels.*.name, 'analyze/svace') && "true" || "false" }}
         run: |
           # Extract REPO_SUFFIX from repository name: trim prefix 'deckhouse/deckhouse-'.
           REPO_SUFFIX=${GITHUB_REPOSITORY#deckhouse/deckhouse-}
@@ -900,6 +940,40 @@ jobs:
           done <<< "$HOST_KEYS"
       # </template: login_git_step>
 
+      # <template: add_ssh_key>
+      - name: Start ssh-agent
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: |
+            ${{ secrets.SVACE_ANALYZE_SSH_PRIVATE_KEY }}
+      - name: Add ssh_known_hosts
+        run: |
+          IPS="${SVACE_ANALYZE_HOST}"
+          REPOS=""
+
+          hosts=${IPS}
+          for repo in $REPOS; do
+              host=$(grep -oP '(?<=@)[^/:]+' <<< ${repo})
+              hosts+=" "${host}
+              host_ips=$(nslookup "$host" | awk '/^Address: / { print $2 }')
+              for host_ip in $host_ips; do
+                  echo "::add-mask::$host_ip"
+              done
+          done
+
+          mkdir -p ~/.ssh
+          touch ~/.ssh/known_hosts
+          for host in $hosts; do
+              HOST_KEYS=$(ssh-keyscan -H "$host" 2>/dev/null)
+              while IFS= read -r KEY_LINE; do
+                  CONSTANT_PART=$(awk '{print $2, $3}' <<< "$KEY_LINE")
+                  if ! grep -q "$CONSTANT_PART" ~/.ssh/known_hosts; then
+                      echo "$KEY_LINE" >> ~/.ssh/known_hosts
+                  fi
+              done <<< "$HOST_KEYS"
+          done
+      # </template: add_ssh_key>
+
       - name: Build and push deckhouse images
         id: build
         env:
@@ -908,6 +982,9 @@ jobs:
           CI_COMMIT_BRANCH: ${{needs.git_info.outputs.ci_commit_branch}}
           CI_COMMIT_REF_NAME: ${{needs.git_info.outputs.ci_commit_ref_name}}
           CI_COMMIT_REF_SLUG: ${{needs.git_info.outputs.ci_commit_ref_slug}}
+          SVACE_ANALYZE_HOST: ${{ secrets.SVACE_ANALYZE_HOST }}
+          SVACE_ANALYZE_SSH_USER: ${{ secrets.SVACE_ANALYZE_SSH_USER }}
+          SVACE_ENABLED: ${{ contains(github.event.pull_request.labels.*.name, 'analyze/svace') && "true" || "false" }}
         run: |
           # Extract REPO_SUFFIX from repository name: trim prefix 'deckhouse/deckhouse-'.
           REPO_SUFFIX=${GITHUB_REPOSITORY#deckhouse/deckhouse-}
@@ -1264,6 +1341,40 @@ jobs:
           done <<< "$HOST_KEYS"
       # </template: login_git_step>
 
+      # <template: add_ssh_key>
+      - name: Start ssh-agent
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: |
+            ${{ secrets.SVACE_ANALYZE_SSH_PRIVATE_KEY }}
+      - name: Add ssh_known_hosts
+        run: |
+          IPS="${SVACE_ANALYZE_HOST}"
+          REPOS=""
+
+          hosts=${IPS}
+          for repo in $REPOS; do
+              host=$(grep -oP '(?<=@)[^/:]+' <<< ${repo})
+              hosts+=" "${host}
+              host_ips=$(nslookup "$host" | awk '/^Address: / { print $2 }')
+              for host_ip in $host_ips; do
+                  echo "::add-mask::$host_ip"
+              done
+          done
+
+          mkdir -p ~/.ssh
+          touch ~/.ssh/known_hosts
+          for host in $hosts; do
+              HOST_KEYS=$(ssh-keyscan -H "$host" 2>/dev/null)
+              while IFS= read -r KEY_LINE; do
+                  CONSTANT_PART=$(awk '{print $2, $3}' <<< "$KEY_LINE")
+                  if ! grep -q "$CONSTANT_PART" ~/.ssh/known_hosts; then
+                      echo "$KEY_LINE" >> ~/.ssh/known_hosts
+                  fi
+              done <<< "$HOST_KEYS"
+          done
+      # </template: add_ssh_key>
+
       - name: Build and push deckhouse images
         id: build
         env:
@@ -1272,6 +1383,9 @@ jobs:
           CI_COMMIT_BRANCH: ${{needs.git_info.outputs.ci_commit_branch}}
           CI_COMMIT_REF_NAME: ${{needs.git_info.outputs.ci_commit_ref_name}}
           CI_COMMIT_REF_SLUG: ${{needs.git_info.outputs.ci_commit_ref_slug}}
+          SVACE_ANALYZE_HOST: ${{ secrets.SVACE_ANALYZE_HOST }}
+          SVACE_ANALYZE_SSH_USER: ${{ secrets.SVACE_ANALYZE_SSH_USER }}
+          SVACE_ENABLED: ${{ contains(github.event.pull_request.labels.*.name, 'analyze/svace') && "true" || "false" }}
         run: |
           # Extract REPO_SUFFIX from repository name: trim prefix 'deckhouse/deckhouse-'.
           REPO_SUFFIX=${GITHUB_REPOSITORY#deckhouse/deckhouse-}
@@ -1628,6 +1742,40 @@ jobs:
           done <<< "$HOST_KEYS"
       # </template: login_git_step>
 
+      # <template: add_ssh_key>
+      - name: Start ssh-agent
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: |
+            ${{ secrets.SVACE_ANALYZE_SSH_PRIVATE_KEY }}
+      - name: Add ssh_known_hosts
+        run: |
+          IPS="${SVACE_ANALYZE_HOST}"
+          REPOS=""
+
+          hosts=${IPS}
+          for repo in $REPOS; do
+              host=$(grep -oP '(?<=@)[^/:]+' <<< ${repo})
+              hosts+=" "${host}
+              host_ips=$(nslookup "$host" | awk '/^Address: / { print $2 }')
+              for host_ip in $host_ips; do
+                  echo "::add-mask::$host_ip"
+              done
+          done
+
+          mkdir -p ~/.ssh
+          touch ~/.ssh/known_hosts
+          for host in $hosts; do
+              HOST_KEYS=$(ssh-keyscan -H "$host" 2>/dev/null)
+              while IFS= read -r KEY_LINE; do
+                  CONSTANT_PART=$(awk '{print $2, $3}' <<< "$KEY_LINE")
+                  if ! grep -q "$CONSTANT_PART" ~/.ssh/known_hosts; then
+                      echo "$KEY_LINE" >> ~/.ssh/known_hosts
+                  fi
+              done <<< "$HOST_KEYS"
+          done
+      # </template: add_ssh_key>
+
       - name: Build and push deckhouse images
         id: build
         env:
@@ -1636,6 +1784,9 @@ jobs:
           CI_COMMIT_BRANCH: ${{needs.git_info.outputs.ci_commit_branch}}
           CI_COMMIT_REF_NAME: ${{needs.git_info.outputs.ci_commit_ref_name}}
           CI_COMMIT_REF_SLUG: ${{needs.git_info.outputs.ci_commit_ref_slug}}
+          SVACE_ANALYZE_HOST: ${{ secrets.SVACE_ANALYZE_HOST }}
+          SVACE_ANALYZE_SSH_USER: ${{ secrets.SVACE_ANALYZE_SSH_USER }}
+          SVACE_ENABLED: ${{ contains(github.event.pull_request.labels.*.name, 'analyze/svace') && "true" || "false" }}
         run: |
           # Extract REPO_SUFFIX from repository name: trim prefix 'deckhouse/deckhouse-'.
           REPO_SUFFIX=${GITHUB_REPOSITORY#deckhouse/deckhouse-}
@@ -1992,6 +2143,40 @@ jobs:
           done <<< "$HOST_KEYS"
       # </template: login_git_step>
 
+      # <template: add_ssh_key>
+      - name: Start ssh-agent
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: |
+            ${{ secrets.SVACE_ANALYZE_SSH_PRIVATE_KEY }}
+      - name: Add ssh_known_hosts
+        run: |
+          IPS="${SVACE_ANALYZE_HOST}"
+          REPOS=""
+
+          hosts=${IPS}
+          for repo in $REPOS; do
+              host=$(grep -oP '(?<=@)[^/:]+' <<< ${repo})
+              hosts+=" "${host}
+              host_ips=$(nslookup "$host" | awk '/^Address: / { print $2 }')
+              for host_ip in $host_ips; do
+                  echo "::add-mask::$host_ip"
+              done
+          done
+
+          mkdir -p ~/.ssh
+          touch ~/.ssh/known_hosts
+          for host in $hosts; do
+              HOST_KEYS=$(ssh-keyscan -H "$host" 2>/dev/null)
+              while IFS= read -r KEY_LINE; do
+                  CONSTANT_PART=$(awk '{print $2, $3}' <<< "$KEY_LINE")
+                  if ! grep -q "$CONSTANT_PART" ~/.ssh/known_hosts; then
+                      echo "$KEY_LINE" >> ~/.ssh/known_hosts
+                  fi
+              done <<< "$HOST_KEYS"
+          done
+      # </template: add_ssh_key>
+
       - name: Build and push deckhouse images
         id: build
         env:
@@ -2000,6 +2185,9 @@ jobs:
           CI_COMMIT_BRANCH: ${{needs.git_info.outputs.ci_commit_branch}}
           CI_COMMIT_REF_NAME: ${{needs.git_info.outputs.ci_commit_ref_name}}
           CI_COMMIT_REF_SLUG: ${{needs.git_info.outputs.ci_commit_ref_slug}}
+          SVACE_ANALYZE_HOST: ${{ secrets.SVACE_ANALYZE_HOST }}
+          SVACE_ANALYZE_SSH_USER: ${{ secrets.SVACE_ANALYZE_SSH_USER }}
+          SVACE_ENABLED: ${{ contains(github.event.pull_request.labels.*.name, 'analyze/svace') && "true" || "false" }}
         run: |
           # Extract REPO_SUFFIX from repository name: trim prefix 'deckhouse/deckhouse-'.
           REPO_SUFFIX=${GITHUB_REPOSITORY#deckhouse/deckhouse-}
@@ -2356,6 +2544,40 @@ jobs:
           done <<< "$HOST_KEYS"
       # </template: login_git_step>
 
+      # <template: add_ssh_key>
+      - name: Start ssh-agent
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: |
+            ${{ secrets.SVACE_ANALYZE_SSH_PRIVATE_KEY }}
+      - name: Add ssh_known_hosts
+        run: |
+          IPS="${SVACE_ANALYZE_HOST}"
+          REPOS=""
+
+          hosts=${IPS}
+          for repo in $REPOS; do
+              host=$(grep -oP '(?<=@)[^/:]+' <<< ${repo})
+              hosts+=" "${host}
+              host_ips=$(nslookup "$host" | awk '/^Address: / { print $2 }')
+              for host_ip in $host_ips; do
+                  echo "::add-mask::$host_ip"
+              done
+          done
+
+          mkdir -p ~/.ssh
+          touch ~/.ssh/known_hosts
+          for host in $hosts; do
+              HOST_KEYS=$(ssh-keyscan -H "$host" 2>/dev/null)
+              while IFS= read -r KEY_LINE; do
+                  CONSTANT_PART=$(awk '{print $2, $3}' <<< "$KEY_LINE")
+                  if ! grep -q "$CONSTANT_PART" ~/.ssh/known_hosts; then
+                      echo "$KEY_LINE" >> ~/.ssh/known_hosts
+                  fi
+              done <<< "$HOST_KEYS"
+          done
+      # </template: add_ssh_key>
+
       - name: Build and push deckhouse images
         id: build
         env:
@@ -2364,6 +2586,9 @@ jobs:
           CI_COMMIT_BRANCH: ${{needs.git_info.outputs.ci_commit_branch}}
           CI_COMMIT_REF_NAME: ${{needs.git_info.outputs.ci_commit_ref_name}}
           CI_COMMIT_REF_SLUG: ${{needs.git_info.outputs.ci_commit_ref_slug}}
+          SVACE_ANALYZE_HOST: ${{ secrets.SVACE_ANALYZE_HOST }}
+          SVACE_ANALYZE_SSH_USER: ${{ secrets.SVACE_ANALYZE_SSH_USER }}
+          SVACE_ENABLED: ${{ contains(github.event.pull_request.labels.*.name, 'analyze/svace') && "true" || "false" }}
         run: |
           # Extract REPO_SUFFIX from repository name: trim prefix 'deckhouse/deckhouse-'.
           REPO_SUFFIX=${GITHUB_REPOSITORY#deckhouse/deckhouse-}

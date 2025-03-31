@@ -26,6 +26,9 @@ args:
   CLOUD_PROVIDERS_SOURCE_REPO: {{ .CLOUD_PROVIDERS_SOURCE_REPO }}
   OBSERVABILITY_SOURCE_REPO: {{ .OBSERVABILITY_SOURCE_REPO }}
   DECKHOUSE_PRIVATE_REPO: {{ .DECKHOUSE_PRIVATE_REPO }}
+  SVACE_ANALYZE_HOST: {{ .SVACE_ANALYZE_HOST }}
+  SVACE_ANALYZE_SSH_USER: {{ .SVACE_ANALYZE_SSH_USER }}
+
   # proxies for various packages
   GOPROXY: {{ .GOPROXY }}
     {{- if not (has (list .ModuleName .ImageName | join "/") (list "common/distroless")) }}

@@ -254,3 +254,39 @@
     done <<< "$HOST_KEYS"
 # </template: login_git_step>
 {!{- end -}!}
+
+{!{ define "add_ssh_key" }!}
+# <template: add_ssh_key>
+- name: Start ssh-agent
+  uses: {!{ index (ds "actions") "ssh-agent" }!}
+  with:
+    ssh-private-key: |
+      ${{ secrets.SVACE_ANALYZE_SSH_PRIVATE_KEY }}
+- name: Add ssh_known_hosts
+  run: |
+    IPS="${SVACE_ANALYZE_HOST}"
+    REPOS=""
+
+    hosts=${IPS}
+    for repo in $REPOS; do
+        host=$(grep -oP '(?<=@)[^/:]+' <<< ${repo})
+        hosts+=" "${host}
+        host_ips=$(nslookup "$host" | awk '/^Address: / { print $2 }')
+        for host_ip in $host_ips; do
+            echo "::add-mask::$host_ip"
+        done
+    done
+
+    mkdir -p ~/.ssh
+    touch ~/.ssh/known_hosts
+    for host in $hosts; do
+        HOST_KEYS=$(ssh-keyscan -H "$host" 2>/dev/null)
+        while IFS= read -r KEY_LINE; do
+            CONSTANT_PART=$(awk '{print $2, $3}' <<< "$KEY_LINE")
+            if ! grep -q "$CONSTANT_PART" ~/.ssh/known_hosts; then
+                echo "$KEY_LINE" >> ~/.ssh/known_hosts
+            fi
+        done <<< "$HOST_KEYS"
+    done
+# </template: add_ssh_key>
+{!{- end -}!}
