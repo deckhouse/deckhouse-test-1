@@ -37,7 +37,7 @@ shell:
   - rm -rf /tmp/autoscaler /src/vendor
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact-{{ $image_version }}
-from: {{ $.Images.BASE_GOLANG_23_ALPINE }}
+from: index.docker.io/himax/golang:1.23.6-bookworm-svace@sha256:d2f3bd955f5c60a34e23ff4248ecd26163b06ae239d5e9e0687fd5db21e38661
 final: false
 import:
 - image: {{ $.ModuleName }}/{{ $.ImageName }}-{{ $image_version }}-src-artifact
@@ -50,12 +50,12 @@ mount:
 - from: tmp_dir
   to: /root/.cache/go-build
 shell:
-  install:
-  - cd /src
-  - export GOPROXY={{ $.GOPROXY }} GOOS=linux GOARCH=amd64 CGO_ENABLED=0
-  - go mod download
-  - go build -ldflags="-s -w" -o cluster-autoscaler
-  - echo "{{ $clusterAutoscalerVersion }}.{{ $value.clusterAutoscalerPatch }}-flant" > VERSION
+  install: |
+    cd /src
+    export GOPROXY={{ $.GOPROXY }} GOOS=linux GOARCH=amd64 CGO_ENABLED=0
+    go mod download
+    {{- include "image_build" (merge . (dict "BuildCommand" "go build -ldflags=\"-s -w\" -o cluster-autoscaler")) | indent 4 }}
+    echo "{{ $clusterAutoscalerVersion }}.{{ $value.clusterAutoscalerPatch }}-flant" > VERSION
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-{{ $image_version }}
 fromImage: common/distroless
