@@ -16,7 +16,7 @@ git:
     - "**/*.go"
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}-artifact
-from: {{ $.Images.BASE_GOLANG_23_ALPINE }}
+from: index.docker.io/himax/golang:1.23.6-bookworm-svace@sha256:d2f3bd955f5c60a34e23ff4248ecd26163b06ae239d5e9e0687fd5db21e38661
 final: false
 import:
 - image: {{ .ModuleName }}/{{ .ImageName }}-src-artifact
@@ -27,13 +27,14 @@ mount:
 - fromPath: ~/go-pkg-cache
   to: /go/pkg
 shell:
-  install:
-  - export GOPROXY={{ $.GOPROXY }}
-  - cd /src
-  - go mod download -x
-  - CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o bashible-apiserver .
-  - chown 64535:64535 bashible-apiserver
-  - chmod 0700 bashible-apiserver
+  install: |
+    export GOPROXY={{ $.GOPROXY }}
+    cd /src
+    go mod download -x
+    exportCGO_ENABLED=0 GOOS=linux GOARCH=amd64 
+    {{- include "image_build" (merge . (dict "BuildCommand" "go build -ldflags=\"-s -w\" -o bashible-apiserver .")) | indent 4 }}
+    chown 64535:64535 bashible-apiserver
+    chmod 0700 bashible-apiserver
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}
 fromImage: common/distroless
