@@ -84,6 +84,8 @@ func main() {
 		"CLOUD_PROVIDERS_SOURCE_REPO=",
 		"OBSERVABILITY_SOURCE_REPO=",
 		"DECKHOUSE_PRIVATE_REPO=",
+		"SVACE_ANALYZE_HOST=",
+		"SVACE_ANALYZE_SSH_USER=",
 	)
 	cmd.Dir = path.Join("..")
 	out, err := cmd.CombinedOutput()
