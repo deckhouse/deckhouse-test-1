@@ -92,8 +92,6 @@ cleanup:
 
 # goproxy  settings
 {{- $_ := set . "GOPROXY" (env "GOPROXY") }}
-
-
 ---
 # render ssh-static
 {{ include "ssh_static_artifact" (dict "Images" .Images "SOURCE_REPO" .SOURCE_REPO "DistroPackagesProxy" .DistroPackagesProxy) }}
