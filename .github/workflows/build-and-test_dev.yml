@@ -603,30 +603,40 @@ jobs:
           version: ${{env.WERF_VERSION}}
       # </template: werf_install_step>
 
-      # <template: login_git_step>
-      - name: Start ssh-agent
+      # <template: add_ssh_keys>
+      - name: Add ssh-agent
         uses: webfactory/ssh-agent@v0.9.0
         with:
           ssh-private-key: |
-            ${{secrets.SOURCE_REPO_SSH_KEY}}
-      - name: Add ssh_known_hosts
+            ${{ secrets.SVACE_ANALYZE_SSH_PRIVATE_KEY }}
+            ${{ secrets.SOURCE_REPO_SSH_KEY }}
+      - name: Fill in ssh_known_hosts
         run: |
-          HOST=$(grep -oP '(?<=@)[^/:]+' <<< ${{secrets.SOURCE_REPO_GIT}})
-          echo "::add-mask::$HOST"
-          IPS=$(nslookup "$HOST" | awk '/^Address: / { print $2 }')
-          for IP in $IPS; do
-            echo "::add-mask::$IP"
+          IPS="${{secrets.SVACE_ANALYZE_HOST}}"
+          REPOS="${{secrets.SOURCE_REPO_GIT}}"
+
+          hosts=${IPS}
+          for repo in $REPOS; do
+              host=$(grep -oP '(?<=@)[^/:]+' <<< ${repo})
+              hosts+=" "${host}
+              host_ips=$(nslookup "$host" | awk '/^Address: / { print $2 }')
+              for host_ip in $host_ips; do
+                  echo "::add-mask::$host_ip"
+              done
           done
+
           mkdir -p ~/.ssh
           touch ~/.ssh/known_hosts
-          HOST_KEYS=$(ssh-keyscan -H "$HOST" 2>/dev/null)
-          while IFS= read -r KEY_LINE; do
-            CONSTANT_PART=$(awk '{print $2, $3}' <<< "$KEY_LINE")
-            if ! grep -q "$CONSTANT_PART" ~/.ssh/known_hosts; then
-              echo "$KEY_LINE" >> ~/.ssh/known_hosts
-            fi
-          done <<< "$HOST_KEYS"
-      # </template: login_git_step>
+          for host in $hosts; do
+              HOST_KEYS=$(ssh-keyscan -H "$host" 2>/dev/null)
+              while IFS= read -r KEY_LINE; do
+                  CONSTANT_PART=$(awk '{print $2, $3}' <<< "$KEY_LINE")
+                  if ! grep -q "$CONSTANT_PART" ~/.ssh/known_hosts; then
+                      echo "$KEY_LINE" >> ~/.ssh/known_hosts
+                  fi
+              done <<< "$HOST_KEYS"
+          done
+      # </template: add_ssh_keys>
 
       - name: Build and push deckhouse images
         id: build
@@ -641,6 +651,9 @@ jobs:
           CI_COMMIT_BRANCH: ${{needs.git_info.outputs.ci_commit_branch}}
           CI_COMMIT_REF_NAME: ${{needs.git_info.outputs.ci_commit_ref_name}}
           CI_COMMIT_REF_SLUG: ${{needs.pull_request_info.outputs.ref_slug}}
+          SVACE_ANALYZE_HOST: "${{ secrets.SVACE_ANALYZE_HOST }}"
+          SVACE_ANALYZE_SSH_USER: "${{ secrets.SVACE_ANALYZE_SSH_USER }}"
+          SVACE_ENABLED: ${{ contains(github.event.pull_request.labels.*.name, 'analyze/svace') && true || false }}
         run: |
           # Extract REPO_SUFFIX from repository name: trim prefix 'deckhouse/deckhouse-'.
           REPO_SUFFIX=${GITHUB_REPOSITORY#deckhouse/deckhouse-}
