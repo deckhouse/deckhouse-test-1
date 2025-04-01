@@ -50,9 +50,6 @@ env:
   # Need for ssh: default.
   DOCKER_BUILDKIT: "1"
   WERF_LOG_TERMINAL_WIDTH: "200"
-  # Need for svace integration
-  SVACE_ANALYZE_HOST: "${{ secrets.SVACE_ANALYZE_HOST }}"
-  SVACE_ANALYZE_SSH_USER: "${{ secrets.SVACE_ANALYZE_SSH_USER }}"
   # </template: werf_envs>
 
   # <template: git_source_envs>
@@ -576,15 +573,17 @@ jobs:
       - name: Build and push deckhouse images
         id: build
         env:
+          TEST_ENV: "Test me"
           DECKHOUSE_REGISTRY_HOST: ${{secrets.DECKHOUSE_REGISTRY_HOST}}
           CI_COMMIT_TAG: ${{needs.git_info.outputs.ci_commit_tag}}
           CI_COMMIT_BRANCH: ${{needs.git_info.outputs.ci_commit_branch}}
           CI_COMMIT_REF_NAME: ${{needs.git_info.outputs.ci_commit_ref_name}}
           CI_COMMIT_REF_SLUG: ${{needs.git_info.outputs.ci_commit_ref_slug}}
-          SVACE_ANALYZE_HOST: ${{ secrets.SVACE_ANALYZE_HOST }}
-          SVACE_ANALYZE_SSH_USER: ${{ secrets.SVACE_ANALYZE_SSH_USER }}
-          SVACE_ENABLED: ${{ contains(github.event.pull_request.labels.*.name, 'analyze/svace') && "true" || "false" }}
+          SVACE_ANALYZE_HOST: "${{ secrets.SVACE_ANALYZE_HOST }}"
+          SVACE_ANALYZE_SSH_USER: "${{ secrets.SVACE_ANALYZE_SSH_USER }}"
+          SVACE_ENABLED: "${{ contains(github.event.pull_request.labels.*.name, 'analyze/svace') && "true" || "false" }}"
         run: |
+          cat ${GITHUB_ENV}
           # Extract REPO_SUFFIX from repository name: trim prefix 'deckhouse/deckhouse-'.
           REPO_SUFFIX=${GITHUB_REPOSITORY#deckhouse/deckhouse-}
           if [[ $REPO_SUFFIX == $GITHUB_REPOSITORY ]] ; then
@@ -977,15 +976,17 @@ jobs:
       - name: Build and push deckhouse images
         id: build
         env:
+          TEST_ENV: "Test me"
           DECKHOUSE_REGISTRY_HOST: ${{secrets.DECKHOUSE_REGISTRY_HOST}}
           CI_COMMIT_TAG: ${{needs.git_info.outputs.ci_commit_tag}}
           CI_COMMIT_BRANCH: ${{needs.git_info.outputs.ci_commit_branch}}
           CI_COMMIT_REF_NAME: ${{needs.git_info.outputs.ci_commit_ref_name}}
           CI_COMMIT_REF_SLUG: ${{needs.git_info.outputs.ci_commit_ref_slug}}
-          SVACE_ANALYZE_HOST: ${{ secrets.SVACE_ANALYZE_HOST }}
-          SVACE_ANALYZE_SSH_USER: ${{ secrets.SVACE_ANALYZE_SSH_USER }}
-          SVACE_ENABLED: ${{ contains(github.event.pull_request.labels.*.name, 'analyze/svace') && "true" || "false" }}
+          SVACE_ANALYZE_HOST: "${{ secrets.SVACE_ANALYZE_HOST }}"
+          SVACE_ANALYZE_SSH_USER: "${{ secrets.SVACE_ANALYZE_SSH_USER }}"
+          SVACE_ENABLED: "${{ contains(github.event.pull_request.labels.*.name, 'analyze/svace') && "true" || "false" }}"
         run: |
+          cat ${GITHUB_ENV}
           # Extract REPO_SUFFIX from repository name: trim prefix 'deckhouse/deckhouse-'.
           REPO_SUFFIX=${GITHUB_REPOSITORY#deckhouse/deckhouse-}
           if [[ $REPO_SUFFIX == $GITHUB_REPOSITORY ]] ; then
@@ -1378,15 +1379,17 @@ jobs:
       - name: Build and push deckhouse images
         id: build
         env:
+          TEST_ENV: "Test me"
           DECKHOUSE_REGISTRY_HOST: ${{secrets.DECKHOUSE_REGISTRY_HOST}}
           CI_COMMIT_TAG: ${{needs.git_info.outputs.ci_commit_tag}}
           CI_COMMIT_BRANCH: ${{needs.git_info.outputs.ci_commit_branch}}
           CI_COMMIT_REF_NAME: ${{needs.git_info.outputs.ci_commit_ref_name}}
           CI_COMMIT_REF_SLUG: ${{needs.git_info.outputs.ci_commit_ref_slug}}
-          SVACE_ANALYZE_HOST: ${{ secrets.SVACE_ANALYZE_HOST }}
-          SVACE_ANALYZE_SSH_USER: ${{ secrets.SVACE_ANALYZE_SSH_USER }}
-          SVACE_ENABLED: ${{ contains(github.event.pull_request.labels.*.name, 'analyze/svace') && "true" || "false" }}
+          SVACE_ANALYZE_HOST: "${{ secrets.SVACE_ANALYZE_HOST }}"
+          SVACE_ANALYZE_SSH_USER: "${{ secrets.SVACE_ANALYZE_SSH_USER }}"
+          SVACE_ENABLED: "${{ contains(github.event.pull_request.labels.*.name, 'analyze/svace') && "true" || "false" }}"
         run: |
+          cat ${GITHUB_ENV}
           # Extract REPO_SUFFIX from repository name: trim prefix 'deckhouse/deckhouse-'.
           REPO_SUFFIX=${GITHUB_REPOSITORY#deckhouse/deckhouse-}
           if [[ $REPO_SUFFIX == $GITHUB_REPOSITORY ]] ; then
@@ -1779,15 +1782,17 @@ jobs:
       - name: Build and push deckhouse images
         id: build
         env:
+          TEST_ENV: "Test me"
           DECKHOUSE_REGISTRY_HOST: ${{secrets.DECKHOUSE_REGISTRY_HOST}}
           CI_COMMIT_TAG: ${{needs.git_info.outputs.ci_commit_tag}}
           CI_COMMIT_BRANCH: ${{needs.git_info.outputs.ci_commit_branch}}
           CI_COMMIT_REF_NAME: ${{needs.git_info.outputs.ci_commit_ref_name}}
           CI_COMMIT_REF_SLUG: ${{needs.git_info.outputs.ci_commit_ref_slug}}
-          SVACE_ANALYZE_HOST: ${{ secrets.SVACE_ANALYZE_HOST }}
-          SVACE_ANALYZE_SSH_USER: ${{ secrets.SVACE_ANALYZE_SSH_USER }}
-          SVACE_ENABLED: ${{ contains(github.event.pull_request.labels.*.name, 'analyze/svace') && "true" || "false" }}
+          SVACE_ANALYZE_HOST: "${{ secrets.SVACE_ANALYZE_HOST }}"
+          SVACE_ANALYZE_SSH_USER: "${{ secrets.SVACE_ANALYZE_SSH_USER }}"
+          SVACE_ENABLED: "${{ contains(github.event.pull_request.labels.*.name, 'analyze/svace') && "true" || "false" }}"
         run: |
+          cat ${GITHUB_ENV}
           # Extract REPO_SUFFIX from repository name: trim prefix 'deckhouse/deckhouse-'.
           REPO_SUFFIX=${GITHUB_REPOSITORY#deckhouse/deckhouse-}
           if [[ $REPO_SUFFIX == $GITHUB_REPOSITORY ]] ; then
@@ -2180,15 +2185,17 @@ jobs:
       - name: Build and push deckhouse images
         id: build
         env:
+          TEST_ENV: "Test me"
           DECKHOUSE_REGISTRY_HOST: ${{secrets.DECKHOUSE_REGISTRY_HOST}}
           CI_COMMIT_TAG: ${{needs.git_info.outputs.ci_commit_tag}}
           CI_COMMIT_BRANCH: ${{needs.git_info.outputs.ci_commit_branch}}
           CI_COMMIT_REF_NAME: ${{needs.git_info.outputs.ci_commit_ref_name}}
           CI_COMMIT_REF_SLUG: ${{needs.git_info.outputs.ci_commit_ref_slug}}
-          SVACE_ANALYZE_HOST: ${{ secrets.SVACE_ANALYZE_HOST }}
-          SVACE_ANALYZE_SSH_USER: ${{ secrets.SVACE_ANALYZE_SSH_USER }}
-          SVACE_ENABLED: ${{ contains(github.event.pull_request.labels.*.name, 'analyze/svace') && "true" || "false" }}
+          SVACE_ANALYZE_HOST: "${{ secrets.SVACE_ANALYZE_HOST }}"
+          SVACE_ANALYZE_SSH_USER: "${{ secrets.SVACE_ANALYZE_SSH_USER }}"
+          SVACE_ENABLED: "${{ contains(github.event.pull_request.labels.*.name, 'analyze/svace') && "true" || "false" }}"
         run: |
+          cat ${GITHUB_ENV}
           # Extract REPO_SUFFIX from repository name: trim prefix 'deckhouse/deckhouse-'.
           REPO_SUFFIX=${GITHUB_REPOSITORY#deckhouse/deckhouse-}
           if [[ $REPO_SUFFIX == $GITHUB_REPOSITORY ]] ; then
@@ -2581,15 +2588,17 @@ jobs:
       - name: Build and push deckhouse images
         id: build
         env:
+          TEST_ENV: "Test me"
           DECKHOUSE_REGISTRY_HOST: ${{secrets.DECKHOUSE_REGISTRY_HOST}}
           CI_COMMIT_TAG: ${{needs.git_info.outputs.ci_commit_tag}}
           CI_COMMIT_BRANCH: ${{needs.git_info.outputs.ci_commit_branch}}
           CI_COMMIT_REF_NAME: ${{needs.git_info.outputs.ci_commit_ref_name}}
           CI_COMMIT_REF_SLUG: ${{needs.git_info.outputs.ci_commit_ref_slug}}
-          SVACE_ANALYZE_HOST: ${{ secrets.SVACE_ANALYZE_HOST }}
-          SVACE_ANALYZE_SSH_USER: ${{ secrets.SVACE_ANALYZE_SSH_USER }}
-          SVACE_ENABLED: ${{ contains(github.event.pull_request.labels.*.name, 'analyze/svace') && "true" || "false" }}
+          SVACE_ANALYZE_HOST: "${{ secrets.SVACE_ANALYZE_HOST }}"
+          SVACE_ANALYZE_SSH_USER: "${{ secrets.SVACE_ANALYZE_SSH_USER }}"
+          SVACE_ENABLED: "${{ contains(github.event.pull_request.labels.*.name, 'analyze/svace') && "true" || "false" }}"
         run: |
+          cat ${GITHUB_ENV}
           # Extract REPO_SUFFIX from repository name: trim prefix 'deckhouse/deckhouse-'.
           REPO_SUFFIX=${GITHUB_REPOSITORY#deckhouse/deckhouse-}
           if [[ $REPO_SUFFIX == $GITHUB_REPOSITORY ]] ; then
