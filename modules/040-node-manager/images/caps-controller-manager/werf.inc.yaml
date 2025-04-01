@@ -48,15 +48,7 @@ shell:
     export GOPROXY={{ $.GOPROXY }}
     cd /src
     go mod download -x
-    {{- if eq $.SVACE_ENABLED "true" }}
     export CGO_ENABLED=0 GOOS=linux GOARCH=amd64
-    echo "/svace-analyze/{{ $.CI_COMMIT_REF_NAME }}/{{ $.Commit.Hash }}/{{ .ModuleName }}/{{ $.ImageName }}"
-    svace build --init go build -a -o /caps-controller-manager cmd/main.go
-    ssh {{ $.SVACE_ANALYZE_SSH_USER }}@{{ $.SVACE_ANALYZE_HOST }} mkdir -p /svace-analyze/{{ $.CI_COMMIT_REF_NAME }}/{{ $.Commit.Hash }}/{{ .ModuleName }}/{{ $.ImageName }}
-    tar -c .svace-dir | zstd -T0 | ssh svace@{{ $.SVACE_ANALYZE_HOST }} "tar -x -C /svace-analyze/{{ $.CI_COMMIT_REF_NAME }}/{{ $.Commit.Hash }}/{{ .ModuleName }}/{{ $.ImageName }} --strip-components=1 -I 'zstd -d'"
-    rm -rf .svace-dir
-    {{- else }}
-    CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -o /caps-controller-manager cmd/main.go
-    {{- end }}  
+    {{- include "image_build" (merge . (dict "BuildCommand" "go build -a -o /caps-controller-manager cmd/main.go")) | indent 4 }}
     chown 64535:64535 /caps-controller-manager
     chmod 0700 /caps-controller-manager
