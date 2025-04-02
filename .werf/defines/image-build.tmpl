@@ -1,4 +1,4 @@
-{{- define "image_build" }}
+{{- define "image-build.build" }}
   {{- if eq $.SVACE_ENABLED "true" }}
 echo "/svace-analyze/{{ $.CI_COMMIT_REF_NAME }}/{{ $.Commit.Hash }}/{{ .ModuleName }}/{{ $.ImageName }}"
 svace build --init {{ .BuildCommand }}

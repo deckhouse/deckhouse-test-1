@@ -54,7 +54,7 @@ shell:
     cd /src
     export GOPROXY={{ $.GOPROXY }} GOOS=linux GOARCH=amd64 CGO_ENABLED=0
     go mod download
-    {{- include "image_build" (merge . (dict "BuildCommand" "go build -ldflags=\"-s -w\" -o cluster-autoscaler")) | indent 4 }}
+    {{- include "image-build.build" (set $ "BuildCommand" "go build -ldflags=\"-s -w\" -o cluster-autoscaler") | indent 4 }}
     echo "{{ $clusterAutoscalerVersion }}.{{ $value.clusterAutoscalerPatch }}-flant" > VERSION
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-{{ $image_version }}
