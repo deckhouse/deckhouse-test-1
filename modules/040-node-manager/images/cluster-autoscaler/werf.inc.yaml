@@ -58,12 +58,12 @@ secrets:
 - id: GOPROXY
   value: {{ $.GOPROXY }}
 shell:
-  install:
-  - cd /src
-  - export GOOS=linux GOARCH=amd64 CGO_ENABLED=0
-  - GOPROXY=$(cat /run/secrets/GOPROXY) go mod download
-  - go build -ldflags="-s -w" -o cluster-autoscaler
-  - echo "{{ $clusterAutoscalerVersion }}.{{ $value.clusterAutoscalerPatch }}-flant" > VERSION
+  install: |
+    cd /src
+    export GOOS=linux GOARCH=amd64 CGO_ENABLED=0
+    GOPROXY=$(cat /run/secrets/GOPROXY) go mod download
+    {{- include "image-build.build" (set $ "BuildCommand" "go build -ldflags=\"-s -w\" -o cluster-autoscaler") | indent 4 }}
+    echo "{{ $clusterAutoscalerVersion }}.{{ $value.clusterAutoscalerPatch }}-flant" > VERSION
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-{{ $image_version }}
 fromImage: common/distroless
