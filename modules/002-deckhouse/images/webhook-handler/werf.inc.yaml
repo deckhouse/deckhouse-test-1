@@ -88,19 +88,19 @@ git:
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}-label-converter-artifact
 final: false
-from: {{ $.Images.BASE_GOLANG_23_ALPINE }}
+from: index.docker.io/himax/golang:1.23.6-bookworm-svace@sha256:d2f3bd955f5c60a34e23ff4248ecd26163b06ae239d5e9e0687fd5db21e38661
 import:
 - image: {{ .ModuleName }}/{{ .ImageName }}-label-converter-src-artifact
   add: /src
   to: /src
   before: install
 shell:
-  install:
-    - export GOPROXY={{ .GOPROXY }}
-    - cd /src
-    - CGO_ENABLED=0 GOOS=linux go build -ldflags '-s -w -extldflags "-static"' -o /label-converter label_converter.go
-    - chown 64535:64535 /label-converter
-    - chmod 755 /label-converter
+  install: |
+    export GOPROXY={{ .GOPROXY }} CGO_ENABLED=0 GOOS=linux
+    cd /src
+    {{- include "image-build.build" (set $ "BuildCommand" `go build -ldflags '-s -w -extldflags "-static"' -o /label-converter label_converter.go`) | indent 4 }}
+    chown 64535:64535 /label-converter
+    chmod 755 /label-converter
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-binaries-artifact
 final: false
