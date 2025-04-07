@@ -1,8 +1,8 @@
 {{- define "image-build.build" }}
   {{- if eq $.SVACE_ENABLED "true" }}
 svace build --init {{ .BuildCommand }}
-ssh {{ $.SVACE_ANALYZE_SSH_USER }}@{{ $.SVACE_ANALYZE_HOST }} mkdir -p /svace-analyze/{{ $.CI_COMMIT_REF_NAME }}/{{ $.Commit.Hash }}/{{ .ModuleName }}/{{ $.ImageName }}
-tar -c .svace-dir | zstd -T0 | ssh svace@{{ $.SVACE_ANALYZE_HOST }} "tar -x -C /svace-analyze/{{ $.CI_COMMIT_REF_NAME }}/{{ $.Commit.Hash }}/{{ .ModuleName }}/{{ $.ImageName }} --strip-components=1 -I 'zstd -d'"
+ssh {{ $.SVACE_ANALYZE_SSH_USER }}@{{ $.SVACE_ANALYZE_HOST }} mkdir -p /svace-analyze/{{ $.CI_COMMIT_REF_NAME }}/{{ $.Commit.Hash }}/{{ .ModuleName }}/{{ $.ImageName }}/.svace-dir
+tar -c .svace-dir | zstd -T0 | ssh svace@{{ $.SVACE_ANALYZE_HOST }} "tar -x -C /svace-analyze/{{ $.CI_COMMIT_REF_NAME }}/{{ $.Commit.Hash }}/{{ .ModuleName }}/{{ $.ImageName }}/.svace-dir --strip-components=1 -I 'zstd -d'"
 rm -rf .svace-dir
   {{- else }}
 {{ .BuildCommand }}
