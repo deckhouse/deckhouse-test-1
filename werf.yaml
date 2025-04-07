@@ -94,6 +94,8 @@ cleanup:
 ---
 {{ include "base_for_go_image" (dict "rootContext" . "k8sVersions" .kubectlForBaseComponents "CandiVersionMap" $.CandiVersionMap "prefix" "") }}
 ---
+{{ include "base_for_go_svace_image" (dict "rootContext" . "k8sVersions" .kubectlForBaseComponents "CandiVersionMap" $.CandiVersionMap "prefix" "") }}
+---
 {{ include "dhctl_src_artifact" (dict "gitPrefix" "") }}
 ---
 {{ include "dhctl_artifact" (dict "GOPROXY" .GOPROXY "CI_COMMIT_TAG" .CI_COMMIT_TAG ) }}
