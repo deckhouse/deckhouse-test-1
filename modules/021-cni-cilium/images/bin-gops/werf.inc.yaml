@@ -15,7 +15,7 @@ shell:
   - cd /src/gops
 ---
 image: {{ .ModuleName }}/gops-artifact
-from: index.docker.io/himax/golang:1.23.6-bookworm-svace@sha256:d2f3bd955f5c60a34e23ff4248ecd26163b06ae239d5e9e0687fd5db21e38661
+fromImage: base-for-go-svace
 final: false
 import:
 - image: {{ .ModuleName }}/{{ .ImageName }}-src-artifact
