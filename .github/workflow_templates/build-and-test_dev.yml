@@ -123,11 +123,23 @@ jobs:
       SVACE_ANALYZE_HOST: "${{ secrets.SVACE_ANALYZE_HOST }}"
       SVACE_ANALYZE_SSH_USER: "${{ secrets.SVACE_ANALYZE_SSH_USER }}"
       SVACE_ENABLED: ${{ contains(github.event.pull_request.labels.*.name, 'analyze/svace') && true || false }}      
+    {!{/* runs-on: [self-hosted, large]
+    outputs:
+      tests_image_name: ${{ steps.build.outputs.tests_image_name }}
+    steps:
+
+      - name: Stub
+        id: build
+        run: |
+          echo "Run stub" */}!}
 {!{ tmpl.Exec "build_template" (slice $ctx "dev") | strings.Indent 4 }!}
 
   analyze_deckhouse:
     if: ${{ contains(github.event.pull_request.labels.*.name, 'analyze/svace') }}
     name: Deckhouse static analysis
+    env:
+      CI_COMMIT_REF_NAME: ${{ github.event.pull_request.head.ref }}
+      CI_COMMIT_HASH: ${{ github.event.pull_request.head.sha }}
     needs:
       - build_deckhouse
     {!{- tmpl.Exec "svace_analyze" $ctx "dev" | strings.Indent 4 }!}
