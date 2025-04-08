@@ -920,6 +920,8 @@ jobs:
           info() { echo -e "${CYAN}$(date '+%Y-%m-%d %H:%M:%S') ${BLUE}INFO: ${1}${NC}"; }
           success() { echo -e "${CYAN}$(date '+%Y-%m-%d %H:%M:%S') ${GREEN}SUCCESS: ${1}${NC}"; }
 
+          SSH="ssh -o ConnectTimeout=10 -o ServerAliveInterval=10 -o ServerAliveCountMax=12"
+
           send() {
               # $1 - command to send
               # $2 - retries count
@@ -930,7 +932,7 @@ jobs:
               result=""
 
               while [ "$attempt" -lt "$retries" ]; do
-                  result=$(ssh ${SVACE_ANALYZE_SSH_USER}@${SVACE_ANALYZE_HOST} "${command}") && success=1 && break
+                  result=$($SSH ${SVACE_ANALYZE_SSH_USER}@${SVACE_ANALYZE_HOST} "${command}") && success=1 && break
                   error "Command failed. Retrying..."
                   attempt=$((attempt + 1))
                   sleep 2
@@ -972,7 +974,7 @@ jobs:
               }'"    
 
               while [ "$attempt" -lt "$retries" ]; do
-                  response=$(ssh ${SVACE_ANALYZE_SSH_USER}@${SVACE_ANALYZE_HOST} "${get_token}") && success=1 || success=0
+                  response=$($SSH ${SVACE_ANALYZE_SSH_USER}@${SVACE_ANALYZE_HOST} "${get_token}") && success=1 || success=0
 
                   if [[ $success == 1 ]]; then
                       token_response_code=$(echo "$response" | tail -n1)
@@ -981,7 +983,7 @@ jobs:
                           token=$(jq -r '.token' <<< "${token_response}") && success=1 || success=0
                           if [[ $success == 1 && -n "${token}" ]]; then
                               request="${request} --header 'Authorization: Bearer ${token}'"
-                              response=$(ssh ${SVACE_ANALYZE_SSH_USER}@${SVACE_ANALYZE_HOST} "${request}") && success=1 || success=0
+                              response=$($SSH ${SVACE_ANALYZE_SSH_USER}@${SVACE_ANALYZE_HOST} "${request}") && success=1 || success=0
 
                               if [[ $success == 1 ]]; then
                                   result=$(echo "${response}" | sed '$d')
@@ -1094,6 +1096,10 @@ jobs:
               info "Start importing module \"${module}\" image \"${image}\"..."
               upload_to_svacer "${module}/${image}" "${branch_name}" "${proj}/${image}.tar.gz"
               success "Import completed successfuly!"
+
+              info "Cleaning up imported artifacts..."
+              send "rm -rf /${SVACE_ANALYZE_DIR}/${CI_COMMIT_REF_NAME}/${CI_COMMIT_HASH}/${module}/${image}"
+              success "Cleanup completed successfully"          
           done
 
       - name: Cleanup Svace artifacts
@@ -1147,7 +1153,7 @@ jobs:
 
           info "Cleanup analyzed artifacts..."
           send "rm -rf /${SVACE_ANALYZE_DIR}/${CI_COMMIT_REF_NAME}/${CI_COMMIT_HASH}"
-          success "Cleaning completed successfully"
+          success "Cleanup completed successfully"
     # </template: svace_analyze>      
 
 
