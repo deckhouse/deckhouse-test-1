@@ -120,7 +120,17 @@ jobs:
       - workflow_render
     env:
       WERF_ENV: ${{ needs.pull_request_info.outputs.edition }}
+      SVACE_ANALYZE_HOST: "${{ secrets.SVACE_ANALYZE_HOST }}"
+      SVACE_ANALYZE_SSH_USER: "${{ secrets.SVACE_ANALYZE_SSH_USER }}"
+      SVACE_ENABLED: ${{ contains(github.event.pull_request.labels.*.name, 'analyze/svace') && true || false }}      
 {!{ tmpl.Exec "build_template" (slice $ctx "dev") | strings.Indent 4 }!}
+
+  analyze_deckhouse:
+    if: ${{ contains(github.event.pull_request.labels.*.name, 'analyze/svace') }}
+    name: Deckhouse static analysis
+    needs:
+      - build_deckhouse
+    {!{- tmpl.Exec "svace_analyze" $ctx "dev" | strings.Indent 4 }!}
 
   doc_web_build:
     name: Doc web build
