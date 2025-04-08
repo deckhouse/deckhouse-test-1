@@ -78,9 +78,6 @@ steps:
 {!{- else }!}
       CI_COMMIT_REF_SLUG: ${{needs.pull_request_info.outputs.ref_slug}}
 {!{- end }!}
-      SVACE_ANALYZE_HOST: "${{ secrets.SVACE_ANALYZE_HOST }}"
-      SVACE_ANALYZE_SSH_USER: "${{ secrets.SVACE_ANALYZE_SSH_USER }}"
-      SVACE_ENABLED: ${{ contains(github.event.pull_request.labels.*.name, 'analyze/svace') && true || false }}
     run: |
       # Extract REPO_SUFFIX from repository name: trim prefix 'deckhouse/deckhouse-'.
       REPO_SUFFIX=${GITHUB_REPOSITORY#deckhouse/deckhouse-}
