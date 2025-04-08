@@ -564,9 +564,6 @@ jobs:
           CI_COMMIT_BRANCH: ${{needs.git_info.outputs.ci_commit_branch}}
           CI_COMMIT_REF_NAME: ${{needs.git_info.outputs.ci_commit_ref_name}}
           CI_COMMIT_REF_SLUG: ${{needs.git_info.outputs.ci_commit_ref_slug}}
-          SVACE_ANALYZE_HOST: "${{ secrets.SVACE_ANALYZE_HOST }}"
-          SVACE_ANALYZE_SSH_USER: "${{ secrets.SVACE_ANALYZE_SSH_USER }}"
-          SVACE_ENABLED: ${{ contains(github.event.pull_request.labels.*.name, 'analyze/svace') && true || false }}
         run: |
           # Extract REPO_SUFFIX from repository name: trim prefix 'deckhouse/deckhouse-'.
           REPO_SUFFIX=${GITHUB_REPOSITORY#deckhouse/deckhouse-}
@@ -941,9 +938,6 @@ jobs:
           CI_COMMIT_BRANCH: ${{needs.git_info.outputs.ci_commit_branch}}
           CI_COMMIT_REF_NAME: ${{needs.git_info.outputs.ci_commit_ref_name}}
           CI_COMMIT_REF_SLUG: ${{needs.git_info.outputs.ci_commit_ref_slug}}
-          SVACE_ANALYZE_HOST: "${{ secrets.SVACE_ANALYZE_HOST }}"
-          SVACE_ANALYZE_SSH_USER: "${{ secrets.SVACE_ANALYZE_SSH_USER }}"
-          SVACE_ENABLED: ${{ contains(github.event.pull_request.labels.*.name, 'analyze/svace') && true || false }}
         run: |
           # Extract REPO_SUFFIX from repository name: trim prefix 'deckhouse/deckhouse-'.
           REPO_SUFFIX=${GITHUB_REPOSITORY#deckhouse/deckhouse-}
@@ -1318,9 +1312,6 @@ jobs:
           CI_COMMIT_BRANCH: ${{needs.git_info.outputs.ci_commit_branch}}
           CI_COMMIT_REF_NAME: ${{needs.git_info.outputs.ci_commit_ref_name}}
           CI_COMMIT_REF_SLUG: ${{needs.git_info.outputs.ci_commit_ref_slug}}
-          SVACE_ANALYZE_HOST: "${{ secrets.SVACE_ANALYZE_HOST }}"
-          SVACE_ANALYZE_SSH_USER: "${{ secrets.SVACE_ANALYZE_SSH_USER }}"
-          SVACE_ENABLED: ${{ contains(github.event.pull_request.labels.*.name, 'analyze/svace') && true || false }}
         run: |
           # Extract REPO_SUFFIX from repository name: trim prefix 'deckhouse/deckhouse-'.
           REPO_SUFFIX=${GITHUB_REPOSITORY#deckhouse/deckhouse-}
@@ -1695,9 +1686,6 @@ jobs:
           CI_COMMIT_BRANCH: ${{needs.git_info.outputs.ci_commit_branch}}
           CI_COMMIT_REF_NAME: ${{needs.git_info.outputs.ci_commit_ref_name}}
           CI_COMMIT_REF_SLUG: ${{needs.git_info.outputs.ci_commit_ref_slug}}
-          SVACE_ANALYZE_HOST: "${{ secrets.SVACE_ANALYZE_HOST }}"
-          SVACE_ANALYZE_SSH_USER: "${{ secrets.SVACE_ANALYZE_SSH_USER }}"
-          SVACE_ENABLED: ${{ contains(github.event.pull_request.labels.*.name, 'analyze/svace') && true || false }}
         run: |
           # Extract REPO_SUFFIX from repository name: trim prefix 'deckhouse/deckhouse-'.
           REPO_SUFFIX=${GITHUB_REPOSITORY#deckhouse/deckhouse-}
@@ -2072,9 +2060,6 @@ jobs:
           CI_COMMIT_BRANCH: ${{needs.git_info.outputs.ci_commit_branch}}
           CI_COMMIT_REF_NAME: ${{needs.git_info.outputs.ci_commit_ref_name}}
           CI_COMMIT_REF_SLUG: ${{needs.git_info.outputs.ci_commit_ref_slug}}
-          SVACE_ANALYZE_HOST: "${{ secrets.SVACE_ANALYZE_HOST }}"
-          SVACE_ANALYZE_SSH_USER: "${{ secrets.SVACE_ANALYZE_SSH_USER }}"
-          SVACE_ENABLED: ${{ contains(github.event.pull_request.labels.*.name, 'analyze/svace') && true || false }}
         run: |
           # Extract REPO_SUFFIX from repository name: trim prefix 'deckhouse/deckhouse-'.
           REPO_SUFFIX=${GITHUB_REPOSITORY#deckhouse/deckhouse-}
@@ -2449,9 +2434,6 @@ jobs:
           CI_COMMIT_BRANCH: ${{needs.git_info.outputs.ci_commit_branch}}
           CI_COMMIT_REF_NAME: ${{needs.git_info.outputs.ci_commit_ref_name}}
           CI_COMMIT_REF_SLUG: ${{needs.git_info.outputs.ci_commit_ref_slug}}
-          SVACE_ANALYZE_HOST: "${{ secrets.SVACE_ANALYZE_HOST }}"
-          SVACE_ANALYZE_SSH_USER: "${{ secrets.SVACE_ANALYZE_SSH_USER }}"
-          SVACE_ENABLED: ${{ contains(github.event.pull_request.labels.*.name, 'analyze/svace') && true || false }}
         run: |
           # Extract REPO_SUFFIX from repository name: trim prefix 'deckhouse/deckhouse-'.
           REPO_SUFFIX=${GITHUB_REPOSITORY#deckhouse/deckhouse-}
