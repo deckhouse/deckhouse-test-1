@@ -569,275 +569,15 @@ jobs:
       SVACE_ANALYZE_HOST: "${{ secrets.SVACE_ANALYZE_HOST }}"
       SVACE_ANALYZE_SSH_USER: "${{ secrets.SVACE_ANALYZE_SSH_USER }}"
       SVACE_ENABLED: ${{ contains(github.event.pull_request.labels.*.name, 'analyze/svace') && true || false }}      
-    # <template: build_template>
     runs-on: [self-hosted, large]
     outputs:
       tests_image_name: ${{ steps.build.outputs.tests_image_name }}
     steps:
 
-
-      # <template: checkout_full_step>
-      - name: Checkout sources
-        uses: actions/checkout@v3.5.2
-        with:
-          fetch-depth: 0
-          ref: ${{ needs.pull_request_info.outputs.ref }}
-      # </template: checkout_full_step>
-
-      # <template: login_dev_registry_step>
-      - name: Check dev registry credentials
-        id: check_dev_registry
-        env:
-          HOST: ${{secrets.DECKHOUSE_DEV_REGISTRY_HOST}}
-        run: |
-          if [[ -n $HOST ]]; then
-            echo "has_credentials=true" >> $GITHUB_OUTPUT
-            echo "web_registry_path=${{secrets.DECKHOUSE_DEV_REGISTRY_HOST }}/deckhouse/site" >> $GITHUB_OUTPUT
-          fi
-      - name: Login to dev registry
-        uses: docker/login-action@v2.1.0
-        if: ${{ steps.check_dev_registry.outputs.has_credentials == 'true' }}
-        with:
-          registry: ${{ secrets.DECKHOUSE_DEV_REGISTRY_HOST }}
-          username: ${{ secrets.DECKHOUSE_DEV_REGISTRY_USER }}
-          password: ${{ secrets.DECKHOUSE_DEV_REGISTRY_PASSWORD }}
-          logout: false
-      # </template: login_dev_registry_step>
-
-      # <template: login_readonly_registry_step>
-      - name: Check readonly registry credentials
-        id: check_readonly_registry
-        env:
-          HOST: ${{secrets.DECKHOUSE_REGISTRY_READ_HOST}}
-        run: |
-          if [[ -n $HOST ]]; then
-            echo "has_credentials=true" >> $GITHUB_OUTPUT
-            echo "web_registry_path=${{secrets.DECKHOUSE_REGISTRY_READ_HOST }}/deckhouse/site" >> $GITHUB_OUTPUT
-          fi
-      - name: Login to readonly registry
-        uses: docker/login-action@v2.1.0
-        if: ${{ steps.check_readonly_registry.outputs.has_credentials == 'true' }}
-        with:
-          registry: ${{ secrets.DECKHOUSE_REGISTRY_READ_HOST }}
-          username: ${{ secrets.DECKHOUSE_REGISTRY_READ_USER }}
-          password: ${{ secrets.DECKHOUSE_REGISTRY_READ_PASSWORD }}
-          logout: false
-      # </template: login_readonly_registry_step>
-
-      # <template: login_rw_registry_step>
-      - name: Check rw registry credentials
-        id: check_rw_registry
-        env:
-          HOST: ${{secrets.DECKHOUSE_REGISTRY_HOST}}
-        run: |
-          if [[ -n $HOST ]]; then
-            echo "has_credentials=true" >> $GITHUB_OUTPUT
-            echo "web_registry_path=${{secrets.DECKHOUSE_REGISTRY_HOST }}/deckhouse/site" >> $GITHUB_OUTPUT
-          fi
-      - name: Login to rw registry
-        uses: docker/login-action@v2.1.0
-        if: ${{ steps.check_rw_registry.outputs.has_credentials == 'true' }}
-        with:
-          registry: ${{ secrets.DECKHOUSE_REGISTRY_HOST }}
-          username: ${{ secrets.DECKHOUSE_REGISTRY_USER }}
-          password: ${{ secrets.DECKHOUSE_REGISTRY_PASSWORD }}
-          logout: false
-      - name: Login to Github Container Registry
-        uses: docker/login-action@v2.1.0
-        if: ${{ steps.check_rw_registry.outputs.has_credentials != 'true' }}
-        with:
-          registry: ghcr.io
-          username: ${{ secrets.GHCR_IO_REGISTRY_USER }}
-          password: ${{ secrets.GHCR_IO_REGISTRY_PASSWORD }}
-          logout: false
-      # </template: login_rw_registry_step>
-
-      # <template: werf_install_step>
-      - name: Install werf CLI
-        uses: werf/actions/install@v2
-        with:
-          channel: ${{env.WERF_CHANNEL}}
-      # </template: werf_install_step>
-
-      # <template: add_ssh_keys>
-      - name: Add ssh-agent
-        uses: webfactory/ssh-agent@v0.9.0
-        with:
-          ssh-private-key: |
-            ${{ secrets.SVACE_ANALYZE_SSH_PRIVATE_KEY }}
-            ${{ secrets.SOURCE_REPO_SSH_KEY }}
-      - name: Fill in ssh_known_hosts
-        run: |
-          IPS="${{secrets.SVACE_ANALYZE_HOST}}"
-          REPOS="${{secrets.SOURCE_REPO_GIT}}"
-
-          hosts=${IPS}
-          for repo in $REPOS; do
-              host=$(grep -oP '(?<=@)[^/:]+' <<< ${repo})
-              hosts+=" "${host}
-              host_ips=$(nslookup "$host" | awk '/^Address: / { print $2 }')
-              for host_ip in $host_ips; do
-                  echo "::add-mask::$host_ip"
-              done
-          done
-
-          mkdir -p ~/.ssh
-          touch ~/.ssh/known_hosts
-          for host in $hosts; do
-              HOST_KEYS=$(ssh-keyscan -H "$host" 2>/dev/null)
-              while IFS= read -r KEY_LINE; do
-                  CONSTANT_PART=$(awk '{print $2, $3}' <<< "$KEY_LINE")
-                  if ! grep -q "$CONSTANT_PART" ~/.ssh/known_hosts; then
-                      echo "$KEY_LINE" >> ~/.ssh/known_hosts
-                  fi
-              done <<< "$HOST_KEYS"
-          done
-      # </template: add_ssh_keys>
-
-      - name: Build and push deckhouse images
+      - name: Stub
         id: build
-        env:
-          DECKHOUSE_REGISTRY_HOST: ${{secrets.DECKHOUSE_REGISTRY_HOST}}
-          CI_COMMIT_TAG: ${{needs.git_info.outputs.ci_commit_tag}}
-          CI_COMMIT_BRANCH: ${{needs.git_info.outputs.ci_commit_branch}}
-          CI_COMMIT_REF_NAME: ${{needs.git_info.outputs.ci_commit_ref_name}}
-          CI_COMMIT_REF_SLUG: ${{needs.pull_request_info.outputs.ref_slug}}
         run: |
-          # Extract REPO_SUFFIX from repository name: trim prefix 'deckhouse/deckhouse-'.
-          REPO_SUFFIX=${GITHUB_REPOSITORY#deckhouse/deckhouse-}
-          if [[ $REPO_SUFFIX == $GITHUB_REPOSITORY ]] ; then
-            # REPO_SUFFIX should be empty for main repo 'deckhouse/deckhouse'.
-            REPO_SUFFIX=
-          fi
-
-          # Put tags on produced images and push to dev and release repositories.
-          #
-          # There are 2 modes: "dev" and "release".
-          # The "dev" mode builds branches only:
-          # - Build using dev-registry as primary and deckhouse registry as secondary.
-          # - Push dev and dev/install images with prNUM tags and push to dev-registry.
-          # The "release" mode builds branches and tags:
-          # - Build using dev-registry as primary and deckhouse registry as secondary.
-          # - Push dev and dev/install images to dev-registry with tag equal to a branch name (main or release-X.Y).
-          # - Build using deckhouse registry as primary and dev-registry as secondary.
-          # - Push dev, dev/install and release-channel-version images to deckhouse registry with tag equels to a Git tag.
-
-          # SRC_NAME is a name of image from werf.yaml.
-          # SRC is a source image name (stage name from werf build report).
-          # DST is an image name for docker push.
-          function pull_push_rmi() {
-            SRC_NAME=$1
-            SRC=$2
-            DST=$3
-            echo "⚓️ 📥 [$(date -u)] Pull '${SRC_NAME}' image as ${SRC}."
-            docker pull ${SRC}
-            echo "⚓️ 🏷 [$(date -u)] Tag '${SRC_NAME}' image as ${DST}."
-            docker image tag ${SRC} ${DST}
-            echo "⚓️ 📤 [$(date -u)] Push '${SRC_NAME}' image as ${DST}."
-            docker image push ${DST}
-            echo "⚓️ 🧹 [$(date -u)] Remove local tag for '${SRC_NAME}'."
-            docker image rmi ${DST} || true;
-          }
-
-          if [[ -n "${DEV_REGISTRY_PATH}" ]]; then export WERF_REPO="${DEV_REGISTRY_PATH}"; fi
-          type werf && source $(werf ci-env github --verbose --as-file)
-
-          # CE/EE/FE -> ce/ee/fe
-          REGISTRY_SUFFIX=$(echo ${WERF_ENV} | tr '[:upper:]' '[:lower:]')
-
-          #temporary: move temp dir
-          TEMP_WORKDIR="$(dirname "${{github.workspace}}")/${{github.run_id}}-$REGISTRY_SUFFIX"
-          mkdir -p "$TEMP_WORKDIR"
-
-          # Registry path to publish images for Git branches.
-          BRANCH_REGISTRY_PATH=
-          # Registry path to publish images for Git tags.
-          SEMVER_REGISTRY_PATH=
-
-          if [[ -n ${DECKHOUSE_REGISTRY_HOST:-} ]] ; then
-            # Build using dev-registry as primary repo and prod registry as secondary (ro) repo.
-            # This build will put stages to "dev" registry. If "dev" registry is empty, existing stages are copied from prod registry.
-
-            SECONDARY_REPO="--cache-repo ${DECKHOUSE_REGISTRY_HOST}/deckhouse/${REGISTRY_SUFFIX}"
-
-            if [[ -n "${CI_COMMIT_BRANCH}" && ! "${CI_COMMIT_BRANCH}" =~ ^(main|release-.+)$ ]]; then
-              SECONDARY_REPO=
-            fi
-
-            werf build \
-              ${SECONDARY_REPO} \
-              --verbose \
-              --parallel=true --parallel-tasks-limit=5 \
-              --save-build-report=true \
-              --tmp-dir="$TEMP_WORKDIR" \
-              --build-report-path images_tags_werf.json
-            BRANCH_REGISTRY_PATH="${DEV_REGISTRY_PATH}"
-            SEMVER_REGISTRY_PATH="${DECKHOUSE_REGISTRY_HOST}/deckhouse"
-          else
-            # DECKHOUSE_REGISTRY_HOST is empty, so this repo is not the main repo.
-            # Build using dev-registry as a single primary repo and push:
-            # - branches to Dev registry to run e2e tests.
-            # - semver tags to Github Container Registry for testing release process.
-            werf build \
-              --verbose \
-              --parallel=true --parallel-tasks-limit=5 \
-              --save-build-report=true \
-              --tmp-dir="$TEMP_WORKDIR" \
-              --build-report-path images_tags_werf.json
-            BRANCH_REGISTRY_PATH="${DEV_REGISTRY_PATH}"
-            SEMVER_REGISTRY_PATH="${GHA_TEST_REGISTRY_PATH}"
-            echo "⚓️ 🧪 [$(date -u)] DECKHOUSE_REGISTRY_HOST is empty. Publish to Github Container Registry '${PROD_REGISTRY_PATH}'"
-          fi
-
-          cp images_tags_werf.json "$TEMP_WORKDIR"
-
-          # Publish images for Git branch.
-          if [[ -n "${CI_COMMIT_BRANCH}" ]]; then
-            # Add edition name for non-FE builds
-            if [[ -n ${WERF_ENV} && ${WERF_ENV,,} != "fe" ]]; then
-              IMAGE_EDITION=${WERF_ENV,,}
-            fi
-            # CI_COMMIT_REF_SLUG is a 'prNUM' for dev branches or 'main' for default branch.
-            # Use it as image tag. Add suffix to not overlap with PRs in main repo.
-            IMAGE_TAG=${CI_COMMIT_REF_SLUG}${IMAGE_EDITION:+-${IMAGE_EDITION}}${REPO_SUFFIX:+-${REPO_SUFFIX}}
-
-            echo "⚓️ 💫 [$(date -u)] Publish images to dev-registry for branch '${CI_COMMIT_BRANCH}' and edition '${WERF_ENV}' using tag '${IMAGE_TAG}' ..."
-
-            echo "⚓️ 💫 [$(date -u)] Publish 'dev' image to dev-registry using tag ${IMAGE_TAG}".
-            DECKHOUSE_IMAGE_SRC="$(jq -r '.Images."dev".DockerImageName' images_tags_werf.json)"
-            DECKHOUSE_IMAGE=${BRANCH_REGISTRY_PATH}:${IMAGE_TAG}
-            pull_push_rmi 'dev' ${DECKHOUSE_IMAGE_SRC} ${DECKHOUSE_IMAGE}
-
-            echo "⚓️ 💫 [$(date -u)] Publish 'dev/install' image to dev-registry using tag ${IMAGE_TAG}".
-            INSTALL_IMAGE_SRC="$(jq -r '.Images."dev/install".DockerImageName' images_tags_werf.json)"
-            INSTALL_IMAGE=${BRANCH_REGISTRY_PATH}/install:${IMAGE_TAG}
-            pull_push_rmi 'dev/install' ${INSTALL_IMAGE_SRC} ${INSTALL_IMAGE}
-
-            echo "⚓️ 💫 [$(date -u)] Publish 'dev/install-standalone' image to dev-registry using tag ${IMAGE_TAG}".
-            INSTALL_IMAGE_SRC="$(jq -r '.Images."dev/install-standalone".DockerImageName' images_tags_werf.json)"
-            INSTALL_IMAGE=${BRANCH_REGISTRY_PATH}/install-standalone:${IMAGE_TAG}
-            pull_push_rmi 'dev/install-standalone' ${INSTALL_IMAGE_SRC} ${INSTALL_IMAGE}
-
-            echo "⚓️ 💫 [$(date -u)] Publish 'e2e-terraform' image to dev-registry using tag ${IMAGE_TAG}".
-            INSTALL_IMAGE_SRC="$(jq -r '.Images."e2e-terraform".DockerImageName' images_tags_werf.json)"
-            INSTALL_IMAGE=${BRANCH_REGISTRY_PATH}/e2e-terraform:${IMAGE_TAG}
-            pull_push_rmi 'e2e-terraform' ${INSTALL_IMAGE_SRC} ${INSTALL_IMAGE}
-          fi
-
-
-
-          # Save 'tests' image name to pass it as output for 'tests' jobs.
-          TESTS_IMAGE_NAME="$(jq -r '.Images."tests".DockerImageName' images_tags_werf.json)"
-          # Print image name in uppercase to prevent hiding non-secret registry host stored in secret.
-          echo "Tests image name: '${TESTS_IMAGE_NAME}'" | tr '[:lower:]' '[:upper:]'
-          # Encode as gzip+base64 to evade github's SecretMasker error: "Skip output since it may contain secret".
-          echo "tests_image_name=$(echo ${TESTS_IMAGE_NAME} | gzip | base64 -w0)" >> $GITHUB_OUTPUT
-
-      - name: Cleanup
-        if: ${{ always() }}
-        run: |
-          rm -f images_tags_werf.json
-    # </template: build_template>
+          echo "Run stub"
 
 
   analyze_deckhouse:
@@ -920,6 +660,8 @@ jobs:
           info() { echo -e "${CYAN}$(date '+%Y-%m-%d %H:%M:%S') ${BLUE}INFO: ${1}${NC}"; }
           success() { echo -e "${CYAN}$(date '+%Y-%m-%d %H:%M:%S') ${GREEN}SUCCESS: ${1}${NC}"; }
 
+          SSH="ssh -o ConnectTimeout=10 -o ServerAliveInterval=10 -o ServerAliveCountMax=12"
+
           send() {
               # $1 - command to send
               # $2 - retries count
@@ -930,7 +672,7 @@ jobs:
               result=""
 
               while [ "$attempt" -lt "$retries" ]; do
-                  result=$(ssh ${SVACE_ANALYZE_SSH_USER}@${SVACE_ANALYZE_HOST} "${command}") && success=1 && break
+                  result=$($SSH ${SVACE_ANALYZE_SSH_USER}@${SVACE_ANALYZE_HOST} "${command}") && success=1 && break
                   error "Command failed. Retrying..."
                   attempt=$((attempt + 1))
                   sleep 2
@@ -972,7 +714,7 @@ jobs:
               }'"    
 
               while [ "$attempt" -lt "$retries" ]; do
-                  response=$(ssh ${SVACE_ANALYZE_SSH_USER}@${SVACE_ANALYZE_HOST} "${get_token}") && success=1 || success=0
+                  response=$($SSH ${SVACE_ANALYZE_SSH_USER}@${SVACE_ANALYZE_HOST} "${get_token}") && success=1 || success=0
 
                   if [[ $success == 1 ]]; then
                       token_response_code=$(echo "$response" | tail -n1)
@@ -981,7 +723,7 @@ jobs:
                           token=$(jq -r '.token' <<< "${token_response}") && success=1 || success=0
                           if [[ $success == 1 && -n "${token}" ]]; then
                               request="${request} --header 'Authorization: Bearer ${token}'"
-                              response=$(ssh ${SVACE_ANALYZE_SSH_USER}@${SVACE_ANALYZE_HOST} "${request}") && success=1 || success=0
+                              response=$($SSH ${SVACE_ANALYZE_SSH_USER}@${SVACE_ANALYZE_HOST} "${request}") && success=1 || success=0
 
                               if [[ $success == 1 ]]; then
                                   result=$(echo "${response}" | sed '$d')
@@ -1078,10 +820,12 @@ jobs:
 
 
           projects=$(send "{ for dir in /${SVACE_ANALYZE_DIR}/${CI_COMMIT_REF_NAME}/${CI_COMMIT_HASH}/*/*/; do echo \"\${dir%/}\"; done; }")
+          echo "${projects}"
 
           info "Starting svace analyze..."
           for proj in $projects; do
               read branch module image <<< "$(echo ${proj} | cut -d '/' -f 3,5,6 | sed 's/\// /g')"
+              [[ $image == "*" ]] && warning "Nothing to analyze in ${proj}" && echo "::warning file=$(realpath "$0")::Nothing to analyze" && exit 0
 
               info "Start analyzing module \"${module}\" image \"${image}\"..."
               send "svace analyze --svace-dir ${proj}"
@@ -1094,10 +838,14 @@ jobs:
               info "Start importing module \"${module}\" image \"${image}\"..."
               upload_to_svacer "${module}/${image}" "${branch_name}" "${proj}/${image}.tar.gz"
               success "Import completed successfuly!"
+
+              info "Cleaning up imported artifacts..."
+              send "rm -rf /${SVACE_ANALYZE_DIR}/${CI_COMMIT_REF_NAME}/${CI_COMMIT_HASH}/${module}/${image}"
+              success "Cleanup completed successfully"          
           done
 
       - name: Cleanup Svace artifacts
-        if: ${{ always() }}
+        if: ${{ success() }}
         env:
           SVACE_ANALYZE_HOST: "${{ secrets.SVACE_ANALYZE_HOST }}"
           SVACE_ANALYZE_SSH_USER: "${{ secrets.SVACE_ANALYZE_SSH_USER }}"
@@ -1147,7 +895,7 @@ jobs:
 
           info "Cleanup analyzed artifacts..."
           send "rm -rf /${SVACE_ANALYZE_DIR}/${CI_COMMIT_REF_NAME}/${CI_COMMIT_HASH}"
-          success "Cleaning completed successfully"
+          success "Cleanup completed successfully"
     # </template: svace_analyze>      
 
 
