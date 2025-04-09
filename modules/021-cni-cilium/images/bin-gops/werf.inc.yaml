@@ -34,5 +34,4 @@ shell:
     mkdir -p "/out/linux/amd64/bin"
     {{- include "image-build.build" (set $ "BuildCommand" `go build -ldflags "-s -w" -o "/out/linux/amd64/bin/gops" github.com/google/gops`) | indent 4 }}
     strip /out/linux/amd64/bin/gops
-    echo "test"
 ---
