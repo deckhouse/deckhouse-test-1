@@ -1090,7 +1090,7 @@ jobs:
           }
 
 
-          projects=$(send "{ for dir in /${SVACE_ANALYZE_DIR}/${CI_COMMIT_REF_NAME}/${CI_COMMIT_HASH}/*/*/; do echo \"\${dir%/}\"; done; }")
+          projects=$(send "{ for dir in /${SVACE_ANALYZE_DIR}/${CI_COMMIT_HASH}/*/*/; do echo \"\${dir%/}\"; done; }")
           echo "${projects}"
 
           info "Starting svace analyze..."
@@ -1111,7 +1111,7 @@ jobs:
               success "Import completed successfuly!"
 
               info "Cleaning up imported artifacts..."
-              send "rm -rf /${SVACE_ANALYZE_DIR}/${CI_COMMIT_REF_NAME}/${CI_COMMIT_HASH}/${module}/${image}"
+              send "rm -rf /${proj}"
               success "Cleanup completed successfully"          
           done
 
@@ -1163,7 +1163,7 @@ jobs:
           }
 
           info "Cleanup analyzed artifacts..."
-          send "rm -rf /${SVACE_ANALYZE_DIR}/${CI_COMMIT_REF_NAME}/${CI_COMMIT_HASH}"
+          send "rm -rf /${SVACE_ANALYZE_DIR}/${CI_COMMIT_HASH}"
           success "Cleanup completed successfully"
     # </template: svace_analyze>      
 

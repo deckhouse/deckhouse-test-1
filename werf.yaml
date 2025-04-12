@@ -78,8 +78,6 @@ cleanup:
 # svace analyze toggler
 {{- $_ := set . "SVACE_ENABLED" (env "SVACE_ENABLED" "false") }}
 
-{{- $_ := set . "CI_COMMIT_REF_NAME" (env "CI_COMMIT_REF_NAME") }}
-
 {{- $_ := set . "SVACE_ANALYZE_HOST" (env "SVACE_ANALYZE_HOST") }}
 
 {{- $_ := set . "SVACE_ANALYZE_SSH_USER" (env "SVACE_ANALYZE_SSH_USER") }}
@@ -93,8 +91,6 @@ cleanup:
 {{ include "common_base_image" (dict "rootContext" . "k8sVersions" .kubectlForBaseComponents "CandiVersionMap" $.CandiVersionMap "prefix" "") }}
 ---
 {{ include "base_for_go_image" (dict "rootContext" . "k8sVersions" .kubectlForBaseComponents "CandiVersionMap" $.CandiVersionMap "prefix" "") }}
----
-{{ include "base_for_go_svace_image" (dict "rootContext" . "k8sVersions" .kubectlForBaseComponents "CandiVersionMap" $.CandiVersionMap "prefix" "") }}
 ---
 {{ include "dhctl_src_artifact" (dict "gitPrefix" "") }}
 ---

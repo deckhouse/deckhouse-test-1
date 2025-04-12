@@ -36,6 +36,9 @@ on:
         description: 'Comma-separated list of editions to build'
         required: false
         type: string
+      svace_enabled:
+        description: 'A boolean value which indicates whether svace analyze will be performed'
+        required: false
 
 env:
 {!{ tmpl.Exec "werf_envs"               | strings.Indent 2 }!}
@@ -121,8 +124,20 @@ jobs:
       - workflow_render
     env:
       WERF_ENV: "FE"
+      SVACE_ANALYZE_HOST: "${{ secrets.SVACE_ANALYZE_HOST }}"
+      SVACE_ANALYZE_SSH_USER: "${{ secrets.SVACE_ANALYZE_SSH_USER }}"
+      SVACE_ENABLED: ${{ github.event.inputs.svace_enabled }}
 {!{ tmpl.Exec "build_template" (slice $ctx "release") | strings.Indent 4 }!}
 {!{ tmpl.Exec "update_comment_on_finish" (slice "job,one-line" $jobNames.build_fe) | strings.Indent 6 }!}
+  analyze_deckhouse_fe:
+    if: ${{ github.event.inputs.svace_enabled == true }}
+    name: Deckhouse FE static analysis
+    env:
+      CI_COMMIT_REF_NAME: ${{ github.ref_name }}
+      CI_COMMIT_HASH: ${{ github.sha }}
+    needs:
+      - build_fe
+    {!{- tmpl.Exec "svace_analyze" $ctx | strings.Indent 4 }!}
 
 {!{ $jobNames = coll.Merge $jobNames (dict "build_ee" "Build EE") }!}
   build_ee:
@@ -136,8 +151,20 @@ jobs:
     if: ${{ startsWith(github.ref, 'refs/tags/v') || (needs.detect_editions.outputs.BUILD_EE == 'true') }}
     env:
       WERF_ENV: "EE"
+      SVACE_ANALYZE_HOST: "${{ secrets.SVACE_ANALYZE_HOST }}"
+      SVACE_ANALYZE_SSH_USER: "${{ secrets.SVACE_ANALYZE_SSH_USER }}"
+      SVACE_ENABLED: ${{ github.event.inputs.svace_enabled }}
 {!{ tmpl.Exec "build_template" (slice $ctx "release") | strings.Indent 4 }!}
 {!{ tmpl.Exec "update_comment_on_finish" (slice "job,one-line" $jobNames.build_ee) | strings.Indent 6 }!}
+  analyze_deckhouse_ee:
+    if: ${{ github.event.inputs.svace_enabled == true }}
+    name: Deckhouse EE static analysis
+    env:
+      CI_COMMIT_REF_NAME: ${{ github.ref_name }}
+      CI_COMMIT_HASH: ${{ github.sha }}
+    needs:
+      - build_ee
+    {!{- tmpl.Exec "svace_analyze" $ctx | strings.Indent 4 }!}
 
 {!{ $jobNames = coll.Merge $jobNames (dict "build_se" "Build SE") }!}
   build_se:
@@ -151,8 +178,20 @@ jobs:
     if: ${{ startsWith(github.ref, 'refs/tags/v') || (needs.detect_editions.outputs.BUILD_SE == 'true') }}
     env:
       WERF_ENV: "SE"
+      SVACE_ANALYZE_HOST: "${{ secrets.SVACE_ANALYZE_HOST }}"
+      SVACE_ANALYZE_SSH_USER: "${{ secrets.SVACE_ANALYZE_SSH_USER }}"
+      SVACE_ENABLED: ${{ github.event.inputs.svace_enabled }}
 {!{ tmpl.Exec "build_template" (slice $ctx "release") | strings.Indent 4 }!}
 {!{ tmpl.Exec "update_comment_on_finish" (slice "job,one-line" $jobNames.build_se) | strings.Indent 6 }!}
+  analyze_deckhouse_se:
+    if: ${{ github.event.inputs.svace_enabled == true }}
+    name: Deckhouse SE static analysis
+    env:
+      CI_COMMIT_REF_NAME: ${{ github.ref_name }}
+      CI_COMMIT_HASH: ${{ github.sha }}
+    needs:
+      - build_se
+    {!{- tmpl.Exec "svace_analyze" $ctx | strings.Indent 4 }!}
 
 {!{ $jobNames = coll.Merge $jobNames (dict "build_se_plus" "Build SE-plus") }!}
   build_se_plus:
@@ -166,8 +205,20 @@ jobs:
     if: ${{ startsWith(github.ref, 'refs/tags/v') || (needs.detect_editions.outputs.BUILD_SE-plus == 'true') }}
     env:
       WERF_ENV: "SE-plus"
+      SVACE_ANALYZE_HOST: "${{ secrets.SVACE_ANALYZE_HOST }}"
+      SVACE_ANALYZE_SSH_USER: "${{ secrets.SVACE_ANALYZE_SSH_USER }}"
+      SVACE_ENABLED: ${{ github.event.inputs.svace_enabled }}
 {!{ tmpl.Exec "build_template" (slice $ctx "release") | strings.Indent 4 }!}
 {!{ tmpl.Exec "update_comment_on_finish" (slice "job,one-line" $jobNames.build_se_plus) | strings.Indent 6 }!}
+  analyze_deckhouse_se_plus:
+    if: ${{ github.event.inputs.svace_enabled == true }}
+    name: Deckhouse SE-plus static analysis
+    env:
+      CI_COMMIT_REF_NAME: ${{ github.ref_name }}
+      CI_COMMIT_HASH: ${{ github.sha }}
+    needs:
+      - build_se_plus
+    {!{- tmpl.Exec "svace_analyze" $ctx | strings.Indent 4 }!}
 
 {!{ $jobNames = coll.Merge $jobNames (dict "build_be" "Build BE") }!}
   build_be:
@@ -181,8 +232,20 @@ jobs:
     if: ${{ startsWith(github.ref, 'refs/tags/v') || (needs.detect_editions.outputs.BUILD_BE == 'true') }}
     env:
       WERF_ENV: "BE"
+      SVACE_ANALYZE_HOST: "${{ secrets.SVACE_ANALYZE_HOST }}"
+      SVACE_ANALYZE_SSH_USER: "${{ secrets.SVACE_ANALYZE_SSH_USER }}"
+      SVACE_ENABLED: ${{ github.event.inputs.svace_enabled }}
 {!{ tmpl.Exec "build_template" (slice $ctx "release") | strings.Indent 4 }!}
 {!{ tmpl.Exec "update_comment_on_finish" (slice "job,one-line" $jobNames.build_be) | strings.Indent 6 }!}
+  analyze_deckhouse_be:
+    if: ${{ github.event.inputs.svace_enabled == true }}
+    name: Deckhouse BE static analysis
+    env:
+      CI_COMMIT_REF_NAME: ${{ github.ref_name }}
+      CI_COMMIT_HASH: ${{ github.sha }}
+    needs:
+      - build_be
+    {!{- tmpl.Exec "svace_analyze" $ctx | strings.Indent 4 }!}
 
 {!{ $jobNames = coll.Merge $jobNames (dict "build_ce" "Build CE") }!}
   build_ce:
@@ -196,8 +259,20 @@ jobs:
     if: ${{ startsWith(github.ref, 'refs/tags/v') || (needs.detect_editions.outputs.BUILD_CE == 'true') }}
     env:
       WERF_ENV: "CE"
+      SVACE_ANALYZE_HOST: "${{ secrets.SVACE_ANALYZE_HOST }}"
+      SVACE_ANALYZE_SSH_USER: "${{ secrets.SVACE_ANALYZE_SSH_USER }}"
+      SVACE_ENABLED: ${{ github.event.inputs.svace_enabled }}
 {!{ tmpl.Exec "build_template" (slice $ctx "release") | strings.Indent 4 }!}
 {!{ tmpl.Exec "update_comment_on_finish" (slice "job,one-line" $jobNames.build_ce) | strings.Indent 6 }!}
+  analyze_deckhouse_ce:
+    if: ${{ github.event.inputs.svace_enabled == true }}
+    name: Deckhouse CE static analysis
+    env:
+      CI_COMMIT_REF_NAME: ${{ github.ref_name }}
+      CI_COMMIT_HASH: ${{ github.sha }}
+    needs:
+      - build_ce
+    {!{- tmpl.Exec "svace_analyze" $ctx | strings.Indent 4 }!}
 
 {!{ $jobNames = coll.Merge $jobNames (dict "doc_web_build" "Doc web build") }!}
   doc_web_build:

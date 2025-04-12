@@ -88,7 +88,7 @@ git:
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}-label-converter-artifact
 final: false
-fromImage: base-for-go-svace
+{{- include "image-build.fromImage" $ }}
 import:
 - image: {{ .ModuleName }}/{{ .ImageName }}-label-converter-src-artifact
   add: /src

@@ -37,7 +37,7 @@ shell:
   - rm -rf /tmp/autoscaler /src/vendor
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact-{{ $image_version }}
-fromImage: base-for-go-svace
+{{- include "image-build.fromImage" $ }}
 final: false
 import:
 - image: {{ $.ModuleName }}/{{ $.ImageName }}-{{ $image_version }}-src-artifact

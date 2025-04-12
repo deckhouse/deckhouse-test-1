@@ -55,7 +55,19 @@ jobs:
       - workflow_render
     env:
       WERF_ENV: "FE"
+      SVACE_ANALYZE_HOST: "${{ secrets.SVACE_ANALYZE_HOST }}"
+      SVACE_ANALYZE_SSH_USER: "${{ secrets.SVACE_ANALYZE_SSH_USER }}"
+      SVACE_ENABLED: "true"
 {!{ tmpl.Exec "build_template" (slice $ctx "pre-release") | strings.Indent 4 }!}
+
+  analyze_deckhouse:
+    name: Deckhouse static analysis
+    env:
+      CI_COMMIT_REF_NAME: ${{ github.ref_name }}
+      CI_COMMIT_HASH: ${{ github.sha }}
+    needs:
+      - build_deckhouse
+    {!{- tmpl.Exec "svace_analyze" $ctx | strings.Indent 4 }!}
 
   doc_web_build:
     name: Doc web build
