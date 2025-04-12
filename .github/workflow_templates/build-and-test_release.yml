@@ -34,6 +34,9 @@ on:
         description: 'Comma-separated list of editions to build'
         required: false
         type: string
+      svace_enabled:
+        description: 'A boolean value which indicates whether svace analyze will be performed'
+        required: false
 
 env:
 {!{ tmpl.Exec "werf_envs" | strings.Indent 2 }!}
@@ -126,8 +129,20 @@ jobs:
       - workflow_render
     env:
       WERF_ENV: "FE"
+      SVACE_ANALYZE_HOST: "${{ secrets.SVACE_ANALYZE_HOST }}"
+      SVACE_ANALYZE_SSH_USER: "${{ secrets.SVACE_ANALYZE_SSH_USER }}"
+      SVACE_ENABLED: ${{ github.event.inputs.svace_enabled }}
 {!{ tmpl.Exec "build_template" (slice $ctx "release") | strings.Indent 4 }!}
 {!{ tmpl.Exec "send_fail_report" . | strings.Indent 6 }!}
+  analyze_deckhouse_fe:
+    if: ${{ github.event.inputs.svace_enabled == true }}
+    name: Deckhouse FE static analysis
+    env:
+      CI_COMMIT_REF_NAME: ${{ github.ref_name }}
+      CI_COMMIT_HASH: ${{ github.sha }}
+    needs:
+      - build_fe
+    {!{- tmpl.Exec "svace_analyze" $ctx | strings.Indent 4 }!}
 
   build_ee:
     name: Build EE
@@ -140,8 +155,20 @@ jobs:
       - detect_editions
     env:
       WERF_ENV: "EE"
+      SVACE_ANALYZE_HOST: "${{ secrets.SVACE_ANALYZE_HOST }}"
+      SVACE_ANALYZE_SSH_USER: "${{ secrets.SVACE_ANALYZE_SSH_USER }}"
+      SVACE_ENABLED: ${{ github.event.inputs.svace_enabled }}
 {!{ tmpl.Exec "build_template" (slice $ctx "release") | strings.Indent 4 }!}
 {!{ tmpl.Exec "send_fail_report" . | strings.Indent 6 }!}
+  analyze_deckhouse_ee:
+    if: ${{ github.event.inputs.svace_enabled == true }}
+    name: Deckhouse EE static analysis
+    env:
+      CI_COMMIT_REF_NAME: ${{ github.ref_name }}
+      CI_COMMIT_HASH: ${{ github.sha }}
+    needs:
+      - build_ee
+    {!{- tmpl.Exec "svace_analyze" $ctx | strings.Indent 4 }!}
 
   build_se:
     name: Build SE
@@ -154,7 +181,19 @@ jobs:
       - detect_editions
     env:
       WERF_ENV: "SE"
+      SVACE_ANALYZE_HOST: "${{ secrets.SVACE_ANALYZE_HOST }}"
+      SVACE_ANALYZE_SSH_USER: "${{ secrets.SVACE_ANALYZE_SSH_USER }}"
+      SVACE_ENABLED: ${{ github.event.inputs.svace_enabled }}
 {!{ tmpl.Exec "build_template" (slice $ctx "release") | strings.Indent 4 }!}
+  analyze_deckhouse_se:
+    if: ${{ github.event.inputs.svace_enabled == true }}
+    name: Deckhouse SE static analysis
+    env:
+      CI_COMMIT_REF_NAME: ${{ github.ref_name }}
+      CI_COMMIT_HASH: ${{ github.sha }}
+    needs:
+      - build_se
+    {!{- tmpl.Exec "svace_analyze" $ctx | strings.Indent 4 }!}
 
   build_se_plus:
     name: Build SE-plus
@@ -167,7 +206,19 @@ jobs:
       - detect_editions
     env:
       WERF_ENV: "SE-plus"
+      SVACE_ANALYZE_HOST: "${{ secrets.SVACE_ANALYZE_HOST }}"
+      SVACE_ANALYZE_SSH_USER: "${{ secrets.SVACE_ANALYZE_SSH_USER }}"
+      SVACE_ENABLED: ${{ github.event.inputs.svace_enabled }}
 {!{ tmpl.Exec "build_template" (slice $ctx "release") | strings.Indent 4 }!}
+  analyze_deckhouse_se_plus:
+    if: ${{ github.event.inputs.svace_enabled == true }}
+    name: Deckhouse SE-plus static analysis
+    env:
+      CI_COMMIT_REF_NAME: ${{ github.ref_name }}
+      CI_COMMIT_HASH: ${{ github.sha }}
+    needs:
+      - build_se_plus
+    {!{- tmpl.Exec "svace_analyze" $ctx | strings.Indent 4 }!}
 
   build_be:
     name: Build BE
@@ -180,7 +231,19 @@ jobs:
       - detect_editions
     env:
       WERF_ENV: "BE"
+      SVACE_ANALYZE_HOST: "${{ secrets.SVACE_ANALYZE_HOST }}"
+      SVACE_ANALYZE_SSH_USER: "${{ secrets.SVACE_ANALYZE_SSH_USER }}"
+      SVACE_ENABLED: ${{ github.event.inputs.svace_enabled }}
 {!{ tmpl.Exec "build_template" (slice $ctx "release") | strings.Indent 4 }!}
+  analyze_deckhouse_be:
+    if: ${{ github.event.inputs.svace_enabled == true }}
+    name: Deckhouse BE static analysis
+    env:
+      CI_COMMIT_REF_NAME: ${{ github.ref_name }}
+      CI_COMMIT_HASH: ${{ github.sha }}
+    needs:
+      - build_be
+    {!{- tmpl.Exec "svace_analyze" $ctx | strings.Indent 4 }!}
 
   build_ce:
     name: Build CE
@@ -193,7 +256,19 @@ jobs:
       - detect_editions
     env:
       WERF_ENV: "CE"
+      SVACE_ANALYZE_HOST: "${{ secrets.SVACE_ANALYZE_HOST }}"
+      SVACE_ANALYZE_SSH_USER: "${{ secrets.SVACE_ANALYZE_SSH_USER }}"
+      SVACE_ENABLED: ${{ github.event.inputs.svace_enabled }}
 {!{ tmpl.Exec "build_template" (slice $ctx "release") | strings.Indent 4 }!}
+  analyze_deckhouse_ce:
+    if: ${{ github.event.inputs.svace_enabled == true }}
+    name: Deckhouse CE static analysis
+    env:
+      CI_COMMIT_REF_NAME: ${{ github.ref_name }}
+      CI_COMMIT_HASH: ${{ github.sha }}
+    needs:
+      - build_ce
+    {!{- tmpl.Exec "svace_analyze" $ctx | strings.Indent 4 }!}
 
   doc_web_build:
     name: Doc web build

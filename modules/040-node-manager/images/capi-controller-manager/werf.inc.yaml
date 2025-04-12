@@ -28,7 +28,7 @@ shell:
   - rm -rf .git hack test
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact
-fromImage: base-for-go-svace
+{{- include "image-build.fromImage" $ }}
 final: false
 import:
 - image: {{ .ModuleName }}/{{ $.ImageName }}-src-artifact
