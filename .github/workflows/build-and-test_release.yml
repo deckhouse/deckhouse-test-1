@@ -993,7 +993,8 @@ jobs:
               --header 'content-type: multipart/form-data' \
               --form project=\"${project_name}\" \
               --form branch=\"${branch_name}\" \
-              --form file=@\"${archive_name}\""
+              --form file=@\"${archive_name}\" \
+              --form options=\"--field CI_COMMIT_HASH:${CI_COMMIT_HASH}\""
 
               info "Importing \"${project_name}\"..."
               response=$(send_request "${svacer_import}" $request_attempts)
@@ -1690,7 +1691,8 @@ jobs:
               --header 'content-type: multipart/form-data' \
               --form project=\"${project_name}\" \
               --form branch=\"${branch_name}\" \
-              --form file=@\"${archive_name}\""
+              --form file=@\"${archive_name}\" \
+              --form options=\"--field CI_COMMIT_HASH:${CI_COMMIT_HASH}\""
 
               info "Importing \"${project_name}\"..."
               response=$(send_request "${svacer_import}" $request_attempts)
@@ -2387,7 +2389,8 @@ jobs:
               --header 'content-type: multipart/form-data' \
               --form project=\"${project_name}\" \
               --form branch=\"${branch_name}\" \
-              --form file=@\"${archive_name}\""
+              --form file=@\"${archive_name}\" \
+              --form options=\"--field CI_COMMIT_HASH:${CI_COMMIT_HASH}\""
 
               info "Importing \"${project_name}\"..."
               response=$(send_request "${svacer_import}" $request_attempts)
@@ -3084,7 +3087,8 @@ jobs:
               --header 'content-type: multipart/form-data' \
               --form project=\"${project_name}\" \
               --form branch=\"${branch_name}\" \
-              --form file=@\"${archive_name}\""
+              --form file=@\"${archive_name}\" \
+              --form options=\"--field CI_COMMIT_HASH:${CI_COMMIT_HASH}\""
 
               info "Importing \"${project_name}\"..."
               response=$(send_request "${svacer_import}" $request_attempts)
@@ -3781,7 +3785,8 @@ jobs:
               --header 'content-type: multipart/form-data' \
               --form project=\"${project_name}\" \
               --form branch=\"${branch_name}\" \
-              --form file=@\"${archive_name}\""
+              --form file=@\"${archive_name}\" \
+              --form options=\"--field CI_COMMIT_HASH:${CI_COMMIT_HASH}\""
 
               info "Importing \"${project_name}\"..."
               response=$(send_request "${svacer_import}" $request_attempts)
@@ -4478,7 +4483,8 @@ jobs:
               --header 'content-type: multipart/form-data' \
               --form project=\"${project_name}\" \
               --form branch=\"${branch_name}\" \
-              --form file=@\"${archive_name}\""
+              --form file=@\"${archive_name}\" \
+              --form options=\"--field CI_COMMIT_HASH:${CI_COMMIT_HASH}\""
 
               info "Importing \"${project_name}\"..."
               response=$(send_request "${svacer_import}" $request_attempts)
