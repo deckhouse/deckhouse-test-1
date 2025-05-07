@@ -37,7 +37,7 @@ shell:
   - rm -rf /tmp/autoscaler /src/vendor
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact-{{ $image_version }}
-{{- include "image-build.fromImage" $ }}
+from: {{ $.Images.BASE_GOLANG_23_ALPINE }}
 final: false
 import:
 - image: {{ $.ModuleName }}/{{ $.ImageName }}-{{ $image_version }}-src-artifact
@@ -50,12 +50,12 @@ mount:
 - from: tmp_dir
   to: /root/.cache/go-build
 shell:
-  install: |
-    cd /src
-    export GOPROXY={{ $.GOPROXY }} GOOS=linux GOARCH=amd64 CGO_ENABLED=0
-    go mod download
-    {{- include "image-build.build" (set $ "BuildCommand" `go build -ldflags="-s -w" -o cluster-autoscaler`) | indent 4 }}
-    echo "{{ $clusterAutoscalerVersion }}.{{ $value.clusterAutoscalerPatch }}-flant" > VERSION
+  install:
+  - cd /src
+  - export GOPROXY={{ $.GOPROXY }} GOOS=linux GOARCH=amd64 CGO_ENABLED=0
+  - go mod download
+  - go build -ldflags="-s -w" -o cluster-autoscaler
+  - echo "{{ $clusterAutoscalerVersion }}.{{ $value.clusterAutoscalerPatch }}-flant" > VERSION
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-{{ $image_version }}
 fromImage: common/distroless
