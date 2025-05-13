@@ -31,7 +31,7 @@ final: false
 shell:
   beforeInstall:
     - apt-get install -y binutils make gcc glibc-pthread glibc-devel glibc-devel-static
-    - git clone --depth 1 --branch v4.0.250113 {{ $.SOURCE_REPO }}/ispras/svace.git /opt/svace
+    - git clone --depth 1 --branch v4.0.250415 {{ $.SOURCE_REPO }}/ispras/svace.git /opt/svace
     - ln -s /opt/svace/bin/svace /usr/local/bin/svace
 
 ---
