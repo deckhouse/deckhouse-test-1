@@ -62,12 +62,20 @@ jobs:
 
   analyze_deckhouse:
     name: Deckhouse static analysis
-    env:
-      CI_COMMIT_REF_NAME: ${{ github.ref_name }}
-      CI_COMMIT_HASH: ${{ github.sha }}
+    runs-on: [self-hosted]
     needs:
       - build_deckhouse
-    {!{- tmpl.Exec "svace_analyze" $ctx | strings.Indent 4 }!}
+    steps:
+      - uses: deckhouse/modules-actions/svace_analyze@svace-analyze
+        with:
+          ci_commit_ref_name: ${{ github.ref_name }}
+          ci_commit_hash: ${{ github.sha }}
+          svace_analyze_host: "${{ secrets.SVACE_ANALYZE_HOST }}"
+          svace_analyze_ssh_user: "${{ secrets.SVACE_ANALYZE_SSH_USER }}"
+          svacer_url: "${{ secrets.SVACER_URL }}"
+          svacer_import_user: "${{ secrets.SVACER_IMPORT_USER }}"
+          svacer_import_password: "${{ secrets.SVACER_IMPORT_PASSWORD }}"
+          svace_analyze_ssh_private_key: "${{ secrets.SVACE_ANALYZE_SSH_PRIVATE_KEY }}"
 
   doc_web_build:
     name: Doc web build

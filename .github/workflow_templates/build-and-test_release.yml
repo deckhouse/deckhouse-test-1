@@ -132,12 +132,20 @@ jobs:
   analyze_deckhouse_fe:
     if: ${{ github.event.inputs.svace_enabled == true }}
     name: Deckhouse FE static analysis
-    env:
-      CI_COMMIT_REF_NAME: ${{ github.ref_name }}
-      CI_COMMIT_HASH: ${{ github.sha }}
     needs:
       - build_fe
-    {!{- tmpl.Exec "svace_analyze" $ctx | strings.Indent 4 }!}
+    runs-on: [self-hosted]
+    steps:
+      - uses: deckhouse/modules-actions/svace_analyze@svace-analyze
+        with:
+          ci_commit_ref_name: ${{ github.ref_name }}
+          ci_commit_hash: ${{ github.sha }}
+          svace_analyze_host: "${{ secrets.SVACE_ANALYZE_HOST }}"
+          svace_analyze_ssh_user: "${{ secrets.SVACE_ANALYZE_SSH_USER }}"
+          svacer_url: "${{ secrets.SVACER_URL }}"
+          svacer_import_user: "${{ secrets.SVACER_IMPORT_USER }}"
+          svacer_import_password: "${{ secrets.SVACER_IMPORT_PASSWORD }}"
+          svace_analyze_ssh_private_key: "${{ secrets.SVACE_ANALYZE_SSH_PRIVATE_KEY }}"
 
 {!{ $jobNames = coll.Merge $jobNames (dict "build_ee" "Build EE") }!}
   build_ee:
@@ -159,12 +167,20 @@ jobs:
   analyze_deckhouse_ee:
     if: ${{ github.event.inputs.svace_enabled == true }}
     name: Deckhouse EE static analysis
-    env:
-      CI_COMMIT_REF_NAME: ${{ github.ref_name }}
-      CI_COMMIT_HASH: ${{ github.sha }}
     needs:
       - build_ee
-    {!{- tmpl.Exec "svace_analyze" $ctx | strings.Indent 4 }!}
+    runs-on: [self-hosted]
+    steps:
+      - uses: deckhouse/modules-actions/svace_analyze@svace-analyze
+        with:
+          ci_commit_ref_name: ${{ github.ref_name }}
+          ci_commit_hash: ${{ github.sha }}
+          svace_analyze_host: "${{ secrets.SVACE_ANALYZE_HOST }}"
+          svace_analyze_ssh_user: "${{ secrets.SVACE_ANALYZE_SSH_USER }}"
+          svacer_url: "${{ secrets.SVACER_URL }}"
+          svacer_import_user: "${{ secrets.SVACER_IMPORT_USER }}"
+          svacer_import_password: "${{ secrets.SVACER_IMPORT_PASSWORD }}"
+          svace_analyze_ssh_private_key: "${{ secrets.SVACE_ANALYZE_SSH_PRIVATE_KEY }}"
 
 {!{ $jobNames = coll.Merge $jobNames (dict "build_se" "Build SE") }!}
   build_se:
@@ -186,12 +202,20 @@ jobs:
   analyze_deckhouse_se:
     if: ${{ github.event.inputs.svace_enabled == true }}
     name: Deckhouse SE static analysis
-    env:
-      CI_COMMIT_REF_NAME: ${{ github.ref_name }}
-      CI_COMMIT_HASH: ${{ github.sha }}
     needs:
       - build_se
-    {!{- tmpl.Exec "svace_analyze" $ctx | strings.Indent 4 }!}
+    runs-on: [self-hosted]
+    steps:
+      - uses: deckhouse/modules-actions/svace_analyze@svace-analyze
+        with:
+          ci_commit_ref_name: ${{ github.ref_name }}
+          ci_commit_hash: ${{ github.sha }}
+          svace_analyze_host: "${{ secrets.SVACE_ANALYZE_HOST }}"
+          svace_analyze_ssh_user: "${{ secrets.SVACE_ANALYZE_SSH_USER }}"
+          svacer_url: "${{ secrets.SVACER_URL }}"
+          svacer_import_user: "${{ secrets.SVACER_IMPORT_USER }}"
+          svacer_import_password: "${{ secrets.SVACER_IMPORT_PASSWORD }}"
+          svace_analyze_ssh_private_key: "${{ secrets.SVACE_ANALYZE_SSH_PRIVATE_KEY }}"
 
 {!{ $jobNames = coll.Merge $jobNames (dict "build_se_plus" "Build SE-plus") }!}
   build_se_plus:
@@ -213,12 +237,20 @@ jobs:
   analyze_deckhouse_se_plus:
     if: ${{ github.event.inputs.svace_enabled == true }}
     name: Deckhouse SE-plus static analysis
-    env:
-      CI_COMMIT_REF_NAME: ${{ github.ref_name }}
-      CI_COMMIT_HASH: ${{ github.sha }}
     needs:
       - build_se_plus
-    {!{- tmpl.Exec "svace_analyze" $ctx | strings.Indent 4 }!}
+    runs-on: [self-hosted]
+    steps:
+      - uses: deckhouse/modules-actions/svace_analyze@svace-analyze
+        with:
+          ci_commit_ref_name: ${{ github.ref_name }}
+          ci_commit_hash: ${{ github.sha }}
+          svace_analyze_host: "${{ secrets.SVACE_ANALYZE_HOST }}"
+          svace_analyze_ssh_user: "${{ secrets.SVACE_ANALYZE_SSH_USER }}"
+          svacer_url: "${{ secrets.SVACER_URL }}"
+          svacer_import_user: "${{ secrets.SVACER_IMPORT_USER }}"
+          svacer_import_password: "${{ secrets.SVACER_IMPORT_PASSWORD }}"
+          svace_analyze_ssh_private_key: "${{ secrets.SVACE_ANALYZE_SSH_PRIVATE_KEY }}"
 
 {!{ $jobNames = coll.Merge $jobNames (dict "build_be" "Build BE") }!}
   build_be:
@@ -240,12 +272,20 @@ jobs:
   analyze_deckhouse_be:
     if: ${{ github.event.inputs.svace_enabled == true }}
     name: Deckhouse BE static analysis
-    env:
-      CI_COMMIT_REF_NAME: ${{ github.ref_name }}
-      CI_COMMIT_HASH: ${{ github.sha }}
     needs:
       - build_be
-    {!{- tmpl.Exec "svace_analyze" $ctx | strings.Indent 4 }!}
+    runs-on: [self-hosted]
+    steps:
+      - uses: deckhouse/modules-actions/svace_analyze@svace-analyze
+        with:
+          ci_commit_ref_name: ${{ github.ref_name }}
+          ci_commit_hash: ${{ github.sha }}
+          svace_analyze_host: "${{ secrets.SVACE_ANALYZE_HOST }}"
+          svace_analyze_ssh_user: "${{ secrets.SVACE_ANALYZE_SSH_USER }}"
+          svacer_url: "${{ secrets.SVACER_URL }}"
+          svacer_import_user: "${{ secrets.SVACER_IMPORT_USER }}"
+          svacer_import_password: "${{ secrets.SVACER_IMPORT_PASSWORD }}"
+          svace_analyze_ssh_private_key: "${{ secrets.SVACE_ANALYZE_SSH_PRIVATE_KEY }}"
 
 {!{ $jobNames = coll.Merge $jobNames (dict "build_ce" "Build CE") }!}
   build_ce:
@@ -267,12 +307,20 @@ jobs:
   analyze_deckhouse_ce:
     if: ${{ github.event.inputs.svace_enabled == true }}
     name: Deckhouse CE static analysis
-    env:
-      CI_COMMIT_REF_NAME: ${{ github.ref_name }}
-      CI_COMMIT_HASH: ${{ github.sha }}
     needs:
       - build_ce
-    {!{- tmpl.Exec "svace_analyze" $ctx | strings.Indent 4 }!}
+    runs-on: [self-hosted]
+    steps:
+      - uses: deckhouse/modules-actions/svace_analyze@svace-analyze
+        with:
+          ci_commit_ref_name: ${{ github.ref_name }}
+          ci_commit_hash: ${{ github.sha }}
+          svace_analyze_host: "${{ secrets.SVACE_ANALYZE_HOST }}"
+          svace_analyze_ssh_user: "${{ secrets.SVACE_ANALYZE_SSH_USER }}"
+          svacer_url: "${{ secrets.SVACER_URL }}"
+          svacer_import_user: "${{ secrets.SVACER_IMPORT_USER }}"
+          svacer_import_password: "${{ secrets.SVACER_IMPORT_PASSWORD }}"
+          svace_analyze_ssh_private_key: "${{ secrets.SVACE_ANALYZE_SSH_PRIVATE_KEY }}"
 
 {!{ $jobNames = coll.Merge $jobNames (dict "doc_web_build" "Doc web build") }!}
   doc_web_build:
