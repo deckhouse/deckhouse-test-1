@@ -25,7 +25,7 @@ shell:
   - rm -rf .git hack test
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact
-{{- include "image-build.fromImage" $ }}
+from: {{ $.Images.BASE_GOLANG_23_ALPINE }}
 final: false
 import:
 - image: {{ .ModuleName }}/{{ $.ImageName }}-src-artifact
@@ -36,11 +36,11 @@ mount:
 - fromPath: ~/go-pkg-cache
   to: /go/pkg
 shell:
-  install: |
-    export GOPROXY={{ $.GOPROXY }}
-    cd /src
-    export CGO_ENABLED=0 GOOS=linux GOARCH=amd64
-    {{- include "image-build.build" (set $ "BuildCommand" `go build -trimpath -ldflags '-s -w -extldflags "-static"' -o bin/manager sigs.k8s.io/cluster-api`) | indent 4 }}
-    mv /src/bin/manager /capi-controller-manager
-    chown 64535:64535 /capi-controller-manager
-    chmod 0700 /capi-controller-manager
+  install:
+  - export GOPROXY={{ $.GOPROXY }}
+  - cd /src
+  - export CGO_ENABLED=0 GOOS=linux GOARCH=amd64
+  - go build -trimpath -ldflags "-s -w -extldflags \"-static\"" -o bin/manager sigs.k8s.io/cluster-api
+  - mv /src/bin/manager /capi-controller-manager
+  - chown 64535:64535 /capi-controller-manager
+  - chmod 0700 /capi-controller-manager
