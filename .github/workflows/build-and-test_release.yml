@@ -1044,7 +1044,7 @@ jobs:
               [[ $image == "*" ]] && warning "Nothing to analyze in ${proj}" && echo "::warning file=$(realpath "$0")::Nothing to analyze" && exit 0
 
               info "Start analyzing module \"${module}\" image \"${image}\"..."
-              send "svace analyze --svace-dir ${proj}"
+              send "svace analyze --quiet --svace-dir ${proj}"
               success "Analysis completed successfully!"
 
               info "Start archiving module \"${module}\" image \"${image}\"..."
@@ -1742,7 +1742,7 @@ jobs:
               [[ $image == "*" ]] && warning "Nothing to analyze in ${proj}" && echo "::warning file=$(realpath "$0")::Nothing to analyze" && exit 0
 
               info "Start analyzing module \"${module}\" image \"${image}\"..."
-              send "svace analyze --svace-dir ${proj}"
+              send "svace analyze --quiet --svace-dir ${proj}"
               success "Analysis completed successfully!"
 
               info "Start archiving module \"${module}\" image \"${image}\"..."
@@ -2440,7 +2440,7 @@ jobs:
               [[ $image == "*" ]] && warning "Nothing to analyze in ${proj}" && echo "::warning file=$(realpath "$0")::Nothing to analyze" && exit 0
 
               info "Start analyzing module \"${module}\" image \"${image}\"..."
-              send "svace analyze --svace-dir ${proj}"
+              send "svace analyze --quiet --svace-dir ${proj}"
               success "Analysis completed successfully!"
 
               info "Start archiving module \"${module}\" image \"${image}\"..."
@@ -3138,7 +3138,7 @@ jobs:
               [[ $image == "*" ]] && warning "Nothing to analyze in ${proj}" && echo "::warning file=$(realpath "$0")::Nothing to analyze" && exit 0
 
               info "Start analyzing module \"${module}\" image \"${image}\"..."
-              send "svace analyze --svace-dir ${proj}"
+              send "svace analyze --quiet --svace-dir ${proj}"
               success "Analysis completed successfully!"
 
               info "Start archiving module \"${module}\" image \"${image}\"..."
@@ -3836,7 +3836,7 @@ jobs:
               [[ $image == "*" ]] && warning "Nothing to analyze in ${proj}" && echo "::warning file=$(realpath "$0")::Nothing to analyze" && exit 0
 
               info "Start analyzing module \"${module}\" image \"${image}\"..."
-              send "svace analyze --svace-dir ${proj}"
+              send "svace analyze --quiet --svace-dir ${proj}"
               success "Analysis completed successfully!"
 
               info "Start archiving module \"${module}\" image \"${image}\"..."
@@ -4534,7 +4534,7 @@ jobs:
               [[ $image == "*" ]] && warning "Nothing to analyze in ${proj}" && echo "::warning file=$(realpath "$0")::Nothing to analyze" && exit 0
 
               info "Start analyzing module \"${module}\" image \"${image}\"..."
-              send "svace analyze --svace-dir ${proj}"
+              send "svace analyze --quiet --svace-dir ${proj}"
               success "Analysis completed successfully!"
 
               info "Start archiving module \"${module}\" image \"${image}\"..."
