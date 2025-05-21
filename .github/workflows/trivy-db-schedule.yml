@@ -157,10 +157,9 @@ jobs:
             ${{ secrets.SOURCE_REPO_SSH_KEY }}
       - name: Fill in ssh_known_hosts
         run: |
-          IPS="${{secrets.SVACE_ANALYZE_HOST}}"
           REPOS="${{secrets.SOURCE_REPO_GIT}}"
 
-          hosts=${IPS}
+          hosts=${{secrets.SVACE_ANALYZE_HOST}}
           for repo in $REPOS; do
               host=$(grep -oP '(?<=@)[^/:]+' <<< ${repo})
               hosts+=" "${host}
