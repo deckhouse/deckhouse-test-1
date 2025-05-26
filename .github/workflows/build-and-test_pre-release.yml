@@ -366,29 +366,40 @@ jobs:
             ${{ secrets.SOURCE_REPO_SSH_KEY }}
       - name: Fill in ssh_known_hosts
         run: |
-          REPOS="${{secrets.SOURCE_REPO_GIT}}"
-
-          hosts=${{secrets.SVACE_ANALYZE_HOST}}
-          for repo in $REPOS; do
-              host=$(grep -oP '(?<=@)[^/:]+' <<< ${repo})
-              hosts+=" "${host}
-              host_ips=$(nslookup "$host" | awk '/^Address: / { print $2 }')
-              for host_ip in $host_ips; do
-                  echo "::add-mask::$host_ip"
-              done
+          HOST=$(grep -oP '(?<=@)[^/:]+' <<< ${{secrets.SOURCE_REPO_GIT}})
+          echo "::add-mask::$HOST"
+          IPS=$(nslookup "$HOST" | awk '/^Address: / { print $2 }')
+          for IP in $IPS; do
+            echo "::add-mask::$IP"
           done
+          mkdir -p ~/.ssh
+          touch ~/.ssh/known_hosts
+          HOST_KEYS=$(ssh-keyscan -H "$HOST" 2>/dev/null)
+          while IFS= read -r KEY_LINE; do
+            CONSTANT_PART=$(awk '{print $2, $3}' <<< "$KEY_LINE")
+            if ! grep -q "$CONSTANT_PART" ~/.ssh/known_hosts; then
+              echo "$KEY_LINE" >> ~/.ssh/known_hosts
+            fi
+          done <<< "$HOST_KEYS"
+      - name: Add svace analyze server to ssh_known_hosts
+        continue-on-error: true
+        run: |
+          host=${{ secrets.SVACE_ANALYZE_HOST }}
+
+          host_ip=$(nslookup "$host" | awk '/^Address: / { print $2 }')
+          echo "::add-mask::$host_ip"
 
           mkdir -p ~/.ssh
           touch ~/.ssh/known_hosts
-          for host in $hosts; do
-              HOST_KEYS=$(ssh-keyscan -H "$host" 2>/dev/null)
-              while IFS= read -r KEY_LINE; do
-                  CONSTANT_PART=$(awk '{print $2, $3}' <<< "$KEY_LINE")
-                  if ! grep -q "$CONSTANT_PART" ~/.ssh/known_hosts; then
-                      echo "$KEY_LINE" >> ~/.ssh/known_hosts
-                  fi
-              done <<< "$HOST_KEYS"
-          done
+          HOST_KEYS=$(ssh-keyscan -H "$host" 2>/dev/null)
+          while IFS= read -r KEY_LINE; do
+              CONSTANT_PART=$(awk '{print $2, $3}' <<< "$KEY_LINE")
+              if grep -q "$CONSTANT_PART" ~/.ssh/known_hosts; then
+                  ssh-keygen -R $host
+                  ssh-keygen -R $host_ip
+              fi
+              echo "$KEY_LINE" >> ~/.ssh/known_hosts
+          done <<< "$HOST_KEYS"
       # </template: add_ssh_keys>
 
       - name: Build and push deckhouse images
