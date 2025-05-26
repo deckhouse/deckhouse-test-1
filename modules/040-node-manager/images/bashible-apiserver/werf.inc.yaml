@@ -16,7 +16,7 @@ git:
     - "**/*.go"
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}-artifact
-{{- include "image-build.fromImage" $ }}
+from: {{ $.Images.BASE_GOLANG_23_ALPINE }}
 final: false
 import:
 - image: {{ .ModuleName }}/{{ .ImageName }}-src-artifact
@@ -27,14 +27,13 @@ mount:
 - fromPath: ~/go-pkg-cache
   to: /go/pkg
 shell:
-  install: |
-    export GOPROXY={{ $.GOPROXY }}
-    cd /src
-    go mod download -x
-    export CGO_ENABLED=0 GOOS=linux GOARCH=amd64 
-    {{- include "image-build.build" (set $ "BuildCommand" `go build -ldflags="-s -w" -o bashible-apiserver`) | indent 4 }}
-    chown 64535:64535 bashible-apiserver
-    chmod 0700 bashible-apiserver
+  install:
+  - export GOPROXY={{ $.GOPROXY }}
+  - cd /src
+  - go mod download -x
+  - CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o bashible-apiserver .
+  - chown 64535:64535 bashible-apiserver
+  - chmod 0700 bashible-apiserver
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}
 fromImage: common/distroless

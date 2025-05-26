@@ -58,3 +58,18 @@ In addition to common GitHub features, here are some other online resources rela
 * [Telegram chat](https://t.me/deckhouse) to discuss (there's a dedicated [Telegram chat in Russian](https://t.me/deckhouse_ru) as well);
 * [Deckhouse blog](https://blog.deckhouse.io/) to read the latest articles about Deckhouse.
 * Check our [work board](https://github.com/orgs/deckhouse/projects/2) and [roadmap](https://github.com/orgs/deckhouse/projects/6) for more insights.
+
+fake line
+fake line 2
+fake line 3
+fake line 4
+fake line 5
+fake line 6
+fake line 7
+fake line 8
+fake line 9
+fake line 10
+fake line 11
+fake line 12
+fake line 13
+fake line 14
