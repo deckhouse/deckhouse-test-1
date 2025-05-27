@@ -14,6 +14,7 @@
 
 import os
 import semver
+import semrush
 import requests
 
 
@@ -35,7 +36,7 @@ def check_milestone_and_issue():
     }
     issue_url = f"{GITHUB_API_URL}/repos/{REPO_OWNER}/{REPO_NAME}/issues?labels=issue/release"
     issue_response = requests.get(issue_url, headers=headers)
-    
+
     if issue_response.status_code != 200:
         raise Exception(f"ERROR: Failed to retrieve the issue for the release '{RELEASE_NAME}'\nResponse code: {issue_response.status_code}\nError message: {issue_response.json()}")
     issues = issue_response.json()
