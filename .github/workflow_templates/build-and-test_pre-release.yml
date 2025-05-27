@@ -132,7 +132,7 @@ jobs:
     name: Deckhouse static analysis
     runs-on: [self-hosted]
     needs:
-      - build_deckhouse
+      - build_fe
     steps:
       - uses: deckhouse/modules-actions/svace_analyze@svace-analyze
         with:
