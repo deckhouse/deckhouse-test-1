@@ -21,8 +21,8 @@ set -e
 
 {{- define "image-build.fromImage" }}
 {{-   if eq $.SVACE_ENABLED "true" }}
-fromImage: common/alt-p11-svace-artifact
+fromImage: common/alt-p11-svace
 {{-   else }}
-fromImage: common/alt-p11-go-artifact
+fromImage: common/alt-p11-go
 {{-   end }}
 {{- end }}

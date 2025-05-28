@@ -1,5 +1,5 @@
 {{- define "alt archive repos" }}
-{{- $date := "2025-02-09" }}
+{{- $date := "2025-05-27" }}
 - sed -i "s|http://ftp.altlinux.org/pub/distributions/ALTLinux p11/branch/x86_64 classic|http://ftp.altlinux.org/pub/distributions/archive/p11/date/{{ $date | replace "-" "/" }}/ x86_64 classic|g" /etc/apt/sources.list.d/alt.list
 - sed -i "s|http://ftp.altlinux.org/pub/distributions/ALTLinux p11/branch/x86_64-i586 classic|http://ftp.altlinux.org/pub/distributions/archive/p11/date/{{ $date | replace "-" "/" }}/ x86_64-i586 classic|g" /etc/apt/sources.list.d/alt.list
 - sed -i "s|http://ftp.altlinux.org/pub/distributions/ALTLinux p11/branch/noarch classic|http://ftp.altlinux.org/pub/distributions/archive/p11/date/{{ $date | replace "-" "/" }}/ noarch classic|g" /etc/apt/sources.list.d/alt.list
@@ -17,24 +17,6 @@ shell:
   - echo "StrictHostKeyChecking accept-new" > ~/.ssh/config
 
 ---
-image: {{ .ModuleName }}/{{ .ImageName }}-go-artifact
-fromImage: {{ .ModuleName }}/{{ .ImageName }}-artifact
-final: false
-shell:
-  beforeInstall:
-    - apt-get install -y golang git
-
----
-image: {{ .ModuleName }}/{{ .ImageName }}-svace-artifact
-fromImage: {{ .ModuleName }}/{{ .ImageName }}-go-artifact
-final: false
-shell:
-  beforeInstall:
-    - apt-get install -y binutils make gcc glibc-pthread glibc-devel glibc-devel-static
-    - git clone --depth 1 --branch v4.0.250415 {{ $.SOURCE_REPO }}/ispras/svace.git /opt/svace
-    - ln -s /opt/svace/bin/svace /usr/local/bin/svace
-
----
 image: {{ .ModuleName }}/{{ .ImageName }}
 from: {{ .Images.BASE_ALT_P11 }}
 final: false
@@ -49,3 +31,22 @@ shell:
 imageSpec:
   config:
     user: "64535:64535"
+
+
+---
+image: {{ .ModuleName }}/{{ .ImageName }}-go
+fromImage: builder/alt
+final: false
+shell:
+  install:
+    - apt-get install -y golang git
+
+---
+image: {{ .ModuleName }}/{{ .ImageName }}-svace
+fromImage: {{ .ModuleName }}/{{ .ImageName }}-go
+final: false
+shell:
+  install:
+    - apt-get install -y binutils make gcc glibc-pthread glibc-devel glibc-devel-static
+    - git clone --depth 1 --branch v4.0.250415 {{ $.SOURCE_REPO }}/ispras/svace.git /opt/svace
+    - ln -s /opt/svace/bin/svace /usr/local/bin/svace
