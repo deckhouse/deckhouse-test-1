@@ -102,7 +102,7 @@ shell:
   - apt-get install -y git openssl-devel wget clang cmake libelf-devel libbpf-devel bpftool perl-IPC-Cmd gcc12 gcc12-c++ build-essential golang
   - git config --global url."$(cat /run/secrets/SOURCE_REPO)".insteadOf https://github.com
   - rm -f /usr/bin/clang
-  - ln -s /usr/bin/clang-18 /usr/bin/clang
+  - ln -s /usr/bin/clang-19 /usr/bin/clang
   - rm -f /usr/bin/x86_64-alt-linux-gcc /usr/bin/x86_64-alt-linux-g++
   - ln -s x86_64-alt-linux-gcc-12 /usr/bin/x86_64-alt-linux-gcc
   - ln -s x86_64-alt-linux-g++-12 /usr/bin/x86_64-alt-linux-g++
