@@ -1,4 +1,4 @@
-{{- $commit := "05fe7b3cd32f2b0340ea0068e140b6d3f0a4ea07" }}
+{{- $commit := "f52d52e16f868043dd2c3b4d79c4ff8ba5d90479" }}
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}
 final: false
