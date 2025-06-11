@@ -20,19 +20,16 @@ runs:
         ssh-add - <<< $(base64 -d <<< "${{ inputs.sshkey }}")
         ssh -o StrictHostKeyChecking=no $(cat ${{ inputs.sshloginfile }}) -t 'sudo su - -c "kubectl -n d8-system exec svc/deckhouse-leader -c deckhouse \
           -- deckhouse-controller collect-debug-info \
-          > /tmp/deckhouse-debug.tar.gz"'
-        scp -o StrictHostKeyChecking=no $(cat ${{ inputs.sshloginfile }}):/tmp/deckhouse-debug.tar.gz /tmp/deckhouse-debug.tar.gz 
+          > deckhouse-debug.tar.gz"'
+        scp -o StrictHostKeyChecking=no $(cat ${{ inputs.sshloginfile }}):deckhouse-debug.tar.gz \
+            deckhouse-debug-runid-${{ github.run_id }}-jobid${{ github.job }}.tar.gz
 
         # kill ssh-agent
         ssh-agent -k
     - name: "Upload debug logs as artifact"
       uses: actions/upload-artifact@v4
       with:
-        name: deckhouse-debug
-        path: /tmp/deckhouse-debug.tar.gz
+        name: deckhouse-debug-runid-${{ github.run_id }}-jobid${{ github.job }}
+        path: deckhouse-debug-runid-${{ github.run_id }}-jobid${{ github.job }}.tar.gz
         retention-days: 7
         compression-level: 9
-
-    
-
-    
