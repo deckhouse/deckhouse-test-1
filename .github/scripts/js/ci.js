@@ -1048,7 +1048,7 @@ module.exports.runWorkflowForPullRequest = async ({ github, context, core, ref }
       }
       if (labelInfo.security == 'cve' && event.action === 'labeled') {
         command.workflows = ['cve-pr.yml'];
-        command.rerunWorkflow = true;
+        command.triggerWorkflowDispatch = true;
       }
     }
   } finally {
