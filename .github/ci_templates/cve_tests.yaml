@@ -1,9 +1,9 @@
 {!{ define "set_security_scan_requirement_status" }!}
 
 # <template: set_security_scan_requirement_status>
-name: Set commit status after security scan run
-  id: set_security_scan_requirement_status
-  needs: cve_scan
+set_security_scan_requirement_status: 
+  name: Set commit status after security scan run
+  needs: test_cve_report_main
   if: ${{ always() && github.event_name == 'workflow_dispatch' && !!github.event.inputs.issue_number }}
   steps:
     - name: Install GitHub CLI
@@ -15,7 +15,7 @@ name: Set commit status after security scan run
         PR_NUMBER: ${{ inputs.issue_number }}
       run: |
         echo "PR Number: $PR_NUMBER"
-        if [ "${{ needs.cve_scan.result }}" == "success" ]; then
+        if [ "${{ needs.test_cve_report_main.result }}" == "success" ]; then
           gh pr edit "$PR_NUMBER" --add-label "security/cve/success"
         else
           gh pr edit "$PR_NUMBER" --add-label "security/cve/failed"
