@@ -10,7 +10,7 @@ set_security_scan_requirement_status:
     - name: Install GitHub CLI
       run: sudo apt-get install gh -y
     - name: Auth with GitHub CLI
-      run: echo "${{ secrets.BOATSWAIN_GITHUB_TOKEN }}" | gh auth login --with-token
+      run: echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
     - name: Set PR Label
       env:
         PR_NUMBER: ${{ github.event.issue_number }}
@@ -38,7 +38,7 @@ remove_labels:
       id: remove
       uses: {!{ index (ds "actions") "actions/github-script" }!}
       with:
-        github-token: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
+        github-token: ${{secrets.GITHUB_TOKEN}}
         script: |
           const label = "security/cve'"
           const ci = require('./.github/scripts/js/ci');
