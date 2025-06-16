@@ -17,7 +17,7 @@ set_security_scan_requirement_status:
         PR_NUMBER: ${{ inputs.issue_number }}
       run: |
         echo "PR Number: $PR_NUMBER"
-        if [ "${{ needs.test_cve_report_main.result }}"" == "success" ]; then
+        if [ "${{ needs.test_cve_report_main.result }}" == "success" ]; then
           gh pr edit "$PR_NUMBER" --add-label "security/cve/success"
         else
           gh pr edit "$PR_NUMBER" --add-label "security/cve/failed"
