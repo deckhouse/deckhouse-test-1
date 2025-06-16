@@ -12,7 +12,7 @@ set_security_scan_requirement_status:
       run: echo "${{ secrets.BOATSWAIN_GITHUB_TOKEN }}" | gh auth login --with-token
     - name: Set PR Label
       env:
-        PR_NUMBER: ${{ inputs.issue_number }}
+        PR_NUMBER: ${{ github.event.issue_number }}
       run: |
         echo "PR Number: $PR_NUMBER"
         if [ "${{ needs.test_cve_report_main.result }}" == "success" ]; then
