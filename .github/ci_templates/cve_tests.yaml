@@ -53,7 +53,7 @@ remove_labels:
 - name: Extract PR number from ref
   id: extract_pr
   run: |
-    echo "REF=${{ github.event.inputs.pull_request_ref }}"  # для отладки
+    echo "REF=${{ github.event.inputs.pull_request_ref }}"
     PR_NUMBER=$(echo "${{ github.event.inputs.pull_request_ref }}" | sed -E 's#refs/pull/([0-9]+)/head#\1#')
     echo "PR_NUMBER=$PR_NUMBER"
     echo "TAG=$PR_NUMBER" >> $GITHUB_ENV
