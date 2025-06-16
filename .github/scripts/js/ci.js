@@ -412,7 +412,7 @@ const removeLabel = async ({ github, context, core, issue_number, label }) => {
     core.endGroup();
   }
 };
-
+exports.removeLabel = removeLabel;
 /**
  * Set outputs to enable e2e jobs from workflow_dispatch inputs.
  *
