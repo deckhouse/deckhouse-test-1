@@ -4,6 +4,7 @@
 set_security_scan_requirement_status: 
   name: Set commit status after security scan run
   runs-on: ubuntu-latest
+  needs: test_cve_report_main
   if: ${{ always() && github.event_name == 'workflow_dispatch' && !!github.event.inputs.issue_number }}
   steps:
 {!{ tmpl.Exec "checkout_step" . | strings.Indent 4 }!}
@@ -16,7 +17,7 @@ set_security_scan_requirement_status:
         PR_NUMBER: ${{ inputs.issue_number }}
       run: |
         echo "PR Number: $PR_NUMBER"
-        if [ "success" == "success" ]; then
+        if [ "${{ needs.test_cve_report_main.result }}"" == "success" ]; then
           gh pr edit "$PR_NUMBER" --add-label "security/cve/success"
         else
           gh pr edit "$PR_NUMBER" --add-label "security/cve/failed"
@@ -41,7 +42,9 @@ remove_labels:
         script: |
           const label = "security/cve"
           const ci = require('./.github/scripts/js/ci');
-          return await ci.removeLabel({github, context, core, github.event.inputs.issue_number, label});
+          const issue_number = github.event.inputs.issue_number; 
+          console.log("Issue number is", issue_number);
+          # return await ci.removeLabel({github, context, core, issue_number, label});
 # </template: remove_labels_job>
 {!{- end -}!}
 
