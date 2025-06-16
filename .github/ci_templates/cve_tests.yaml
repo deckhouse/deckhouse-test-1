@@ -4,6 +4,7 @@
 set_security_scan_requirement_status: 
   name: Set commit status after security scan run
   needs: test_cve_report_main
+  runs-on: ubuntu-latest
   if: ${{ always() && github.event_name == 'workflow_dispatch' && !!github.event.inputs.issue_number }}
   steps:
     - name: Install GitHub CLI
