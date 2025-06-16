@@ -1,10 +1,10 @@
 {!{ define "set_security_scan_requirement_status" }!}
 
 # <template: set_security_scan_requirement_status>
-- name: Set commit status after security scan run
+name: Set commit status after security scan run
   id: set_security_scan_requirement_status
   needs: cve_scan
-  if: always()
+  if: ${{ always() && github.event_name == 'workflow_dispatch' && !!github.event.inputs.issue_number }}
   steps:
     - name: Install GitHub CLI
       run: sudo apt-get install gh -y
@@ -29,12 +29,15 @@
 remove_labels:
   name: Remove labels
   runs-on: ubuntu-latest
+  needs: cve_scan
+  if: ${{ always() && github.event_name == 'workflow_dispatch' && !!github.event.inputs.issue_number }}
   steps:
 {!{ tmpl.Exec "checkout_step" . | strings.Indent 4 }!}
     - name: Remove labels
       id: remove
       uses: {!{ index (ds "actions") "actions/github-script" }!}
       with:
+        github-token: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         script: |
           const label = "security/cve'"
           const ci = require('./.github/scripts/js/ci');
