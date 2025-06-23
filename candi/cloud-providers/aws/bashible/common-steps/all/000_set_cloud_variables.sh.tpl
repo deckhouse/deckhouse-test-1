@@ -21,3 +21,4 @@ cat << EOF > /var/lib/bashible/cloud-provider-variables
 shutdown_grace_period="$shutdown_grace_period"
 shutdown_grace_period_critical_pods="$shutdown_grace_period_critical_pods"
 EOF
+
