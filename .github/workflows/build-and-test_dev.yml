@@ -37,6 +37,7 @@ env:
   # Need for ssh: default.
   DOCKER_BUILDKIT: "1"
   WERF_LOG_TERMINAL_WIDTH: "200"
+  WERF_DOCKER_REGISTRY_DEBUG: "1"
   # </template: werf_envs>
 
   # <template: git_source_envs>
