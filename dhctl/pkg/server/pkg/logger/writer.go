@@ -82,7 +82,7 @@ func NewDebugLogWriter(l *slog.Logger) *DebugLogWriter {
 }
 
 func (w *DebugLogWriter) Write(p []byte) (n int, err error) {
-	fmt.Fprintln(os.Stderr, "---Gorutines in running---")
+	fmt.Fprintln(os.Stderr, "---Gorutines in running.---")
 	// 10 mb
 	buf := make([]byte, 10485760)  // Allocate a buffer for the stack trace
 	nn := runtime.Stack(buf, true) // Pass 'true' to get all goroutine stack traces
