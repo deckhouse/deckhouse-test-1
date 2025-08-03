@@ -295,8 +295,8 @@ jobs:
           WERF_RELEASE: "deckhouse-doc-${{ env.DOC_VERSION }}"
           WERF_NAMESPACE: deckhouse-web-test2
           WERF_SET_DOC_VERSION: "global.doc_version=${{ env.DOC_VERSION }}"
-          WERF_SET_URL: "global.url=deckhouse.test2.flant.com"
-          WERF_SET_URL_RU: "global.url_ru=deckhouse.ru.test2.flant.com"
+          WERF_SET_URL: "global.url=deckhouse.2.test.flant.com"
+          WERF_SET_URL_RU: "global.url_ru=deckhouse.ru.2.test.flant.com"
           WERF_SET_WEB_ENV: "web.env=web-test2"
           WERF_SET_DCNAME: "web.dc_name=dev"
       # </template: deploy_doc_template>
