@@ -93,6 +93,6 @@ jobs:
 {!{ tmpl.Exec "doc_version_template" | strings.Indent 6 }!}
 {!{ tmpl.Exec "deploy_doc_template" .webEnv | strings.Indent 6 }!}
 
-{!{ tmpl.Exec "update_comment_on_finish" (slice "job,final" $workflowName) | strings.Indent 6 }!}
+{!{ tmpl.Exec "update_comment_on_finish" (slice "job,final,docs" $workflowName) | strings.Indent 6 }!}
 
 {!{ end -}!}
