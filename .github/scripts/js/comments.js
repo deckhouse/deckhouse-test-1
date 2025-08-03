@@ -114,7 +114,7 @@ module.exports.renderWorkflowStatusFinal = (status, name, ref, build_url, starte
 };
 
 module.exports.renderDocumentationComments = () => {
-  let statusComment = `\n<details><summary>Environment URLS</summary>\n<ul><li>Stage: https://deckhouse.stage.flant.com</li><li>Test: https://deckhouse.test.flant.com</li><li>Test2: https://deckhouse.2.test.flant.com</li><li>Test3: https://deckhouse.3.test.flant.com</li><li>Test4: https://deckhouse.4.test.flant.com</li></ul></details>`;
+  let statusComment = `\n<details><summary>Environment URLS</summary>\n<ul><li>Stage: <a href="https://deckhouse.stage.flant.com/products/kubernetes-platform/documentation/v1/">deckhouse.stage.flant.com</a></li><li>Test: <a href="https://deckhouse.test.flant.com/products/kubernetes-platform/documentation/v1/">deckhouse.test.flant.com</a></li><li>Test2: <a href="https://deckhouse.test.2.flant.com/products/kubernetes-platform/documentation/v1/">deckhouse.test.2.flant.com</a></li><li>Test3: <a href="https://deckhouse.test.3.flant.com/products/kubernetes-platform/documentation/v1/">deckhouse.test.3.flant.com</a></li><li>Test4: <a href="https://deckhouse.test.4.flant.com/products/kubernetes-platform/documentation/v1/">deckhouse.test.4.flant.com</a></li></ul></details>`;
   return `${statusComment}`;
 };
 
