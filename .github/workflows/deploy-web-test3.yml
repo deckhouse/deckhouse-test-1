@@ -265,10 +265,10 @@ jobs:
           WERF_NAMESPACE: deckhouse-web-test3
           WERF_SET_DOC_VERSION: "global.doc_version=${{ env.DOC_VERSION }}"
           WERF_SET_ACTIVE_RELEASE: "global.active_release=v1"
-          WERF_SET_URL: "global.url=deckhouse.test3.flant.com"
-          WERF_SET_URL_RU: "global.url_ru=deckhouse.ru.test3.flant.com"
+          WERF_SET_URL: "global.url=deckhouse.3.test.flant.com"
+          WERF_SET_URL_RU: "global.url_ru=deckhouse.ru.3.test.flant.com"
           WERF_SET_WEB_ENV: "web.env=web-test3"
-          WERF_SET_DOMAIN_MAP: "global.domain_map=eyJlbiIgOiAiZGVja2hvdXNlLnRlc3QzLmZsYW50LmNvbSIsICJydSIgOiAiZGVja2hvdXNlLnJ1LnRlc3QzLmZsYW50LmNvbSJ9"
+          WERF_SET_DOMAIN_MAP: "global.domain_map=eyJlbiIgOiAiZGVja2hvdXNlLjMudGVzdC5mbGFudC5jb20iLCAicnUiIDogImRlY2tob3VzZS5ydS4zLnRlc3QuZmxhbnQuY29tIn0="
           WERF_SET_DCNAME: "web.dc_name=dev"
           DOC_API_KEY: "${{secrets.DOC_API_KEY}}"
           DOC_API_URL: "${{vars.DOC_API_URL}}"
