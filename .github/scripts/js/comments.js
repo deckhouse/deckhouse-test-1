@@ -114,7 +114,7 @@ module.exports.renderWorkflowStatusFinal = (status, name, ref, build_url, starte
 };
 
 module.exports.renderDocumentationComments = () => {
-  let statusComment = `\n<details><summary>Environment URLS</summary>\n<ul><li>Stage: deckhouse.stage.flant.com</li><li>Test: deckhouse.test.flant.com</li><li>Test2: deckhouse.2.test.flant.com</li><li>Test3: deckhouse.3.test.flant.com</li><li>Test4: deckhouse.4.test.flant.com</li></ul></details>`;
+  let statusComment = `\n<details><summary>Environment URLS</summary>\n<ul><li>Stage: https://deckhouse.stage.flant.com</li><li>Test: https://deckhouse.test.flant.com</li><li>Test2: https://deckhouse.2.test.flant.com</li><li>Test3: https://deckhouse.3.test.flant.com</li><li>Test4: https://deckhouse.4.test.flant.com</li></ul></details>`;
   return `${statusComment}`;
 };
 
