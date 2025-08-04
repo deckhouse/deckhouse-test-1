@@ -2,6 +2,7 @@
 project: deckhouse
 configVersion: 1
 build:
+  cacheVersion: 000000001
   imageSpec:
     author: "Deckhouse Kubernetes Platform <contact@deckhouse.io>"
     clearHistory: true
