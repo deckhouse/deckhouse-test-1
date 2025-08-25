@@ -1,0 +1,40 @@
+{{- $_ := set . "Version" ( splitList "/" .Values.global.doc_version | last ) }}
+{{- $_ := set . "VersionURLNormalized" ( printf "%s" .Version | lower | replace "+" "-plus-" | replace "_" "-u-" ) }}
+{{- $_ := set . "VersionDNSNormalized" ( printf "%s" .Version | lower | replace "+" "-plus-" | replace "_" "-u-" | replace "." "-dot-" ) }}
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .Chart.Name }}-s3-upload-{{ .VersionDNSNormalized }}
+spec:
+  template:
+    spec:
+      imagePullSecrets:
+        - name: deckhouse-registry-site
+      priorityClassName: {{ pluck .Values.werf.env .Values.priorityClassName | first | default .Values.priorityClassName._default }}
+      containers:
+      - name: s3-loader
+        image: {{ index .Values.werf.image "website-docs/modules-embeded/static" }}
+        command: |
+          - aws
+          - s3
+          - sync
+          - /modules-embedded
+          - s3://{{ .Values.global.doc_s3_bucket }}/modules-{{ $.Values.werf.env }}/{{ .VersionURLNormalized }}/
+          - ca-bundle
+          - /.aws/s3-root.crt
+          - --delete
+          - --endpoint-url
+          - https://{{ .Values.global.doc_s3_ep }}
+          - --region
+          - {{ .Values.global.doc_s3_region }}
+        volumeMounts:
+          - name: s3-ca-bundle
+            mountPath: /.aws/s3-root.crt
+            subPath: ca.yaml
+      volumes:
+        - name: s3-ca-bundle
+          configMap:
+            name: doc-s3-ca-bundle
+      restartPolicy: Never
+  backoffLimit: 2

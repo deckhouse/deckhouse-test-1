@@ -192,6 +192,7 @@ steps:
 {!{- $urlRu := printf "deckhouse.ru.%s.flant.com" $env -}!}
 {!{- $kubeConfig := "${{ secrets.KUBECONFIG_BASE64_DEV }}" -}!}
 {!{- $dcName := "dev" -}!}
+{!{- $s3bucket := "${{ secrets.DOC_S3_BUCKET_DEV }}" -}!}
 {!{- $repo := "${{ steps.check_dev_registry.outputs.web_registry_path }}" -}!}
 {!{- if eq $env "production" -}!}
   {!{- $repo = "${{ steps.check_readonly_registry.outputs.web_registry_path }}" -}!}
@@ -199,6 +200,7 @@ steps:
   {!{- $urlRu = "deckhouse.ru" -}!}
   {!{- $kubeConfig = "${{ secrets.KUBECONFIG_BASE64_PROD_25 }}" -}!}
   {!{- $dcName = "prod-25" -}!}
+  {!{- $s3bucket = "${{ secrets.DOC_S3_BUCKET_PROD }}" -}!}
 {!{- else if eq $env "test2" }!}
   {!{- $url = "deckhouse.2.test.flant.com" -}!}
   {!{- $urlRu = "deckhouse.ru.2.test.flant.com" -}!}
@@ -227,6 +229,9 @@ steps:
     WERF_SET_URL_RU: "global.url_ru={!{ $urlRu }!}"
     WERF_SET_WEB_ENV: "web.env={!{ $webEnv }!}"
     WERF_SET_DCNAME: "web.dc_name={!{ $dcName }!}"
+    WERF_SET_DOC_S3_REGION: "web.doc_s3_region=${{ secrets.DOC_S3_REGION }}"
+    WERF_SET_DOC_S3_EP: "web.doc_s3_ep=${{ secrets.DOC_S3_EP }}"
+    WERF_SET_DOC_S3_BUCKET: "web.doc_s3_bucket=${!{ $s3bucket }!}"
 # </template: deploy_doc_template>
 {!{- end -}!}
 
