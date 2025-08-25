@@ -1,8 +1,4 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/deckhouse/deckhouse/main/docs/site/images/d8-small-logo.png"/>
-</p>
-
-<p align="center">
   <a href="https://t.me/deckhouse"><img src="https://img.shields.io/badge/telegram-chat-179cde.svg?logo=telegram" alt="Telegram chat"></a>
   <a href="https://twitter.com/deckhouseio"><img src="https://img.shields.io/twitter/follow/deckhouseio?label=%40deckhouseio&style=flat-square" alt="Twitter"></a>
   <a href="https://github.com/deckhouse/deckhouse/discussions"><img src="https://img.shields.io/github/discussions/deckhouse/deckhouse" alt="GH Discussions"/></a>
