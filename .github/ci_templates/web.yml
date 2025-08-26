@@ -229,9 +229,9 @@ steps:
     WERF_SET_URL_RU: "global.url_ru={!{ $urlRu }!}"
     WERF_SET_WEB_ENV: "web.env={!{ $webEnv }!}"
     WERF_SET_DCNAME: "web.dc_name={!{ $dcName }!}"
-    WERF_SET_DOC_S3_REGION: "web.doc_s3_region=${{ secrets.DOC_S3_REGION }}"
-    WERF_SET_DOC_S3_EP: "web.doc_s3_ep=${{ secrets.DOC_S3_EP }}"
-    WERF_SET_DOC_S3_BUCKET: "web.doc_s3_bucket=${!{ $s3bucket }!}"
+    WERF_SET_DOC_S3_REGION: "global.doc_s3_region=${{ secrets.DOC_S3_REGION }}"
+    WERF_SET_DOC_S3_EP: "global.doc_s3_ep=${{ secrets.DOC_S3_EP }}"
+    WERF_SET_DOC_S3_BUCKET: "global.doc_s3_bucket=${!{ $s3bucket }!}"
 # </template: deploy_doc_template>
 {!{- end -}!}
 

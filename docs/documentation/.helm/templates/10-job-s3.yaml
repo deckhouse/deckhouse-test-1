@@ -27,7 +27,7 @@ spec:
           - --endpoint-url
           - https://{{ .Values.global.doc_s3_ep }}
           - --region
-          - {{ .Values.global.doc_s3_region }}
+          - "{{ .Values.global.doc_s3_region }}"
         volumeMounts:
           - name: s3-ca-bundle
             mountPath: /.aws/s3-root.crt
