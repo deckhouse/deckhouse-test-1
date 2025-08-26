@@ -17,6 +17,7 @@ spec:
         image: {{ index .Values.werf.image "website-docs/modules-embeded/static" }}
         command:
           - aws
+        args:
           - s3
           - sync
           - /modules-embedded
