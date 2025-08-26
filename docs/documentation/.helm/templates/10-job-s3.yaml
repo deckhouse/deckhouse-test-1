@@ -15,7 +15,7 @@ spec:
       containers:
       - name: s3-loader
         image: {{ index .Values.werf.image "website-docs/modules-embeded/static" }}
-        command: |
+        command:
           - aws
           - s3
           - sync
