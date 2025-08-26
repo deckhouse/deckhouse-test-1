@@ -91,7 +91,7 @@ data:
                 deny all;
             }
 
-            rewrite ^(.*) /modules-{{ $.Values.werf.env }}/{{ .VersionURLNormalized }}/$lang/$1 break;
+            rewrite ^/(.+) /modules-{{ $.Values.werf.env }}/{{ .VersionURLNormalized }}/$lang/$1 break;
 
             try_files @s3 =404;
             #try_files /$lang/embedded-modules/$1 /$lang/embedded-modules/$1/index.html /$lang/embedded-modules/$1/ /$lang/modules/$1 /$lang/modules/$1/index.html /$lang/modules/$1/ =404;
