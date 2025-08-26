@@ -3233,7 +3233,7 @@ jobs:
           WERF_SET_DCNAME: "web.dc_name=prod-25"
           WERF_SET_DOC_S3_REGION: "global.doc_s3_region=${{ secrets.DOC_S3_REGION }}"
           WERF_SET_DOC_S3_EP: "global.doc_s3_ep=${{ secrets.DOC_S3_EP }}"
-          WERF_SET_DOC_S3_BUCKET: "global.doc_s3_bucket=$${{ secrets.DOC_S3_BUCKET_PROD }}"
+          WERF_SET_DOC_S3_BUCKET: "global.doc_s3_bucket=${{ secrets.DOC_S3_BUCKET_PROD }}"
       # </template: deploy_doc_template>
 
 
@@ -3329,7 +3329,7 @@ jobs:
           WERF_SET_DCNAME: "web.dc_name=dev"
           WERF_SET_DOC_S3_REGION: "global.doc_s3_region=${{ secrets.DOC_S3_REGION }}"
           WERF_SET_DOC_S3_EP: "global.doc_s3_ep=${{ secrets.DOC_S3_EP }}"
-          WERF_SET_DOC_S3_BUCKET: "global.doc_s3_bucket=$${{ secrets.DOC_S3_BUCKET_DEV }}"
+          WERF_SET_DOC_S3_BUCKET: "global.doc_s3_bucket=${{ secrets.DOC_S3_BUCKET_DEV }}"
       # </template: deploy_doc_template>
 
 
@@ -3483,7 +3483,7 @@ jobs:
           WERF_SET_DCNAME: "web.dc_name=prod-25"
           WERF_SET_DOC_S3_REGION: "global.doc_s3_region=${{ secrets.DOC_S3_REGION }}"
           WERF_SET_DOC_S3_EP: "global.doc_s3_ep=${{ secrets.DOC_S3_EP }}"
-          WERF_SET_DOC_S3_BUCKET: "global.doc_s3_bucket=$${{ secrets.DOC_S3_BUCKET_PROD }}"
+          WERF_SET_DOC_S3_BUCKET: "global.doc_s3_bucket=${{ secrets.DOC_S3_BUCKET_PROD }}"
       # </template: deploy_doc_template>
 
   list_changed_modules:

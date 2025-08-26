@@ -231,7 +231,7 @@ steps:
     WERF_SET_DCNAME: "web.dc_name={!{ $dcName }!}"
     WERF_SET_DOC_S3_REGION: "global.doc_s3_region=${{ secrets.DOC_S3_REGION }}"
     WERF_SET_DOC_S3_EP: "global.doc_s3_ep=${{ secrets.DOC_S3_EP }}"
-    WERF_SET_DOC_S3_BUCKET: "global.doc_s3_bucket=${!{ $s3bucket }!}"
+    WERF_SET_DOC_S3_BUCKET: "global.doc_s3_bucket={!{ $s3bucket }!}"
 # </template: deploy_doc_template>
 {!{- end -}!}
 
