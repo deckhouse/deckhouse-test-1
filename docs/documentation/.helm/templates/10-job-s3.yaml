@@ -21,7 +21,7 @@ spec:
           - sync
           - /modules-embedded
           - s3://{{ .Values.global.doc_s3_bucket }}/modules-{{ $.Values.werf.env }}/{{ .VersionURLNormalized }}/
-          - ca-bundle
+          - --ca-bundle
           - /.aws/s3-root.crt
           - --delete
           - --endpoint-url
