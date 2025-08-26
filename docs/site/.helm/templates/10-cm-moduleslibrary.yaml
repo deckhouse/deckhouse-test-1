@@ -61,7 +61,7 @@ data:
       }
 
       server {
-        listen   127.0.0.1:8080;
+        listen   8080;
         server_name _;
 
         root   /app;
@@ -99,7 +99,6 @@ data:
 
         location @s3 {
             set                     $original_uri  $uri;
-            set                     $orig_loc      $upstream_http_location;
 
             resolver                d8-kube-dns.kube-system.svc.cluster.local ipv6=off;
             proxy_cache             dcache;
@@ -111,13 +110,13 @@ data:
             proxy_ignore_headers    Set-Cookie;
             proxy_ignore_headers    Cache-Control;
 
-            proxy_set_header Host   $host;
+            proxy_set_header Host   {{ .Values.global.doc_s3_bucket_public_url }};
 
             proxy_connect_timeout   30s;
             proxy_read_timeout      30s;
             proxy_send_timeout      30s;
 
-            proxy_pass              {{ .Values.global.doc_s3_bucket_public_url }};
+            proxy_pass              https://{{ .Values.global.doc_s3_bucket_public_url }};
         }
 
         location / {
@@ -174,5 +173,124 @@ data:
         #    try_files $uri $uri/ =404;
         #}
 
+      }
+    }
+-----------
+    worker_processes auto;
+
+    error_log /dev/stderr debug;
+    pid       /tmp/nginx.pid;
+
+    events {
+      worker_connections 1024;
+      multi_accept on;
+    }
+
+    http {
+      include       /etc/nginx/mime.types;
+      default_type  application/octet-stream;
+
+      client_body_temp_path /tmp/client_temp;
+      proxy_temp_path       /tmp/proxy_temp;
+      fastcgi_temp_path     /tmp/fastcgi_temp;
+      uwsgi_temp_path       /tmp/uwsgi_temp;
+      scgi_temp_path        /tmp/scgi_temp;
+
+      proxy_cache_path /tmp/cache keys_zone=dcache:10m max_size=200m inactive=30d;
+
+      access_log off;
+
+      log_format json_combined escape=json '{ "time_local": "$time_local", '
+        '"remote_addr": "$remote_addr",'
+        '"remote_user": "$remote_user",'
+        '"request": "$request",'
+        '"status": "$status",'
+        '"body_bytes_sent": "$body_bytes_sent",'
+        '"request_time": "$request_time",'
+        '"upstream_connect_time": "$upstream_connect_time",'
+        '"upstream_header_time": "$upstream_header_time",'
+        '"upstream_response_time": "$upstream_response_time",'
+        '"upstream_addr": "$upstream_addr",'
+        '"upstream_status": "$upstream_status",'
+        '"upstream_cache_status": "$upstream_cache_status",'
+        '"http_referer": "$http_referer",'
+        '"http_user_agent": "$http_user_agent",'
+        '"http_x_forwarded_for": "$http_x_forwarded_for",'
+        '"ssl_protocol": "$ssl_protocol",'
+        '"ssl_cipher": "$ssl_cipher"'
+          '}';
+
+
+      keepalive_timeout  65;
+
+      ssi on;
+      gzip off;
+      port_in_redirect off;
+      absolute_redirect off;
+
+      map $host $lang {
+          hostnames;
+          "deckhouse.ru"   "ru";
+          "*.deckhouse.ru"   "ru";
+          # for test environments
+          "deckhouse.ru.*" "ru";
+          default       "en";
+      }
+
+      server {
+        listen   8080;
+        server_name _;
+
+        root   /app;
+        index  index.html readme.html;
+        error_page 403 404 /404.html;
+
+        charset utf-8;
+        access_log     /dev/stdout json_combined;
+        #error_log     /dev/stdout json_combined debug;
+
+        location /link_test_report.txt {
+            deny all;
+        }
+
+        location = /healthz {
+            access_log  off;
+            add_header Content-Type text/plain;
+            return 200;
+        }
+
+        # Modules library root folder
+        location ~* ^/modules/$  {
+            try_files /$lang/modules/index.html =404;
+        }
+
+        location /  {
+            limit_except GET {
+                deny all;
+            }
+
+            #rewrite ^/(.+) /modules-web-test2/latest/$lang/$1 break;
+
+            set                     $original_uri  $uri;
+            set                     $orig_loc      $upstream_http_location;
+
+            resolver                d8-kube-dns.kube-system.svc.cluster.local ipv6=off;
+            proxy_cache             dcache;
+            proxy_cache_key         $original_uri;
+            proxy_intercept_errors  on;
+            proxy_buffering on;
+            proxy_buffer_size       16k;
+            proxy_buffers           4 16k;
+            proxy_ignore_headers    Set-Cookie;
+            proxy_ignore_headers    Cache-Control;
+
+            proxy_set_header Host   7a4b2ea7-b926-4776-88f3-37e101ee68b3.selstorage.ru;
+
+            proxy_connect_timeout   30s;
+            proxy_read_timeout      30s;
+            proxy_send_timeout      30s;
+
+            proxy_pass              https://7a4b2ea7-b926-4776-88f3-37e101ee68b3.selstorage.ru;
+        }
       }
     }
