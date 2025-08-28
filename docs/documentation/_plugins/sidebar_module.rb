@@ -92,8 +92,8 @@ module Jekyll
 
       lang = @context.registers[:page]['lang']
       moduleName = entry['moduleName']
-      page_url = @context.registers[:page]['url'].sub(%r{\/index.html$}, '/').sub(%r{^/?modules/[^/]+/},'')
-      entry_url_without_module_path = entry['url'].sub(%r{^/?modules/[^/]+/},'')
+      page_url = @context.registers[:page]['url'].sub(%r{/index.html$}, '/').sub(%r{^/?(en/|/ru/)?modules/[^/]+/},'./')
+      entry_url_without_module_path = entry['url'].sub(%r{^/?modules/[^/]+/},'./')
 
       if entry['url'].end_with?('/')
         sidebarItemTitle = @context.registers[:site].data['modules']['sidebar']['titles']['overview'][lang]
