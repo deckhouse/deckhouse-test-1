@@ -11,7 +11,7 @@ data:
   nginx.conf: |-
     worker_processes auto;
 
-    error_log /dev/stderr warn;
+    error_log /dev/stderr debug;
     pid       /tmp/nginx.pid;
 
     events {
