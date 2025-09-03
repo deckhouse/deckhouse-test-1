@@ -30,17 +30,18 @@ function updateCurrentVersion() {
 
     // Extract channel from URL pattern /modules/CHANNEL/...
     const urlPath = window.location.pathname;
-    const channelMatch = urlPath.match(/\/modules\/([^\/]+)\//);
+    const channelMatch = urlPath.match(/\/modules\/([^\/]+)\/(v[0-9]+\.[0-9]+|alpha|beta|early-access|stable|rock-solid|latest|)\//);
 
     let currentChannel = 'stable'; // default fallback
 
     if (channelMatch) {
-        const extractedChannel = channelMatch[1];
+        const extractedChannel = channelMatch[2];
         // Check if extracted channel is one of the valid channels
         const validChannels = ['alpha', 'beta', 'early-access', 'stable', 'rock-solid', 'latest'];
         if (validChannels.includes(extractedChannel)) {
             currentChannel = extractedChannel;
         }
+        console.debug('Extracted channel from URL:', extractedChannel);
     }
 
     // Format the channel name for display
@@ -127,7 +128,7 @@ function renderMenu(settings) {
                 if (currentUrl.match(/\/modules\/[^\/]+\/(v[0-9]+\.[0-9]+|alpha|beta|early-access|stable|rock-solid|latest|)\//)) {
                     // Current URL has version, replace it with channel version
                     channelUrl = currentUrl.replace(/\/(v[0-9]+\.[0-9]+|alpha|beta|early-access|stable|rock-solid|latest)\//, `/${urlVersion}/`);
-                    console.log('Current URL has version, replace it with channel version');
+                    console.log('Current URL has version or channel, replace it with channel version');
                     console.log('Replaced URL:', channelUrl);
                 } else if (currentUrl.includes('/modules/')) {
                     // Current URL is /modules/MODULE/, add version
