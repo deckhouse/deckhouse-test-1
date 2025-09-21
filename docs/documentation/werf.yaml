@@ -9,6 +9,7 @@
 {{- else }}
   {{- $_ := set . "Mode" $.Env }}
 {{- end }}
+
 project: deckhouse-web
 configVersion: 1
 ---

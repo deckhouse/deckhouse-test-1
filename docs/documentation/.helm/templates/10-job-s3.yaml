@@ -19,7 +19,7 @@ spec:
       priorityClassName: {{ pluck .Values.werf.env .Values.priorityClassName | first | default .Values.priorityClassName._default }}
       containers:
       - name: s3-loader
-        image: {{ index .Values.werf.image "website-docs/s3-uploader" }}
+        image: {{ index .Values.werf.image "website-docs/s3-loader" }}
         command:
           - aws
         args:
@@ -67,7 +67,7 @@ spec:
       priorityClassName: {{ pluck .Values.werf.env .Values.priorityClassName | first | default .Values.priorityClassName._default }}
       containers:
       - name: s3-loader
-        image: {{ index .Values.werf.image "website-docs/s3-uploader" }}
+        image: {{ index .Values.werf.image "website-docs/s3-loader" }}
         command:
           - aws
         args:
