@@ -40,6 +40,8 @@ import:
 imageSpec:
   config:
     entrypoint: [ "nginx", "-e", "/dev/stderr", "-g", "daemon off;" ]
+---
+{{ tpl (.Files.Get "werf-s3-uploader.inc.yaml") $ }}
 {{ end }}
 ---
 {{ tpl (.Files.Get "werf-documentation-static.inc.yaml") $ }}

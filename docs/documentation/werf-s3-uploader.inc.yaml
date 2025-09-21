@@ -12,3 +12,4 @@ import:
 - image: {{ .ModuleName }}/{{ .ImageName }}/static
   add: /app/_site
   to: /documentation
+---
