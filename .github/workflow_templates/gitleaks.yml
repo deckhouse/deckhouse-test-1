@@ -1,0 +1,54 @@
+name: Gitleaks (caller)
+
+on:
+    workflow_dispatch:
+    inputs:
+      gitleaks_version:
+        description: "Gitleaks tag (напр. v8.28.0)"
+        required: false
+        default: v8.28.0
+      config_path:
+        description: "Путь к .gitleaks.toml (пусто = встроенные правила)"
+        required: false
+        default: ""
+      runner_labels:
+        description: "Метки раннера (через запятую)"
+        required: false
+        default: "self-hosted,linux,x64"
+
+  # schedule:
+  #   - cron: "0 2 * * *"  # ежедневно в 02:00 UTC
+
+  # pull_request:
+  #   types: [opened, synchronize, reopened, ready_for_review]
+  #   branches: [ main, master ]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: gitleaks-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  gitleaks-full:
+    name: Full scan (manual/scheduled)
+        if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' }}
+    uses: deckhouse/modules-actions/.github/workflows/action.yml@feature/gitleaks
+    with:
+      gitleaks_version: ${{ inputs.gitleaks_version || 'v8.28.0' }}
+      scan_mode: full
+      config_path: ${{ inputs.config_path || '' }}
+      runner_labels: ${{ inputs.runner_labels || 'self-hosted,linux,x64' }}
+
+  # gitleaks-diff:
+  #   name: Diff scan (PR)
+  #   if: ${{ github.event_name == 'pull_request' }}
+  #   permissions:
+  #     contents: read
+  #   uses: deckhouse/modules-actions/.github/workflows/action.yml@feature/gitleaks
+  #   with:
+  #     gitleaks_version: v8.28.0
+  #     scan_mode: diff
+  #     config_path: ""
+  #     runner_labels: "self-hosted,linux,x64"
