@@ -1,0 +1,40 @@
+#
+# THIS FILE IS GENERATED, PLEASE DO NOT EDIT.
+#
+
+name: Gitleaks (manual full)
+
+on:
+  workflow_dispatch:
+    inputs:
+      gitleaks_version:
+        description: "Gitleaks tag (e.g. v8.28.0)"
+        required: false
+        default: "v8.28.0"
+      config_path:
+        description: "Path to .gitleaks.toml (empty = built-in rules)"
+        required: false
+        default: ""
+      runner_labels_json:
+        description: 'Runner labels as JSON array'
+        required: false
+        default: '["self-hosted","linux","x64"]'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: "gitleaks-${{ github.ref }}"
+  cancel-in-progress: false
+
+jobs:
+  gitleaks-full:
+    name: Full scan
+    runs-on: ${{ fromJSON(inputs.runner_labels_json) }}
+
+    steps:
+      - uses: deckhouse/modules-actions/gitleaks@feature/gitleaks
+        with:
+          scan_mode: full
+          gitleaks_version: ${{ inputs.gitleaks_version }}
+          config_path: ${{ inputs.config_path }}
