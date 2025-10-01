@@ -2337,7 +2337,7 @@ jobs:
       - build_fe
     runs-on: [self-hosted, regular]
     steps:
-      - uses: deckhouse/modules-actions/svace_analyze@v4
+      - uses: deckhouse/modules-actions/svace_analyze@feat/multiversioned-svace
         with:
           project_group: ${{ github.event.repository.name }}
           ci_commit_ref_name: ${{ github.ref_name }}
