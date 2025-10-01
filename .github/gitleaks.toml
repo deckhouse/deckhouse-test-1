@@ -6,7 +6,7 @@ paths = [
   '''\.github/gitleaks.toml''',
   '''tests/.*''',
   '''fixtures/.*''',
-  '''.*\.(md|txt)$'''
+  '''.*\.md$'''
 ]
 commits = [
   # "abcdef1234567890abcdef1234567890abcdef12"
