@@ -1,0 +1,23 @@
+title = "gitleaks config - minimal allowlist"
+
+[allowlist]
+description = "Global exceptions for false positives"
+paths = [
+  '''\.github/gitleaks.toml''',
+  '''tests/.*''',
+  '''fixtures/.*''',
+  '''.*\.(md|txt)$'''
+]
+commits = [
+  # "abcdef1234567890abcdef1234567890abcdef12"
+]
+regexes = [
+  '''DUMMY_SECRET_[0-9]+''',
+  '''TEST_TOKEN''',
+]
+
+[[rules]]
+id = "example-api-key"
+description = "Example API Key pattern"
+regex = '''(?i)(?:api_key|apikey|token|access_key)[\s:=]*['"]?([A-Za-z0-9_\-]{20,})['"]?'''
+secretGroup = 1
