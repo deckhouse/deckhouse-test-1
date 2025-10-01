@@ -1,20 +1,11 @@
-name: Gitleaks (manual full)
+name: Gitleaks
 
 on:
-  workflow_dispatch:
-    inputs:
-      gitleaks_version:
-        description: "Gitleaks tag (e.g. v8.28.0)"
-        required: false
-        default: "v8.28.0"
-      config_path:
-        description: "Path to .gitleaks.toml (empty = built-in rules)"
-        required: false
-        default: ""
-      runner_labels_json:
-        description: 'Runner labels as JSON array'
-        required: false
-        default: '["self-hosted","linux","x64"]'
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+  schedule:
+    - cron: "0 2 * * *"
+  workflow_dispatch: {}
 
 permissions:
   contents: read
@@ -24,13 +15,19 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  gitleaks-full:
-    name: Full scan
-    runs-on: ${{ fromJSON(inputs.runner_labels_json) }}
+  gitleaks-diff:
+    if: ${{ github.event_name == 'pull_request' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: deckhouse/modules-actions/gitleaks@feature/gitleaks
+        with:
+          scan_mode: diff
 
+  gitleaks-full:
+    if: ${{ github.event_name != 'pull_request' }}
+    runs-on: ubuntu-latest
+    continue-on-error: true
     steps:
       - uses: deckhouse/modules-actions/gitleaks@feature/gitleaks
         with:
           scan_mode: full
-          gitleaks_version: ${{ inputs.gitleaks_version }}
-          config_path: ${{ inputs.config_path }}
