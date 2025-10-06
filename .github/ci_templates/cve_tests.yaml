@@ -57,6 +57,7 @@ remove_labels:
     PR_NUMBER=$(echo "${{ github.event.inputs.pull_request_ref }}" | sed -E 's#refs/pull/([0-9]+)/head#\1#')
     echo "PR_NUMBER=$PR_NUMBER"
     REPO_SUFFIX=${GITHUB_REPOSITORY#deckhouse/deckhouse-}
+    echo GITHUB_REPOSITORY=$GITHUB_REPOSITORY
     echo REPO_SUFFIX="$REPO_SUFFIX"
     if [[ $REPO_SUFFIX == $GITHUB_REPOSITORY ]] ; then
       REPO_SUFFIX=
