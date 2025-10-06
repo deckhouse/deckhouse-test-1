@@ -74,6 +74,3 @@ testing/cloud_layouts/Static/errored*
 testing/cloud_layouts/Static/ssh-connect_str*
 testing/cloud_layouts/Static/opentofu
 testing/cloud_layouts/script-commander_test.sh  
-
-
-
