@@ -306,7 +306,7 @@ function prepare_environment() {
 
   "AWS")
     # shellcheck disable=SC2016
-    env AWS_ACCESS_KEY="$(base64 -d <<< "$LAYOUT_AWS_ACCESS_KEY")" AWS_SECRET_ACCESS_KEY="$(base64 -d <<< "$LAYOUT_AWS_SECRET_ACCESS_KEY")" \
+    env AWS_ACCESS_KEY="$LAYOUT_AWS_ACCESS_KEY" AWS_SECRET_ACCESS_KEY="$LAYOUT_AWS_SECRET_ACCESS_KEY" \
         KUBERNETES_VERSION="$KUBERNETES_VERSION" CRI="$CRI" DEV_BRANCH="$DEV_BRANCH" PREFIX="$PREFIX" DECKHOUSE_DOCKERCFG="$DECKHOUSE_DOCKERCFG" MASTERS_COUNT="$MASTERS_COUNT" \
         envsubst <"$cwd/configuration.tpl.yaml" >"$cwd/configuration.yaml"
 
@@ -325,7 +325,7 @@ function prepare_environment() {
 
   "OpenStack")
     # shellcheck disable=SC2016
-    env OS_PASSWORD="$(base64 -d <<<"$LAYOUT_OS_PASSWORD")" \
+    env OS_PASSWORD="$LAYOUT_OS_PASSWORD" \
         KUBERNETES_VERSION="$KUBERNETES_VERSION" CRI="$CRI" DEV_BRANCH="$DEV_BRANCH" PREFIX="$PREFIX" DECKHOUSE_DOCKERCFG="$DECKHOUSE_DOCKERCFG" FOX_DOCKERCFG="$FOX_DOCKERCFG" MASTERS_COUNT="$MASTERS_COUNT" \
         envsubst <"$cwd/configuration.tpl.yaml" >"$cwd/configuration.yaml"
 
@@ -366,7 +366,7 @@ function prepare_environment() {
   "Static")
     pre_bootstrap_static_setup
     # shellcheck disable=SC2016
-    env OS_PASSWORD="$(base64 -d <<<"$LAYOUT_OS_PASSWORD")" \
+    env OS_PASSWORD="$LAYOUT_OS_PASSWORD" \
         KUBERNETES_VERSION="$KUBERNETES_VERSION" \
         CRI="$CRI" \
         DEV_BRANCH="$DEV_BRANCH" \
@@ -377,7 +377,7 @@ function prepare_environment() {
         envsubst <"$cwd/configuration.tpl.yaml" >"$cwd/configuration.yaml"
 
     # shellcheck disable=SC2016
-    env OS_PASSWORD="$(base64 -d <<<"$LAYOUT_OS_PASSWORD")" PREFIX="$PREFIX" \
+    env OS_PASSWORD="$LAYOUT_OS_PASSWORD" PREFIX="$PREFIX" \
         envsubst <"$cwd/infra.tpl.tf"* >"$cwd/infra.tf"
     # "Hide" infra template from terraform.
     mv "$cwd/infra.tpl.tf" "$cwd/infra.tpl.tf.orig"

@@ -263,7 +263,7 @@ function prepare_environment() {
 
   "Static")
     cwd=$(pwd)/testing/cloud_layouts/Static
-    export TF_VAR_OS_PASSWORD="$(base64 -d <<<"$LAYOUT_OS_PASSWORD")"
+    export TF_VAR_OS_PASSWORD="$LAYOUT_OS_PASSWORD"
     export TF_VAR_PREFIX="$PREFIX"
 
     # use different users for different OSs
