@@ -306,7 +306,7 @@ function prepare_environment() {
 
   "AWS")
     # shellcheck disable=SC2016
-    env AWS_ACCESS_KEY="$(base64 -d <<< "$LAYOUT_AWS_ACCESS_KEY")" AWS_SECRET_ACCESS_KEY="$(base64 -d <<< "$LAYOUT_AWS_SECRET_ACCESS_KEY")" \
+    env AWS_ACCESS_KEY="$LAYOUT_AWS_ACCESS_KEY" AWS_SECRET_ACCESS_KEY="$LAYOUT_AWS_SECRET_ACCESS_KEY" \
         KUBERNETES_VERSION="$KUBERNETES_VERSION" CRI="$CRI" DEV_BRANCH="$DEV_BRANCH" PREFIX="$PREFIX" DECKHOUSE_DOCKERCFG="$DECKHOUSE_DOCKERCFG" MASTERS_COUNT="$MASTERS_COUNT" \
         envsubst <"$cwd/configuration.tpl.yaml" >"$cwd/configuration.yaml"
 
