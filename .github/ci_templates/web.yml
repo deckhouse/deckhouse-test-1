@@ -8,6 +8,11 @@ runs-on: [self-hosted, regular]
 steps:
   {!{ tmpl.Exec "started_at_output"         $ctx | strings.Indent 2 }!}
   {!{ tmpl.Exec "checkout_full_step"        $ctx | strings.Indent 2 }!}
+  {!{- $secrets := slice -}!}
+  {!{- $secrets = append ( slice "projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/github/registry_host" "DECKHOUSE_DEV_REGISTRY_HOST" "DECKHOUSE_DEV_REGISTRY_HOST" ) $secrets -}!}
+  {!{- $secrets = append ( slice "projects/data/101ceaca-97cd-462f-aed5-070d9b9de175/dev-registry/writetoken" "login" "DECKHOUSE_DEV_REGISTRY_USER" ) $secrets -}!}
+  {!{- $secrets = append ( slice "projects/data/101ceaca-97cd-462f-aed5-070d9b9de175/dev-registry/writetoken" "password" "DECKHOUSE_DEV_REGISTRY_PASSWORD" ) $secrets -}!}
+  {!{ tmpl.Exec "import_secrets" $secrets | strings.Indent 2 }!}
   {!{ tmpl.Exec "login_dev_registry_step"   $ctx | strings.Indent 2 }!}
   {!{- $dir := "docs/documentation" -}!}
 {!{ if eq $docPart "main" }!}
@@ -50,6 +55,11 @@ steps:
 {!{ if eq $mode "release" }!}
   {!{ tmpl.Exec "login_rw_registry_step"       $ctx | strings.Indent 2 }!}
 {!{- else }!}
+  {!{- $secrets := slice -}!}
+  {!{- $secrets = append ( slice "projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/github/registry_host" "DECKHOUSE_DEV_REGISTRY_HOST" "DECKHOUSE_DEV_REGISTRY_HOST" ) $secrets -}!}
+  {!{- $secrets = append ( slice "projects/data/101ceaca-97cd-462f-aed5-070d9b9de175/dev-registry/writetoken" "login" "DECKHOUSE_DEV_REGISTRY_USER" ) $secrets -}!}
+  {!{- $secrets = append ( slice "projects/data/101ceaca-97cd-462f-aed5-070d9b9de175/dev-registry/writetoken" "password" "DECKHOUSE_DEV_REGISTRY_PASSWORD" ) $secrets -}!}
+  {!{ tmpl.Exec "import_secrets" $secrets | strings.Indent 2 }!}
   {!{ tmpl.Exec "login_dev_registry_step"      $ctx | strings.Indent 2 }!}
 {!{- end }!}
   {!{ tmpl.Exec "werf_install_step"            $ctx | strings.Indent 2 }!}
@@ -61,7 +71,7 @@ steps:
       WERF_ENV: "EE"
       DECKHOUSE_REGISTRY_READ_HOST: "${{secrets.DECKHOUSE_REGISTRY_READ_HOST}}"
       CHECKER_IMAGE: "${{vars.DOC_LINK_CHECKER_IMAGE}}"
-  {!{ if eq $mode "release" }!}
+{!{ if eq $mode "release" }!}
       WEB_REGISTRY_PATH: ${{steps.check_rw_registry.outputs.web_registry_path}}
 {!{- else }!}
       WEB_REGISTRY_PATH: ${{steps.check_dev_registry.outputs.web_registry_path}}
@@ -237,6 +247,9 @@ steps:
     kube-config-base64-data: "{!{ $kubeConfig }!}"
     env: {!{ $webEnv }!}
   env:
+{!{- if eq $env "production" }!}
+    WERF_REQUIRE_BUILT_IMAGES: "true"
+{!{- end }!}
     WERF_REPO: {!{ $repo }!}
     WERF_DIR: "docs/documentation"
     WERF_RELEASE: "deckhouse-doc-${{ env.DOC_VERSION }}"
@@ -301,6 +314,9 @@ steps:
     kube-config-base64-data: "{!{ $kubeConfig }!}"
     env: {!{ $webEnv }!}
   env:
+{!{- if eq $env "production" }!}
+    WERF_REQUIRE_BUILT_IMAGES: "true"
+{!{- end }!}
     WERF_REPO: {!{ $repo }!}
     WERF_DIR: "docs/site"
     WERF_RELEASE: "deckhouse-site"

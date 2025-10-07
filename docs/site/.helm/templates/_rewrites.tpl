@@ -1,6 +1,7 @@
 {{- define "rewrites" }}
 rewrite ^(.*)/documentation(/(v[0-9]+|v[0-9]+\.[0-9]+|latest))?/deckhouse-overview.html$ /products/kubernetes-platform/documentation$2/admin/configuration/ redirect;
 rewrite ^/documentation/(.*)$ /products/kubernetes-platform/documentation/$1 permanent;
+rewrite ^/products/kubernetes-platform/documentation/(?<doc_path>(?!v[0-9]+/|v[0-9]+\.[0-9]+/|latest/).*)$ /products/kubernetes-platform/documentation/v1/$doc_path redirect;
 rewrite ^/gs/(.*)$ /products/kubernetes-platform/gs/$1 permanent;
 rewrite ^/guides/(.*)$ /products/kubernetes-platform/guides/$1 permanent;
 rewrite ^/products/kubernetes-platform/documentation$ /products/kubernetes-platform/documentation/ permanent;

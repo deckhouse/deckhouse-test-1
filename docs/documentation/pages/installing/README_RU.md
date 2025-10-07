@@ -4,6 +4,7 @@ permalink: ru/installing/
 description: |
  Информация по установке Deckhouse Kubernetes Platform, включая подготовку инфраструктуры, конфигурацию и запуск инсталлятора.
 lang: ru
+search: deckhouse installation, kubernetes installation, platform setup, infrastructure preparation, installer configuration, установка Deckhouse, установка Kubernetes, настройка платформы, подготовка инфраструктуры, конфигурация инсталлятора
 ---
 
 {% alert level="warning" %}
@@ -11,7 +12,7 @@ lang: ru
 {% endalert %}
 
 {% alert %}
-Попробуйте [графический установщик Deckhouse Kubernetes Platform](/products/kubernetes-platform/gs/#попробуйте-графический-установщик-deckhouse-kubernetes-platform)! <span class="beta-badge">Beta</span>
+Попробуйте [графический установщик Deckhouse Kubernetes Platform](/products/kubernetes-platform/gs/#gui-install)! <span class="beta-badge">Beta</span>
 {% endalert %}
 
 Инсталлятор Deckhouse доступен в виде образа контейнера и основан на утилите [dhctl](<https://github.com{{ site.github_repo_path }}/tree/main/dhctl/>), в задачи которой входят:
@@ -24,7 +25,7 @@ lang: ru
 
 Варианты установки Deckhouse:
 
-- **В поддерживаемом облаке.** Утилита `dhctl` автоматически создает и настраивает все необходимые ресурсы, включая виртуальные машины, развертывает Kubernetes-кластер и устанавливает Deckhouse. Полный список поддерживаемых облачных провайдеров доступен в разделе [Кластер Kubernetes](../kubernetes.html).
+- **В поддерживаемом облаке.** Утилита `dhctl` автоматически создает и настраивает все необходимые ресурсы, включая виртуальные машины, развертывает Kubernetes-кластер и устанавливает Deckhouse. Полный список поддерживаемых облачных провайдеров доступен в разделе [Интеграция платформы с инфраструктурой](../admin/integrations/integrations-overview.html).
 
 - **На серверах bare-metal или в неподдерживаемых облаках**. В этом варианте `dhctl`  выполняет настройку сервера или виртуальной машины, развертывает Kubernetes-кластер с одним master-узлом и устанавливает Deckhouse. Для добавления дополнительных узлов в кластер можно воспользоваться готовыми скриптами настройки.
 
@@ -414,7 +415,7 @@ dhctl bootstrap \
 1. Проверки для установки облачного кластера:
    - Конфигурация виртуальной машины master-узла удовлетворяет минимальным требованиям.
    - API облачного провайдера доступно с узлов кластера.
-   - Проверка конфигурации [Yandex Cloud с NAT Instance](../modules/cloud-provider-yandex/layouts.html#withnatinstance).
+   - Проверка конфигурации [Yandex Cloud с NAT Instance](/modules/cloud-provider-yandex/layouts.html#withnatinstance).
 
 {% offtopic title="Список флагов пропуска проверок..." %}
 

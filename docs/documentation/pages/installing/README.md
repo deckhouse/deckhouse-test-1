@@ -19,7 +19,7 @@ The Deckhouse installer is available as a container image and is based on the [d
 
 Deckhouse installation options:
 
-* **In a supported cloud.** The `dhctl` utility automatically creates and configures all necessary resources, including virtual machines, deploys the Kubernetes cluster, and installs Deckhouse. A full list of supported cloud providers is available in the [Kubernetes Cluster](../kubernetes.html) section.
+* **In a supported cloud.** The `dhctl` utility automatically creates and configures all necessary resources, including virtual machines, deploys the Kubernetes cluster, and installs Deckhouse. A full list of supported cloud providers is available in the [Platform integration with infrastructure](../admin/integrations/integrations-overview.html) section.
 
 * **On bare-metal servers or in unsupported clouds.** In this option, `dhctl` configures the server or virtual machine, deploys the Kubernetes cluster with a single master node, and installs Deckhouse. Additional nodes can be added to the cluster using pre-existing setup scripts.
 

@@ -20,7 +20,7 @@ The `d8 dk` and `d8 mirror` command groups are not available for Community Editi
 * `d8 mirror` — the range of commands that allow you to copy DKP distribution images to a private container registry (previously the `dhctl mirror` tool was used for this purpose).
   For example, you can run `d8 mirror pull -l <LICENSE> <TAR-BUNDLE-PATH>` instead of `dhctl mirror --license <LICENSE> --images-bundle-path <TAR-BUNDLE-PATH>`.
 
-  Usage scenario:
+  The `--only-extra-images` flag allows pulling only extra images for modules (such as vulnerability databases) without downloading the main module images.
 
   - [Manually uploading images to an air-gapped registry](./installing/#manual-loading-of-deckhouse-kubernetes-platform-images-vulnerability-scanner-db-and-dkp-modules-into-a-private-registry).
 

@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   site:
     image: $WERF_WEB_ROUTER_DOCKER_IMAGE_NAME
@@ -18,17 +16,17 @@ services:
       VROUTER_I18N_TYPE: "separate-domain"
       VROUTER_LOCATION_VERSIONS: "/products/kubernetes-platform/documentation"
       VROUTER_DOMAIN_MAP: "eyJlbiIgOiAibG9jYWxob3N0IiwgInJ1IiA6ICJydS5sb2NhbGhvc3QifQo="
-    networks:
-      - deckhouse
+    volumes:
+      - ".helm/channels.yaml:/app/root/en/includes/release-channels/channels.yaml:ro"
+      - ".helm/channels.yaml:/app/root/ru/includes/release-channels/channels.yaml:ro"
+    working_dir: "/app"
     cap_add:
       - ALL
     security_opt:
       - apparmor:unconfined
     ports:
       - "2345:2345"
-    volumes:
-      - ".helm/channels.yaml:/app/releasedata/channels.yaml:ro"
-  front:
+  frontend:
     image: $WERF_WEB_FRONTEND_DOCKER_IMAGE_NAME
     volumes:
       - ".werf/nginx-local.conf:/etc/nginx/nginx.conf:ro"
@@ -36,9 +34,6 @@ services:
       - "./backends/docs-builder-template/public/ru:/app/ru:ro"
     ports:
       - "80:80"
-    networks:
-      - deckhouse
 
-networks:
-  deckhouse:
-    name: deckhouse
+volumes:
+  channels-conf:
