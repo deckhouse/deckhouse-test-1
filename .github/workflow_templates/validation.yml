@@ -155,6 +155,17 @@ jobs:
     name: Markdown Linter
 {!{ tmpl.Exec "linter_template" (slice $ctx "markdown") | strings.Indent 4 }!}
 
+  gitleaks_diff_validation:
+    name: Gitleaks Diff Scan
+    needs:
+      - discover
+      - pull_request_info
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: deckhouse/modules-actions/gitleaks@feature/gitleaks
+        with:
+          scan_mode: diff
+
   release_requirements_validation:
     name: Release Requirements Validation
 {!{ tmpl.Exec "validation_template" (slice $ctx "release_requirements") | strings.Indent 4 }!}

@@ -671,9 +671,6 @@ jobs:
       - discover
       - pull_request_info
     runs-on: ubuntu-24.04
-    permissions:
-      contents: read
-      pull-requests: read
     steps:
       - uses: deckhouse/modules-actions/gitleaks@feature/gitleaks
         with:
