@@ -45,7 +45,6 @@ env:
   TEST_TIMEOUT: "15m"
   # Use fixed string 'sys/deckhouse-oss' for repo name. ${CI_PROJECT_PATH} is not available here in GitHub.
   DEV_REGISTRY_PATH: "${{ secrets.DECKHOUSE_DEV_REGISTRY_HOST }}/sys/deckhouse-oss"
-  STAGE_REGISTRY_PATH: "${{ secrets.DECKHOUSE_REGISTRY_STAGE_HOST }}/sys/deckhouse-oss"
   # Registry for additional repositories used for testing Github Actions workflows.
   GHA_TEST_REGISTRY_PATH: "ghcr.io/${{ github.repository }}"
   # Need for ssh: default.
@@ -68,7 +67,7 @@ jobs:
     name: Save start timestamp
     outputs:
       started_at: ${{ steps.started_at.outputs.started_at }}
-    runs-on: "regular"
+    runs-on: "ubuntu-latest"
     steps:
 
       # <template: started_at_output>
@@ -82,7 +81,7 @@ jobs:
   # <template: check_e2e_labels_job>
   check_e2e_labels:
     name: Check e2e labels
-    runs-on: "regular"
+    runs-on: ubuntu-latest
     outputs:
 
       run_containerd_1_29: ${{ steps.check.outputs.run_containerd_1_29 }}
@@ -212,26 +211,6 @@ jobs:
           logout: false
       # </template: login_dev_registry_step>
 
-      # <template: login_stage_registry_step>
-      - name: Check stage registry credentials
-        id: check_stage_registry
-        env:
-          HOST: ${{secrets.DECKHOUSE_REGISTRY_READ_HOST}}
-        run: |
-          if [[ -n $HOST ]]; then
-            echo "has_credentials=true" >> $GITHUB_OUTPUT
-            echo "web_registry_path=${{secrets.DECKHOUSE_REGISTRY_STAGE_HOST }}/deckhouse/site" >> $GITHUB_OUTPUT
-          fi
-      - name: Login to stage registry
-        uses: docker/login-action@v2.1.0
-        if: ${{ steps.check_stage_registry.outputs.has_credentials == 'true' }}
-        with:
-          registry: ${{ secrets.DECKHOUSE_REGISTRY_STAGE_HOST }}
-          username: ${{ secrets.DECKHOUSE_REGISTRY_STAGE_USER }}
-          password: ${{ secrets.DECKHOUSE_REGISTRY_STAGE_PASSWORD }}
-          logout: false
-      # </template: login_stage_registry_step>
-
       # <template: login_rw_registry_step>
       - name: Check rw registry credentials
         id: check_rw_registry
@@ -271,7 +250,6 @@ jobs:
         id: setup
         env:
           DECKHOUSE_REGISTRY_HOST: ${{secrets.DECKHOUSE_DEV_REGISTRY_HOST}}
-          DECKHOUSE_REGISTRY_STAGE_HOST: ${{ secrets.DECKHOUSE_REGISTRY_STAGE_HOST }}
           DHCTL_PREFIX: ${{ github.event.inputs.cluster_prefix }}
           INSTALL_IMAGE_PATH: ${{ github.event.inputs.installer_image_path }}
           MULTIMASTER: ${{ needs.check_e2e_labels.outputs.multimaster }}
@@ -285,11 +263,6 @@ jobs:
           else
             echo "Create temporary dir for job: ${TMP_DIR_PATH}."
             mkdir -p "${TMP_DIR_PATH}"
-          fi
-
-          if [[ "$INSTALL_IMAGE_PATH" =~ release-[0-9]+\.[0-9]+ ]]; then
-            # Use stage-registry for release branches.
-            DECKHOUSE_REGISTRY_HOST=${DECKHOUSE_REGISTRY_STAGE_HOST}
           fi
 
           INSTALL_IMAGE_NAME="${DECKHOUSE_REGISTRY_HOST:-}${INSTALL_IMAGE_PATH}"
@@ -338,7 +311,6 @@ jobs:
           LAYOUT: Standard
           KUBERNETES_VERSION: "1.29"
           LAYOUT_DECKHOUSE_DOCKERCFG: ${{ secrets.LAYOUT_DECKHOUSE_DOCKERCFG }}
-          LAYOUT_STAGE_DECKHOUSE_DOCKERCFG: ${{ secrets.LAYOUT_STAGE_DECKHOUSE_DOCKERCFG }}
           LAYOUT_SSH_KEY: ${{ secrets.LAYOUT_SSH_KEY}}
           TMP_DIR_PATH: ${{ steps.setup.outputs.tmp-dir-path}}
           PREFIX: ${{ github.event.inputs.cluster_prefix }}
@@ -356,7 +328,6 @@ jobs:
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
-          STAGE_DECKHOUSE_DOCKERCFG: ${{secrets.STAGE_DECKHOUSE_DOCKERCFG}}
           GITHUB_TOKEN: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           echo "Execute 'script.sh cleanup' via 'docker run', using environment:
@@ -381,7 +352,6 @@ jobs:
           echo "user_runner_id $user_runner_id"
           docker run --rm \
             -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
-            -e STAGE_DECKHOUSE_DOCKERCFG=${LAYOUT_STAGE_DECKHOUSE_DOCKERCFG} \
             -e PREFIX=${PREFIX} \
             -e MASTERS_COUNT=${MASTERS_COUNT} \
             -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
@@ -561,26 +531,6 @@ jobs:
           logout: false
       # </template: login_dev_registry_step>
 
-      # <template: login_stage_registry_step>
-      - name: Check stage registry credentials
-        id: check_stage_registry
-        env:
-          HOST: ${{secrets.DECKHOUSE_REGISTRY_READ_HOST}}
-        run: |
-          if [[ -n $HOST ]]; then
-            echo "has_credentials=true" >> $GITHUB_OUTPUT
-            echo "web_registry_path=${{secrets.DECKHOUSE_REGISTRY_STAGE_HOST }}/deckhouse/site" >> $GITHUB_OUTPUT
-          fi
-      - name: Login to stage registry
-        uses: docker/login-action@v2.1.0
-        if: ${{ steps.check_stage_registry.outputs.has_credentials == 'true' }}
-        with:
-          registry: ${{ secrets.DECKHOUSE_REGISTRY_STAGE_HOST }}
-          username: ${{ secrets.DECKHOUSE_REGISTRY_STAGE_USER }}
-          password: ${{ secrets.DECKHOUSE_REGISTRY_STAGE_PASSWORD }}
-          logout: false
-      # </template: login_stage_registry_step>
-
       # <template: login_rw_registry_step>
       - name: Check rw registry credentials
         id: check_rw_registry
@@ -620,7 +570,6 @@ jobs:
         id: setup
         env:
           DECKHOUSE_REGISTRY_HOST: ${{secrets.DECKHOUSE_DEV_REGISTRY_HOST}}
-          DECKHOUSE_REGISTRY_STAGE_HOST: ${{ secrets.DECKHOUSE_REGISTRY_STAGE_HOST }}
           DHCTL_PREFIX: ${{ github.event.inputs.cluster_prefix }}
           INSTALL_IMAGE_PATH: ${{ github.event.inputs.installer_image_path }}
           MULTIMASTER: ${{ needs.check_e2e_labels.outputs.multimaster }}
@@ -634,11 +583,6 @@ jobs:
           else
             echo "Create temporary dir for job: ${TMP_DIR_PATH}."
             mkdir -p "${TMP_DIR_PATH}"
-          fi
-
-          if [[ "$INSTALL_IMAGE_PATH" =~ release-[0-9]+\.[0-9]+ ]]; then
-            # Use stage-registry for release branches.
-            DECKHOUSE_REGISTRY_HOST=${DECKHOUSE_REGISTRY_STAGE_HOST}
           fi
 
           INSTALL_IMAGE_NAME="${DECKHOUSE_REGISTRY_HOST:-}${INSTALL_IMAGE_PATH}"
@@ -687,7 +631,6 @@ jobs:
           LAYOUT: Standard
           KUBERNETES_VERSION: "1.30"
           LAYOUT_DECKHOUSE_DOCKERCFG: ${{ secrets.LAYOUT_DECKHOUSE_DOCKERCFG }}
-          LAYOUT_STAGE_DECKHOUSE_DOCKERCFG: ${{ secrets.LAYOUT_STAGE_DECKHOUSE_DOCKERCFG }}
           LAYOUT_SSH_KEY: ${{ secrets.LAYOUT_SSH_KEY}}
           TMP_DIR_PATH: ${{ steps.setup.outputs.tmp-dir-path}}
           PREFIX: ${{ github.event.inputs.cluster_prefix }}
@@ -705,7 +648,6 @@ jobs:
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
-          STAGE_DECKHOUSE_DOCKERCFG: ${{secrets.STAGE_DECKHOUSE_DOCKERCFG}}
           GITHUB_TOKEN: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           echo "Execute 'script.sh cleanup' via 'docker run', using environment:
@@ -730,7 +672,6 @@ jobs:
           echo "user_runner_id $user_runner_id"
           docker run --rm \
             -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
-            -e STAGE_DECKHOUSE_DOCKERCFG=${LAYOUT_STAGE_DECKHOUSE_DOCKERCFG} \
             -e PREFIX=${PREFIX} \
             -e MASTERS_COUNT=${MASTERS_COUNT} \
             -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
@@ -910,26 +851,6 @@ jobs:
           logout: false
       # </template: login_dev_registry_step>
 
-      # <template: login_stage_registry_step>
-      - name: Check stage registry credentials
-        id: check_stage_registry
-        env:
-          HOST: ${{secrets.DECKHOUSE_REGISTRY_READ_HOST}}
-        run: |
-          if [[ -n $HOST ]]; then
-            echo "has_credentials=true" >> $GITHUB_OUTPUT
-            echo "web_registry_path=${{secrets.DECKHOUSE_REGISTRY_STAGE_HOST }}/deckhouse/site" >> $GITHUB_OUTPUT
-          fi
-      - name: Login to stage registry
-        uses: docker/login-action@v2.1.0
-        if: ${{ steps.check_stage_registry.outputs.has_credentials == 'true' }}
-        with:
-          registry: ${{ secrets.DECKHOUSE_REGISTRY_STAGE_HOST }}
-          username: ${{ secrets.DECKHOUSE_REGISTRY_STAGE_USER }}
-          password: ${{ secrets.DECKHOUSE_REGISTRY_STAGE_PASSWORD }}
-          logout: false
-      # </template: login_stage_registry_step>
-
       # <template: login_rw_registry_step>
       - name: Check rw registry credentials
         id: check_rw_registry
@@ -969,7 +890,6 @@ jobs:
         id: setup
         env:
           DECKHOUSE_REGISTRY_HOST: ${{secrets.DECKHOUSE_DEV_REGISTRY_HOST}}
-          DECKHOUSE_REGISTRY_STAGE_HOST: ${{ secrets.DECKHOUSE_REGISTRY_STAGE_HOST }}
           DHCTL_PREFIX: ${{ github.event.inputs.cluster_prefix }}
           INSTALL_IMAGE_PATH: ${{ github.event.inputs.installer_image_path }}
           MULTIMASTER: ${{ needs.check_e2e_labels.outputs.multimaster }}
@@ -983,11 +903,6 @@ jobs:
           else
             echo "Create temporary dir for job: ${TMP_DIR_PATH}."
             mkdir -p "${TMP_DIR_PATH}"
-          fi
-
-          if [[ "$INSTALL_IMAGE_PATH" =~ release-[0-9]+\.[0-9]+ ]]; then
-            # Use stage-registry for release branches.
-            DECKHOUSE_REGISTRY_HOST=${DECKHOUSE_REGISTRY_STAGE_HOST}
           fi
 
           INSTALL_IMAGE_NAME="${DECKHOUSE_REGISTRY_HOST:-}${INSTALL_IMAGE_PATH}"
@@ -1036,7 +951,6 @@ jobs:
           LAYOUT: Standard
           KUBERNETES_VERSION: "1.31"
           LAYOUT_DECKHOUSE_DOCKERCFG: ${{ secrets.LAYOUT_DECKHOUSE_DOCKERCFG }}
-          LAYOUT_STAGE_DECKHOUSE_DOCKERCFG: ${{ secrets.LAYOUT_STAGE_DECKHOUSE_DOCKERCFG }}
           LAYOUT_SSH_KEY: ${{ secrets.LAYOUT_SSH_KEY}}
           TMP_DIR_PATH: ${{ steps.setup.outputs.tmp-dir-path}}
           PREFIX: ${{ github.event.inputs.cluster_prefix }}
@@ -1054,7 +968,6 @@ jobs:
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
-          STAGE_DECKHOUSE_DOCKERCFG: ${{secrets.STAGE_DECKHOUSE_DOCKERCFG}}
           GITHUB_TOKEN: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           echo "Execute 'script.sh cleanup' via 'docker run', using environment:
@@ -1079,7 +992,6 @@ jobs:
           echo "user_runner_id $user_runner_id"
           docker run --rm \
             -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
-            -e STAGE_DECKHOUSE_DOCKERCFG=${LAYOUT_STAGE_DECKHOUSE_DOCKERCFG} \
             -e PREFIX=${PREFIX} \
             -e MASTERS_COUNT=${MASTERS_COUNT} \
             -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
@@ -1259,26 +1171,6 @@ jobs:
           logout: false
       # </template: login_dev_registry_step>
 
-      # <template: login_stage_registry_step>
-      - name: Check stage registry credentials
-        id: check_stage_registry
-        env:
-          HOST: ${{secrets.DECKHOUSE_REGISTRY_READ_HOST}}
-        run: |
-          if [[ -n $HOST ]]; then
-            echo "has_credentials=true" >> $GITHUB_OUTPUT
-            echo "web_registry_path=${{secrets.DECKHOUSE_REGISTRY_STAGE_HOST }}/deckhouse/site" >> $GITHUB_OUTPUT
-          fi
-      - name: Login to stage registry
-        uses: docker/login-action@v2.1.0
-        if: ${{ steps.check_stage_registry.outputs.has_credentials == 'true' }}
-        with:
-          registry: ${{ secrets.DECKHOUSE_REGISTRY_STAGE_HOST }}
-          username: ${{ secrets.DECKHOUSE_REGISTRY_STAGE_USER }}
-          password: ${{ secrets.DECKHOUSE_REGISTRY_STAGE_PASSWORD }}
-          logout: false
-      # </template: login_stage_registry_step>
-
       # <template: login_rw_registry_step>
       - name: Check rw registry credentials
         id: check_rw_registry
@@ -1318,7 +1210,6 @@ jobs:
         id: setup
         env:
           DECKHOUSE_REGISTRY_HOST: ${{secrets.DECKHOUSE_DEV_REGISTRY_HOST}}
-          DECKHOUSE_REGISTRY_STAGE_HOST: ${{ secrets.DECKHOUSE_REGISTRY_STAGE_HOST }}
           DHCTL_PREFIX: ${{ github.event.inputs.cluster_prefix }}
           INSTALL_IMAGE_PATH: ${{ github.event.inputs.installer_image_path }}
           MULTIMASTER: ${{ needs.check_e2e_labels.outputs.multimaster }}
@@ -1332,11 +1223,6 @@ jobs:
           else
             echo "Create temporary dir for job: ${TMP_DIR_PATH}."
             mkdir -p "${TMP_DIR_PATH}"
-          fi
-
-          if [[ "$INSTALL_IMAGE_PATH" =~ release-[0-9]+\.[0-9]+ ]]; then
-            # Use stage-registry for release branches.
-            DECKHOUSE_REGISTRY_HOST=${DECKHOUSE_REGISTRY_STAGE_HOST}
           fi
 
           INSTALL_IMAGE_NAME="${DECKHOUSE_REGISTRY_HOST:-}${INSTALL_IMAGE_PATH}"
@@ -1385,7 +1271,6 @@ jobs:
           LAYOUT: Standard
           KUBERNETES_VERSION: "1.32"
           LAYOUT_DECKHOUSE_DOCKERCFG: ${{ secrets.LAYOUT_DECKHOUSE_DOCKERCFG }}
-          LAYOUT_STAGE_DECKHOUSE_DOCKERCFG: ${{ secrets.LAYOUT_STAGE_DECKHOUSE_DOCKERCFG }}
           LAYOUT_SSH_KEY: ${{ secrets.LAYOUT_SSH_KEY}}
           TMP_DIR_PATH: ${{ steps.setup.outputs.tmp-dir-path}}
           PREFIX: ${{ github.event.inputs.cluster_prefix }}
@@ -1403,7 +1288,6 @@ jobs:
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
-          STAGE_DECKHOUSE_DOCKERCFG: ${{secrets.STAGE_DECKHOUSE_DOCKERCFG}}
           GITHUB_TOKEN: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           echo "Execute 'script.sh cleanup' via 'docker run', using environment:
@@ -1428,7 +1312,6 @@ jobs:
           echo "user_runner_id $user_runner_id"
           docker run --rm \
             -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
-            -e STAGE_DECKHOUSE_DOCKERCFG=${LAYOUT_STAGE_DECKHOUSE_DOCKERCFG} \
             -e PREFIX=${PREFIX} \
             -e MASTERS_COUNT=${MASTERS_COUNT} \
             -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
@@ -1608,26 +1491,6 @@ jobs:
           logout: false
       # </template: login_dev_registry_step>
 
-      # <template: login_stage_registry_step>
-      - name: Check stage registry credentials
-        id: check_stage_registry
-        env:
-          HOST: ${{secrets.DECKHOUSE_REGISTRY_READ_HOST}}
-        run: |
-          if [[ -n $HOST ]]; then
-            echo "has_credentials=true" >> $GITHUB_OUTPUT
-            echo "web_registry_path=${{secrets.DECKHOUSE_REGISTRY_STAGE_HOST }}/deckhouse/site" >> $GITHUB_OUTPUT
-          fi
-      - name: Login to stage registry
-        uses: docker/login-action@v2.1.0
-        if: ${{ steps.check_stage_registry.outputs.has_credentials == 'true' }}
-        with:
-          registry: ${{ secrets.DECKHOUSE_REGISTRY_STAGE_HOST }}
-          username: ${{ secrets.DECKHOUSE_REGISTRY_STAGE_USER }}
-          password: ${{ secrets.DECKHOUSE_REGISTRY_STAGE_PASSWORD }}
-          logout: false
-      # </template: login_stage_registry_step>
-
       # <template: login_rw_registry_step>
       - name: Check rw registry credentials
         id: check_rw_registry
@@ -1667,7 +1530,6 @@ jobs:
         id: setup
         env:
           DECKHOUSE_REGISTRY_HOST: ${{secrets.DECKHOUSE_DEV_REGISTRY_HOST}}
-          DECKHOUSE_REGISTRY_STAGE_HOST: ${{ secrets.DECKHOUSE_REGISTRY_STAGE_HOST }}
           DHCTL_PREFIX: ${{ github.event.inputs.cluster_prefix }}
           INSTALL_IMAGE_PATH: ${{ github.event.inputs.installer_image_path }}
           MULTIMASTER: ${{ needs.check_e2e_labels.outputs.multimaster }}
@@ -1681,11 +1543,6 @@ jobs:
           else
             echo "Create temporary dir for job: ${TMP_DIR_PATH}."
             mkdir -p "${TMP_DIR_PATH}"
-          fi
-
-          if [[ "$INSTALL_IMAGE_PATH" =~ release-[0-9]+\.[0-9]+ ]]; then
-            # Use stage-registry for release branches.
-            DECKHOUSE_REGISTRY_HOST=${DECKHOUSE_REGISTRY_STAGE_HOST}
           fi
 
           INSTALL_IMAGE_NAME="${DECKHOUSE_REGISTRY_HOST:-}${INSTALL_IMAGE_PATH}"
@@ -1734,7 +1591,6 @@ jobs:
           LAYOUT: Standard
           KUBERNETES_VERSION: "1.33"
           LAYOUT_DECKHOUSE_DOCKERCFG: ${{ secrets.LAYOUT_DECKHOUSE_DOCKERCFG }}
-          LAYOUT_STAGE_DECKHOUSE_DOCKERCFG: ${{ secrets.LAYOUT_STAGE_DECKHOUSE_DOCKERCFG }}
           LAYOUT_SSH_KEY: ${{ secrets.LAYOUT_SSH_KEY}}
           TMP_DIR_PATH: ${{ steps.setup.outputs.tmp-dir-path}}
           PREFIX: ${{ github.event.inputs.cluster_prefix }}
@@ -1752,7 +1608,6 @@ jobs:
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
-          STAGE_DECKHOUSE_DOCKERCFG: ${{secrets.STAGE_DECKHOUSE_DOCKERCFG}}
           GITHUB_TOKEN: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           echo "Execute 'script.sh cleanup' via 'docker run', using environment:
@@ -1777,7 +1632,6 @@ jobs:
           echo "user_runner_id $user_runner_id"
           docker run --rm \
             -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
-            -e STAGE_DECKHOUSE_DOCKERCFG=${LAYOUT_STAGE_DECKHOUSE_DOCKERCFG} \
             -e PREFIX=${PREFIX} \
             -e MASTERS_COUNT=${MASTERS_COUNT} \
             -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
@@ -1957,26 +1811,6 @@ jobs:
           logout: false
       # </template: login_dev_registry_step>
 
-      # <template: login_stage_registry_step>
-      - name: Check stage registry credentials
-        id: check_stage_registry
-        env:
-          HOST: ${{secrets.DECKHOUSE_REGISTRY_READ_HOST}}
-        run: |
-          if [[ -n $HOST ]]; then
-            echo "has_credentials=true" >> $GITHUB_OUTPUT
-            echo "web_registry_path=${{secrets.DECKHOUSE_REGISTRY_STAGE_HOST }}/deckhouse/site" >> $GITHUB_OUTPUT
-          fi
-      - name: Login to stage registry
-        uses: docker/login-action@v2.1.0
-        if: ${{ steps.check_stage_registry.outputs.has_credentials == 'true' }}
-        with:
-          registry: ${{ secrets.DECKHOUSE_REGISTRY_STAGE_HOST }}
-          username: ${{ secrets.DECKHOUSE_REGISTRY_STAGE_USER }}
-          password: ${{ secrets.DECKHOUSE_REGISTRY_STAGE_PASSWORD }}
-          logout: false
-      # </template: login_stage_registry_step>
-
       # <template: login_rw_registry_step>
       - name: Check rw registry credentials
         id: check_rw_registry
@@ -2016,7 +1850,6 @@ jobs:
         id: setup
         env:
           DECKHOUSE_REGISTRY_HOST: ${{secrets.DECKHOUSE_DEV_REGISTRY_HOST}}
-          DECKHOUSE_REGISTRY_STAGE_HOST: ${{ secrets.DECKHOUSE_REGISTRY_STAGE_HOST }}
           DHCTL_PREFIX: ${{ github.event.inputs.cluster_prefix }}
           INSTALL_IMAGE_PATH: ${{ github.event.inputs.installer_image_path }}
           MULTIMASTER: ${{ needs.check_e2e_labels.outputs.multimaster }}
@@ -2030,11 +1863,6 @@ jobs:
           else
             echo "Create temporary dir for job: ${TMP_DIR_PATH}."
             mkdir -p "${TMP_DIR_PATH}"
-          fi
-
-          if [[ "$INSTALL_IMAGE_PATH" =~ release-[0-9]+\.[0-9]+ ]]; then
-            # Use stage-registry for release branches.
-            DECKHOUSE_REGISTRY_HOST=${DECKHOUSE_REGISTRY_STAGE_HOST}
           fi
 
           INSTALL_IMAGE_NAME="${DECKHOUSE_REGISTRY_HOST:-}${INSTALL_IMAGE_PATH}"
@@ -2083,7 +1911,6 @@ jobs:
           LAYOUT: Standard
           KUBERNETES_VERSION: "1.34"
           LAYOUT_DECKHOUSE_DOCKERCFG: ${{ secrets.LAYOUT_DECKHOUSE_DOCKERCFG }}
-          LAYOUT_STAGE_DECKHOUSE_DOCKERCFG: ${{ secrets.LAYOUT_STAGE_DECKHOUSE_DOCKERCFG }}
           LAYOUT_SSH_KEY: ${{ secrets.LAYOUT_SSH_KEY}}
           TMP_DIR_PATH: ${{ steps.setup.outputs.tmp-dir-path}}
           PREFIX: ${{ github.event.inputs.cluster_prefix }}
@@ -2101,7 +1928,6 @@ jobs:
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
-          STAGE_DECKHOUSE_DOCKERCFG: ${{secrets.STAGE_DECKHOUSE_DOCKERCFG}}
           GITHUB_TOKEN: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           echo "Execute 'script.sh cleanup' via 'docker run', using environment:
@@ -2126,7 +1952,6 @@ jobs:
           echo "user_runner_id $user_runner_id"
           docker run --rm \
             -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
-            -e STAGE_DECKHOUSE_DOCKERCFG=${LAYOUT_STAGE_DECKHOUSE_DOCKERCFG} \
             -e PREFIX=${PREFIX} \
             -e MASTERS_COUNT=${MASTERS_COUNT} \
             -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
@@ -2306,26 +2131,6 @@ jobs:
           logout: false
       # </template: login_dev_registry_step>
 
-      # <template: login_stage_registry_step>
-      - name: Check stage registry credentials
-        id: check_stage_registry
-        env:
-          HOST: ${{secrets.DECKHOUSE_REGISTRY_READ_HOST}}
-        run: |
-          if [[ -n $HOST ]]; then
-            echo "has_credentials=true" >> $GITHUB_OUTPUT
-            echo "web_registry_path=${{secrets.DECKHOUSE_REGISTRY_STAGE_HOST }}/deckhouse/site" >> $GITHUB_OUTPUT
-          fi
-      - name: Login to stage registry
-        uses: docker/login-action@v2.1.0
-        if: ${{ steps.check_stage_registry.outputs.has_credentials == 'true' }}
-        with:
-          registry: ${{ secrets.DECKHOUSE_REGISTRY_STAGE_HOST }}
-          username: ${{ secrets.DECKHOUSE_REGISTRY_STAGE_USER }}
-          password: ${{ secrets.DECKHOUSE_REGISTRY_STAGE_PASSWORD }}
-          logout: false
-      # </template: login_stage_registry_step>
-
       # <template: login_rw_registry_step>
       - name: Check rw registry credentials
         id: check_rw_registry
@@ -2365,7 +2170,6 @@ jobs:
         id: setup
         env:
           DECKHOUSE_REGISTRY_HOST: ${{secrets.DECKHOUSE_DEV_REGISTRY_HOST}}
-          DECKHOUSE_REGISTRY_STAGE_HOST: ${{ secrets.DECKHOUSE_REGISTRY_STAGE_HOST }}
           DHCTL_PREFIX: ${{ github.event.inputs.cluster_prefix }}
           INSTALL_IMAGE_PATH: ${{ github.event.inputs.installer_image_path }}
           MULTIMASTER: ${{ needs.check_e2e_labels.outputs.multimaster }}
@@ -2379,11 +2183,6 @@ jobs:
           else
             echo "Create temporary dir for job: ${TMP_DIR_PATH}."
             mkdir -p "${TMP_DIR_PATH}"
-          fi
-
-          if [[ "$INSTALL_IMAGE_PATH" =~ release-[0-9]+\.[0-9]+ ]]; then
-            # Use stage-registry for release branches.
-            DECKHOUSE_REGISTRY_HOST=${DECKHOUSE_REGISTRY_STAGE_HOST}
           fi
 
           INSTALL_IMAGE_NAME="${DECKHOUSE_REGISTRY_HOST:-}${INSTALL_IMAGE_PATH}"
@@ -2432,7 +2231,6 @@ jobs:
           LAYOUT: Standard
           KUBERNETES_VERSION: "Automatic"
           LAYOUT_DECKHOUSE_DOCKERCFG: ${{ secrets.LAYOUT_DECKHOUSE_DOCKERCFG }}
-          LAYOUT_STAGE_DECKHOUSE_DOCKERCFG: ${{ secrets.LAYOUT_STAGE_DECKHOUSE_DOCKERCFG }}
           LAYOUT_SSH_KEY: ${{ secrets.LAYOUT_SSH_KEY}}
           TMP_DIR_PATH: ${{ steps.setup.outputs.tmp-dir-path}}
           PREFIX: ${{ github.event.inputs.cluster_prefix }}
@@ -2450,7 +2248,6 @@ jobs:
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
-          STAGE_DECKHOUSE_DOCKERCFG: ${{secrets.STAGE_DECKHOUSE_DOCKERCFG}}
           GITHUB_TOKEN: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           echo "Execute 'script.sh cleanup' via 'docker run', using environment:
@@ -2475,7 +2272,6 @@ jobs:
           echo "user_runner_id $user_runner_id"
           docker run --rm \
             -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
-            -e STAGE_DECKHOUSE_DOCKERCFG=${LAYOUT_STAGE_DECKHOUSE_DOCKERCFG} \
             -e PREFIX=${PREFIX} \
             -e MASTERS_COUNT=${MASTERS_COUNT} \
             -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
@@ -2655,26 +2451,6 @@ jobs:
           logout: false
       # </template: login_dev_registry_step>
 
-      # <template: login_stage_registry_step>
-      - name: Check stage registry credentials
-        id: check_stage_registry
-        env:
-          HOST: ${{secrets.DECKHOUSE_REGISTRY_READ_HOST}}
-        run: |
-          if [[ -n $HOST ]]; then
-            echo "has_credentials=true" >> $GITHUB_OUTPUT
-            echo "web_registry_path=${{secrets.DECKHOUSE_REGISTRY_STAGE_HOST }}/deckhouse/site" >> $GITHUB_OUTPUT
-          fi
-      - name: Login to stage registry
-        uses: docker/login-action@v2.1.0
-        if: ${{ steps.check_stage_registry.outputs.has_credentials == 'true' }}
-        with:
-          registry: ${{ secrets.DECKHOUSE_REGISTRY_STAGE_HOST }}
-          username: ${{ secrets.DECKHOUSE_REGISTRY_STAGE_USER }}
-          password: ${{ secrets.DECKHOUSE_REGISTRY_STAGE_PASSWORD }}
-          logout: false
-      # </template: login_stage_registry_step>
-
       # <template: login_rw_registry_step>
       - name: Check rw registry credentials
         id: check_rw_registry
@@ -2714,7 +2490,6 @@ jobs:
         id: setup
         env:
           DECKHOUSE_REGISTRY_HOST: ${{secrets.DECKHOUSE_DEV_REGISTRY_HOST}}
-          DECKHOUSE_REGISTRY_STAGE_HOST: ${{ secrets.DECKHOUSE_REGISTRY_STAGE_HOST }}
           DHCTL_PREFIX: ${{ github.event.inputs.cluster_prefix }}
           INSTALL_IMAGE_PATH: ${{ github.event.inputs.installer_image_path }}
           MULTIMASTER: ${{ needs.check_e2e_labels.outputs.multimaster }}
@@ -2728,11 +2503,6 @@ jobs:
           else
             echo "Create temporary dir for job: ${TMP_DIR_PATH}."
             mkdir -p "${TMP_DIR_PATH}"
-          fi
-
-          if [[ "$INSTALL_IMAGE_PATH" =~ release-[0-9]+\.[0-9]+ ]]; then
-            # Use stage-registry for release branches.
-            DECKHOUSE_REGISTRY_HOST=${DECKHOUSE_REGISTRY_STAGE_HOST}
           fi
 
           INSTALL_IMAGE_NAME="${DECKHOUSE_REGISTRY_HOST:-}${INSTALL_IMAGE_PATH}"
@@ -2781,7 +2551,6 @@ jobs:
           LAYOUT: Standard
           KUBERNETES_VERSION: "1.29"
           LAYOUT_DECKHOUSE_DOCKERCFG: ${{ secrets.LAYOUT_DECKHOUSE_DOCKERCFG }}
-          LAYOUT_STAGE_DECKHOUSE_DOCKERCFG: ${{ secrets.LAYOUT_STAGE_DECKHOUSE_DOCKERCFG }}
           LAYOUT_SSH_KEY: ${{ secrets.LAYOUT_SSH_KEY}}
           TMP_DIR_PATH: ${{ steps.setup.outputs.tmp-dir-path}}
           PREFIX: ${{ github.event.inputs.cluster_prefix }}
@@ -2799,7 +2568,6 @@ jobs:
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
-          STAGE_DECKHOUSE_DOCKERCFG: ${{secrets.STAGE_DECKHOUSE_DOCKERCFG}}
           GITHUB_TOKEN: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           echo "Execute 'script.sh cleanup' via 'docker run', using environment:
@@ -2824,7 +2592,6 @@ jobs:
           echo "user_runner_id $user_runner_id"
           docker run --rm \
             -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
-            -e STAGE_DECKHOUSE_DOCKERCFG=${LAYOUT_STAGE_DECKHOUSE_DOCKERCFG} \
             -e PREFIX=${PREFIX} \
             -e MASTERS_COUNT=${MASTERS_COUNT} \
             -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
@@ -3004,26 +2771,6 @@ jobs:
           logout: false
       # </template: login_dev_registry_step>
 
-      # <template: login_stage_registry_step>
-      - name: Check stage registry credentials
-        id: check_stage_registry
-        env:
-          HOST: ${{secrets.DECKHOUSE_REGISTRY_READ_HOST}}
-        run: |
-          if [[ -n $HOST ]]; then
-            echo "has_credentials=true" >> $GITHUB_OUTPUT
-            echo "web_registry_path=${{secrets.DECKHOUSE_REGISTRY_STAGE_HOST }}/deckhouse/site" >> $GITHUB_OUTPUT
-          fi
-      - name: Login to stage registry
-        uses: docker/login-action@v2.1.0
-        if: ${{ steps.check_stage_registry.outputs.has_credentials == 'true' }}
-        with:
-          registry: ${{ secrets.DECKHOUSE_REGISTRY_STAGE_HOST }}
-          username: ${{ secrets.DECKHOUSE_REGISTRY_STAGE_USER }}
-          password: ${{ secrets.DECKHOUSE_REGISTRY_STAGE_PASSWORD }}
-          logout: false
-      # </template: login_stage_registry_step>
-
       # <template: login_rw_registry_step>
       - name: Check rw registry credentials
         id: check_rw_registry
@@ -3063,7 +2810,6 @@ jobs:
         id: setup
         env:
           DECKHOUSE_REGISTRY_HOST: ${{secrets.DECKHOUSE_DEV_REGISTRY_HOST}}
-          DECKHOUSE_REGISTRY_STAGE_HOST: ${{ secrets.DECKHOUSE_REGISTRY_STAGE_HOST }}
           DHCTL_PREFIX: ${{ github.event.inputs.cluster_prefix }}
           INSTALL_IMAGE_PATH: ${{ github.event.inputs.installer_image_path }}
           MULTIMASTER: ${{ needs.check_e2e_labels.outputs.multimaster }}
@@ -3077,11 +2823,6 @@ jobs:
           else
             echo "Create temporary dir for job: ${TMP_DIR_PATH}."
             mkdir -p "${TMP_DIR_PATH}"
-          fi
-
-          if [[ "$INSTALL_IMAGE_PATH" =~ release-[0-9]+\.[0-9]+ ]]; then
-            # Use stage-registry for release branches.
-            DECKHOUSE_REGISTRY_HOST=${DECKHOUSE_REGISTRY_STAGE_HOST}
           fi
 
           INSTALL_IMAGE_NAME="${DECKHOUSE_REGISTRY_HOST:-}${INSTALL_IMAGE_PATH}"
@@ -3130,7 +2871,6 @@ jobs:
           LAYOUT: Standard
           KUBERNETES_VERSION: "1.30"
           LAYOUT_DECKHOUSE_DOCKERCFG: ${{ secrets.LAYOUT_DECKHOUSE_DOCKERCFG }}
-          LAYOUT_STAGE_DECKHOUSE_DOCKERCFG: ${{ secrets.LAYOUT_STAGE_DECKHOUSE_DOCKERCFG }}
           LAYOUT_SSH_KEY: ${{ secrets.LAYOUT_SSH_KEY}}
           TMP_DIR_PATH: ${{ steps.setup.outputs.tmp-dir-path}}
           PREFIX: ${{ github.event.inputs.cluster_prefix }}
@@ -3148,7 +2888,6 @@ jobs:
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
-          STAGE_DECKHOUSE_DOCKERCFG: ${{secrets.STAGE_DECKHOUSE_DOCKERCFG}}
           GITHUB_TOKEN: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           echo "Execute 'script.sh cleanup' via 'docker run', using environment:
@@ -3173,7 +2912,6 @@ jobs:
           echo "user_runner_id $user_runner_id"
           docker run --rm \
             -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
-            -e STAGE_DECKHOUSE_DOCKERCFG=${LAYOUT_STAGE_DECKHOUSE_DOCKERCFG} \
             -e PREFIX=${PREFIX} \
             -e MASTERS_COUNT=${MASTERS_COUNT} \
             -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
@@ -3353,26 +3091,6 @@ jobs:
           logout: false
       # </template: login_dev_registry_step>
 
-      # <template: login_stage_registry_step>
-      - name: Check stage registry credentials
-        id: check_stage_registry
-        env:
-          HOST: ${{secrets.DECKHOUSE_REGISTRY_READ_HOST}}
-        run: |
-          if [[ -n $HOST ]]; then
-            echo "has_credentials=true" >> $GITHUB_OUTPUT
-            echo "web_registry_path=${{secrets.DECKHOUSE_REGISTRY_STAGE_HOST }}/deckhouse/site" >> $GITHUB_OUTPUT
-          fi
-      - name: Login to stage registry
-        uses: docker/login-action@v2.1.0
-        if: ${{ steps.check_stage_registry.outputs.has_credentials == 'true' }}
-        with:
-          registry: ${{ secrets.DECKHOUSE_REGISTRY_STAGE_HOST }}
-          username: ${{ secrets.DECKHOUSE_REGISTRY_STAGE_USER }}
-          password: ${{ secrets.DECKHOUSE_REGISTRY_STAGE_PASSWORD }}
-          logout: false
-      # </template: login_stage_registry_step>
-
       # <template: login_rw_registry_step>
       - name: Check rw registry credentials
         id: check_rw_registry
@@ -3412,7 +3130,6 @@ jobs:
         id: setup
         env:
           DECKHOUSE_REGISTRY_HOST: ${{secrets.DECKHOUSE_DEV_REGISTRY_HOST}}
-          DECKHOUSE_REGISTRY_STAGE_HOST: ${{ secrets.DECKHOUSE_REGISTRY_STAGE_HOST }}
           DHCTL_PREFIX: ${{ github.event.inputs.cluster_prefix }}
           INSTALL_IMAGE_PATH: ${{ github.event.inputs.installer_image_path }}
           MULTIMASTER: ${{ needs.check_e2e_labels.outputs.multimaster }}
@@ -3426,11 +3143,6 @@ jobs:
           else
             echo "Create temporary dir for job: ${TMP_DIR_PATH}."
             mkdir -p "${TMP_DIR_PATH}"
-          fi
-
-          if [[ "$INSTALL_IMAGE_PATH" =~ release-[0-9]+\.[0-9]+ ]]; then
-            # Use stage-registry for release branches.
-            DECKHOUSE_REGISTRY_HOST=${DECKHOUSE_REGISTRY_STAGE_HOST}
           fi
 
           INSTALL_IMAGE_NAME="${DECKHOUSE_REGISTRY_HOST:-}${INSTALL_IMAGE_PATH}"
@@ -3479,7 +3191,6 @@ jobs:
           LAYOUT: Standard
           KUBERNETES_VERSION: "1.31"
           LAYOUT_DECKHOUSE_DOCKERCFG: ${{ secrets.LAYOUT_DECKHOUSE_DOCKERCFG }}
-          LAYOUT_STAGE_DECKHOUSE_DOCKERCFG: ${{ secrets.LAYOUT_STAGE_DECKHOUSE_DOCKERCFG }}
           LAYOUT_SSH_KEY: ${{ secrets.LAYOUT_SSH_KEY}}
           TMP_DIR_PATH: ${{ steps.setup.outputs.tmp-dir-path}}
           PREFIX: ${{ github.event.inputs.cluster_prefix }}
@@ -3497,7 +3208,6 @@ jobs:
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
-          STAGE_DECKHOUSE_DOCKERCFG: ${{secrets.STAGE_DECKHOUSE_DOCKERCFG}}
           GITHUB_TOKEN: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           echo "Execute 'script.sh cleanup' via 'docker run', using environment:
@@ -3522,7 +3232,6 @@ jobs:
           echo "user_runner_id $user_runner_id"
           docker run --rm \
             -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
-            -e STAGE_DECKHOUSE_DOCKERCFG=${LAYOUT_STAGE_DECKHOUSE_DOCKERCFG} \
             -e PREFIX=${PREFIX} \
             -e MASTERS_COUNT=${MASTERS_COUNT} \
             -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
@@ -3702,26 +3411,6 @@ jobs:
           logout: false
       # </template: login_dev_registry_step>
 
-      # <template: login_stage_registry_step>
-      - name: Check stage registry credentials
-        id: check_stage_registry
-        env:
-          HOST: ${{secrets.DECKHOUSE_REGISTRY_READ_HOST}}
-        run: |
-          if [[ -n $HOST ]]; then
-            echo "has_credentials=true" >> $GITHUB_OUTPUT
-            echo "web_registry_path=${{secrets.DECKHOUSE_REGISTRY_STAGE_HOST }}/deckhouse/site" >> $GITHUB_OUTPUT
-          fi
-      - name: Login to stage registry
-        uses: docker/login-action@v2.1.0
-        if: ${{ steps.check_stage_registry.outputs.has_credentials == 'true' }}
-        with:
-          registry: ${{ secrets.DECKHOUSE_REGISTRY_STAGE_HOST }}
-          username: ${{ secrets.DECKHOUSE_REGISTRY_STAGE_USER }}
-          password: ${{ secrets.DECKHOUSE_REGISTRY_STAGE_PASSWORD }}
-          logout: false
-      # </template: login_stage_registry_step>
-
       # <template: login_rw_registry_step>
       - name: Check rw registry credentials
         id: check_rw_registry
@@ -3761,7 +3450,6 @@ jobs:
         id: setup
         env:
           DECKHOUSE_REGISTRY_HOST: ${{secrets.DECKHOUSE_DEV_REGISTRY_HOST}}
-          DECKHOUSE_REGISTRY_STAGE_HOST: ${{ secrets.DECKHOUSE_REGISTRY_STAGE_HOST }}
           DHCTL_PREFIX: ${{ github.event.inputs.cluster_prefix }}
           INSTALL_IMAGE_PATH: ${{ github.event.inputs.installer_image_path }}
           MULTIMASTER: ${{ needs.check_e2e_labels.outputs.multimaster }}
@@ -3775,11 +3463,6 @@ jobs:
           else
             echo "Create temporary dir for job: ${TMP_DIR_PATH}."
             mkdir -p "${TMP_DIR_PATH}"
-          fi
-
-          if [[ "$INSTALL_IMAGE_PATH" =~ release-[0-9]+\.[0-9]+ ]]; then
-            # Use stage-registry for release branches.
-            DECKHOUSE_REGISTRY_HOST=${DECKHOUSE_REGISTRY_STAGE_HOST}
           fi
 
           INSTALL_IMAGE_NAME="${DECKHOUSE_REGISTRY_HOST:-}${INSTALL_IMAGE_PATH}"
@@ -3828,7 +3511,6 @@ jobs:
           LAYOUT: Standard
           KUBERNETES_VERSION: "1.32"
           LAYOUT_DECKHOUSE_DOCKERCFG: ${{ secrets.LAYOUT_DECKHOUSE_DOCKERCFG }}
-          LAYOUT_STAGE_DECKHOUSE_DOCKERCFG: ${{ secrets.LAYOUT_STAGE_DECKHOUSE_DOCKERCFG }}
           LAYOUT_SSH_KEY: ${{ secrets.LAYOUT_SSH_KEY}}
           TMP_DIR_PATH: ${{ steps.setup.outputs.tmp-dir-path}}
           PREFIX: ${{ github.event.inputs.cluster_prefix }}
@@ -3846,7 +3528,6 @@ jobs:
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
-          STAGE_DECKHOUSE_DOCKERCFG: ${{secrets.STAGE_DECKHOUSE_DOCKERCFG}}
           GITHUB_TOKEN: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           echo "Execute 'script.sh cleanup' via 'docker run', using environment:
@@ -3871,7 +3552,6 @@ jobs:
           echo "user_runner_id $user_runner_id"
           docker run --rm \
             -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
-            -e STAGE_DECKHOUSE_DOCKERCFG=${LAYOUT_STAGE_DECKHOUSE_DOCKERCFG} \
             -e PREFIX=${PREFIX} \
             -e MASTERS_COUNT=${MASTERS_COUNT} \
             -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
@@ -4051,26 +3731,6 @@ jobs:
           logout: false
       # </template: login_dev_registry_step>
 
-      # <template: login_stage_registry_step>
-      - name: Check stage registry credentials
-        id: check_stage_registry
-        env:
-          HOST: ${{secrets.DECKHOUSE_REGISTRY_READ_HOST}}
-        run: |
-          if [[ -n $HOST ]]; then
-            echo "has_credentials=true" >> $GITHUB_OUTPUT
-            echo "web_registry_path=${{secrets.DECKHOUSE_REGISTRY_STAGE_HOST }}/deckhouse/site" >> $GITHUB_OUTPUT
-          fi
-      - name: Login to stage registry
-        uses: docker/login-action@v2.1.0
-        if: ${{ steps.check_stage_registry.outputs.has_credentials == 'true' }}
-        with:
-          registry: ${{ secrets.DECKHOUSE_REGISTRY_STAGE_HOST }}
-          username: ${{ secrets.DECKHOUSE_REGISTRY_STAGE_USER }}
-          password: ${{ secrets.DECKHOUSE_REGISTRY_STAGE_PASSWORD }}
-          logout: false
-      # </template: login_stage_registry_step>
-
       # <template: login_rw_registry_step>
       - name: Check rw registry credentials
         id: check_rw_registry
@@ -4110,7 +3770,6 @@ jobs:
         id: setup
         env:
           DECKHOUSE_REGISTRY_HOST: ${{secrets.DECKHOUSE_DEV_REGISTRY_HOST}}
-          DECKHOUSE_REGISTRY_STAGE_HOST: ${{ secrets.DECKHOUSE_REGISTRY_STAGE_HOST }}
           DHCTL_PREFIX: ${{ github.event.inputs.cluster_prefix }}
           INSTALL_IMAGE_PATH: ${{ github.event.inputs.installer_image_path }}
           MULTIMASTER: ${{ needs.check_e2e_labels.outputs.multimaster }}
@@ -4124,11 +3783,6 @@ jobs:
           else
             echo "Create temporary dir for job: ${TMP_DIR_PATH}."
             mkdir -p "${TMP_DIR_PATH}"
-          fi
-
-          if [[ "$INSTALL_IMAGE_PATH" =~ release-[0-9]+\.[0-9]+ ]]; then
-            # Use stage-registry for release branches.
-            DECKHOUSE_REGISTRY_HOST=${DECKHOUSE_REGISTRY_STAGE_HOST}
           fi
 
           INSTALL_IMAGE_NAME="${DECKHOUSE_REGISTRY_HOST:-}${INSTALL_IMAGE_PATH}"
@@ -4177,7 +3831,6 @@ jobs:
           LAYOUT: Standard
           KUBERNETES_VERSION: "1.33"
           LAYOUT_DECKHOUSE_DOCKERCFG: ${{ secrets.LAYOUT_DECKHOUSE_DOCKERCFG }}
-          LAYOUT_STAGE_DECKHOUSE_DOCKERCFG: ${{ secrets.LAYOUT_STAGE_DECKHOUSE_DOCKERCFG }}
           LAYOUT_SSH_KEY: ${{ secrets.LAYOUT_SSH_KEY}}
           TMP_DIR_PATH: ${{ steps.setup.outputs.tmp-dir-path}}
           PREFIX: ${{ github.event.inputs.cluster_prefix }}
@@ -4195,7 +3848,6 @@ jobs:
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
-          STAGE_DECKHOUSE_DOCKERCFG: ${{secrets.STAGE_DECKHOUSE_DOCKERCFG}}
           GITHUB_TOKEN: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           echo "Execute 'script.sh cleanup' via 'docker run', using environment:
@@ -4220,7 +3872,6 @@ jobs:
           echo "user_runner_id $user_runner_id"
           docker run --rm \
             -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
-            -e STAGE_DECKHOUSE_DOCKERCFG=${LAYOUT_STAGE_DECKHOUSE_DOCKERCFG} \
             -e PREFIX=${PREFIX} \
             -e MASTERS_COUNT=${MASTERS_COUNT} \
             -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
@@ -4400,26 +4051,6 @@ jobs:
           logout: false
       # </template: login_dev_registry_step>
 
-      # <template: login_stage_registry_step>
-      - name: Check stage registry credentials
-        id: check_stage_registry
-        env:
-          HOST: ${{secrets.DECKHOUSE_REGISTRY_READ_HOST}}
-        run: |
-          if [[ -n $HOST ]]; then
-            echo "has_credentials=true" >> $GITHUB_OUTPUT
-            echo "web_registry_path=${{secrets.DECKHOUSE_REGISTRY_STAGE_HOST }}/deckhouse/site" >> $GITHUB_OUTPUT
-          fi
-      - name: Login to stage registry
-        uses: docker/login-action@v2.1.0
-        if: ${{ steps.check_stage_registry.outputs.has_credentials == 'true' }}
-        with:
-          registry: ${{ secrets.DECKHOUSE_REGISTRY_STAGE_HOST }}
-          username: ${{ secrets.DECKHOUSE_REGISTRY_STAGE_USER }}
-          password: ${{ secrets.DECKHOUSE_REGISTRY_STAGE_PASSWORD }}
-          logout: false
-      # </template: login_stage_registry_step>
-
       # <template: login_rw_registry_step>
       - name: Check rw registry credentials
         id: check_rw_registry
@@ -4459,7 +4090,6 @@ jobs:
         id: setup
         env:
           DECKHOUSE_REGISTRY_HOST: ${{secrets.DECKHOUSE_DEV_REGISTRY_HOST}}
-          DECKHOUSE_REGISTRY_STAGE_HOST: ${{ secrets.DECKHOUSE_REGISTRY_STAGE_HOST }}
           DHCTL_PREFIX: ${{ github.event.inputs.cluster_prefix }}
           INSTALL_IMAGE_PATH: ${{ github.event.inputs.installer_image_path }}
           MULTIMASTER: ${{ needs.check_e2e_labels.outputs.multimaster }}
@@ -4473,11 +4103,6 @@ jobs:
           else
             echo "Create temporary dir for job: ${TMP_DIR_PATH}."
             mkdir -p "${TMP_DIR_PATH}"
-          fi
-
-          if [[ "$INSTALL_IMAGE_PATH" =~ release-[0-9]+\.[0-9]+ ]]; then
-            # Use stage-registry for release branches.
-            DECKHOUSE_REGISTRY_HOST=${DECKHOUSE_REGISTRY_STAGE_HOST}
           fi
 
           INSTALL_IMAGE_NAME="${DECKHOUSE_REGISTRY_HOST:-}${INSTALL_IMAGE_PATH}"
@@ -4526,7 +4151,6 @@ jobs:
           LAYOUT: Standard
           KUBERNETES_VERSION: "1.34"
           LAYOUT_DECKHOUSE_DOCKERCFG: ${{ secrets.LAYOUT_DECKHOUSE_DOCKERCFG }}
-          LAYOUT_STAGE_DECKHOUSE_DOCKERCFG: ${{ secrets.LAYOUT_STAGE_DECKHOUSE_DOCKERCFG }}
           LAYOUT_SSH_KEY: ${{ secrets.LAYOUT_SSH_KEY}}
           TMP_DIR_PATH: ${{ steps.setup.outputs.tmp-dir-path}}
           PREFIX: ${{ github.event.inputs.cluster_prefix }}
@@ -4544,7 +4168,6 @@ jobs:
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
-          STAGE_DECKHOUSE_DOCKERCFG: ${{secrets.STAGE_DECKHOUSE_DOCKERCFG}}
           GITHUB_TOKEN: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           echo "Execute 'script.sh cleanup' via 'docker run', using environment:
@@ -4569,7 +4192,6 @@ jobs:
           echo "user_runner_id $user_runner_id"
           docker run --rm \
             -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
-            -e STAGE_DECKHOUSE_DOCKERCFG=${LAYOUT_STAGE_DECKHOUSE_DOCKERCFG} \
             -e PREFIX=${PREFIX} \
             -e MASTERS_COUNT=${MASTERS_COUNT} \
             -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
@@ -4749,26 +4371,6 @@ jobs:
           logout: false
       # </template: login_dev_registry_step>
 
-      # <template: login_stage_registry_step>
-      - name: Check stage registry credentials
-        id: check_stage_registry
-        env:
-          HOST: ${{secrets.DECKHOUSE_REGISTRY_READ_HOST}}
-        run: |
-          if [[ -n $HOST ]]; then
-            echo "has_credentials=true" >> $GITHUB_OUTPUT
-            echo "web_registry_path=${{secrets.DECKHOUSE_REGISTRY_STAGE_HOST }}/deckhouse/site" >> $GITHUB_OUTPUT
-          fi
-      - name: Login to stage registry
-        uses: docker/login-action@v2.1.0
-        if: ${{ steps.check_stage_registry.outputs.has_credentials == 'true' }}
-        with:
-          registry: ${{ secrets.DECKHOUSE_REGISTRY_STAGE_HOST }}
-          username: ${{ secrets.DECKHOUSE_REGISTRY_STAGE_USER }}
-          password: ${{ secrets.DECKHOUSE_REGISTRY_STAGE_PASSWORD }}
-          logout: false
-      # </template: login_stage_registry_step>
-
       # <template: login_rw_registry_step>
       - name: Check rw registry credentials
         id: check_rw_registry
@@ -4808,7 +4410,6 @@ jobs:
         id: setup
         env:
           DECKHOUSE_REGISTRY_HOST: ${{secrets.DECKHOUSE_DEV_REGISTRY_HOST}}
-          DECKHOUSE_REGISTRY_STAGE_HOST: ${{ secrets.DECKHOUSE_REGISTRY_STAGE_HOST }}
           DHCTL_PREFIX: ${{ github.event.inputs.cluster_prefix }}
           INSTALL_IMAGE_PATH: ${{ github.event.inputs.installer_image_path }}
           MULTIMASTER: ${{ needs.check_e2e_labels.outputs.multimaster }}
@@ -4822,11 +4423,6 @@ jobs:
           else
             echo "Create temporary dir for job: ${TMP_DIR_PATH}."
             mkdir -p "${TMP_DIR_PATH}"
-          fi
-
-          if [[ "$INSTALL_IMAGE_PATH" =~ release-[0-9]+\.[0-9]+ ]]; then
-            # Use stage-registry for release branches.
-            DECKHOUSE_REGISTRY_HOST=${DECKHOUSE_REGISTRY_STAGE_HOST}
           fi
 
           INSTALL_IMAGE_NAME="${DECKHOUSE_REGISTRY_HOST:-}${INSTALL_IMAGE_PATH}"
@@ -4875,7 +4471,6 @@ jobs:
           LAYOUT: Standard
           KUBERNETES_VERSION: "Automatic"
           LAYOUT_DECKHOUSE_DOCKERCFG: ${{ secrets.LAYOUT_DECKHOUSE_DOCKERCFG }}
-          LAYOUT_STAGE_DECKHOUSE_DOCKERCFG: ${{ secrets.LAYOUT_STAGE_DECKHOUSE_DOCKERCFG }}
           LAYOUT_SSH_KEY: ${{ secrets.LAYOUT_SSH_KEY}}
           TMP_DIR_PATH: ${{ steps.setup.outputs.tmp-dir-path}}
           PREFIX: ${{ github.event.inputs.cluster_prefix }}
@@ -4893,7 +4488,6 @@ jobs:
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
-          STAGE_DECKHOUSE_DOCKERCFG: ${{secrets.STAGE_DECKHOUSE_DOCKERCFG}}
           GITHUB_TOKEN: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           echo "Execute 'script.sh cleanup' via 'docker run', using environment:
@@ -4918,7 +4512,6 @@ jobs:
           echo "user_runner_id $user_runner_id"
           docker run --rm \
             -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
-            -e STAGE_DECKHOUSE_DOCKERCFG=${LAYOUT_STAGE_DECKHOUSE_DOCKERCFG} \
             -e PREFIX=${PREFIX} \
             -e MASTERS_COUNT=${MASTERS_COUNT} \
             -e DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG} \
@@ -5015,7 +4608,7 @@ jobs:
     name: Update comment on finish
     needs: ["started_at","run_containerd_1_29","run_containerd_1_30","run_containerd_1_31","run_containerd_1_32","run_containerd_1_33","run_containerd_1_34","run_containerd_automatic","run_containerdv2_1_29","run_containerdv2_1_30","run_containerdv2_1_31","run_containerdv2_1_32","run_containerdv2_1_33","run_containerdv2_1_34","run_containerdv2_automatic"]
     if: ${{ always() }}
-    runs-on: "regular"
+    runs-on: ubuntu-latest
     env:
       JOB_NAMES: |
         {"run_containerd_1_29":"destroy cluster: VCD, Containerd, Kubernetes 1.29","run_containerd_1_30":"destroy cluster: VCD, Containerd, Kubernetes 1.30","run_containerd_1_31":"destroy cluster: VCD, Containerd, Kubernetes 1.31","run_containerd_1_32":"destroy cluster: VCD, Containerd, Kubernetes 1.32","run_containerd_1_33":"destroy cluster: VCD, Containerd, Kubernetes 1.33","run_containerd_1_34":"destroy cluster: VCD, Containerd, Kubernetes 1.34","run_containerd_automatic":"destroy cluster: VCD, Containerd, Kubernetes Automatic","run_containerdv2_1_29":"destroy cluster: VCD, ContainerdV2, Kubernetes 1.29","run_containerdv2_1_30":"destroy cluster: VCD, ContainerdV2, Kubernetes 1.30","run_containerdv2_1_31":"destroy cluster: VCD, ContainerdV2, Kubernetes 1.31","run_containerdv2_1_32":"destroy cluster: VCD, ContainerdV2, Kubernetes 1.32","run_containerdv2_1_33":"destroy cluster: VCD, ContainerdV2, Kubernetes 1.33","run_containerdv2_1_34":"destroy cluster: VCD, ContainerdV2, Kubernetes 1.34","run_containerdv2_automatic":"destroy cluster: VCD, ContainerdV2, Kubernetes Automatic"}

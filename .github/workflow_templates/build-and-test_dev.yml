@@ -232,7 +232,7 @@ jobs:
       - golangci_lint
       - dhctl_tests
       - tests
-    runs-on: "regular"
+    runs-on: ubuntu-latest
     steps:
 {!{ tmpl.Exec "checkout_step" . | strings.Indent 6 }!}
       - name: Set commit status after e2e run

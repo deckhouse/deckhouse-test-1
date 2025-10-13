@@ -46,7 +46,6 @@ env:
   TEST_TIMEOUT: "15m"
   # Use fixed string 'sys/deckhouse-oss' for repo name. ${CI_PROJECT_PATH} is not available here in GitHub.
   DEV_REGISTRY_PATH: "${{ secrets.DECKHOUSE_DEV_REGISTRY_HOST }}/sys/deckhouse-oss"
-  STAGE_REGISTRY_PATH: "${{ secrets.DECKHOUSE_REGISTRY_STAGE_HOST }}/sys/deckhouse-oss"
   # Registry for additional repositories used for testing Github Actions workflows.
   GHA_TEST_REGISTRY_PATH: "ghcr.io/${{ github.repository }}"
   # Need for ssh: default.
@@ -68,7 +67,7 @@ jobs:
 
   git_info:
     name: Get git info
-    runs-on: "regular"
+    runs-on: ubuntu-latest
     outputs:
       ci_commit_tag: ${{ steps.git_info.outputs.ci_commit_tag }}
       ci_commit_branch: ${{ steps.git_info.outputs.ci_commit_branch }}
@@ -142,7 +141,7 @@ jobs:
 
   # </template: git_info_job>
   check_branch:
-    runs-on: "regular"
+    runs-on: ubuntu-latest
     steps:
       - name: Check if triggered by a tag
         run: |
@@ -153,7 +152,7 @@ jobs:
           fi
   detect_editions:
     name: Detect editions
-    runs-on: "regular"
+    runs-on: ubuntu-latest
     needs: check_branch
     outputs:
       DEPLOY_CE: ${{steps.detect_editions.outputs.DEPLOY_CE}}
@@ -194,7 +193,7 @@ jobs:
     name: Enable CE
     needs:
       - detect_editions
-    runs-on: "regular"
+    runs-on: ubuntu-latest
     steps:
       - run: ": Enable CE"
 
@@ -203,7 +202,7 @@ jobs:
     name: Enable EE
     needs:
       - detect_editions
-    runs-on: "regular"
+    runs-on: ubuntu-latest
     steps:
       - run: ": Enable EE"
 
@@ -212,7 +211,7 @@ jobs:
     name: Enable FE
     needs:
       - detect_editions
-    runs-on: "regular"
+    runs-on: ubuntu-latest
     steps:
       - run: ": Enable FE"
 
@@ -221,7 +220,7 @@ jobs:
     name: Enable BE
     needs:
       - detect_editions
-    runs-on: "regular"
+    runs-on: ubuntu-latest
     steps:
       - run: ": Enable BE"
 
@@ -230,7 +229,7 @@ jobs:
     name: Enable SE
     needs:
       - detect_editions
-    runs-on: "regular"
+    runs-on: ubuntu-latest
     steps:
       - run: ": Enable SE"
 
@@ -239,7 +238,7 @@ jobs:
     name: Enable SE-plus
     needs:
       - detect_editions
-    runs-on: "regular"
+    runs-on: ubuntu-latest
     steps:
       - run: ": Enable SE-plus"
 
