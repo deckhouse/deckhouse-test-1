@@ -29,7 +29,7 @@ tags = ["test", "secret"]
 # Test allowlist - exclude common test files
 [allowlist]
 description = "Allowlist for test repository"
-files = [
+paths = [
     ".git/",
     "test/fixtures/",
     "*.test.yaml",
