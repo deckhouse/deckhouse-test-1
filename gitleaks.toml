@@ -1,0 +1,43 @@
+# Gitleaks configuration for deckhouse-test-1 (feature/gitleaks branch)
+# Test configuration to verify processing logic
+
+# Custom title and description
+title = "Gitleaks config for deckhouse-test-1 (feature branch)"
+description = "Test configuration to verify gitleaks.toml processing in feature branch"
+
+# Enable some default rules but with custom settings
+[rules.generic-api-key]
+description = "Generic API key"
+regex = '''(?i)(api[_-]?key|apikey)['"]*[=:]['"]*([A-Za-z0-9]+)'''
+tags = ["key", "API"]
+
+[rules.aws-access-key-id]
+description = "AWS Access Key ID"
+regex = '''AKIA[0-9A-Z]{16}'''
+tags = ["key", "AWS"]
+
+[rules.github-token]
+description = "GitHub Personal Access Token"
+regex = '''ghp_[0-9a-zA-Z]{36}'''
+tags = ["key", "GitHub"]
+
+[rules.test-secret]
+description = "Test secret pattern for feature branch"
+regex = '''test[_-]?secret[_-]?[0-9a-zA-Z]{8,}'''
+tags = ["test", "secret"]
+
+# Test allowlist - exclude common test files
+[allowlist]
+description = "Allowlist for test repository"
+files = [
+    ".git/",
+    "test/fixtures/",
+    "*.test.yaml",
+    "*.example.json"
+]
+
+# Test entropy detection settings
+[entropy]
+min = 4.0
+max = 8.0
+groups = 5
