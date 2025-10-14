@@ -662,7 +662,7 @@ jobs:
           make lint-markdown
 
   gitleaks_diff_validation:
-    name: Gitleaks Diff Scan
+    name: Secret scan
     needs:
       - discover
       - pull_request_info
