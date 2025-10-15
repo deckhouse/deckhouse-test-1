@@ -1,0 +1,44 @@
+# Gitleaks configuration file
+# This is a basic template to test gitleaks configuration handling
+
+[extend]
+# Extend default rules
+useDefault = true
+
+[[rules]]
+description = "Custom API Key Pattern"
+id = "custom-api-key"
+regex = '''(?i)api[_-]?key\s*[:=]\s*['"]?[0-9a-f]{32,}['"]?'''
+tags = ["key", "API"]
+
+[[rules]]
+description = "Custom Token Pattern"
+id = "custom-token"  
+regex = '''(?i)token\s*[:=]\s*['"]?[0-9a-zA-Z]{20,}['"]?'''
+tags = ["token"]
+
+[allowlist]
+description = "Allowlist for test files and documentation"
+paths = [
+    '''.*\.md$''',
+    '''.*\.txt$''',
+    '''docs/.*''',
+]
+
+# Allow certain patterns in specific files
+[[allowlist.regexes]]
+description = "Allow example keys in documentation"
+regex = '''AKIAIOSFODNN7EXAMPLE'''
+path = '''.*example.*'''
+
+[[allowlist.regexes]]
+description = "Allow placeholder tokens"
+regex = '''xxxxxxxxxxxxxxxxxxxx'''
+
+# Entropy settings
+[allowlist.entropy]
+Min = "3.0"
+Max = "7.0"
+Group1 = 3
+Group2 = 4
+Group3 = 5
