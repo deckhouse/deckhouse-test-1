@@ -1,0 +1,35 @@
+# Configuration file with embedded secrets (for testing)
+apiVersion: v1
+kind: Secret
+metadata:
+  name: test-secret
+  namespace: default
+data:
+  # Base64 encoded secrets (these are fake for testing)
+  username: dGVzdHVzZXI=  # testuser
+  password: cGFzc3dvcmQxMjM=  # password123
+
+---
+# Docker registry config
+dockerconfigjson: |
+  {
+    "auths": {
+      "registry.example.com": {
+        "username": "testuser",
+        "password": "testpass123",
+        "auth": "dGVzdHVzZXI6dGVzdHBhc3MxMjM="
+      }
+    }
+  }
+
+---
+# TLS Certificate (fake for testing)
+tls:
+  cert: |
+    -----BEGIN CERTIFICATE-----
+    MIIDXTCCAkWgAwIBAgIJAKZ1234567890ABCDEF1234567890
+    -----END CERTIFICATE-----
+  key: |
+    -----BEGIN PRIVATE KEY-----
+    MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC1234567890
+    -----END PRIVATE KEY-----
