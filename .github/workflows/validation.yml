@@ -663,9 +663,6 @@ jobs:
 
   gitleaks_diff_validation:
     name: Secret scan
-    needs:
-      - discover
-      - pull_request_info
     runs-on: ubuntu-24.04
     steps:
       - name: Secret scan
