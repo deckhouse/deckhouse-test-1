@@ -25,20 +25,8 @@ paths = [
     '''docs/.*''',
 ]
 
-# Allow certain patterns in specific files
-[[allowlist.regexes]]
-description = "Allow example keys in documentation"
-regex = '''AKIAIOSFODNN7EXAMPLE'''
-path = '''.*example.*'''
-
-[[allowlist.regexes]]
-description = "Allow placeholder tokens"
-regex = '''xxxxxxxxxxxxxxxxxxxx'''
-
-# Entropy settings
-[allowlist.entropy]
-Min = "3.0"
-Max = "7.0"
-Group1 = 3
-Group2 = 4
-Group3 = 5
+# Allow certain regex patterns
+regexes = [
+    '''AKIAIOSFODNN7EXAMPLE''',
+    '''xxxxxxxxxxxxxxxxxxxx''',
+]
