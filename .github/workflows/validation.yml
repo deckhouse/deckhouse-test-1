@@ -750,13 +750,10 @@ jobs:
       pull-requests: read
     steps:
       - name: Run Gitleaks diff scan
-        uses: deckhouse/modules-actions/gitleaks@main
+        uses: deckhouse/modules-actions/gitleaks@feature/gitleaks
         continue-on-error: true
         with:
           scan_mode: "diff"
-          checkout_repo: ${{ github.event.pull_request.head.repo.full_name }}
-          checkout_ref: ${{ github.event.pull_request.head.sha }}
-          base_sha: ${{ github.event.pull_request.base.sha }}
 
 
 
