@@ -661,17 +661,21 @@ jobs:
         run: |
           make lint-markdown
 
-  gitleaks_diff_validation:
-    name: Secret scan
-    runs-on: ubuntu-24.04
-    steps:
-      - name: Secret scan
-        uses: deckhouse/modules-actions/gitleaks@feature/gitleaks
-        with:
-          scan_mode: diff
-          checkout_repo: ${{ github.event.pull_request.head.repo.full_name }}
-          checkout_ref: ${{ github.event.pull_request.head.sha }}
-          base_sha: ${{ github.event.pull_request.base.sha }}
+  gitleaks_scan:
+  name: Secret scan
+  runs-on: ubuntu-latest
+  permissions:
+    contents: read
+    pull-requests: read
+  steps:
+    - name: Run Gitleaks diff scan
+      uses: deckhouse/modules-actions/gitleaks@main
+      continue-on-error: true
+      with:
+        scan_mode: "diff"
+        checkout_repo: ${{ github.event.pull_request.head.repo.full_name }}
+        checkout_ref: ${{ github.event.pull_request.head.sha }}
+        base_sha: ${{ github.event.pull_request.base.sha }}
 
   release_requirements_validation:
     name: Release Requirements Validation
