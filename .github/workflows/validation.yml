@@ -751,7 +751,6 @@ jobs:
     steps:
       - name: Run Gitleaks diff scan
         uses: deckhouse/modules-actions/gitleaks@feature/gitleaks
-        continue-on-error: true
         with:
           scan_mode: "diff"
 
