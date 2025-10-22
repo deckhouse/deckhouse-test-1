@@ -1,0 +1,4 @@
+This is a clean test file without any secrets.
+Just some regular text for testing gitleaks PR scan.
+
+No API keys, no tokens, no passwords here.
