@@ -2,3 +2,13 @@ This is a clean test file without any secrets.
 Just some regular text for testing gitleaks PR scan.
 
 No API keys, no tokens, no passwords here.
+
+# Testing false-positives that should be ignored:
+# Go module checksums (h1 hashes)
+golang.org/x/crypto v0.14.0 // h1:wBqGXzWJW6m1XrIKlAH0Hs1JJ7+9KBwnIO8v66Q9cHc=
+golang.org/x/sys v0.13.0 // h1:Af8nKPmuFypiUBjVoU9V20FiaFXOcuZI21p0ycVYYGE=
+k8s.io/api v0.28.3 // h1:2OqNb72ZuTZPKCl+4gTKvqao0AMOl9f3o2ijbAj3LI4=
+
+# AWS Example values from docs
+AKIAIOSFODNN7EXAMPLE
+wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
