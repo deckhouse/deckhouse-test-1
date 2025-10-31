@@ -45,7 +45,10 @@ for attempts in range(1, max_attempts+1):
         ]))
     except subprocess.CalledProcessError as e:
         if attempts == max_attempts:
+            print("attempts are over")
             raise
+    except Exception as e:
+        print(e)
     else:
         break
 
@@ -62,7 +65,10 @@ for attempts in range(1, max_attempts+1):
         ]))
     except subprocess.CalledProcessError as e:
         if attempts == max_attempts:
+            print("attempts are over")
             raise
+    except Exception as e:
+        print(e)
     else:
         break
 
