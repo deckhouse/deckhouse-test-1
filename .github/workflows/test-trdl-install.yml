@@ -20,11 +20,6 @@ name: Test TRDL Install
 
 on:
   workflow_dispatch:
-  pull_request:
-    paths:
-      - '.github/workflows/test-trdl-install.yml'
-      - '.github/ci_templates/tests.yml'
-      - '.github/actions/**'
 
 jobs:
   test-trdl-install:
