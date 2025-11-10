@@ -41,10 +41,18 @@ jobs:
       - name: Setup TRDL
         uses: deckhouse/modules-actions/trdl-install@feat/trdl-action
 
-      - name: DMT lint
-        env:
-          DMT_METRICS_URL: "${{ secrets.DMT_METRICS_URL }}"
-          DMT_METRICS_TOKEN: "${{ secrets.DMT_METRICS_TOKEN }}"
+      - name: Setup dmt
+        uses: werf/trdl-actions/setup-app@v0
+        with:
+          repo: dmt
+          url: https://trrr.flant.dev/trdl-dmt/
+          root-version: 3
+          root-sha512: e77d785600a8c8612b84b93a5a2e4c48188d68f7478356d0708213e928bf67b024ed412e702dc32930da5c5bfc9b1c44be3ee7a292f923327815c91c6c3c3833
+          group: 0
+          channel: stable
+
+      - name: Lint the module
+        shell: bash
         run: |
-          make dmt-lint
+          dmt lint ./
 
