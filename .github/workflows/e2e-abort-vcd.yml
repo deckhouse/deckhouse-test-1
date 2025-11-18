@@ -391,8 +391,8 @@ jobs:
           export LAYOUT_VCD_SERVER=${LAYOUT_VCD_SERVER:-not_provided}
           export LAYOUT_VCD_ORG=${LAYOUT_VCD_ORG:-not_provided}
           export LAYOUT_STATIC_BASTION_IP=80.249.129.56
-          export AWS_ACCESS_KEY_ID=${{ secrets.S3_E2E_ACCESS_KEY_ID }}
-          export AWS_SECRET_ACCESS_KEY=${{ secrets.S3_E2E_SECRET_ACCESS_KEY }}
+          export AWS_ACCESS_KEY_ID=${{ steps.secrets.outputs.S3_E2E_ACCESS_KEY_ID }}
+          export AWS_SECRET_ACCESS_KEY=${{ steps.secrets.outputs.S3_E2E_SECRET_ACCESS_KEY }}
           export FOX_DOCKERCFG=${LAYOUT_FOX_DOCKERCFG}
 
           # for logs upload
@@ -729,8 +729,8 @@ jobs:
           export LAYOUT_VCD_SERVER=${LAYOUT_VCD_SERVER:-not_provided}
           export LAYOUT_VCD_ORG=${LAYOUT_VCD_ORG:-not_provided}
           export LAYOUT_STATIC_BASTION_IP=80.249.129.56
-          export AWS_ACCESS_KEY_ID=${{ secrets.S3_E2E_ACCESS_KEY_ID }}
-          export AWS_SECRET_ACCESS_KEY=${{ secrets.S3_E2E_SECRET_ACCESS_KEY }}
+          export AWS_ACCESS_KEY_ID=${{ steps.secrets.outputs.S3_E2E_ACCESS_KEY_ID }}
+          export AWS_SECRET_ACCESS_KEY=${{ steps.secrets.outputs.S3_E2E_SECRET_ACCESS_KEY }}
           export FOX_DOCKERCFG=${LAYOUT_FOX_DOCKERCFG}
 
           # for logs upload
@@ -1067,8 +1067,8 @@ jobs:
           export LAYOUT_VCD_SERVER=${LAYOUT_VCD_SERVER:-not_provided}
           export LAYOUT_VCD_ORG=${LAYOUT_VCD_ORG:-not_provided}
           export LAYOUT_STATIC_BASTION_IP=80.249.129.56
-          export AWS_ACCESS_KEY_ID=${{ secrets.S3_E2E_ACCESS_KEY_ID }}
-          export AWS_SECRET_ACCESS_KEY=${{ secrets.S3_E2E_SECRET_ACCESS_KEY }}
+          export AWS_ACCESS_KEY_ID=${{ steps.secrets.outputs.S3_E2E_ACCESS_KEY_ID }}
+          export AWS_SECRET_ACCESS_KEY=${{ steps.secrets.outputs.S3_E2E_SECRET_ACCESS_KEY }}
           export FOX_DOCKERCFG=${LAYOUT_FOX_DOCKERCFG}
 
           # for logs upload
@@ -1405,8 +1405,8 @@ jobs:
           export LAYOUT_VCD_SERVER=${LAYOUT_VCD_SERVER:-not_provided}
           export LAYOUT_VCD_ORG=${LAYOUT_VCD_ORG:-not_provided}
           export LAYOUT_STATIC_BASTION_IP=80.249.129.56
-          export AWS_ACCESS_KEY_ID=${{ secrets.S3_E2E_ACCESS_KEY_ID }}
-          export AWS_SECRET_ACCESS_KEY=${{ secrets.S3_E2E_SECRET_ACCESS_KEY }}
+          export AWS_ACCESS_KEY_ID=${{ steps.secrets.outputs.S3_E2E_ACCESS_KEY_ID }}
+          export AWS_SECRET_ACCESS_KEY=${{ steps.secrets.outputs.S3_E2E_SECRET_ACCESS_KEY }}
           export FOX_DOCKERCFG=${LAYOUT_FOX_DOCKERCFG}
 
           # for logs upload
@@ -1743,8 +1743,8 @@ jobs:
           export LAYOUT_VCD_SERVER=${LAYOUT_VCD_SERVER:-not_provided}
           export LAYOUT_VCD_ORG=${LAYOUT_VCD_ORG:-not_provided}
           export LAYOUT_STATIC_BASTION_IP=80.249.129.56
-          export AWS_ACCESS_KEY_ID=${{ secrets.S3_E2E_ACCESS_KEY_ID }}
-          export AWS_SECRET_ACCESS_KEY=${{ secrets.S3_E2E_SECRET_ACCESS_KEY }}
+          export AWS_ACCESS_KEY_ID=${{ steps.secrets.outputs.S3_E2E_ACCESS_KEY_ID }}
+          export AWS_SECRET_ACCESS_KEY=${{ steps.secrets.outputs.S3_E2E_SECRET_ACCESS_KEY }}
           export FOX_DOCKERCFG=${LAYOUT_FOX_DOCKERCFG}
 
           # for logs upload
@@ -2081,8 +2081,8 @@ jobs:
           export LAYOUT_VCD_SERVER=${LAYOUT_VCD_SERVER:-not_provided}
           export LAYOUT_VCD_ORG=${LAYOUT_VCD_ORG:-not_provided}
           export LAYOUT_STATIC_BASTION_IP=80.249.129.56
-          export AWS_ACCESS_KEY_ID=${{ secrets.S3_E2E_ACCESS_KEY_ID }}
-          export AWS_SECRET_ACCESS_KEY=${{ secrets.S3_E2E_SECRET_ACCESS_KEY }}
+          export AWS_ACCESS_KEY_ID=${{ steps.secrets.outputs.S3_E2E_ACCESS_KEY_ID }}
+          export AWS_SECRET_ACCESS_KEY=${{ steps.secrets.outputs.S3_E2E_SECRET_ACCESS_KEY }}
           export FOX_DOCKERCFG=${LAYOUT_FOX_DOCKERCFG}
 
           # for logs upload
@@ -2419,8 +2419,8 @@ jobs:
           export LAYOUT_VCD_SERVER=${LAYOUT_VCD_SERVER:-not_provided}
           export LAYOUT_VCD_ORG=${LAYOUT_VCD_ORG:-not_provided}
           export LAYOUT_STATIC_BASTION_IP=80.249.129.56
-          export AWS_ACCESS_KEY_ID=${{ secrets.S3_E2E_ACCESS_KEY_ID }}
-          export AWS_SECRET_ACCESS_KEY=${{ secrets.S3_E2E_SECRET_ACCESS_KEY }}
+          export AWS_ACCESS_KEY_ID=${{ steps.secrets.outputs.S3_E2E_ACCESS_KEY_ID }}
+          export AWS_SECRET_ACCESS_KEY=${{ steps.secrets.outputs.S3_E2E_SECRET_ACCESS_KEY }}
           export FOX_DOCKERCFG=${LAYOUT_FOX_DOCKERCFG}
 
           # for logs upload
@@ -2757,8 +2757,8 @@ jobs:
           export LAYOUT_VCD_SERVER=${LAYOUT_VCD_SERVER:-not_provided}
           export LAYOUT_VCD_ORG=${LAYOUT_VCD_ORG:-not_provided}
           export LAYOUT_STATIC_BASTION_IP=80.249.129.56
-          export AWS_ACCESS_KEY_ID=${{ secrets.S3_E2E_ACCESS_KEY_ID }}
-          export AWS_SECRET_ACCESS_KEY=${{ secrets.S3_E2E_SECRET_ACCESS_KEY }}
+          export AWS_ACCESS_KEY_ID=${{ steps.secrets.outputs.S3_E2E_ACCESS_KEY_ID }}
+          export AWS_SECRET_ACCESS_KEY=${{ steps.secrets.outputs.S3_E2E_SECRET_ACCESS_KEY }}
           export FOX_DOCKERCFG=${LAYOUT_FOX_DOCKERCFG}
 
           # for logs upload
@@ -3095,8 +3095,8 @@ jobs:
           export LAYOUT_VCD_SERVER=${LAYOUT_VCD_SERVER:-not_provided}
           export LAYOUT_VCD_ORG=${LAYOUT_VCD_ORG:-not_provided}
           export LAYOUT_STATIC_BASTION_IP=80.249.129.56
-          export AWS_ACCESS_KEY_ID=${{ secrets.S3_E2E_ACCESS_KEY_ID }}
-          export AWS_SECRET_ACCESS_KEY=${{ secrets.S3_E2E_SECRET_ACCESS_KEY }}
+          export AWS_ACCESS_KEY_ID=${{ steps.secrets.outputs.S3_E2E_ACCESS_KEY_ID }}
+          export AWS_SECRET_ACCESS_KEY=${{ steps.secrets.outputs.S3_E2E_SECRET_ACCESS_KEY }}
           export FOX_DOCKERCFG=${LAYOUT_FOX_DOCKERCFG}
 
           # for logs upload
@@ -3433,8 +3433,8 @@ jobs:
           export LAYOUT_VCD_SERVER=${LAYOUT_VCD_SERVER:-not_provided}
           export LAYOUT_VCD_ORG=${LAYOUT_VCD_ORG:-not_provided}
           export LAYOUT_STATIC_BASTION_IP=80.249.129.56
-          export AWS_ACCESS_KEY_ID=${{ secrets.S3_E2E_ACCESS_KEY_ID }}
-          export AWS_SECRET_ACCESS_KEY=${{ secrets.S3_E2E_SECRET_ACCESS_KEY }}
+          export AWS_ACCESS_KEY_ID=${{ steps.secrets.outputs.S3_E2E_ACCESS_KEY_ID }}
+          export AWS_SECRET_ACCESS_KEY=${{ steps.secrets.outputs.S3_E2E_SECRET_ACCESS_KEY }}
           export FOX_DOCKERCFG=${LAYOUT_FOX_DOCKERCFG}
 
           # for logs upload
@@ -3771,8 +3771,8 @@ jobs:
           export LAYOUT_VCD_SERVER=${LAYOUT_VCD_SERVER:-not_provided}
           export LAYOUT_VCD_ORG=${LAYOUT_VCD_ORG:-not_provided}
           export LAYOUT_STATIC_BASTION_IP=80.249.129.56
-          export AWS_ACCESS_KEY_ID=${{ secrets.S3_E2E_ACCESS_KEY_ID }}
-          export AWS_SECRET_ACCESS_KEY=${{ secrets.S3_E2E_SECRET_ACCESS_KEY }}
+          export AWS_ACCESS_KEY_ID=${{ steps.secrets.outputs.S3_E2E_ACCESS_KEY_ID }}
+          export AWS_SECRET_ACCESS_KEY=${{ steps.secrets.outputs.S3_E2E_SECRET_ACCESS_KEY }}
           export FOX_DOCKERCFG=${LAYOUT_FOX_DOCKERCFG}
 
           # for logs upload
@@ -4109,8 +4109,8 @@ jobs:
           export LAYOUT_VCD_SERVER=${LAYOUT_VCD_SERVER:-not_provided}
           export LAYOUT_VCD_ORG=${LAYOUT_VCD_ORG:-not_provided}
           export LAYOUT_STATIC_BASTION_IP=80.249.129.56
-          export AWS_ACCESS_KEY_ID=${{ secrets.S3_E2E_ACCESS_KEY_ID }}
-          export AWS_SECRET_ACCESS_KEY=${{ secrets.S3_E2E_SECRET_ACCESS_KEY }}
+          export AWS_ACCESS_KEY_ID=${{ steps.secrets.outputs.S3_E2E_ACCESS_KEY_ID }}
+          export AWS_SECRET_ACCESS_KEY=${{ steps.secrets.outputs.S3_E2E_SECRET_ACCESS_KEY }}
           export FOX_DOCKERCFG=${LAYOUT_FOX_DOCKERCFG}
 
           # for logs upload
@@ -4447,8 +4447,8 @@ jobs:
           export LAYOUT_VCD_SERVER=${LAYOUT_VCD_SERVER:-not_provided}
           export LAYOUT_VCD_ORG=${LAYOUT_VCD_ORG:-not_provided}
           export LAYOUT_STATIC_BASTION_IP=80.249.129.56
-          export AWS_ACCESS_KEY_ID=${{ secrets.S3_E2E_ACCESS_KEY_ID }}
-          export AWS_SECRET_ACCESS_KEY=${{ secrets.S3_E2E_SECRET_ACCESS_KEY }}
+          export AWS_ACCESS_KEY_ID=${{ steps.secrets.outputs.S3_E2E_ACCESS_KEY_ID }}
+          export AWS_SECRET_ACCESS_KEY=${{ steps.secrets.outputs.S3_E2E_SECRET_ACCESS_KEY }}
           export FOX_DOCKERCFG=${LAYOUT_FOX_DOCKERCFG}
 
           # for logs upload
@@ -4785,8 +4785,8 @@ jobs:
           export LAYOUT_VCD_SERVER=${LAYOUT_VCD_SERVER:-not_provided}
           export LAYOUT_VCD_ORG=${LAYOUT_VCD_ORG:-not_provided}
           export LAYOUT_STATIC_BASTION_IP=80.249.129.56
-          export AWS_ACCESS_KEY_ID=${{ secrets.S3_E2E_ACCESS_KEY_ID }}
-          export AWS_SECRET_ACCESS_KEY=${{ secrets.S3_E2E_SECRET_ACCESS_KEY }}
+          export AWS_ACCESS_KEY_ID=${{ steps.secrets.outputs.S3_E2E_ACCESS_KEY_ID }}
+          export AWS_SECRET_ACCESS_KEY=${{ steps.secrets.outputs.S3_E2E_SECRET_ACCESS_KEY }}
           export FOX_DOCKERCFG=${LAYOUT_FOX_DOCKERCFG}
 
           # for logs upload
