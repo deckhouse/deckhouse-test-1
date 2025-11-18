@@ -1,0 +1,3 @@
+# Test OpenBao token
+S.ABCDEFGHIJKLMNOPQRST
+

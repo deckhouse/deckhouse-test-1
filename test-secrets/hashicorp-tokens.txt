@@ -1,0 +1,10 @@
+# Test Hashicorp Vault tokens
+# hvs token (hashicorp vault service)
+hvs.CAESIAhEXAMPLE1234567890
+
+# hvb token (hashicorp vault batch)
+hvb.ABCDEFGHIJKLMNOPQRST
+
+# hvr token (hashicorp vault recovery)
+hvr.1234567890ABCDEFGHIJ
+
