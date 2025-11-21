@@ -1,0 +1,22 @@
+# Local Gitleaks configuration for deckhouse-test-1
+# Extends centralized config from modules-actions
+
+[extend]
+# Extend centralized base config (distributed via modules-actions/gitleaks)
+# RUNNER_TEMP is expanded by shell in GitHub Actions environment
+useDefault = false
+path = "${RUNNER_TEMP}/gitleaks.base.toml"
+
+# Repository-specific customizations
+[allowlist]
+
+# Additional local allowlists (if needed)
+paths = [
+    # Example: repository-specific test files
+    # "cve_comparison/test-fixtures/**",
+]
+
+regexes = [
+    # Example: repository-specific safe patterns
+    # '''test-token-[0-9]+''',
+]
