@@ -1,0 +1,22 @@
+# Local Gitleaks configuration for deckhouse-test-1
+# Extends centralized config from modules-actions
+
+[extend]
+# Extend centralized base config (distributed via modules-actions/gitleaks)
+# Path to RUNNER_TEMP directory in GitHub Actions: /home/runner/work/_temp
+useDefault = false
+path = "/home/runner/work/_temp/gitleaks.base.toml"
+
+# Repository-specific customizations
+[allowlist]
+
+# Additional local allowlists (if needed)
+paths = [
+    # Example: repository-specific test files
+    # "cve_comparison/test-fixtures/**",
+]
+
+regexes = [
+    # Mock pattern to satisfy gitleaks config validation
+    '''mock-safe-pattern-never-matches-xxxxxxxxxxxxxx''',
+]
