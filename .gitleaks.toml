@@ -17,6 +17,6 @@ paths = [
 ]
 
 regexes = [
-    # Example: repository-specific safe patterns
-    # '''test-token-[0-9]+''',
+    # Mock pattern to satisfy gitleaks config validation
+    '''mock-safe-pattern-never-matches-xxxxxxxxxxxxxx''',
 ]
