@@ -133,6 +133,8 @@ prepare_db () {
     docker logout ghcr.io
     perform_oras_command "../../oras pull -d -v ghcr.io/aquasecurity/trivy-java-db:1"
     tar zxvf db.tar.gz && rm db.tar.gz
+    pwd
+    exit 1
     ../../trivy-db build --cache-dir ../ --output-dir . --update-interval 6h
     tar cvzf db.tar.gz -C ./ trivy.db metadata.json
 }
@@ -208,3 +210,11 @@ esac
 perform_oras_command "../../oras push -d -v $auth --artifact-type application/vnd.aquasec.trivy.config.v1+json ${1}/security/trivy-db:2 db.tar.gz:application/vnd.aquasec.trivy.db.layer.v1.tar+gzip"
 perform_oras_command "../../oras push -d -v $auth --artifact-type application/octet-stream ${1}/security/trivy-checks:0 bundle.tar.gz:application/vnd.cncf.openpolicyagent.layer.v1.tar+gzip"
 perform_oras_command "../../oras push -d -v $auth --artifact-type application/vnd.aquasec.trivy.config.v1+json ${1}/security/trivy-java-db:1 javadb.tar.gz:application/vnd.aquasec.trivy.javadb.layer.v1.tar+gzip"
+
+
+if [ -n "${TRIVY_DB_UPDATE_WITH_DATE}" ]; then
+  date=$(date +%Y%m%d)
+  perform_oras_command "../../oras push -d -v $auth --artifact-type application/vnd.aquasec.trivy.config.v1+json ${1}/security/trivy-db:${date} db.tar.gz:application/vnd.aquasec.trivy.db.layer.v1.tar+gzip"
+  perform_oras_command "../../oras push -d -v $auth --artifact-type application/octet-stream ${1}/security/trivy-checks:${date} bundle.tar.gz:application/vnd.cncf.openpolicyagent.layer.v1.tar+gzip"
+  perform_oras_command "../../oras push -d -v $auth --artifact-type application/vnd.aquasec.trivy.config.v1+json ${1}/security/trivy-java-db:${date} javadb.tar.gz:application/vnd.aquasec.trivy.javadb.layer.v1.tar+gzip"
+fi
