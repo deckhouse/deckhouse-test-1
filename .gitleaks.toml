@@ -10,4 +10,4 @@ paths = [
 regexes = [
     # Mock pattern to satisfy gitleaks config validation (required by gitleaks)
     '''mock-safe-pattern-never-matches-xxxxxxxxxxxxxx''',
-
+]
