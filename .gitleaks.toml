@@ -1,0 +1,13 @@
+# Repository-specific customizations
+[allowlist]
+
+# Additional local allowlists for storage-status
+paths = [
+    # Example: test fixtures
+    # "test-fixtures/**",
+]
+
+regexes = [
+    # Mock pattern to satisfy gitleaks config validation (required by gitleaks)
+    '''mock-safe-pattern-never-matches-xxxxxxxxxxxxxx''',
+
