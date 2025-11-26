@@ -750,7 +750,7 @@ jobs:
       pull-requests: read
     steps:
       - name: Run Gitleaks diff scan
-        uses: deckhouse/modules-actions/gitleaks@main
+        uses: deckhouse/modules-actions/gitleaks@feature/gitleaks-centralized-config
         continue-on-error: true
         with:
           scan_mode: "diff"
