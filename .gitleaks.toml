@@ -1,3 +1,5 @@
+[extend]
+path = "/home/runner/work/_temp/gitleaks.base.toml"
 # Repository-specific customizations
 [allowlist]
 
