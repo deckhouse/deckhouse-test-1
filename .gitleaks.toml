@@ -1,0 +1,2 @@
+[extend]
+path = "/fake/path/gitleaks.base.toml"
