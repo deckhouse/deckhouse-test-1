@@ -1,7 +1,3 @@
-#
-# THIS FILE IS GENERATED, PLEASE DO NOT EDIT.
-#
-
 # Copyright 2025 Flant JSC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,6 +16,7 @@ name: Secret Scan
 on:
   schedule:
     - cron: '0 0 * * *'
+  workflow_dispatch:
 
 jobs:
   gitleaks_full_scan:
@@ -41,5 +38,5 @@ jobs:
           WORKFLOW_NAME: ${{ github.workflow }}
           WORKFLOW_URL: ${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}/
         run: |
-          bash ./.github/scripts/send-report.sh --webhook "ci_fail"
+          bash ./.github/scripts/send-report.sh --webhook "ci_fail" "🔐 **Secrets detected in repository!**\n\nWorkflow: **${WORKFLOW_NAME}**\nJob: **${JOB_NAME}**\n\n[View logs](${WORKFLOW_URL})"
       # </template: send_fail_report>
