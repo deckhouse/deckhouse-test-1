@@ -252,7 +252,7 @@ jobs:
         uses: dorny/paths-filter@v2
         id: changes
         with:
-          token: ${{ secrets.BOATSWAIN_GITHUB_TOKEN }}
+          token: ${{ steps.secrets.outputs.BOATSWAIN_GITHUB_TOKEN }}
           # dangerous - detect if changes not allowed to test for external PRs
           # docs - detect changes in files that belong to the documentation scope
           # not_markdown - detect changes not in markdown files
@@ -370,8 +370,8 @@ jobs:
       - pull_request_info
     env:
       WERF_ENV: "FE"
-      SVACE_ANALYZE_HOST: "${{ secrets.SVACE_ANALYZE_HOST }}"
-      SVACE_ANALYZE_SSH_USER: "${{ secrets.SVACE_ANALYZE_SSH_USER }}"
+      SVACE_ANALYZE_HOST: "${{ steps.secrets.outputs.SVACE_ANALYZE_HOST }}"
+      SVACE_ANALYZE_SSH_USER: "${{ steps.secrets.outputs.SVACE_ANALYZE_SSH_USER }}"
       SVACE_ENABLED: ${{ contains(github.event.pull_request.labels.*.name, 'analyze/svace') && true || false }}
     # <template: build_template>
     runs-on: [self-hosted, large]
@@ -406,6 +406,14 @@ jobs:
             projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/github/fox_pull_secret CLOUD_PROVIDERS_SOURCE_REPO | CLOUD_PROVIDERS_SOURCE_REPO ;
             projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/github/fox_pull_secret OBSERVABILITY_SOURCE_REPO | OBSERVABILITY_SOURCE_REPO ;
             projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/github/fox_pull_secret DECKHOUSE_PRIVATE_REPO | DECKHOUSE_PRIVATE_REPO ;
+            projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/github/registry_host DECKHOUSE_REGISTRY_READ_HOST | DECKHOUSE_REGISTRY_READ_HOST ;
+            projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/github/registry_read_token login | DECKHOUSE_REGISTRY_READ_USER ;
+            projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/github/registry_read_token password | DECKHOUSE_REGISTRY_READ_PASSWORD ;
+            projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/github/registry_host DECKHOUSE_REGISTRY_HOST | DECKHOUSE_REGISTRY_HOST ;
+            projects/data/101ceaca-97cd-462f-aed5-070d9b9de175/registry-write/demotoken login | DECKHOUSE_REGISTRY_USER ;
+            projects/data/101ceaca-97cd-462f-aed5-070d9b9de175/registry-write/demotoken password | DECKHOUSE_REGISTRY_PASSWORD ;
+            projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/github/boatswain/ghcr_token login | GHCR_IO_REGISTRY_USER ;
+            projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/github/boatswain/ghcr_token password | GHCR_IO_REGISTRY_PASSWORD ;
 
       # </template: import_secrets>
 
@@ -637,7 +645,7 @@ jobs:
         id: check_images
         env:
           CI_COMMIT_REF_SLUG: ${{needs.git_info.outputs.ci_commit_ref_slug}}
-          DECKHOUSE_REGISTRY_READ_HOST: ${{secrets.DECKHOUSE_REGISTRY_READ_HOST}}
+          DECKHOUSE_REGISTRY_READ_HOST: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_READ_HOST }}
         run: |
           EDITION=$(echo ${WERF_ENV} | tr '[:upper:]' '[:lower:]')
 
@@ -698,6 +706,14 @@ jobs:
             projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/github/fox_pull_secret CLOUD_PROVIDERS_SOURCE_REPO | CLOUD_PROVIDERS_SOURCE_REPO ;
             projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/github/fox_pull_secret OBSERVABILITY_SOURCE_REPO | OBSERVABILITY_SOURCE_REPO ;
             projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/github/fox_pull_secret DECKHOUSE_PRIVATE_REPO | DECKHOUSE_PRIVATE_REPO ;
+            projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/github/registry_host DECKHOUSE_REGISTRY_READ_HOST | DECKHOUSE_REGISTRY_READ_HOST ;
+            projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/github/registry_read_token login | DECKHOUSE_REGISTRY_READ_USER ;
+            projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/github/registry_read_token password | DECKHOUSE_REGISTRY_READ_PASSWORD ;
+            projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/github/registry_host DECKHOUSE_REGISTRY_HOST | DECKHOUSE_REGISTRY_HOST ;
+            projects/data/101ceaca-97cd-462f-aed5-070d9b9de175/registry-write/demotoken login | DECKHOUSE_REGISTRY_USER ;
+            projects/data/101ceaca-97cd-462f-aed5-070d9b9de175/registry-write/demotoken password | DECKHOUSE_REGISTRY_PASSWORD ;
+            projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/github/boatswain/ghcr_token login | GHCR_IO_REGISTRY_USER ;
+            projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/github/boatswain/ghcr_token password | GHCR_IO_REGISTRY_PASSWORD ;
 
       # </template: import_secrets>
 
@@ -929,7 +945,7 @@ jobs:
         id: check_images
         env:
           CI_COMMIT_REF_SLUG: ${{needs.git_info.outputs.ci_commit_ref_slug}}
-          DECKHOUSE_REGISTRY_READ_HOST: ${{secrets.DECKHOUSE_REGISTRY_READ_HOST}}
+          DECKHOUSE_REGISTRY_READ_HOST: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_READ_HOST }}
         run: |
           EDITION=$(echo ${WERF_ENV} | tr '[:upper:]' '[:lower:]')
 
@@ -990,6 +1006,14 @@ jobs:
             projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/github/fox_pull_secret CLOUD_PROVIDERS_SOURCE_REPO | CLOUD_PROVIDERS_SOURCE_REPO ;
             projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/github/fox_pull_secret OBSERVABILITY_SOURCE_REPO | OBSERVABILITY_SOURCE_REPO ;
             projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/github/fox_pull_secret DECKHOUSE_PRIVATE_REPO | DECKHOUSE_PRIVATE_REPO ;
+            projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/github/registry_host DECKHOUSE_REGISTRY_READ_HOST | DECKHOUSE_REGISTRY_READ_HOST ;
+            projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/github/registry_read_token login | DECKHOUSE_REGISTRY_READ_USER ;
+            projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/github/registry_read_token password | DECKHOUSE_REGISTRY_READ_PASSWORD ;
+            projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/github/registry_host DECKHOUSE_REGISTRY_HOST | DECKHOUSE_REGISTRY_HOST ;
+            projects/data/101ceaca-97cd-462f-aed5-070d9b9de175/registry-write/demotoken login | DECKHOUSE_REGISTRY_USER ;
+            projects/data/101ceaca-97cd-462f-aed5-070d9b9de175/registry-write/demotoken password | DECKHOUSE_REGISTRY_PASSWORD ;
+            projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/github/boatswain/ghcr_token login | GHCR_IO_REGISTRY_USER ;
+            projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/github/boatswain/ghcr_token password | GHCR_IO_REGISTRY_PASSWORD ;
 
       # </template: import_secrets>
 
@@ -1221,7 +1245,7 @@ jobs:
         id: check_images
         env:
           CI_COMMIT_REF_SLUG: ${{needs.git_info.outputs.ci_commit_ref_slug}}
-          DECKHOUSE_REGISTRY_READ_HOST: ${{secrets.DECKHOUSE_REGISTRY_READ_HOST}}
+          DECKHOUSE_REGISTRY_READ_HOST: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_READ_HOST }}
         run: |
           EDITION=$(echo ${WERF_ENV} | tr '[:upper:]' '[:lower:]')
 
@@ -1282,6 +1306,14 @@ jobs:
             projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/github/fox_pull_secret CLOUD_PROVIDERS_SOURCE_REPO | CLOUD_PROVIDERS_SOURCE_REPO ;
             projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/github/fox_pull_secret OBSERVABILITY_SOURCE_REPO | OBSERVABILITY_SOURCE_REPO ;
             projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/github/fox_pull_secret DECKHOUSE_PRIVATE_REPO | DECKHOUSE_PRIVATE_REPO ;
+            projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/github/registry_host DECKHOUSE_REGISTRY_READ_HOST | DECKHOUSE_REGISTRY_READ_HOST ;
+            projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/github/registry_read_token login | DECKHOUSE_REGISTRY_READ_USER ;
+            projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/github/registry_read_token password | DECKHOUSE_REGISTRY_READ_PASSWORD ;
+            projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/github/registry_host DECKHOUSE_REGISTRY_HOST | DECKHOUSE_REGISTRY_HOST ;
+            projects/data/101ceaca-97cd-462f-aed5-070d9b9de175/registry-write/demotoken login | DECKHOUSE_REGISTRY_USER ;
+            projects/data/101ceaca-97cd-462f-aed5-070d9b9de175/registry-write/demotoken password | DECKHOUSE_REGISTRY_PASSWORD ;
+            projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/github/boatswain/ghcr_token login | GHCR_IO_REGISTRY_USER ;
+            projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/github/boatswain/ghcr_token password | GHCR_IO_REGISTRY_PASSWORD ;
 
       # </template: import_secrets>
 
@@ -1513,7 +1545,7 @@ jobs:
         id: check_images
         env:
           CI_COMMIT_REF_SLUG: ${{needs.git_info.outputs.ci_commit_ref_slug}}
-          DECKHOUSE_REGISTRY_READ_HOST: ${{secrets.DECKHOUSE_REGISTRY_READ_HOST}}
+          DECKHOUSE_REGISTRY_READ_HOST: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_READ_HOST }}
         run: |
           EDITION=$(echo ${WERF_ENV} | tr '[:upper:]' '[:lower:]')
 
@@ -1574,6 +1606,14 @@ jobs:
             projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/github/fox_pull_secret CLOUD_PROVIDERS_SOURCE_REPO | CLOUD_PROVIDERS_SOURCE_REPO ;
             projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/github/fox_pull_secret OBSERVABILITY_SOURCE_REPO | OBSERVABILITY_SOURCE_REPO ;
             projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/github/fox_pull_secret DECKHOUSE_PRIVATE_REPO | DECKHOUSE_PRIVATE_REPO ;
+            projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/github/registry_host DECKHOUSE_REGISTRY_READ_HOST | DECKHOUSE_REGISTRY_READ_HOST ;
+            projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/github/registry_read_token login | DECKHOUSE_REGISTRY_READ_USER ;
+            projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/github/registry_read_token password | DECKHOUSE_REGISTRY_READ_PASSWORD ;
+            projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/github/registry_host DECKHOUSE_REGISTRY_HOST | DECKHOUSE_REGISTRY_HOST ;
+            projects/data/101ceaca-97cd-462f-aed5-070d9b9de175/registry-write/demotoken login | DECKHOUSE_REGISTRY_USER ;
+            projects/data/101ceaca-97cd-462f-aed5-070d9b9de175/registry-write/demotoken password | DECKHOUSE_REGISTRY_PASSWORD ;
+            projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/github/boatswain/ghcr_token login | GHCR_IO_REGISTRY_USER ;
+            projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/github/boatswain/ghcr_token password | GHCR_IO_REGISTRY_PASSWORD ;
 
       # </template: import_secrets>
 
@@ -1805,7 +1845,7 @@ jobs:
         id: check_images
         env:
           CI_COMMIT_REF_SLUG: ${{needs.git_info.outputs.ci_commit_ref_slug}}
-          DECKHOUSE_REGISTRY_READ_HOST: ${{secrets.DECKHOUSE_REGISTRY_READ_HOST}}
+          DECKHOUSE_REGISTRY_READ_HOST: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_READ_HOST }}
         run: |
           EDITION=$(echo ${WERF_ENV} | tr '[:upper:]' '[:lower:]')
 
@@ -1866,6 +1906,14 @@ jobs:
             projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/github/fox_pull_secret CLOUD_PROVIDERS_SOURCE_REPO | CLOUD_PROVIDERS_SOURCE_REPO ;
             projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/github/fox_pull_secret OBSERVABILITY_SOURCE_REPO | OBSERVABILITY_SOURCE_REPO ;
             projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/github/fox_pull_secret DECKHOUSE_PRIVATE_REPO | DECKHOUSE_PRIVATE_REPO ;
+            projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/github/registry_host DECKHOUSE_REGISTRY_READ_HOST | DECKHOUSE_REGISTRY_READ_HOST ;
+            projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/github/registry_read_token login | DECKHOUSE_REGISTRY_READ_USER ;
+            projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/github/registry_read_token password | DECKHOUSE_REGISTRY_READ_PASSWORD ;
+            projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/github/registry_host DECKHOUSE_REGISTRY_HOST | DECKHOUSE_REGISTRY_HOST ;
+            projects/data/101ceaca-97cd-462f-aed5-070d9b9de175/registry-write/demotoken login | DECKHOUSE_REGISTRY_USER ;
+            projects/data/101ceaca-97cd-462f-aed5-070d9b9de175/registry-write/demotoken password | DECKHOUSE_REGISTRY_PASSWORD ;
+            projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/github/boatswain/ghcr_token login | GHCR_IO_REGISTRY_USER ;
+            projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/github/boatswain/ghcr_token password | GHCR_IO_REGISTRY_PASSWORD ;
 
       # </template: import_secrets>
 
@@ -2097,7 +2145,7 @@ jobs:
         id: check_images
         env:
           CI_COMMIT_REF_SLUG: ${{needs.git_info.outputs.ci_commit_ref_slug}}
-          DECKHOUSE_REGISTRY_READ_HOST: ${{secrets.DECKHOUSE_REGISTRY_READ_HOST}}
+          DECKHOUSE_REGISTRY_READ_HOST: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_READ_HOST }}
         run: |
           EDITION=$(echo ${WERF_ENV} | tr '[:upper:]' '[:lower:]')
 
@@ -2316,7 +2364,7 @@ jobs:
         env:
           WERF_DIR: "docs/site"
           WERF_LOG_VERBOSE: "on"
-          DOC_API_KEY: "${{secrets.DOC_API_KEY}}"
+          DOC_API_KEY: "${{steps.secrets.outputs.DOC_API_KEY}}"
           DOC_API_URL: "${{vars.DOC_API_URL}}"
           DOC_API_REFERER: "${{vars.DOC_API_REFERER}}"
           WERF_REPO: "${{ steps.check_dev_registry.outputs.web_registry_path }}"
@@ -2394,7 +2442,7 @@ jobs:
         env:
           TAG: ${{needs.pull_request_info.outputs.ref_slug}}
           IMAGE: "${{ steps.secrets.outputs.DECKHOUSE_DEV_REGISTRY_HOST }}/sys/deckhouse-oss"
-          DECKHOUSE_PRIVATE_REPO: ${{secrets.DECKHOUSE_PRIVATE_REPO}}
+          DECKHOUSE_PRIVATE_REPO: ${{ steps.secrets.outputs.DECKHOUSE_PRIVATE_REPO }}
         run: |
           echo "⚓️ 🏎 Running default user validation on ${TAG}..."
           make cve-base-images-check-default-user
@@ -2481,27 +2529,27 @@ jobs:
       - name: Check rw registry credentials
         id: check_rw_registry
         env:
-          HOST: ${{secrets.DECKHOUSE_REGISTRY_HOST}}
+          HOST: ${{steps.secrets.outputs.DECKHOUSE_REGISTRY_HOST}}
         run: |
           if [[ -n $HOST ]]; then
             echo "has_credentials=true" >> $GITHUB_OUTPUT
-            echo "web_registry_path=${{secrets.DECKHOUSE_REGISTRY_HOST }}/deckhouse/site" >> $GITHUB_OUTPUT
+            echo "web_registry_path=${{steps.secrets.outputs.DECKHOUSE_REGISTRY_HOST }}/deckhouse/site" >> $GITHUB_OUTPUT
           fi
       - name: Login to rw registry
         uses: docker/login-action@v2.1.0
         if: ${{ steps.check_rw_registry.outputs.has_credentials == 'true' }}
         with:
-          registry: ${{ secrets.DECKHOUSE_REGISTRY_HOST }}
-          username: ${{ secrets.DECKHOUSE_REGISTRY_USER }}
-          password: ${{ secrets.DECKHOUSE_REGISTRY_PASSWORD }}
+          registry: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_HOST }}
+          username: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_USER }}
+          password: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_PASSWORD }}
           logout: false
       - name: Login to Github Container Registry
         uses: docker/login-action@v2.1.0
         if: ${{ steps.check_rw_registry.outputs.has_credentials != 'true' }}
         with:
           registry: ghcr.io
-          username: ${{ secrets.GHCR_IO_REGISTRY_USER }}
-          password: ${{ secrets.GHCR_IO_REGISTRY_PASSWORD }}
+          username: ${{ steps.secrets.outputs.GHCR_IO_REGISTRY_USER }}
+          password: ${{ steps.secrets.outputs.GHCR_IO_REGISTRY_PASSWORD }}
           logout: false
       # </template: login_rw_registry_step>
       - name: Run tests
@@ -2574,8 +2622,8 @@ jobs:
       # </template: checkout_full_step>
       - name: DMT lint
         env:
-          DMT_METRICS_URL: "${{ secrets.DMT_METRICS_URL }}"
-          DMT_METRICS_TOKEN: "${{ secrets.DMT_METRICS_TOKEN }}"
+          DMT_METRICS_URL: "${{ steps.secrets.outputs.DMT_METRICS_URL }}"
+          DMT_METRICS_TOKEN: "${{ steps.secrets.outputs.DMT_METRICS_TOKEN }}"
         run: |
           make dmt-lint
     # </template: tests_dmt_lint>
@@ -2653,27 +2701,27 @@ jobs:
       - name: Check rw registry credentials
         id: check_rw_registry
         env:
-          HOST: ${{secrets.DECKHOUSE_REGISTRY_HOST}}
+          HOST: ${{steps.secrets.outputs.DECKHOUSE_REGISTRY_HOST}}
         run: |
           if [[ -n $HOST ]]; then
             echo "has_credentials=true" >> $GITHUB_OUTPUT
-            echo "web_registry_path=${{secrets.DECKHOUSE_REGISTRY_HOST }}/deckhouse/site" >> $GITHUB_OUTPUT
+            echo "web_registry_path=${{steps.secrets.outputs.DECKHOUSE_REGISTRY_HOST }}/deckhouse/site" >> $GITHUB_OUTPUT
           fi
       - name: Login to rw registry
         uses: docker/login-action@v2.1.0
         if: ${{ steps.check_rw_registry.outputs.has_credentials == 'true' }}
         with:
-          registry: ${{ secrets.DECKHOUSE_REGISTRY_HOST }}
-          username: ${{ secrets.DECKHOUSE_REGISTRY_USER }}
-          password: ${{ secrets.DECKHOUSE_REGISTRY_PASSWORD }}
+          registry: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_HOST }}
+          username: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_USER }}
+          password: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_PASSWORD }}
           logout: false
       - name: Login to Github Container Registry
         uses: docker/login-action@v2.1.0
         if: ${{ steps.check_rw_registry.outputs.has_credentials != 'true' }}
         with:
           registry: ghcr.io
-          username: ${{ secrets.GHCR_IO_REGISTRY_USER }}
-          password: ${{ secrets.GHCR_IO_REGISTRY_PASSWORD }}
+          username: ${{ steps.secrets.outputs.GHCR_IO_REGISTRY_USER }}
+          password: ${{ steps.secrets.outputs.GHCR_IO_REGISTRY_PASSWORD }}
           logout: false
       # </template: login_rw_registry_step>
       - name: Run tests
@@ -2769,27 +2817,27 @@ jobs:
       - name: Check rw registry credentials
         id: check_rw_registry
         env:
-          HOST: ${{secrets.DECKHOUSE_REGISTRY_HOST}}
+          HOST: ${{steps.secrets.outputs.DECKHOUSE_REGISTRY_HOST}}
         run: |
           if [[ -n $HOST ]]; then
             echo "has_credentials=true" >> $GITHUB_OUTPUT
-            echo "web_registry_path=${{secrets.DECKHOUSE_REGISTRY_HOST }}/deckhouse/site" >> $GITHUB_OUTPUT
+            echo "web_registry_path=${{steps.secrets.outputs.DECKHOUSE_REGISTRY_HOST }}/deckhouse/site" >> $GITHUB_OUTPUT
           fi
       - name: Login to rw registry
         uses: docker/login-action@v2.1.0
         if: ${{ steps.check_rw_registry.outputs.has_credentials == 'true' }}
         with:
-          registry: ${{ secrets.DECKHOUSE_REGISTRY_HOST }}
-          username: ${{ secrets.DECKHOUSE_REGISTRY_USER }}
-          password: ${{ secrets.DECKHOUSE_REGISTRY_PASSWORD }}
+          registry: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_HOST }}
+          username: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_USER }}
+          password: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_PASSWORD }}
           logout: false
       - name: Login to Github Container Registry
         uses: docker/login-action@v2.1.0
         if: ${{ steps.check_rw_registry.outputs.has_credentials != 'true' }}
         with:
           registry: ghcr.io
-          username: ${{ secrets.GHCR_IO_REGISTRY_USER }}
-          password: ${{ secrets.GHCR_IO_REGISTRY_PASSWORD }}
+          username: ${{ steps.secrets.outputs.GHCR_IO_REGISTRY_USER }}
+          password: ${{ steps.secrets.outputs.GHCR_IO_REGISTRY_PASSWORD }}
           logout: false
       # </template: login_rw_registry_step>
       - name: Run tests
@@ -2885,27 +2933,27 @@ jobs:
       - name: Check rw registry credentials
         id: check_rw_registry
         env:
-          HOST: ${{secrets.DECKHOUSE_REGISTRY_HOST}}
+          HOST: ${{steps.secrets.outputs.DECKHOUSE_REGISTRY_HOST}}
         run: |
           if [[ -n $HOST ]]; then
             echo "has_credentials=true" >> $GITHUB_OUTPUT
-            echo "web_registry_path=${{secrets.DECKHOUSE_REGISTRY_HOST }}/deckhouse/site" >> $GITHUB_OUTPUT
+            echo "web_registry_path=${{steps.secrets.outputs.DECKHOUSE_REGISTRY_HOST }}/deckhouse/site" >> $GITHUB_OUTPUT
           fi
       - name: Login to rw registry
         uses: docker/login-action@v2.1.0
         if: ${{ steps.check_rw_registry.outputs.has_credentials == 'true' }}
         with:
-          registry: ${{ secrets.DECKHOUSE_REGISTRY_HOST }}
-          username: ${{ secrets.DECKHOUSE_REGISTRY_USER }}
-          password: ${{ secrets.DECKHOUSE_REGISTRY_PASSWORD }}
+          registry: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_HOST }}
+          username: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_USER }}
+          password: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_PASSWORD }}
           logout: false
       - name: Login to Github Container Registry
         uses: docker/login-action@v2.1.0
         if: ${{ steps.check_rw_registry.outputs.has_credentials != 'true' }}
         with:
           registry: ghcr.io
-          username: ${{ secrets.GHCR_IO_REGISTRY_USER }}
-          password: ${{ secrets.GHCR_IO_REGISTRY_PASSWORD }}
+          username: ${{ steps.secrets.outputs.GHCR_IO_REGISTRY_USER }}
+          password: ${{ steps.secrets.outputs.GHCR_IO_REGISTRY_PASSWORD }}
           logout: false
       # </template: login_rw_registry_step>
       - name: Run tests
@@ -3001,27 +3049,27 @@ jobs:
       - name: Check rw registry credentials
         id: check_rw_registry
         env:
-          HOST: ${{secrets.DECKHOUSE_REGISTRY_HOST}}
+          HOST: ${{steps.secrets.outputs.DECKHOUSE_REGISTRY_HOST}}
         run: |
           if [[ -n $HOST ]]; then
             echo "has_credentials=true" >> $GITHUB_OUTPUT
-            echo "web_registry_path=${{secrets.DECKHOUSE_REGISTRY_HOST }}/deckhouse/site" >> $GITHUB_OUTPUT
+            echo "web_registry_path=${{steps.secrets.outputs.DECKHOUSE_REGISTRY_HOST }}/deckhouse/site" >> $GITHUB_OUTPUT
           fi
       - name: Login to rw registry
         uses: docker/login-action@v2.1.0
         if: ${{ steps.check_rw_registry.outputs.has_credentials == 'true' }}
         with:
-          registry: ${{ secrets.DECKHOUSE_REGISTRY_HOST }}
-          username: ${{ secrets.DECKHOUSE_REGISTRY_USER }}
-          password: ${{ secrets.DECKHOUSE_REGISTRY_PASSWORD }}
+          registry: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_HOST }}
+          username: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_USER }}
+          password: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_PASSWORD }}
           logout: false
       - name: Login to Github Container Registry
         uses: docker/login-action@v2.1.0
         if: ${{ steps.check_rw_registry.outputs.has_credentials != 'true' }}
         with:
           registry: ghcr.io
-          username: ${{ secrets.GHCR_IO_REGISTRY_USER }}
-          password: ${{ secrets.GHCR_IO_REGISTRY_PASSWORD }}
+          username: ${{ steps.secrets.outputs.GHCR_IO_REGISTRY_USER }}
+          password: ${{ steps.secrets.outputs.GHCR_IO_REGISTRY_PASSWORD }}
           logout: false
       # </template: login_rw_registry_step>
       - name: Run tests
@@ -3064,6 +3112,26 @@ jobs:
       - tests
     runs-on: "regular"
     steps:
+      # <template: import_secrets>
+      # <template: import_secrets>
+      - name: Split repository name
+        id: split
+        env:
+          REPO: ${{ github.repository }}
+        run: echo "name=${REPO##*/}" >> $GITHUB_OUTPUT
+      - name: Import secrets
+        id: secrets
+        uses: hashicorp/vault-action@v2
+        with:
+          url: https://seguro.flant.com
+          path: github
+          role: "${{ steps.split.outputs.name }}"
+          method: jwt
+          jwtGithubAudience: github-access-aud
+          secrets: |
+            projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/github/boatswain/BOATSWAIN_GITHUB_TOKEN BOATSWAIN_GITHUB_TOKEN | BOATSWAIN_GITHUB_TOKEN ;
+
+      # </template: import_secrets>
 
       # <template: checkout_step>
       - name: Checkout sources
@@ -3077,7 +3145,7 @@ jobs:
           STATUS_TARGET_COMMIT: ${{needs.git_info.outputs.github_sha}}
           PR_LABELS: ${{ needs.pull_request_info.outputs.labels }}
         with:
-          github-token: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
+          github-token: ${{steps.secrets.outputs.BOATSWAIN_GITHUB_TOKEN}}
           script: |
             const e2eStatus = require('./.github/scripts/js/e2e-commit-status');
 

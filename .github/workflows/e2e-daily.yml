@@ -257,27 +257,27 @@ jobs:
       - name: Check rw registry credentials
         id: check_rw_registry
         env:
-          HOST: ${{secrets.DECKHOUSE_REGISTRY_HOST}}
+          HOST: ${{steps.secrets.outputs.DECKHOUSE_REGISTRY_HOST}}
         run: |
           if [[ -n $HOST ]]; then
             echo "has_credentials=true" >> $GITHUB_OUTPUT
-            echo "web_registry_path=${{secrets.DECKHOUSE_REGISTRY_HOST }}/deckhouse/site" >> $GITHUB_OUTPUT
+            echo "web_registry_path=${{steps.secrets.outputs.DECKHOUSE_REGISTRY_HOST }}/deckhouse/site" >> $GITHUB_OUTPUT
           fi
       - name: Login to rw registry
         uses: docker/login-action@v2.1.0
         if: ${{ steps.check_rw_registry.outputs.has_credentials == 'true' }}
         with:
-          registry: ${{ secrets.DECKHOUSE_REGISTRY_HOST }}
-          username: ${{ secrets.DECKHOUSE_REGISTRY_USER }}
-          password: ${{ secrets.DECKHOUSE_REGISTRY_PASSWORD }}
+          registry: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_HOST }}
+          username: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_USER }}
+          password: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_PASSWORD }}
           logout: false
       - name: Login to Github Container Registry
         uses: docker/login-action@v2.1.0
         if: ${{ steps.check_rw_registry.outputs.has_credentials != 'true' }}
         with:
           registry: ghcr.io
-          username: ${{ secrets.GHCR_IO_REGISTRY_USER }}
-          password: ${{ secrets.GHCR_IO_REGISTRY_PASSWORD }}
+          username: ${{ steps.secrets.outputs.GHCR_IO_REGISTRY_USER }}
+          password: ${{ steps.secrets.outputs.GHCR_IO_REGISTRY_PASSWORD }}
           logout: false
       # </template: login_rw_registry_step>
 
@@ -418,7 +418,7 @@ jobs:
           COMMENT_ID: ${{ inputs.comment_id }}
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
-          GITHUB_TOKEN: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
+          GITHUB_TOKEN: ${{steps.secrets.outputs.BOATSWAIN_GITHUB_TOKEN}}
           COMMANDER_TOKEN: ${{ steps.secrets.outputs.E2E_COMMANDER_TOKEN }}
           COMMANDER_HOST: ${{ steps.secrets.outputs.E2E_COMMANDER_HOST }}
         run: |
@@ -487,7 +487,7 @@ jobs:
           COMMENT_ID: ${{ inputs.comment_id }}
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
-          GITHUB_TOKEN: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
+          GITHUB_TOKEN: ${{steps.secrets.outputs.BOATSWAIN_GITHUB_TOKEN}}
           COMMANDER_TOKEN: ${{ steps.secrets.outputs.E2E_COMMANDER_TOKEN }}
           COMMANDER_HOST: ${{ steps.secrets.outputs.E2E_COMMANDER_HOST }}
         run: |
@@ -663,27 +663,27 @@ jobs:
       - name: Check rw registry credentials
         id: check_rw_registry
         env:
-          HOST: ${{secrets.DECKHOUSE_REGISTRY_HOST}}
+          HOST: ${{steps.secrets.outputs.DECKHOUSE_REGISTRY_HOST}}
         run: |
           if [[ -n $HOST ]]; then
             echo "has_credentials=true" >> $GITHUB_OUTPUT
-            echo "web_registry_path=${{secrets.DECKHOUSE_REGISTRY_HOST }}/deckhouse/site" >> $GITHUB_OUTPUT
+            echo "web_registry_path=${{steps.secrets.outputs.DECKHOUSE_REGISTRY_HOST }}/deckhouse/site" >> $GITHUB_OUTPUT
           fi
       - name: Login to rw registry
         uses: docker/login-action@v2.1.0
         if: ${{ steps.check_rw_registry.outputs.has_credentials == 'true' }}
         with:
-          registry: ${{ secrets.DECKHOUSE_REGISTRY_HOST }}
-          username: ${{ secrets.DECKHOUSE_REGISTRY_USER }}
-          password: ${{ secrets.DECKHOUSE_REGISTRY_PASSWORD }}
+          registry: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_HOST }}
+          username: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_USER }}
+          password: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_PASSWORD }}
           logout: false
       - name: Login to Github Container Registry
         uses: docker/login-action@v2.1.0
         if: ${{ steps.check_rw_registry.outputs.has_credentials != 'true' }}
         with:
           registry: ghcr.io
-          username: ${{ secrets.GHCR_IO_REGISTRY_USER }}
-          password: ${{ secrets.GHCR_IO_REGISTRY_PASSWORD }}
+          username: ${{ steps.secrets.outputs.GHCR_IO_REGISTRY_USER }}
+          password: ${{ steps.secrets.outputs.GHCR_IO_REGISTRY_PASSWORD }}
           logout: false
       # </template: login_rw_registry_step>
 
@@ -855,7 +855,7 @@ jobs:
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
           STAGE_DECKHOUSE_DOCKERCFG: ${{steps.secrets.outputs.STAGE_DECKHOUSE_DOCKERCFG}}
-          GITHUB_TOKEN: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
+          GITHUB_TOKEN: ${{steps.secrets.outputs.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           echo "Execute 'script_eks.sh run-test' via 'docker run', using environment:
             TERRAFORM_IMAGE_NAME=${TERRAFORM_IMAGE_NAME}
@@ -985,7 +985,7 @@ jobs:
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
           STAGE_DECKHOUSE_DOCKERCFG: ${{steps.secrets.outputs.STAGE_DECKHOUSE_DOCKERCFG}}
-          GITHUB_TOKEN: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
+          GITHUB_TOKEN: ${{steps.secrets.outputs.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           echo "Execute 'script_eks.sh cleanup' via 'docker run', using environment:
             TERRAFORM_IMAGE_NAME=${TERRAFORM_IMAGE_NAME}
@@ -1197,27 +1197,27 @@ jobs:
       - name: Check rw registry credentials
         id: check_rw_registry
         env:
-          HOST: ${{secrets.DECKHOUSE_REGISTRY_HOST}}
+          HOST: ${{steps.secrets.outputs.DECKHOUSE_REGISTRY_HOST}}
         run: |
           if [[ -n $HOST ]]; then
             echo "has_credentials=true" >> $GITHUB_OUTPUT
-            echo "web_registry_path=${{secrets.DECKHOUSE_REGISTRY_HOST }}/deckhouse/site" >> $GITHUB_OUTPUT
+            echo "web_registry_path=${{steps.secrets.outputs.DECKHOUSE_REGISTRY_HOST }}/deckhouse/site" >> $GITHUB_OUTPUT
           fi
       - name: Login to rw registry
         uses: docker/login-action@v2.1.0
         if: ${{ steps.check_rw_registry.outputs.has_credentials == 'true' }}
         with:
-          registry: ${{ secrets.DECKHOUSE_REGISTRY_HOST }}
-          username: ${{ secrets.DECKHOUSE_REGISTRY_USER }}
-          password: ${{ secrets.DECKHOUSE_REGISTRY_PASSWORD }}
+          registry: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_HOST }}
+          username: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_USER }}
+          password: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_PASSWORD }}
           logout: false
       - name: Login to Github Container Registry
         uses: docker/login-action@v2.1.0
         if: ${{ steps.check_rw_registry.outputs.has_credentials != 'true' }}
         with:
           registry: ghcr.io
-          username: ${{ secrets.GHCR_IO_REGISTRY_USER }}
-          password: ${{ secrets.GHCR_IO_REGISTRY_PASSWORD }}
+          username: ${{ steps.secrets.outputs.GHCR_IO_REGISTRY_USER }}
+          password: ${{ steps.secrets.outputs.GHCR_IO_REGISTRY_PASSWORD }}
           logout: false
       # </template: login_rw_registry_step>
 
@@ -1360,7 +1360,7 @@ jobs:
           COMMENT_ID: ${{ inputs.comment_id }}
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
-          GITHUB_TOKEN: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
+          GITHUB_TOKEN: ${{steps.secrets.outputs.BOATSWAIN_GITHUB_TOKEN}}
           COMMANDER_TOKEN: ${{ steps.secrets.outputs.E2E_COMMANDER_TOKEN }}
           COMMANDER_HOST: ${{ steps.secrets.outputs.E2E_COMMANDER_HOST }}
         run: |
@@ -1433,7 +1433,7 @@ jobs:
           COMMENT_ID: ${{ inputs.comment_id }}
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
-          GITHUB_TOKEN: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
+          GITHUB_TOKEN: ${{steps.secrets.outputs.BOATSWAIN_GITHUB_TOKEN}}
           COMMANDER_TOKEN: ${{ steps.secrets.outputs.E2E_COMMANDER_TOKEN }}
           COMMANDER_HOST: ${{ steps.secrets.outputs.E2E_COMMANDER_HOST }}
         run: |
@@ -1610,27 +1610,27 @@ jobs:
       - name: Check rw registry credentials
         id: check_rw_registry
         env:
-          HOST: ${{secrets.DECKHOUSE_REGISTRY_HOST}}
+          HOST: ${{steps.secrets.outputs.DECKHOUSE_REGISTRY_HOST}}
         run: |
           if [[ -n $HOST ]]; then
             echo "has_credentials=true" >> $GITHUB_OUTPUT
-            echo "web_registry_path=${{secrets.DECKHOUSE_REGISTRY_HOST }}/deckhouse/site" >> $GITHUB_OUTPUT
+            echo "web_registry_path=${{steps.secrets.outputs.DECKHOUSE_REGISTRY_HOST }}/deckhouse/site" >> $GITHUB_OUTPUT
           fi
       - name: Login to rw registry
         uses: docker/login-action@v2.1.0
         if: ${{ steps.check_rw_registry.outputs.has_credentials == 'true' }}
         with:
-          registry: ${{ secrets.DECKHOUSE_REGISTRY_HOST }}
-          username: ${{ secrets.DECKHOUSE_REGISTRY_USER }}
-          password: ${{ secrets.DECKHOUSE_REGISTRY_PASSWORD }}
+          registry: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_HOST }}
+          username: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_USER }}
+          password: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_PASSWORD }}
           logout: false
       - name: Login to Github Container Registry
         uses: docker/login-action@v2.1.0
         if: ${{ steps.check_rw_registry.outputs.has_credentials != 'true' }}
         with:
           registry: ghcr.io
-          username: ${{ secrets.GHCR_IO_REGISTRY_USER }}
-          password: ${{ secrets.GHCR_IO_REGISTRY_PASSWORD }}
+          username: ${{ steps.secrets.outputs.GHCR_IO_REGISTRY_USER }}
+          password: ${{ steps.secrets.outputs.GHCR_IO_REGISTRY_PASSWORD }}
           logout: false
       # </template: login_rw_registry_step>
 
@@ -1770,7 +1770,7 @@ jobs:
           COMMENT_ID: ${{ inputs.comment_id }}
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
-          GITHUB_TOKEN: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
+          GITHUB_TOKEN: ${{steps.secrets.outputs.BOATSWAIN_GITHUB_TOKEN}}
           COMMANDER_TOKEN: ${{ steps.secrets.outputs.E2E_COMMANDER_TOKEN }}
           COMMANDER_HOST: ${{ steps.secrets.outputs.E2E_COMMANDER_HOST }}
           TEST_AUTOSCALER_ENABLED: "true"
@@ -1839,7 +1839,7 @@ jobs:
           COMMENT_ID: ${{ inputs.comment_id }}
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
-          GITHUB_TOKEN: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
+          GITHUB_TOKEN: ${{steps.secrets.outputs.BOATSWAIN_GITHUB_TOKEN}}
           COMMANDER_TOKEN: ${{ steps.secrets.outputs.E2E_COMMANDER_TOKEN }}
           COMMANDER_HOST: ${{ steps.secrets.outputs.E2E_COMMANDER_HOST }}
           TEST_AUTOSCALER_ENABLED: "true"
@@ -2017,27 +2017,27 @@ jobs:
       - name: Check rw registry credentials
         id: check_rw_registry
         env:
-          HOST: ${{secrets.DECKHOUSE_REGISTRY_HOST}}
+          HOST: ${{steps.secrets.outputs.DECKHOUSE_REGISTRY_HOST}}
         run: |
           if [[ -n $HOST ]]; then
             echo "has_credentials=true" >> $GITHUB_OUTPUT
-            echo "web_registry_path=${{secrets.DECKHOUSE_REGISTRY_HOST }}/deckhouse/site" >> $GITHUB_OUTPUT
+            echo "web_registry_path=${{steps.secrets.outputs.DECKHOUSE_REGISTRY_HOST }}/deckhouse/site" >> $GITHUB_OUTPUT
           fi
       - name: Login to rw registry
         uses: docker/login-action@v2.1.0
         if: ${{ steps.check_rw_registry.outputs.has_credentials == 'true' }}
         with:
-          registry: ${{ secrets.DECKHOUSE_REGISTRY_HOST }}
-          username: ${{ secrets.DECKHOUSE_REGISTRY_USER }}
-          password: ${{ secrets.DECKHOUSE_REGISTRY_PASSWORD }}
+          registry: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_HOST }}
+          username: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_USER }}
+          password: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_PASSWORD }}
           logout: false
       - name: Login to Github Container Registry
         uses: docker/login-action@v2.1.0
         if: ${{ steps.check_rw_registry.outputs.has_credentials != 'true' }}
         with:
           registry: ghcr.io
-          username: ${{ secrets.GHCR_IO_REGISTRY_USER }}
-          password: ${{ secrets.GHCR_IO_REGISTRY_PASSWORD }}
+          username: ${{ steps.secrets.outputs.GHCR_IO_REGISTRY_USER }}
+          password: ${{ steps.secrets.outputs.GHCR_IO_REGISTRY_PASSWORD }}
           logout: false
       # </template: login_rw_registry_step>
 
@@ -2179,7 +2179,7 @@ jobs:
           COMMENT_ID: ${{ inputs.comment_id }}
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
-          GITHUB_TOKEN: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
+          GITHUB_TOKEN: ${{steps.secrets.outputs.BOATSWAIN_GITHUB_TOKEN}}
           COMMANDER_TOKEN: ${{ steps.secrets.outputs.E2E_COMMANDER_TOKEN }}
           COMMANDER_HOST: ${{ steps.secrets.outputs.E2E_COMMANDER_HOST }}
         run: |
@@ -2250,7 +2250,7 @@ jobs:
           COMMENT_ID: ${{ inputs.comment_id }}
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
-          GITHUB_TOKEN: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
+          GITHUB_TOKEN: ${{steps.secrets.outputs.BOATSWAIN_GITHUB_TOKEN}}
           COMMANDER_TOKEN: ${{ steps.secrets.outputs.E2E_COMMANDER_TOKEN }}
           COMMANDER_HOST: ${{ steps.secrets.outputs.E2E_COMMANDER_HOST }}
         run: |
@@ -2426,27 +2426,27 @@ jobs:
       - name: Check rw registry credentials
         id: check_rw_registry
         env:
-          HOST: ${{secrets.DECKHOUSE_REGISTRY_HOST}}
+          HOST: ${{steps.secrets.outputs.DECKHOUSE_REGISTRY_HOST}}
         run: |
           if [[ -n $HOST ]]; then
             echo "has_credentials=true" >> $GITHUB_OUTPUT
-            echo "web_registry_path=${{secrets.DECKHOUSE_REGISTRY_HOST }}/deckhouse/site" >> $GITHUB_OUTPUT
+            echo "web_registry_path=${{steps.secrets.outputs.DECKHOUSE_REGISTRY_HOST }}/deckhouse/site" >> $GITHUB_OUTPUT
           fi
       - name: Login to rw registry
         uses: docker/login-action@v2.1.0
         if: ${{ steps.check_rw_registry.outputs.has_credentials == 'true' }}
         with:
-          registry: ${{ secrets.DECKHOUSE_REGISTRY_HOST }}
-          username: ${{ secrets.DECKHOUSE_REGISTRY_USER }}
-          password: ${{ secrets.DECKHOUSE_REGISTRY_PASSWORD }}
+          registry: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_HOST }}
+          username: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_USER }}
+          password: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_PASSWORD }}
           logout: false
       - name: Login to Github Container Registry
         uses: docker/login-action@v2.1.0
         if: ${{ steps.check_rw_registry.outputs.has_credentials != 'true' }}
         with:
           registry: ghcr.io
-          username: ${{ secrets.GHCR_IO_REGISTRY_USER }}
-          password: ${{ secrets.GHCR_IO_REGISTRY_PASSWORD }}
+          username: ${{ steps.secrets.outputs.GHCR_IO_REGISTRY_USER }}
+          password: ${{ steps.secrets.outputs.GHCR_IO_REGISTRY_PASSWORD }}
           logout: false
       # </template: login_rw_registry_step>
 
@@ -2586,7 +2586,7 @@ jobs:
           COMMENT_ID: ${{ inputs.comment_id }}
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
-          GITHUB_TOKEN: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
+          GITHUB_TOKEN: ${{steps.secrets.outputs.BOATSWAIN_GITHUB_TOKEN}}
           COMMANDER_TOKEN: ${{ steps.secrets.outputs.E2E_COMMANDER_TOKEN }}
           COMMANDER_HOST: ${{ steps.secrets.outputs.E2E_COMMANDER_HOST }}
         run: |
@@ -2653,7 +2653,7 @@ jobs:
           COMMENT_ID: ${{ inputs.comment_id }}
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
-          GITHUB_TOKEN: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
+          GITHUB_TOKEN: ${{steps.secrets.outputs.BOATSWAIN_GITHUB_TOKEN}}
           COMMANDER_TOKEN: ${{ steps.secrets.outputs.E2E_COMMANDER_TOKEN }}
           COMMANDER_HOST: ${{ steps.secrets.outputs.E2E_COMMANDER_HOST }}
         run: |
@@ -2829,27 +2829,27 @@ jobs:
       - name: Check rw registry credentials
         id: check_rw_registry
         env:
-          HOST: ${{secrets.DECKHOUSE_REGISTRY_HOST}}
+          HOST: ${{steps.secrets.outputs.DECKHOUSE_REGISTRY_HOST}}
         run: |
           if [[ -n $HOST ]]; then
             echo "has_credentials=true" >> $GITHUB_OUTPUT
-            echo "web_registry_path=${{secrets.DECKHOUSE_REGISTRY_HOST }}/deckhouse/site" >> $GITHUB_OUTPUT
+            echo "web_registry_path=${{steps.secrets.outputs.DECKHOUSE_REGISTRY_HOST }}/deckhouse/site" >> $GITHUB_OUTPUT
           fi
       - name: Login to rw registry
         uses: docker/login-action@v2.1.0
         if: ${{ steps.check_rw_registry.outputs.has_credentials == 'true' }}
         with:
-          registry: ${{ secrets.DECKHOUSE_REGISTRY_HOST }}
-          username: ${{ secrets.DECKHOUSE_REGISTRY_USER }}
-          password: ${{ secrets.DECKHOUSE_REGISTRY_PASSWORD }}
+          registry: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_HOST }}
+          username: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_USER }}
+          password: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_PASSWORD }}
           logout: false
       - name: Login to Github Container Registry
         uses: docker/login-action@v2.1.0
         if: ${{ steps.check_rw_registry.outputs.has_credentials != 'true' }}
         with:
           registry: ghcr.io
-          username: ${{ secrets.GHCR_IO_REGISTRY_USER }}
-          password: ${{ secrets.GHCR_IO_REGISTRY_PASSWORD }}
+          username: ${{ steps.secrets.outputs.GHCR_IO_REGISTRY_USER }}
+          password: ${{ steps.secrets.outputs.GHCR_IO_REGISTRY_PASSWORD }}
           logout: false
       # </template: login_rw_registry_step>
 
@@ -2991,7 +2991,7 @@ jobs:
           COMMENT_ID: ${{ inputs.comment_id }}
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
-          GITHUB_TOKEN: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
+          GITHUB_TOKEN: ${{steps.secrets.outputs.BOATSWAIN_GITHUB_TOKEN}}
           COMMANDER_TOKEN: ${{ steps.secrets.outputs.E2E_COMMANDER_TOKEN }}
           COMMANDER_HOST: ${{ steps.secrets.outputs.E2E_COMMANDER_HOST }}
         run: |
@@ -3062,7 +3062,7 @@ jobs:
           COMMENT_ID: ${{ inputs.comment_id }}
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
-          GITHUB_TOKEN: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
+          GITHUB_TOKEN: ${{steps.secrets.outputs.BOATSWAIN_GITHUB_TOKEN}}
           COMMANDER_TOKEN: ${{ steps.secrets.outputs.E2E_COMMANDER_TOKEN }}
           COMMANDER_HOST: ${{ steps.secrets.outputs.E2E_COMMANDER_HOST }}
         run: |
@@ -3243,27 +3243,27 @@ jobs:
       - name: Check rw registry credentials
         id: check_rw_registry
         env:
-          HOST: ${{secrets.DECKHOUSE_REGISTRY_HOST}}
+          HOST: ${{steps.secrets.outputs.DECKHOUSE_REGISTRY_HOST}}
         run: |
           if [[ -n $HOST ]]; then
             echo "has_credentials=true" >> $GITHUB_OUTPUT
-            echo "web_registry_path=${{secrets.DECKHOUSE_REGISTRY_HOST }}/deckhouse/site" >> $GITHUB_OUTPUT
+            echo "web_registry_path=${{steps.secrets.outputs.DECKHOUSE_REGISTRY_HOST }}/deckhouse/site" >> $GITHUB_OUTPUT
           fi
       - name: Login to rw registry
         uses: docker/login-action@v2.1.0
         if: ${{ steps.check_rw_registry.outputs.has_credentials == 'true' }}
         with:
-          registry: ${{ secrets.DECKHOUSE_REGISTRY_HOST }}
-          username: ${{ secrets.DECKHOUSE_REGISTRY_USER }}
-          password: ${{ secrets.DECKHOUSE_REGISTRY_PASSWORD }}
+          registry: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_HOST }}
+          username: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_USER }}
+          password: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_PASSWORD }}
           logout: false
       - name: Login to Github Container Registry
         uses: docker/login-action@v2.1.0
         if: ${{ steps.check_rw_registry.outputs.has_credentials != 'true' }}
         with:
           registry: ghcr.io
-          username: ${{ secrets.GHCR_IO_REGISTRY_USER }}
-          password: ${{ secrets.GHCR_IO_REGISTRY_PASSWORD }}
+          username: ${{ steps.secrets.outputs.GHCR_IO_REGISTRY_USER }}
+          password: ${{ steps.secrets.outputs.GHCR_IO_REGISTRY_PASSWORD }}
           logout: false
       # </template: login_rw_registry_step>
 
@@ -3407,7 +3407,7 @@ jobs:
           COMMENT_ID: ${{ inputs.comment_id }}
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
-          GITHUB_TOKEN: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
+          GITHUB_TOKEN: ${{steps.secrets.outputs.BOATSWAIN_GITHUB_TOKEN}}
           COMMANDER_TOKEN: ${{ steps.secrets.outputs.E2E_COMMANDER_TOKEN }}
           COMMANDER_HOST: ${{ steps.secrets.outputs.E2E_COMMANDER_HOST }}
         run: |
@@ -3484,7 +3484,7 @@ jobs:
           COMMENT_ID: ${{ inputs.comment_id }}
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
-          GITHUB_TOKEN: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
+          GITHUB_TOKEN: ${{steps.secrets.outputs.BOATSWAIN_GITHUB_TOKEN}}
           COMMANDER_TOKEN: ${{ steps.secrets.outputs.E2E_COMMANDER_TOKEN }}
           COMMANDER_HOST: ${{ steps.secrets.outputs.E2E_COMMANDER_HOST }}
         run: |
@@ -3666,27 +3666,27 @@ jobs:
       - name: Check rw registry credentials
         id: check_rw_registry
         env:
-          HOST: ${{secrets.DECKHOUSE_REGISTRY_HOST}}
+          HOST: ${{steps.secrets.outputs.DECKHOUSE_REGISTRY_HOST}}
         run: |
           if [[ -n $HOST ]]; then
             echo "has_credentials=true" >> $GITHUB_OUTPUT
-            echo "web_registry_path=${{secrets.DECKHOUSE_REGISTRY_HOST }}/deckhouse/site" >> $GITHUB_OUTPUT
+            echo "web_registry_path=${{steps.secrets.outputs.DECKHOUSE_REGISTRY_HOST }}/deckhouse/site" >> $GITHUB_OUTPUT
           fi
       - name: Login to rw registry
         uses: docker/login-action@v2.1.0
         if: ${{ steps.check_rw_registry.outputs.has_credentials == 'true' }}
         with:
-          registry: ${{ secrets.DECKHOUSE_REGISTRY_HOST }}
-          username: ${{ secrets.DECKHOUSE_REGISTRY_USER }}
-          password: ${{ secrets.DECKHOUSE_REGISTRY_PASSWORD }}
+          registry: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_HOST }}
+          username: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_USER }}
+          password: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_PASSWORD }}
           logout: false
       - name: Login to Github Container Registry
         uses: docker/login-action@v2.1.0
         if: ${{ steps.check_rw_registry.outputs.has_credentials != 'true' }}
         with:
           registry: ghcr.io
-          username: ${{ secrets.GHCR_IO_REGISTRY_USER }}
-          password: ${{ secrets.GHCR_IO_REGISTRY_PASSWORD }}
+          username: ${{ steps.secrets.outputs.GHCR_IO_REGISTRY_USER }}
+          password: ${{ steps.secrets.outputs.GHCR_IO_REGISTRY_PASSWORD }}
           logout: false
       # </template: login_rw_registry_step>
 
@@ -3826,7 +3826,7 @@ jobs:
           COMMENT_ID: ${{ inputs.comment_id }}
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
-          GITHUB_TOKEN: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
+          GITHUB_TOKEN: ${{steps.secrets.outputs.BOATSWAIN_GITHUB_TOKEN}}
           COMMANDER_TOKEN: ${{ steps.secrets.outputs.E2E_COMMANDER_TOKEN }}
           COMMANDER_HOST: ${{ steps.secrets.outputs.E2E_COMMANDER_HOST }}
         run: |
@@ -3897,7 +3897,7 @@ jobs:
           COMMENT_ID: ${{ inputs.comment_id }}
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
-          GITHUB_TOKEN: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
+          GITHUB_TOKEN: ${{steps.secrets.outputs.BOATSWAIN_GITHUB_TOKEN}}
           COMMANDER_TOKEN: ${{ steps.secrets.outputs.E2E_COMMANDER_TOKEN }}
           COMMANDER_HOST: ${{ steps.secrets.outputs.E2E_COMMANDER_HOST }}
         run: |
@@ -3972,14 +3972,14 @@ jobs:
       id: check_loop_alerting
       if: always()
       env:
-        LOOP_TOKEN: ${{secrets.LOOP_CVE_REPORTS_SEND_TOKEN}}
+        LOOP_TOKEN: ${{steps.secrets.outputs.LOOP_CVE_REPORTS_SEND_TOKEN}}
       run: |
         if [[ -n $LOOP_TOKEN ]]; then echo "has_credentials=true" >> $GITHUB_OUTPUT; fi
     - name: Send loop alert on fail
       if: ${{ steps.check_loop_alerting.outputs.has_credentials == 'true' }}
       env:
-        LOOP_TOKEN: ${{secrets.LOOP_CVE_REPORTS_SEND_TOKEN}}
-        LOOP_CHANEL_ID: ${{secrets.LOOP_E2E_REPORT_CHANEL_ID}}
+        LOOP_TOKEN: ${{steps.secrets.outputs.LOOP_CVE_REPORTS_SEND_TOKEN}}
+        LOOP_CHANEL_ID: ${{steps.secrets.outputs.LOOP_E2E_REPORT_CHANEL_ID}}
       run: |
         WORKFLOW_URL="${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}"
 

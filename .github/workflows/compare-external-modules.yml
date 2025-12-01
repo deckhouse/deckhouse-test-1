@@ -36,7 +36,32 @@ jobs:
     name: Compare external modules
     runs-on: [self-hosted, regular]
     if: ${{ github.repository == 'deckhouse/deckhouse' }}
+    permissions:
+      contents: read
+      id-token: write
     steps:
+      # <template: import_secrets>
+      # <template: import_secrets>
+      - name: Split repository name
+        id: split
+        env:
+          REPO: ${{ github.repository }}
+        run: echo "name=${REPO##*/}" >> $GITHUB_OUTPUT
+      - name: Import secrets
+        id: secrets
+        uses: hashicorp/vault-action@v2
+        with:
+          url: https://seguro.flant.com
+          path: github
+          role: "${{ steps.split.outputs.name }}"
+          method: jwt
+          jwtGithubAudience: github-access-aud
+          secrets: |
+            projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/github/registry_host DECKHOUSE_REGISTRY_READ_HOST | DECKHOUSE_REGISTRY_READ_HOST ;
+            projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/github/registry_read_token login | DECKHOUSE_REGISTRY_READ_USER ;
+            projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/github/registry_read_token password | DECKHOUSE_REGISTRY_READ_PASSWORD ;
+
+      # </template: import_secrets>
       - uses: actions/setup-python@v5.6.0
         with:
           python-version: '3.12.3'
@@ -51,26 +76,26 @@ jobs:
       - name: Check readonly registry credentials
         id: check_readonly_registry
         env:
-          HOST: ${{secrets.DECKHOUSE_REGISTRY_READ_HOST}}
+          HOST: ${{steps.secrets.outputs.DECKHOUSE_REGISTRY_READ_HOST}}
         run: |
           if [[ -n $HOST ]]; then
             echo "has_credentials=true" >> $GITHUB_OUTPUT
-            echo "web_registry_path=${{secrets.DECKHOUSE_REGISTRY_READ_HOST }}/deckhouse/site" >> $GITHUB_OUTPUT
+            echo "web_registry_path=${{steps.secrets.outputs.DECKHOUSE_REGISTRY_READ_HOST }}/deckhouse/site" >> $GITHUB_OUTPUT
           fi
       - name: Login to readonly registry
         uses: docker/login-action@v2.1.0
         if: ${{ steps.check_readonly_registry.outputs.has_credentials == 'true' }}
         with:
-          registry: ${{ secrets.DECKHOUSE_REGISTRY_READ_HOST }}
-          username: ${{ secrets.DECKHOUSE_REGISTRY_READ_USER }}
-          password: ${{ secrets.DECKHOUSE_REGISTRY_READ_PASSWORD }}
+          registry: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_READ_HOST }}
+          username: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_READ_USER }}
+          password: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_READ_PASSWORD }}
           logout: false
       # </template: login_readonly_registry_step>
       - name: Install dependencies
         run: pip install pyyaml
       - name: Compare modules
         env:
-          DECKHOUSE_REGISTRY: ${{ secrets.DECKHOUSE_REGISTRY_READ_HOST }}
+          DECKHOUSE_REGISTRY: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_READ_HOST }}
           EDITIONS_FILE: "./editions.yaml"
           VERSIONS_TO_COMPARE : ${{ inputs.versions_to_compare || 1 }}
         run: python .github/scripts/python/compare_external_modules.py
