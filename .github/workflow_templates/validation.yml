@@ -44,13 +44,20 @@ jobs:
     name: Autoclose Dependabot PRs for forks
     runs-on: ubuntu-24.04
     if: ${{ github.actor == 'dependabot[bot]' && github.repository != 'deckhouse/deckhouse' }}
+    permissions:
+      contents: read
+      id-token: write
     env:
       ENABLE_DEPENDABOT_IN_FORKS: ${{ secrets.ENABLE_DEPENDABOT_IN_FORKS }}
     steps:
+      # <template: import_secrets>
+{!{- $secrets := slice -}!}
+{!{- $secrets = append ( slice "projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/github/boatswain/BOATSWAIN_GITHUB_TOKEN" "BOATSWAIN_GITHUB_TOKEN" "BOATSWAIN_GITHUB_TOKEN" ) $secrets -}!}
+{!{ tmpl.Exec "import_secrets" $secrets | strings.Indent 6 }!}
       - name: Close PR
         uses: {!{ index (ds "actions") "actions/github-script" }!}
         with:
-          github-token: ${{ secrets.BOATSWAIN_GITHUB_TOKEN }}
+          github-token: ${{ steps.secrets.outputs.BOATSWAIN_GITHUB_TOKEN }}
           script: |
             // Keep PR if explicitly enabled.
             const {ENABLE_DEPENDABOT_IN_FORKS} = process.env;

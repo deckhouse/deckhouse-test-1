@@ -47,8 +47,8 @@ jobs:
       - pull_request_info
     env:
       WERF_ENV: "FE"
-      SVACE_ANALYZE_HOST: "${{ secrets.SVACE_ANALYZE_HOST }}"
-      SVACE_ANALYZE_SSH_USER: "${{ secrets.SVACE_ANALYZE_SSH_USER }}"
+      SVACE_ANALYZE_HOST: "${{ steps.secrets.outputs.SVACE_ANALYZE_HOST }}"
+      SVACE_ANALYZE_SSH_USER: "${{ steps.secrets.outputs.SVACE_ANALYZE_SSH_USER }}"
       SVACE_ENABLED: ${{ contains(github.event.pull_request.labels.*.name, 'analyze/svace') && true || false }}
 {!{ tmpl.Exec "build_template" (slice $ctx "dev") | strings.Indent 4 }!}
 
@@ -241,6 +241,10 @@ jobs:
       - tests
     runs-on: "regular"
     steps:
+      # <template: import_secrets>
+{!{- $secrets := slice -}!}
+{!{- $secrets = append ( slice "projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/github/boatswain/BOATSWAIN_GITHUB_TOKEN" "BOATSWAIN_GITHUB_TOKEN" "BOATSWAIN_GITHUB_TOKEN" ) $secrets -}!}
+{!{ tmpl.Exec "import_secrets" $secrets | strings.Indent 6 }!}
 {!{ tmpl.Exec "checkout_step" . | strings.Indent 6 }!}
       - name: Set commit status after e2e run
         id: set_e2e_requirement_status
@@ -249,7 +253,7 @@ jobs:
           STATUS_TARGET_COMMIT: ${{needs.git_info.outputs.github_sha}}
           PR_LABELS: ${{ needs.pull_request_info.outputs.labels }}
         with:
-          github-token: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
+          github-token: ${{steps.secrets.outputs.BOATSWAIN_GITHUB_TOKEN}}
           script: |
             const e2eStatus = require('./.github/scripts/js/e2e-commit-status');
 

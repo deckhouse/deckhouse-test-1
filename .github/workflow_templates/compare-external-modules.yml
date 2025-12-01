@@ -32,7 +32,16 @@ jobs:
     name: Compare external modules
     runs-on: [self-hosted, regular]
     if: ${{ github.repository == 'deckhouse/deckhouse' }}
+    permissions:
+      contents: read
+      id-token: write
     steps:
+      # <template: import_secrets>
+{!{- $secrets := slice -}!}
+{!{- $secrets = append ( slice "projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/github/registry_host" "DECKHOUSE_REGISTRY_READ_HOST" "DECKHOUSE_REGISTRY_READ_HOST" ) $secrets -}!}
+{!{- $secrets = append ( slice "projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/github/registry_read_token" "login" "DECKHOUSE_REGISTRY_READ_USER" ) $secrets -}!}
+{!{- $secrets = append ( slice "projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/github/registry_read_token" "password" "DECKHOUSE_REGISTRY_READ_PASSWORD" ) $secrets -}!}
+{!{ tmpl.Exec "import_secrets" $secrets | strings.Indent 6 }!}
       - uses: actions/setup-python@v5.6.0
         with:
           python-version: '3.12.3'
@@ -42,7 +51,7 @@ jobs:
         run: pip install pyyaml
       - name: Compare modules
         env:
-          DECKHOUSE_REGISTRY: ${{ secrets.DECKHOUSE_REGISTRY_READ_HOST }}
+          DECKHOUSE_REGISTRY: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_READ_HOST }}
           EDITIONS_FILE: "./editions.yaml"
           VERSIONS_TO_COMPARE : ${{ inputs.versions_to_compare || 1 }}
         run: python .github/scripts/python/compare_external_modules.py

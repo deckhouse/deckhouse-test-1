@@ -24,15 +24,24 @@ jobs:
   bashible_validation:
     name: bashible validation
     runs-on: [self-hosted, regular]
+    permissions:
+      contents: read
+      id-token: write
     strategy:
       matrix:
         provider: ["Yandex", "Azure", "AWS", "GCP"]
     steps:
+      # <template: import_secrets>
+{!{- $secrets := slice -}!}
+{!{- $secrets = append ( slice "projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/github/registry_host" "DECKHOUSE_REGISTRY_READ_HOST" "DECKHOUSE_REGISTRY_READ_HOST" ) $secrets -}!}
+{!{- $secrets = append ( slice "projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/github/registry_read_token" "login" "DECKHOUSE_REGISTRY_READ_USER" ) $secrets -}!}
+{!{- $secrets = append ( slice "projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/github/registry_read_token" "password" "DECKHOUSE_REGISTRY_READ_PASSWORD" ) $secrets -}!}
+{!{ tmpl.Exec "import_secrets" $secrets | strings.Indent 6 }!}
   {!{ tmpl.Exec "checkout_step"                . | strings.Indent 6 }!}
   {!{ tmpl.Exec "login_readonly_registry_step" . | strings.Indent 6 }!}
       - name: Bashible validation on ${{ matrix.provider }} provider
         env:
           PROVIDER: ${{ matrix.provider }}
-          REGISTRY: ${{secrets.DECKHOUSE_REGISTRY_READ_HOST}}
+          REGISTRY: ${{steps.secrets.outputs.DECKHOUSE_REGISTRY_READ_HOST}}
         run: |
           ./.github/scripts/validation_bashible.sh

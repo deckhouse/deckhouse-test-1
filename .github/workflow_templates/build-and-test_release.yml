@@ -121,8 +121,8 @@ jobs:
       - check_changelog
     env:
       WERF_ENV: "FE"
-      SVACE_ANALYZE_HOST: "${{ secrets.SVACE_ANALYZE_HOST }}"
-      SVACE_ANALYZE_SSH_USER: "${{ secrets.SVACE_ANALYZE_SSH_USER }}"
+      SVACE_ANALYZE_HOST: "${{ steps.secrets.outputs.SVACE_ANALYZE_HOST }}"
+      SVACE_ANALYZE_SSH_USER: "${{ steps.secrets.outputs.SVACE_ANALYZE_SSH_USER }}"
       SVACE_ENABLED: ${{ github.event.inputs.svace_enabled }}
 {!{ tmpl.Exec "build_template" (slice $ctx "release") | strings.Indent 4 }!}
 {!{ tmpl.Exec "send_fail_report" . | strings.Indent 6 }!}
@@ -219,6 +219,12 @@ jobs:
       - build_fe
     runs-on: [self-hosted, regular]
     steps:
+      # <template: import_secrets>
+{!{- $secrets := slice -}!}
+{!{- $secrets = append ( slice "projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/github/registry_host" "DECKHOUSE_REGISTRY_READ_HOST" "DECKHOUSE_REGISTRY_READ_HOST" ) $secrets -}!}
+{!{- $secrets = append ( slice "projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/github/registry_read_token" "login" "DECKHOUSE_REGISTRY_READ_USER" ) $secrets -}!}
+{!{- $secrets = append ( slice "projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/github/registry_read_token" "password" "DECKHOUSE_REGISTRY_READ_PASSWORD" ) $secrets -}!}
+{!{ tmpl.Exec "import_secrets" $secrets | strings.Indent 6 }!}
       - uses: {!{ index (ds "actions") "actions/setup-python" }!}
         with:
           python-version: '3.12.3'
@@ -237,7 +243,7 @@ jobs:
         id: list_changed_modules
         if: ${{ steps.check-tag.outputs.result == 'true' }}
         env:
-          IMAGE_TO: "${{ secrets.DECKHOUSE_REGISTRY_READ_HOST }}/deckhouse/fe:${{ github.ref_name }}"
+          IMAGE_TO: "${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_READ_HOST }}/deckhouse/fe:${{ github.ref_name }}"
           COMPARE_MAX_ATTEMPTS: 10
           COMPARE_RETRY_DELAY: 30
         run: |
@@ -246,7 +252,7 @@ jobs:
           tag_count=$(echo "$LAST_TWO_TAGS" | wc -w)
           if [ "$tag_count" -gt 1 ]; then
             TAG_FROM=$(echo $LAST_TWO_TAGS | awk '{print $1}')
-            export IMAGE_FROM="${{ secrets.DECKHOUSE_REGISTRY_READ_HOST }}/deckhouse/fe:${TAG_FROM}"
+            export IMAGE_FROM="${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_READ_HOST }}/deckhouse/fe:${TAG_FROM}"
             python .github/scripts/python/compare_version_modules.py
           else
             echo "No released versions exist. Skipping."
