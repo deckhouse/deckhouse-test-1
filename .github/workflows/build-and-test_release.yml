@@ -250,8 +250,6 @@ jobs:
       - check_changelog
     env:
       WERF_ENV: "FE"
-      SVACE_ANALYZE_HOST: "${{ steps.secrets.outputs.SVACE_ANALYZE_HOST }}"
-      SVACE_ANALYZE_SSH_USER: "${{ steps.secrets.outputs.SVACE_ANALYZE_SSH_USER }}"
       SVACE_ENABLED: ${{ github.event.inputs.svace_enabled }}
     # <template: build_template>
     runs-on: [self-hosted, stage]
@@ -321,7 +319,7 @@ jobs:
         run: |
           if [[ -n $HOST ]]; then
             echo "has_credentials=true" >> $GITHUB_OUTPUT
-            echo "web_registry_path=${{secrets.DECKHOUSE_REGISTRY_STAGE_HOST }}/deckhouse/site" >> $GITHUB_OUTPUT
+            echo "web_registry_path=${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_HOST }}/deckhouse/site" >> $GITHUB_OUTPUT
           fi
       - name: Login to stage registry
         uses: docker/login-action@v2.1.0
@@ -714,7 +712,7 @@ jobs:
         run: |
           if [[ -n $HOST ]]; then
             echo "has_credentials=true" >> $GITHUB_OUTPUT
-            echo "web_registry_path=${{secrets.DECKHOUSE_REGISTRY_STAGE_HOST }}/deckhouse/site" >> $GITHUB_OUTPUT
+            echo "web_registry_path=${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_HOST }}/deckhouse/site" >> $GITHUB_OUTPUT
           fi
       - name: Login to stage registry
         uses: docker/login-action@v2.1.0
@@ -1107,7 +1105,7 @@ jobs:
         run: |
           if [[ -n $HOST ]]; then
             echo "has_credentials=true" >> $GITHUB_OUTPUT
-            echo "web_registry_path=${{secrets.DECKHOUSE_REGISTRY_STAGE_HOST }}/deckhouse/site" >> $GITHUB_OUTPUT
+            echo "web_registry_path=${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_HOST }}/deckhouse/site" >> $GITHUB_OUTPUT
           fi
       - name: Login to stage registry
         uses: docker/login-action@v2.1.0
@@ -1488,7 +1486,7 @@ jobs:
         run: |
           if [[ -n $HOST ]]; then
             echo "has_credentials=true" >> $GITHUB_OUTPUT
-            echo "web_registry_path=${{secrets.DECKHOUSE_REGISTRY_STAGE_HOST }}/deckhouse/site" >> $GITHUB_OUTPUT
+            echo "web_registry_path=${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_HOST }}/deckhouse/site" >> $GITHUB_OUTPUT
           fi
       - name: Login to stage registry
         uses: docker/login-action@v2.1.0
@@ -1869,7 +1867,7 @@ jobs:
         run: |
           if [[ -n $HOST ]]; then
             echo "has_credentials=true" >> $GITHUB_OUTPUT
-            echo "web_registry_path=${{secrets.DECKHOUSE_REGISTRY_STAGE_HOST }}/deckhouse/site" >> $GITHUB_OUTPUT
+            echo "web_registry_path=${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_HOST }}/deckhouse/site" >> $GITHUB_OUTPUT
           fi
       - name: Login to stage registry
         uses: docker/login-action@v2.1.0
@@ -2250,7 +2248,7 @@ jobs:
         run: |
           if [[ -n $HOST ]]; then
             echo "has_credentials=true" >> $GITHUB_OUTPUT
-            echo "web_registry_path=${{secrets.DECKHOUSE_REGISTRY_STAGE_HOST }}/deckhouse/site" >> $GITHUB_OUTPUT
+            echo "web_registry_path=${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_HOST }}/deckhouse/site" >> $GITHUB_OUTPUT
           fi
       - name: Login to stage registry
         uses: docker/login-action@v2.1.0
