@@ -31,7 +31,7 @@ jobs:
   compare-external-modules:
     name: Compare external modules
     runs-on: [self-hosted, regular]
-    if: ${{ github.repository == 'deckhouse/deckhouse' }}
+    if: ${{ github.repository == 'deckhouse/deckhouse' || github.repository == 'deckhouse/deckhouse-test-1' }}
     permissions:
       contents: read
       id-token: write
