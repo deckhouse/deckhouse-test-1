@@ -19,6 +19,7 @@ on:
     paths:
       - "candi/bashible/**/*.tpl"
       - "candi/cloud-providers/**/*.tpl"
+  workflow_dispatch:
 
 jobs:
   bashible_validation:
