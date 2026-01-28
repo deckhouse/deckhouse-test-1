@@ -28,8 +28,9 @@ env:
   SCAN_RESULTS_DIR: 'scans'
 
 
+# if: github.repository == 'deckhouse/deckhouse' 
 {!{- define "if_not_test_repo" }!}
-if: github.repository == 'deckhouse/deckhouse'
+if: ${{ github.run_attempt == 1 }}
 {!{- end }!}
 {!{- define "semver_regexp" }!}^v?[0-9]+.[0-9]+.[0-9]+${!{ end }!}
 

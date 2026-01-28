@@ -31,12 +31,15 @@ on:
 env:
   SCAN_RESULTS_DIR: 'scans'
 
+
+# if: github.repository == 'deckhouse/deckhouse'
+
 jobs:
   get-tags:
     name: Get tags for scanning
     runs-on: [self-hosted, regular]
 
-    if: github.repository == 'deckhouse/deckhouse'
+    if: ${{ github.run_attempt == 1 }}
     outputs:
       tags: ${{ steps.set-manual-tag.outputs.tags || steps.get-tags.outputs.tags || steps.set-default.outputs.tags }}
     steps:
@@ -121,7 +124,7 @@ jobs:
     name: Dr.Web Scan ${{ matrix.branch }}
     runs-on: [self-hosted, antivirus]
 
-    if: github.repository == 'deckhouse/deckhouse'
+    if: ${{ github.run_attempt == 1 }}
     needs: get-tags
     strategy:
       matrix:
@@ -230,7 +233,7 @@ jobs:
     name: Kaspersky Scan ${{ matrix.branch }}
     runs-on: [self-hosted, antivirus]
 
-    if: github.repository == 'deckhouse/deckhouse'
+    if: ${{ github.run_attempt == 1 }}
     needs: get-tags
     strategy:
       matrix:
