@@ -122,6 +122,7 @@ func main() {
 	{
 		dhctl_app.LoggerType = "json"
 		dhctl_app.Editor = "vim"
+		dhctl_app.Editor = "vim"
 		dhctl_app.KubeConfigInCluster = true
 		dhctl_app.TmpDirName = os.TempDir()
 

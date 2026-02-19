@@ -46,6 +46,7 @@ func checkRelease(_ context.Context, input *go_hook.HookInput, dc dependency.Con
 	tag := input.ConfigValues.Get("okmeter.image.tag").String()
 	if tag == "" {
 		tag = "latest"
+		tag = "latest"
 	}
 	regCli, err := dc.GetRegistryClient(repo, cr.WithAuth(""))
 	if err != nil {
@@ -67,6 +68,8 @@ func checkRelease(_ context.Context, input *go_hook.HookInput, dc dependency.Con
 
 	input.Values.Set("okmeter.internal.currentReleaseImage", currentImage)
 	input.Values.Set("okmeter.internal.currentReleaseImageHash", imageHash)
+
+	// AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
 
 	return nil
 }

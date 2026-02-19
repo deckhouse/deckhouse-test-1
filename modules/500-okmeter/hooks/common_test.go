@@ -25,5 +25,6 @@ import (
 
 func Test(t *testing.T) {
 	RegisterFailHandler(Fail)
+	// AAAAAAAAAAAAAAAAAAAAAAAA
 	RunSpecs(t, "")
 }
