@@ -443,6 +443,8 @@ jobs:
       - name: Build and push deckhouse images
         id: build
         env:
+          WERF_LOG_DEBUG: "true"
+          WERF_DOCKER_REGISTRY_DEBUG: "1"
           DECKHOUSE_REGISTRY_STAGE_USER: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_USER }}
           DECKHOUSE_REGISTRY_STAGE_PASSWORD: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_PASSWORD }}
           STAGE_REGISTRY_HOST: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_HOST }}
@@ -828,6 +830,8 @@ jobs:
       - name: Build and push deckhouse images
         id: build
         env:
+          WERF_LOG_DEBUG: "true"
+          WERF_DOCKER_REGISTRY_DEBUG: "1"
           DECKHOUSE_REGISTRY_STAGE_USER: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_USER }}
           DECKHOUSE_REGISTRY_STAGE_PASSWORD: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_PASSWORD }}
           STAGE_REGISTRY_HOST: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_HOST }}
@@ -1213,6 +1217,8 @@ jobs:
       - name: Build and push deckhouse images
         id: build
         env:
+          WERF_LOG_DEBUG: "true"
+          WERF_DOCKER_REGISTRY_DEBUG: "1"
           DECKHOUSE_REGISTRY_STAGE_USER: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_USER }}
           DECKHOUSE_REGISTRY_STAGE_PASSWORD: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_PASSWORD }}
           STAGE_REGISTRY_HOST: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_HOST }}
@@ -1586,6 +1592,8 @@ jobs:
       - name: Build and push deckhouse images
         id: build
         env:
+          WERF_LOG_DEBUG: "true"
+          WERF_DOCKER_REGISTRY_DEBUG: "1"
           DECKHOUSE_REGISTRY_STAGE_USER: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_USER }}
           DECKHOUSE_REGISTRY_STAGE_PASSWORD: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_PASSWORD }}
           STAGE_REGISTRY_HOST: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_HOST }}
@@ -1959,6 +1967,8 @@ jobs:
       - name: Build and push deckhouse images
         id: build
         env:
+          WERF_LOG_DEBUG: "true"
+          WERF_DOCKER_REGISTRY_DEBUG: "1"
           DECKHOUSE_REGISTRY_STAGE_USER: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_USER }}
           DECKHOUSE_REGISTRY_STAGE_PASSWORD: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_PASSWORD }}
           STAGE_REGISTRY_HOST: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_HOST }}
@@ -2332,6 +2342,8 @@ jobs:
       - name: Build and push deckhouse images
         id: build
         env:
+          WERF_LOG_DEBUG: "true"
+          WERF_DOCKER_REGISTRY_DEBUG: "1"
           DECKHOUSE_REGISTRY_STAGE_USER: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_USER }}
           DECKHOUSE_REGISTRY_STAGE_PASSWORD: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_PASSWORD }}
           STAGE_REGISTRY_HOST: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_HOST }}
