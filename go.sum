@@ -143,6 +143,8 @@ github.com/deckhouse/deckhouse/pkg/metrics-storage v0.3.0 h1:xZvbKuexrSQGEw6CB4n
 github.com/deckhouse/deckhouse/pkg/metrics-storage v0.3.0/go.mod h1:Rz++SzCLkFW03WGgftnn91TimGU2shiKb5S/YuxcBuE=
 github.com/deckhouse/deckhouse/pkg/registry v0.0.0-20251128160944-41d73224a0c9 h1:ekPlhxsNRgPicEHMSexT9GNYwnle+busHYz0eynv1s4=
 github.com/deckhouse/deckhouse/pkg/registry v0.0.0-20251128160944-41d73224a0c9/go.mod h1:OdmJduRktTXVMNLAULkzoPbzLbtaU/jBuwSoAUbnxRM=
+github.com/deckhouse/deckhouse/pkg/registry v0.0.0-20260318092513-104d0e00d972 h1:LFqO+B6HDOUhc4h71+RqyBNW/gsIjEov3CF7pCZFfxs=
+github.com/deckhouse/deckhouse/pkg/registry v0.0.0-20260318092513-104d0e00d972/go.mod h1:6Zty459SOZL75jVKLyXsv7hEht7ZRlJ5xIHjMXSiA6Q=
 github.com/deckhouse/delivery-kit-sdk v0.0.0-20250916111427-09b1cd34f71f h1:z0HVydB3RdiW02V301QPJDx0xmmVgJf1Bkjyu9oILXU=
 github.com/deckhouse/delivery-kit-sdk v0.0.0-20250916111427-09b1cd34f71f/go.mod h1:6idedofcaW43YLVGOAv7Uz9X4xOek/YyOPhiBEr36iM=
 github.com/deckhouse/lib-gossh v0.0.0-20251127140437-3b6d4f6a4f51 h1:fntxXW2hn5Vnqa7u802glEzEEy4ye8ztuRBKy/r02Wk=
@@ -168,6 +170,8 @@ github.com/dlclark/regexp2 v1.11.4 h1:rPYF9/LECdNymJufQKmri9gV604RvvABwgOA8un7yA
 github.com/dlclark/regexp2 v1.11.4/go.mod h1:DHkYz0B9wPfa6wondMfaivmHpzrQ3v9q8cnmRbL6yW8=
 github.com/docker/cli v28.3.3+incompatible h1:fp9ZHAr1WWPGdIWBM1b3zLtgCF+83gRdVMTJsUeiyAo=
 github.com/docker/cli v28.3.3+incompatible/go.mod h1:JLrzqnKDaYBop7H2jaqPtU4hHvMKP+vjCwu2uszcLI8=
+github.com/docker/cli v29.2.0+incompatible h1:9oBd9+YM7rxjZLfyMGxjraKBKE4/nVyvVfN4qNl9XRM=
+github.com/docker/cli v29.2.0+incompatible/go.mod h1:JLrzqnKDaYBop7H2jaqPtU4hHvMKP+vjCwu2uszcLI8=
 github.com/docker/distribution v2.8.3+incompatible h1:AtKxIZ36LoNK51+Z6RpzLpddBirtxJnzDrHLEKxTAYk=
 github.com/docker/distribution v2.8.3+incompatible/go.mod h1:J2gT2udsDAN96Uj4KfcMRqY0/ypR+oyYUYmja8H+y+w=
 github.com/docker/docker v28.3.3+incompatible h1:Dypm25kh4rmk49v1eiVbsAtpAsYURjYkaKubwuBdxEI=
