@@ -231,3 +231,4 @@ func main() {
 ## Collect debug info
 
 Read [the FAQ](faq.html#how-to-collect-debug-info) to learn more about collecting debug information.
+
