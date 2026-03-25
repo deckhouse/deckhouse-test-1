@@ -4,7 +4,7 @@ permalink: en/code/documentation/
 ---
 
 You are on the main page of the Deckhouse Code documentation — a tool for managing version control systems within the Deckhouse Kubernetes Platform ecosystem.  
-Deckhouse Code is designed to organize collaborative work between software development and operations teams, providing full support for processes such as code storage, modification, review, documentation, and build, as well as delivery to target development environments.
+Deckhouse Code is designed to organize collaborative work between soft development and operations teams, providing full support for processes such as code storage, modification, review, documentation, and build, as well as delivery to target development environments.
 
 Deckhouse Code is based on the GitLab platform and combines all the necessary tools for efficient collaborative development and workflow automation. The solution offers convenient mechanisms for repository management, working with feature branches, performing file operations using Git commands, and creating merge requests.
 
