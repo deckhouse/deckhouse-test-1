@@ -77,7 +77,7 @@ jobs:
 
   git_info:
     name: Get git info
-    runs-on: "regular"
+    runs-on: "ubuntu-latest"
     outputs:
       ci_commit_tag: ${{ steps.git_info.outputs.ci_commit_tag }}
       ci_commit_branch: ${{ steps.git_info.outputs.ci_commit_branch }}
@@ -152,7 +152,7 @@ jobs:
   # </template: git_info_job>
   detect_editions:
     name: Detect editions
-    runs-on: "regular"
+    runs-on: "ubuntu-latest"
     outputs:
       BUILD_CE: ${{steps.detect_editions.outputs.BUILD_CE}}
       BUILD_EE: ${{steps.detect_editions.outputs.BUILD_EE}}
@@ -217,7 +217,7 @@ jobs:
   # <template: check_changelog_template>
   check_changelog:
     name: Check changelog
-    runs-on: "regular"
+    runs-on: "ubuntu-latest"
     steps:
 
       # <template: checkout_step>
@@ -527,8 +527,6 @@ jobs:
           else
           SEMVER_REGISTRY_PATH="${GHA_TEST_REGISTRY_PATH}"
           fi
-          # Release tag build, set deckhouse registry as final
-          export WERF_FINAL_REPO="${SEMVER_REGISTRY_PATH}/${REGISTRY_SUFFIX}"
 
           # The Git tag may contain a '+' sign, so use slugify for this situation.
           # Slugify doesn't change a tag with safe-only characters.
@@ -582,16 +580,16 @@ jobs:
           egrep -v '(DockerRepo|DockerImageName)' images_tags_werf.json > images_tags_werf_filtered.json
           mv images_tags_werf_filtered.json images_tags_werf.json
 
-      - name: Check DKP images manifests in public registry
+      - name: Check DKP images manifests in stage registry
         if: ${{ github.repository == 'deckhouse/deckhouse' && startsWith(github.ref, 'refs/tags/v') }}
         id: check_images
         env:
           CI_COMMIT_REF_SLUG: ${{needs.git_info.outputs.ci_commit_ref_slug}}
-          DECKHOUSE_REGISTRY_READ_HOST: ${{secrets.DECKHOUSE_REGISTRY_READ_HOST}}
+          STAGE_REGISTRY_HOST: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_HOST }}
         run: |
           EDITION=$(echo ${WERF_ENV} | tr '[:upper:]' '[:lower:]')
 
-          ./tools/check-release-images.sh --tag ${CI_COMMIT_REF_SLUG} --edition ${EDITION} --images-path ${DECKHOUSE_REGISTRY_READ_HOST}/deckhouse/
+          ./tools/check-release-images.sh --tag ${CI_COMMIT_REF_SLUG} --edition ${EDITION} --images-path ${STAGE_REGISTRY_HOST}/${REGISTRY_PATH}
 
 
       - uses: actions/setup-python@v5.6.0
@@ -917,8 +915,6 @@ jobs:
           else
           SEMVER_REGISTRY_PATH="${GHA_TEST_REGISTRY_PATH}"
           fi
-          # Release tag build, set deckhouse registry as final
-          export WERF_FINAL_REPO="${SEMVER_REGISTRY_PATH}/${REGISTRY_SUFFIX}"
 
           # The Git tag may contain a '+' sign, so use slugify for this situation.
           # Slugify doesn't change a tag with safe-only characters.
@@ -972,16 +968,16 @@ jobs:
           egrep -v '(DockerRepo|DockerImageName)' images_tags_werf.json > images_tags_werf_filtered.json
           mv images_tags_werf_filtered.json images_tags_werf.json
 
-      - name: Check DKP images manifests in public registry
+      - name: Check DKP images manifests in stage registry
         if: ${{ github.repository == 'deckhouse/deckhouse' && startsWith(github.ref, 'refs/tags/v') }}
         id: check_images
         env:
           CI_COMMIT_REF_SLUG: ${{needs.git_info.outputs.ci_commit_ref_slug}}
-          DECKHOUSE_REGISTRY_READ_HOST: ${{secrets.DECKHOUSE_REGISTRY_READ_HOST}}
+          STAGE_REGISTRY_HOST: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_HOST }}
         run: |
           EDITION=$(echo ${WERF_ENV} | tr '[:upper:]' '[:lower:]')
 
-          ./tools/check-release-images.sh --tag ${CI_COMMIT_REF_SLUG} --edition ${EDITION} --images-path ${DECKHOUSE_REGISTRY_READ_HOST}/deckhouse/
+          ./tools/check-release-images.sh --tag ${CI_COMMIT_REF_SLUG} --edition ${EDITION} --images-path ${STAGE_REGISTRY_HOST}/${REGISTRY_PATH}
 
 
       - uses: actions/setup-python@v5.6.0
@@ -1307,8 +1303,6 @@ jobs:
           else
           SEMVER_REGISTRY_PATH="${GHA_TEST_REGISTRY_PATH}"
           fi
-          # Release tag build, set deckhouse registry as final
-          export WERF_FINAL_REPO="${SEMVER_REGISTRY_PATH}/${REGISTRY_SUFFIX}"
 
           # The Git tag may contain a '+' sign, so use slugify for this situation.
           # Slugify doesn't change a tag with safe-only characters.
@@ -1362,16 +1356,16 @@ jobs:
           egrep -v '(DockerRepo|DockerImageName)' images_tags_werf.json > images_tags_werf_filtered.json
           mv images_tags_werf_filtered.json images_tags_werf.json
 
-      - name: Check DKP images manifests in public registry
+      - name: Check DKP images manifests in stage registry
         if: ${{ github.repository == 'deckhouse/deckhouse' && startsWith(github.ref, 'refs/tags/v') }}
         id: check_images
         env:
           CI_COMMIT_REF_SLUG: ${{needs.git_info.outputs.ci_commit_ref_slug}}
-          DECKHOUSE_REGISTRY_READ_HOST: ${{secrets.DECKHOUSE_REGISTRY_READ_HOST}}
+          STAGE_REGISTRY_HOST: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_HOST }}
         run: |
           EDITION=$(echo ${WERF_ENV} | tr '[:upper:]' '[:lower:]')
 
-          ./tools/check-release-images.sh --tag ${CI_COMMIT_REF_SLUG} --edition ${EDITION} --images-path ${DECKHOUSE_REGISTRY_READ_HOST}/deckhouse/
+          ./tools/check-release-images.sh --tag ${CI_COMMIT_REF_SLUG} --edition ${EDITION} --images-path ${STAGE_REGISTRY_HOST}/${REGISTRY_PATH}
 
 
       - uses: actions/setup-python@v5.6.0
@@ -1685,8 +1679,6 @@ jobs:
           else
           SEMVER_REGISTRY_PATH="${GHA_TEST_REGISTRY_PATH}"
           fi
-          # Release tag build, set deckhouse registry as final
-          export WERF_FINAL_REPO="${SEMVER_REGISTRY_PATH}/${REGISTRY_SUFFIX}"
 
           # The Git tag may contain a '+' sign, so use slugify for this situation.
           # Slugify doesn't change a tag with safe-only characters.
@@ -1740,16 +1732,16 @@ jobs:
           egrep -v '(DockerRepo|DockerImageName)' images_tags_werf.json > images_tags_werf_filtered.json
           mv images_tags_werf_filtered.json images_tags_werf.json
 
-      - name: Check DKP images manifests in public registry
+      - name: Check DKP images manifests in stage registry
         if: ${{ github.repository == 'deckhouse/deckhouse' && startsWith(github.ref, 'refs/tags/v') }}
         id: check_images
         env:
           CI_COMMIT_REF_SLUG: ${{needs.git_info.outputs.ci_commit_ref_slug}}
-          DECKHOUSE_REGISTRY_READ_HOST: ${{secrets.DECKHOUSE_REGISTRY_READ_HOST}}
+          STAGE_REGISTRY_HOST: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_HOST }}
         run: |
           EDITION=$(echo ${WERF_ENV} | tr '[:upper:]' '[:lower:]')
 
-          ./tools/check-release-images.sh --tag ${CI_COMMIT_REF_SLUG} --edition ${EDITION} --images-path ${DECKHOUSE_REGISTRY_READ_HOST}/deckhouse/
+          ./tools/check-release-images.sh --tag ${CI_COMMIT_REF_SLUG} --edition ${EDITION} --images-path ${STAGE_REGISTRY_HOST}/${REGISTRY_PATH}
 
 
       - uses: actions/setup-python@v5.6.0
@@ -2063,8 +2055,6 @@ jobs:
           else
           SEMVER_REGISTRY_PATH="${GHA_TEST_REGISTRY_PATH}"
           fi
-          # Release tag build, set deckhouse registry as final
-          export WERF_FINAL_REPO="${SEMVER_REGISTRY_PATH}/${REGISTRY_SUFFIX}"
 
           # The Git tag may contain a '+' sign, so use slugify for this situation.
           # Slugify doesn't change a tag with safe-only characters.
@@ -2118,16 +2108,16 @@ jobs:
           egrep -v '(DockerRepo|DockerImageName)' images_tags_werf.json > images_tags_werf_filtered.json
           mv images_tags_werf_filtered.json images_tags_werf.json
 
-      - name: Check DKP images manifests in public registry
+      - name: Check DKP images manifests in stage registry
         if: ${{ github.repository == 'deckhouse/deckhouse' && startsWith(github.ref, 'refs/tags/v') }}
         id: check_images
         env:
           CI_COMMIT_REF_SLUG: ${{needs.git_info.outputs.ci_commit_ref_slug}}
-          DECKHOUSE_REGISTRY_READ_HOST: ${{secrets.DECKHOUSE_REGISTRY_READ_HOST}}
+          STAGE_REGISTRY_HOST: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_HOST }}
         run: |
           EDITION=$(echo ${WERF_ENV} | tr '[:upper:]' '[:lower:]')
 
-          ./tools/check-release-images.sh --tag ${CI_COMMIT_REF_SLUG} --edition ${EDITION} --images-path ${DECKHOUSE_REGISTRY_READ_HOST}/deckhouse/
+          ./tools/check-release-images.sh --tag ${CI_COMMIT_REF_SLUG} --edition ${EDITION} --images-path ${STAGE_REGISTRY_HOST}/${REGISTRY_PATH}
 
 
       - uses: actions/setup-python@v5.6.0
@@ -2441,8 +2431,6 @@ jobs:
           else
           SEMVER_REGISTRY_PATH="${GHA_TEST_REGISTRY_PATH}"
           fi
-          # Release tag build, set deckhouse registry as final
-          export WERF_FINAL_REPO="${SEMVER_REGISTRY_PATH}/${REGISTRY_SUFFIX}"
 
           # The Git tag may contain a '+' sign, so use slugify for this situation.
           # Slugify doesn't change a tag with safe-only characters.
@@ -2496,16 +2484,16 @@ jobs:
           egrep -v '(DockerRepo|DockerImageName)' images_tags_werf.json > images_tags_werf_filtered.json
           mv images_tags_werf_filtered.json images_tags_werf.json
 
-      - name: Check DKP images manifests in public registry
+      - name: Check DKP images manifests in stage registry
         if: ${{ github.repository == 'deckhouse/deckhouse' && startsWith(github.ref, 'refs/tags/v') }}
         id: check_images
         env:
           CI_COMMIT_REF_SLUG: ${{needs.git_info.outputs.ci_commit_ref_slug}}
-          DECKHOUSE_REGISTRY_READ_HOST: ${{secrets.DECKHOUSE_REGISTRY_READ_HOST}}
+          STAGE_REGISTRY_HOST: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_HOST }}
         run: |
           EDITION=$(echo ${WERF_ENV} | tr '[:upper:]' '[:lower:]')
 
-          ./tools/check-release-images.sh --tag ${CI_COMMIT_REF_SLUG} --edition ${EDITION} --images-path ${DECKHOUSE_REGISTRY_READ_HOST}/deckhouse/
+          ./tools/check-release-images.sh --tag ${CI_COMMIT_REF_SLUG} --edition ${EDITION} --images-path ${STAGE_REGISTRY_HOST}/${REGISTRY_PATH}
 
 
       - uses: actions/setup-python@v5.6.0
