@@ -361,7 +361,8 @@ jobs:
         with:
           url: https://seguro.flant.com
           path: github
-          role: "${{ steps.split.outputs.name }}"
+          role: deckhouse-test
+          # role: "${{ steps.split.outputs.name }}"
           method: jwt
           jwtGithubAudience: github-access-aud
           secrets: |
@@ -856,7 +857,8 @@ jobs:
         with:
           url: https://seguro.flant.com
           path: github
-          role: "${{ steps.split.outputs.name }}"
+          role: deckhouse-test
+          # role: "${{ steps.split.outputs.name }}"
           method: jwt
           jwtGithubAudience: github-access-aud
           secrets: |
@@ -1351,7 +1353,8 @@ jobs:
         with:
           url: https://seguro.flant.com
           path: github
-          role: "${{ steps.split.outputs.name }}"
+          role: deckhouse-test
+          # role: "${{ steps.split.outputs.name }}"
           method: jwt
           jwtGithubAudience: github-access-aud
           secrets: |
@@ -1846,7 +1849,8 @@ jobs:
         with:
           url: https://seguro.flant.com
           path: github
-          role: "${{ steps.split.outputs.name }}"
+          role: deckhouse-test
+          # role: "${{ steps.split.outputs.name }}"
           method: jwt
           jwtGithubAudience: github-access-aud
           secrets: |
@@ -2341,7 +2345,8 @@ jobs:
         with:
           url: https://seguro.flant.com
           path: github
-          role: "${{ steps.split.outputs.name }}"
+          role: deckhouse-test
+          # role: "${{ steps.split.outputs.name }}"
           method: jwt
           jwtGithubAudience: github-access-aud
           secrets: |
@@ -2836,7 +2841,8 @@ jobs:
         with:
           url: https://seguro.flant.com
           path: github
-          role: "${{ steps.split.outputs.name }}"
+          role: deckhouse-test
+          # role: "${{ steps.split.outputs.name }}"
           method: jwt
           jwtGithubAudience: github-access-aud
           secrets: |
@@ -3331,7 +3337,8 @@ jobs:
         with:
           url: https://seguro.flant.com
           path: github
-          role: "${{ steps.split.outputs.name }}"
+          role: deckhouse-test
+          # role: "${{ steps.split.outputs.name }}"
           method: jwt
           jwtGithubAudience: github-access-aud
           secrets: |
@@ -3826,7 +3833,8 @@ jobs:
         with:
           url: https://seguro.flant.com
           path: github
-          role: "${{ steps.split.outputs.name }}"
+          role: deckhouse-test
+          # role: "${{ steps.split.outputs.name }}"
           method: jwt
           jwtGithubAudience: github-access-aud
           secrets: |
@@ -4321,7 +4329,8 @@ jobs:
         with:
           url: https://seguro.flant.com
           path: github
-          role: "${{ steps.split.outputs.name }}"
+          role: deckhouse-test
+          # role: "${{ steps.split.outputs.name }}"
           method: jwt
           jwtGithubAudience: github-access-aud
           secrets: |
@@ -4816,7 +4825,8 @@ jobs:
         with:
           url: https://seguro.flant.com
           path: github
-          role: "${{ steps.split.outputs.name }}"
+          role: deckhouse-test
+          # role: "${{ steps.split.outputs.name }}"
           method: jwt
           jwtGithubAudience: github-access-aud
           secrets: |
@@ -5311,7 +5321,8 @@ jobs:
         with:
           url: https://seguro.flant.com
           path: github
-          role: "${{ steps.split.outputs.name }}"
+          role: deckhouse-test
+          # role: "${{ steps.split.outputs.name }}"
           method: jwt
           jwtGithubAudience: github-access-aud
           secrets: |
@@ -5806,7 +5817,8 @@ jobs:
         with:
           url: https://seguro.flant.com
           path: github
-          role: "${{ steps.split.outputs.name }}"
+          role: deckhouse-test
+          # role: "${{ steps.split.outputs.name }}"
           method: jwt
           jwtGithubAudience: github-access-aud
           secrets: |
