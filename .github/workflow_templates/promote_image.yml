@@ -17,19 +17,26 @@
 
 name: Promote image to prod
 
-# Manual promote only: run after "Build and test for release" succeeded for all editions (FE/CE/EE/SE/BE/SE-plus).
 on:
   workflow_dispatch:
     inputs:
-      release_git_tag:
-        description: 'Git release tag built in CI (e.g. v1.59.0). Used to verify workflows and to compute the stage/prod image tag (werf slugify).'
-        required: true
-        type: string
-      edition:
-        description: 'Edition (WERF_ENV) to promote: FE, CE, EE, BE, SE, SE-plus'
+      issue_id:
+        description: 'Id of issue where label was set'
         required: false
-        default: 'FE'
+      issue_number:
+        description: 'Number of issue where label was set'
+        required: false
+      comment_id:
+        description: 'Id of comment in issue where to put workflow run status'
+        required: false
+      editions:
+        description: 'Comma-separated list of editions to build'
+        required: false
         type: string
+      svace_enabled:
+        description: 'Enable svace build and analyze'
+        type: boolean
+        required: false
 
 env:
 {!{ tmpl.Exec "werf_envs" | strings.Indent 2 }!}
@@ -40,7 +47,6 @@ concurrency:
 
 permissions:
   contents: read
-  actions: read
   id-token: write
   pull-requests: read
 
