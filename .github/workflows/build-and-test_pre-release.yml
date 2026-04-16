@@ -292,6 +292,11 @@ jobs:
           done <<< "$HOST_KEYS"
       # </template: add_ssh_keys>
 
+
+      - uses: step-security/harden-runner@v2
+        with:
+          egress-policy: audit
+
       - name: Set up Go 1.25
         uses: actions/setup-go@v5
         with:
@@ -613,6 +618,11 @@ jobs:
           done <<< "$HOST_KEYS"
       # </template: add_ssh_keys>
 
+
+      - uses: step-security/harden-runner@v2
+        with:
+          egress-policy: audit
+
       - name: Set up Go 1.25
         uses: actions/setup-go@v5
         with:
@@ -932,6 +942,11 @@ jobs:
               echo "$KEY_LINE" >> ~/.ssh/known_hosts
           done <<< "$HOST_KEYS"
       # </template: add_ssh_keys>
+
+
+      - uses: step-security/harden-runner@v2
+        with:
+          egress-policy: audit
 
       - name: Set up Go 1.25
         uses: actions/setup-go@v5
@@ -1253,6 +1268,11 @@ jobs:
           done <<< "$HOST_KEYS"
       # </template: add_ssh_keys>
 
+
+      - uses: step-security/harden-runner@v2
+        with:
+          egress-policy: audit
+
       - name: Set up Go 1.25
         uses: actions/setup-go@v5
         with:
@@ -1572,6 +1592,11 @@ jobs:
               echo "$KEY_LINE" >> ~/.ssh/known_hosts
           done <<< "$HOST_KEYS"
       # </template: add_ssh_keys>
+
+
+      - uses: step-security/harden-runner@v2
+        with:
+          egress-policy: audit
 
       - name: Set up Go 1.25
         uses: actions/setup-go@v5
@@ -1893,6 +1918,11 @@ jobs:
           done <<< "$HOST_KEYS"
       # </template: add_ssh_keys>
 
+
+      - uses: step-security/harden-runner@v2
+        with:
+          egress-policy: audit
+
       - name: Set up Go 1.25
         uses: actions/setup-go@v5
         with:
@@ -2212,6 +2242,11 @@ jobs:
               echo "$KEY_LINE" >> ~/.ssh/known_hosts
           done <<< "$HOST_KEYS"
       # </template: add_ssh_keys>
+
+
+      - uses: step-security/harden-runner@v2
+        with:
+          egress-policy: audit
 
       - name: Set up Go 1.25
         uses: actions/setup-go@v5
