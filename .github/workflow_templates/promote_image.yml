@@ -30,19 +30,18 @@ on:
         description: 'Id of comment in issue where to put workflow run status'
         required: false
       editions:
-        description: 'Comma-separated list of editions to build'
+        description: 'Comma separated editions to promote. Example: ee,fe,ce,be,se,se-plus'
         required: false
+      release_git_tag:
+        description: 'Git tag for image slug (e.g. v1.59.0), same as in release CI'
+        required: true
         type: string
-      svace_enabled:
-        description: 'Enable svace build and analyze'
-        type: boolean
-        required: false
 
 env:
 {!{ tmpl.Exec "werf_envs" | strings.Indent 2 }!}
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.inputs.release_git_tag }}-${{ github.event.inputs.edition }}
+  group: ${{ github.workflow }}-${{ github.event.inputs.release_git_tag }}-${{ github.event.inputs.editions }}
   cancel-in-progress: false
 
 permissions:
