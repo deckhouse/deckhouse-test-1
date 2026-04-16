@@ -1,0 +1,176 @@
+#
+# THIS FILE IS GENERATED, PLEASE DO NOT EDIT.
+#
+
+# Copyright 2026 Flant JSC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: Promote image to prod
+
+# Manual promote only: run after "Build and test for release" succeeded for all editions (FE/CE/EE/SE/BE/SE-plus).
+on:
+  workflow_dispatch:
+    inputs:
+      release_git_tag:
+        description: 'Git release tag built in CI (e.g. v1.59.0). Used to verify workflows and to compute the stage/prod image tag (werf slugify).'
+        required: true
+        type: string
+      edition:
+        description: 'Edition (WERF_ENV) to promote: FE, CE, EE, BE, SE, SE-plus'
+        required: false
+        default: 'FE'
+        type: string
+
+env:
+
+  # <template: werf_envs>
+  WERF_VERSION: "v2.57.1"
+  WERF_ENV: "FE"
+  WERF_TELEMETRY_EXTRA_ATTRIBUTE_TEAM: "flantTeam=deckhouse/deckhouse"
+  TEST_TIMEOUT: "15m"
+  # Use fixed string 'sys/deckhouse-oss' for repo name. ${CI_PROJECT_PATH} is not available here in GitHub.
+  REGISTRY_PATH: "sys/deckhouse-oss"
+  # Registry for additional repositories used for testing Github Actions workflows.
+  GHA_TEST_REGISTRY_PATH: "ghcr.io/${{ github.repository }}"
+  # Need for ssh: default.
+  DOCKER_BUILDKIT: "1"
+  WERF_FINAL_IMAGES_ONLY: true
+  WERF_LOG_TERMINAL_WIDTH: "200"
+  WERF_LOG_TIME: true
+  WERF_GIT_WORK_TREE_POOL_LIMIT: "10"
+  GOPROXY: "${{vars.GOPROXY}}"
+  # </template: werf_envs>
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.inputs.release_git_tag }}-${{ github.event.inputs.edition }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  actions: read
+  id-token: write
+  pull-requests: read
+
+jobs:
+  # <template: promote_image>
+  promote_image:
+    name: Promote image to prod
+    if: ${{ github.event_name == 'workflow_dispatch' }}
+    runs-on: [self-hosted, stage]
+    steps:
+
+      # </template: docker-config-isolation>
+      - name: Isolate docker config
+        id: docker-config-isolation
+        run: |
+          mkdir -p $RUNNER_TEMP/.docker
+          echo "DOCKER_CONFIG=$RUNNER_TEMP/.docker" >> $GITHUB_ENV
+
+      # </template: docker_config_isolation>
+      # <template: import_secrets>
+      - name: Split repository name
+        id: split
+        env:
+          REPO: ${{ github.repository }}
+        run: echo "name=${REPO##*/}" >> $GITHUB_OUTPUT
+      - name: Import secrets
+        id: secrets
+        uses: hashicorp/vault-action@v2
+        with:
+          url: https://seguro.flant.com
+          path: github
+          role: deckhouse-test
+          # role: "${{ steps.split.outputs.name }}"
+          method: jwt
+          jwtGithubAudience: github-access-aud
+          secrets: |
+            projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/github/registry_host DECKHOUSE_REGISTRY_STAGE_HOST | DECKHOUSE_REGISTRY_STAGE_HOST ;
+            projects/data/101ceaca-97cd-462f-aed5-070d9b9de175/stage-registry/writetoken login | DECKHOUSE_REGISTRY_STAGE_USER ;
+            projects/data/101ceaca-97cd-462f-aed5-070d9b9de175/stage-registry/writetoken password | DECKHOUSE_REGISTRY_STAGE_PASSWORD ;
+
+      # </template: import_secrets>
+
+      # <template: login_stage_registry_step>
+      - name: Check stage registry credentials
+        id: check_stage_registry
+        env:
+          HOST: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_HOST }}
+        run: |
+          if [[ -n $HOST ]]; then
+            echo "has_credentials=true" >> $GITHUB_OUTPUT
+            echo "web_registry_path=${{secrets.DECKHOUSE_REGISTRY_STAGE_HOST }}/deckhouse/site" >> $GITHUB_OUTPUT
+          fi
+      - name: Login to stage registry
+        uses: docker/login-action@v2.1.0
+        if: ${{ steps.check_stage_registry.outputs.has_credentials == 'true' }}
+        with:
+          registry: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_HOST }}
+          username: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_USER }}
+          password: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_PASSWORD }}
+          logout: false
+      # </template: login_stage_registry_step>
+
+      # <template: werf_install_step>
+      - name: Install werf CLI
+        uses: werf/actions/install@v2
+        with:
+          version: ${{env.WERF_VERSION}}
+      # </template: werf_install_step>
+
+      - name: Promote images from stage to prod
+        env:
+          STAGE_REGISTRY_HOST: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_HOST }}
+          DECKHOUSE_REGISTRY_HOST: ${{ secrets.DECKHOUSE_REGISTRY_HOST }}
+        run: |
+          set -euo pipefail
+
+          # CE/EE/FE -> ce/ee/fe
+          REGISTRY_SUFFIX=$(echo "${WERF_ENV}" | tr '[:upper:]' '[:lower:]')
+
+          # Same slug as release build tag publish (see build.yml).
+          IMAGE_TAG=$(werf slugify --format docker-tag "${CI_COMMIT_TAG}")
+
+          STAGE_PATH="${STAGE_REGISTRY_HOST}/deckhouse/${REGISTRY_SUFFIX}"
+          PROD_PATH="${DECKHOUSE_REGISTRY_HOST}/deckhouse/${REGISTRY_SUFFIX}"
+
+          promote_with_att() {
+            local SUBPATH="$1"
+            local REPO_SRC REPO_DST SRC DST
+            if [[ -z "${SUBPATH}" ]]; then
+              REPO_SRC="${STAGE_PATH}"
+              REPO_DST="${PROD_PATH}"
+            else
+              REPO_SRC="${STAGE_PATH}/${SUBPATH}"
+              REPO_DST="${PROD_PATH}/${SUBPATH}"
+            fi
+            SRC="${REPO_SRC}:${IMAGE_TAG}"
+            DST="${REPO_DST}:${IMAGE_TAG}"
+            echo "⚓️ 💫 [$(date -u)] Promoting '${SRC}' -> '${DST}'"
+            regctl image copy "${SRC}" "${DST}"
+            local DIGEST
+            DIGEST=$(regctl image digest "${SRC}" | sed 's/^sha256://')
+            if regctl image manifest "${REPO_SRC}:sha256-${DIGEST}.att" >/dev/null 2>&1; then
+              echo "⚓️ 💫 [$(date -u)] Copying attestation for '${REPO_SRC}'"
+              regctl image copy "${REPO_SRC}:sha256-${DIGEST}.att" "${REPO_DST}:sha256-${DIGEST}.att"
+            else
+              echo "⚓️ 💫 [$(date -u)] Attestation for '${REPO_SRC}' not found, skipping..."
+            fi
+          }
+
+          promote_with_att ""
+          promote_with_att "install"
+          promote_with_att "install-standalone"
+          promote_with_att "release-channel"
+  # </template: promote_image>
+

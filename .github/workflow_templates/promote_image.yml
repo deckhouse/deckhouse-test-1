@@ -1,0 +1,48 @@
+# Copyright 2026 Flant JSC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+{!{- $ctx := dict -}!}
+{!{- $ctx = coll.Merge $ctx . }!}
+
+name: Promote image to prod
+
+# Manual promote only: run after "Build and test for release" succeeded for all editions (FE/CE/EE/SE/BE/SE-plus).
+on:
+  workflow_dispatch:
+    inputs:
+      release_git_tag:
+        description: 'Git release tag built in CI (e.g. v1.59.0). Used to verify workflows and to compute the stage/prod image tag (werf slugify).'
+        required: true
+        type: string
+      edition:
+        description: 'Edition (WERF_ENV) to promote: FE, CE, EE, BE, SE, SE-plus'
+        required: false
+        default: 'FE'
+        type: string
+
+env:
+{!{ tmpl.Exec "werf_envs" | strings.Indent 2 }!}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.inputs.release_git_tag }}-${{ github.event.inputs.edition }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  actions: read
+  id-token: write
+  pull-requests: read
+
+jobs:
+{!{ tmpl.Exec "promote_image" $ctx | strings.Indent 2 }!}
