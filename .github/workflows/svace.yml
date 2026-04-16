@@ -324,6 +324,7 @@ jobs:
             IMAGE_NAME=$1
             IMAGE_DST_REPO=$2
             IMAGE_DST_TAG=$3
+            cat images_tags_werf.json
             IMAGE_SRC_REPO="$(jq -r ".Images.\"${IMAGE_NAME}\".DockerRepo" images_tags_werf.json)"
             IMAGE_SRC_TAG="$(jq -r ".Images.\"${IMAGE_NAME}\".DockerTag" images_tags_werf.json)"
             IMAGE_DIGEST="$(jq -r ".Images.\"${IMAGE_NAME}\".DockerImageDigest" images_tags_werf.json)"
