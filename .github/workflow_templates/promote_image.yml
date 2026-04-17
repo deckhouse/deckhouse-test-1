@@ -17,7 +17,11 @@
 
 name: Promote image to prod
 
+# Push semver tag or manual workflow_dispatch. Tag for slug: github.ref_name (on manual run, pick the release tag in the branch dropdown).
 on:
+  push:
+    tags:
+      - 'v[0-9]*.[0-9]*.[0-9]*'
   workflow_dispatch:
     inputs:
       issue_id:
@@ -32,16 +36,12 @@ on:
       editions:
         description: 'Comma separated editions to promote. Example: ee,fe,ce,be,se,se-plus'
         required: false
-      release_git_tag:
-        description: 'Git tag for image slug (e.g. v1.59.0), same as in release CI'
-        required: true
-        type: string
 
 env:
 {!{ tmpl.Exec "werf_envs" | strings.Indent 2 }!}
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.inputs.release_git_tag }}-${{ github.event.inputs.editions }}
+  group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: false
 
 permissions:

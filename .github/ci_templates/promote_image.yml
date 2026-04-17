@@ -54,6 +54,27 @@
         promote_with_att "install"
         promote_with_att "install-standalone"
         promote_with_att "release-channel"
+
+        DIGESTS_JSON="$(mktemp)"
+        trap 'rm -f "${DIGESTS_JSON}"' EXIT
+
+        if regctl image get-file "${STAGE_PATH}/install:${IMAGE_TAG}" /deckhouse/candi/images_digests.json > "${DIGESTS_JSON}" 2>/dev/null; then
+          echo "⚓️ 💫 [$(date -u)] Promoting component images from images_digests.json (by digest)"
+          while IFS= read -r IMG_DIGEST; do
+            [[ -z "${IMG_DIGEST}" ]] && continue
+            SRC_REF="${STAGE_PATH}@${IMG_DIGEST}"
+            DST_REF="${PROD_PATH}@${IMG_DIGEST}"
+            echo "⚓️ 💫 [$(date -u)] Promoting '${SRC_REF}' -> '${DST_REF}'"
+            regctl image copy "${SRC_REF}" "${DST_REF}"
+            D_HEX="${IMG_DIGEST#sha256:}"
+            if regctl image manifest "${STAGE_PATH}:sha256-${D_HEX}.att" >/dev/null 2>&1; then
+              echo "⚓️ 💫 [$(date -u)] Copying attestation for digest ${D_HEX}"
+              regctl image copy "${STAGE_PATH}:sha256-${D_HEX}.att" "${PROD_PATH}:sha256-${D_HEX}.att"
+            fi
+          done < <(jq -r '[.. | strings | select(test("^sha256:[a-f0-9]{64}$"))] | unique | .[]' "${DIGESTS_JSON}")
+        else
+          echo "⚠️ [$(date -u)] Could not read /deckhouse/candi/images_digests.json from '${STAGE_PATH}/install:${IMAGE_TAG}', skipping digest-based promotion"
+        fi
 # </template: promote_image_steps>
 {!{ end }!}
 
@@ -74,9 +95,9 @@ detect_editions:
     - name: Detect editions
       id: detect_editions
       env:
-        EDITIONS: ${{ github.event.inputs.editions }}
+        EDITIONS: ${{ github.event.inputs.editions || '' }}
       run: |
-        echo "Input allowed editions: '${EDITIONS}'"
+        echo "Promote editions filter: '${EDITIONS}' (empty => all)"
 
         RESTRICTED=no
 
@@ -103,7 +124,7 @@ promote_ce:
   runs-on: [self-hosted, stage]
   env:
     WERF_ENV: CE
-    CI_COMMIT_TAG: ${{ github.event.inputs.release_git_tag }}
+    CI_COMMIT_TAG: ${{ github.ref_name }}
   steps:
 {!{ tmpl.Exec "promote_image_steps" $ctx | strings.Indent 4 }!}
 
@@ -115,7 +136,7 @@ promote_ee:
   runs-on: [self-hosted, stage]
   env:
     WERF_ENV: EE
-    CI_COMMIT_TAG: ${{ github.event.inputs.release_git_tag }}
+    CI_COMMIT_TAG: ${{ github.ref_name }}
   steps:
 {!{ tmpl.Exec "promote_image_steps" $ctx | strings.Indent 4 }!}
 
@@ -127,7 +148,7 @@ promote_fe:
   runs-on: [self-hosted, stage]
   env:
     WERF_ENV: FE
-    CI_COMMIT_TAG: ${{ github.event.inputs.release_git_tag }}
+    CI_COMMIT_TAG: ${{ github.ref_name }}
   steps:
 {!{ tmpl.Exec "promote_image_steps" $ctx | strings.Indent 4 }!}
 
@@ -139,7 +160,7 @@ promote_be:
   runs-on: [self-hosted, stage]
   env:
     WERF_ENV: BE
-    CI_COMMIT_TAG: ${{ github.event.inputs.release_git_tag }}
+    CI_COMMIT_TAG: ${{ github.ref_name }}
   steps:
 {!{ tmpl.Exec "promote_image_steps" $ctx | strings.Indent 4 }!}
 
@@ -151,7 +172,7 @@ promote_se:
   runs-on: [self-hosted, stage]
   env:
     WERF_ENV: SE
-    CI_COMMIT_TAG: ${{ github.event.inputs.release_git_tag }}
+    CI_COMMIT_TAG: ${{ github.ref_name }}
   steps:
 {!{ tmpl.Exec "promote_image_steps" $ctx | strings.Indent 4 }!}
 
@@ -163,7 +184,7 @@ promote_se_plus:
   runs-on: [self-hosted, stage]
   env:
     WERF_ENV: SE-plus
-    CI_COMMIT_TAG: ${{ github.event.inputs.release_git_tag }}
+    CI_COMMIT_TAG: ${{ github.ref_name }}
   steps:
 {!{ tmpl.Exec "promote_image_steps" $ctx | strings.Indent 4 }!}
 # </template: promote_image>
