@@ -62,16 +62,11 @@
           echo "⚓️ 💫 [$(date -u)] Promoting component images from images_digests.json (by digest)"
           while IFS= read -r IMG_DIGEST; do
             [[ -z "${IMG_DIGEST}" ]] && continue
+            STAGE_PATH="${STAGE_REGISTRY_HOST}/sys/deckhouse-oss"
             SRC_REF="${STAGE_PATH}@${IMG_DIGEST}"
             DST_REF="${PROD_PATH}@${IMG_DIGEST}"
             echo "⚓️ 💫 [$(date -u)] Promoting '${SRC_REF}' -> '${DST_REF}'"
             regctl image copy "${SRC_REF}" "${DST_REF}"
-            D_HEX="${IMG_DIGEST#sha256:}"
-            STAGE_PATH="${STAGE_REGISTRY_HOST}/sys/deckhouse-oss"
-            if regctl image manifest "${STAGE_PATH}:sha256-${D_HEX}.att" >/dev/null 2>&1; then
-              echo "⚓️ 💫 [$(date -u)] Copying attestation for digest ${D_HEX}"
-              regctl image copy "${STAGE_PATH}:sha256-${D_HEX}.att" "${PROD_PATH}:sha256-${D_HEX}.att"
-            fi
           done < <(jq -r '[.. | strings | select(test("^sha256:[a-f0-9]{64}$"))] | unique | .[]' "${DIGESTS_JSON}")
         else
           echo "⚠️ [$(date -u)] Could not read /deckhouse/candi/images_digests.json from '${STAGE_PATH}/install:${IMAGE_TAG}', skipping digest-based promotion"
