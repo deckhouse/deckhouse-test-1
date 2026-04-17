@@ -17,11 +17,7 @@
 
 name: Promote image to prod
 
-# Push semver tag or manual workflow_dispatch. Tag for slug: github.ref_name (on manual run, pick the release tag in the branch dropdown).
 on:
-  push:
-    tags:
-      - 'v[0-9]*.[0-9]*.[0-9]*'
   workflow_dispatch:
     inputs:
       issue_id:

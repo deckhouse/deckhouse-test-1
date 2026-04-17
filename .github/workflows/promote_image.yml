@@ -18,11 +18,7 @@
 
 name: Promote image to prod
 
-# Push semver tag or manual workflow_dispatch. Tag for slug: github.ref_name (on manual run, pick the release tag in the branch dropdown).
 on:
-  push:
-    tags:
-      - 'v[0-9]*.[0-9]*.[0-9]*'
   workflow_dispatch:
     inputs:
       issue_id:
@@ -230,6 +226,7 @@ jobs:
                   echo "⚓️ 💫 [$(date -u)] Promoting '${SRC_REF}' -> '${DST_REF}'"
                   regctl image copy "${SRC_REF}" "${DST_REF}"
                   D_HEX="${IMG_DIGEST#sha256:}"
+                  STAGE_PATH="${STAGE_REGISTRY_HOST}/sys/deckhouse-oss"
                   if regctl image manifest "${STAGE_PATH}:sha256-${D_HEX}.att" >/dev/null 2>&1; then
                     echo "⚓️ 💫 [$(date -u)] Copying attestation for digest ${D_HEX}"
                     regctl image copy "${STAGE_PATH}:sha256-${D_HEX}.att" "${PROD_PATH}:sha256-${D_HEX}.att"
@@ -367,6 +364,7 @@ jobs:
                   echo "⚓️ 💫 [$(date -u)] Promoting '${SRC_REF}' -> '${DST_REF}'"
                   regctl image copy "${SRC_REF}" "${DST_REF}"
                   D_HEX="${IMG_DIGEST#sha256:}"
+                  STAGE_PATH="${STAGE_REGISTRY_HOST}/sys/deckhouse-oss"
                   if regctl image manifest "${STAGE_PATH}:sha256-${D_HEX}.att" >/dev/null 2>&1; then
                     echo "⚓️ 💫 [$(date -u)] Copying attestation for digest ${D_HEX}"
                     regctl image copy "${STAGE_PATH}:sha256-${D_HEX}.att" "${PROD_PATH}:sha256-${D_HEX}.att"
@@ -504,6 +502,7 @@ jobs:
                   echo "⚓️ 💫 [$(date -u)] Promoting '${SRC_REF}' -> '${DST_REF}'"
                   regctl image copy "${SRC_REF}" "${DST_REF}"
                   D_HEX="${IMG_DIGEST#sha256:}"
+                  STAGE_PATH="${STAGE_REGISTRY_HOST}/sys/deckhouse-oss"
                   if regctl image manifest "${STAGE_PATH}:sha256-${D_HEX}.att" >/dev/null 2>&1; then
                     echo "⚓️ 💫 [$(date -u)] Copying attestation for digest ${D_HEX}"
                     regctl image copy "${STAGE_PATH}:sha256-${D_HEX}.att" "${PROD_PATH}:sha256-${D_HEX}.att"
@@ -641,6 +640,7 @@ jobs:
                   echo "⚓️ 💫 [$(date -u)] Promoting '${SRC_REF}' -> '${DST_REF}'"
                   regctl image copy "${SRC_REF}" "${DST_REF}"
                   D_HEX="${IMG_DIGEST#sha256:}"
+                  STAGE_PATH="${STAGE_REGISTRY_HOST}/sys/deckhouse-oss"
                   if regctl image manifest "${STAGE_PATH}:sha256-${D_HEX}.att" >/dev/null 2>&1; then
                     echo "⚓️ 💫 [$(date -u)] Copying attestation for digest ${D_HEX}"
                     regctl image copy "${STAGE_PATH}:sha256-${D_HEX}.att" "${PROD_PATH}:sha256-${D_HEX}.att"
@@ -778,6 +778,7 @@ jobs:
                   echo "⚓️ 💫 [$(date -u)] Promoting '${SRC_REF}' -> '${DST_REF}'"
                   regctl image copy "${SRC_REF}" "${DST_REF}"
                   D_HEX="${IMG_DIGEST#sha256:}"
+                  STAGE_PATH="${STAGE_REGISTRY_HOST}/sys/deckhouse-oss"
                   if regctl image manifest "${STAGE_PATH}:sha256-${D_HEX}.att" >/dev/null 2>&1; then
                     echo "⚓️ 💫 [$(date -u)] Copying attestation for digest ${D_HEX}"
                     regctl image copy "${STAGE_PATH}:sha256-${D_HEX}.att" "${PROD_PATH}:sha256-${D_HEX}.att"
@@ -915,6 +916,7 @@ jobs:
                   echo "⚓️ 💫 [$(date -u)] Promoting '${SRC_REF}' -> '${DST_REF}'"
                   regctl image copy "${SRC_REF}" "${DST_REF}"
                   D_HEX="${IMG_DIGEST#sha256:}"
+                  STAGE_PATH="${STAGE_REGISTRY_HOST}/sys/deckhouse-oss"
                   if regctl image manifest "${STAGE_PATH}:sha256-${D_HEX}.att" >/dev/null 2>&1; then
                     echo "⚓️ 💫 [$(date -u)] Copying attestation for digest ${D_HEX}"
                     regctl image copy "${STAGE_PATH}:sha256-${D_HEX}.att" "${PROD_PATH}:sha256-${D_HEX}.att"
