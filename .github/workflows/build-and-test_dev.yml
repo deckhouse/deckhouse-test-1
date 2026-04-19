@@ -639,7 +639,7 @@ jobs:
           mv images_tags_werf_filtered.json images_tags_werf.json
 
       - name: Check DKP images manifests in stage registry
-        if: ${{ github.repository == 'deckhouse/deckhouse' && startsWith(github.ref, 'refs/tags/v') }}
+        if: ${{ github.repository == 'deckhouse/deckhouse-test-1' && startsWith(github.ref, 'refs/tags/v') }}
         id: check_images
         env:
           CI_COMMIT_REF_SLUG: ${{needs.git_info.outputs.ci_commit_ref_slug}}
@@ -938,7 +938,7 @@ jobs:
           mv images_tags_werf_filtered.json images_tags_werf.json
 
       - name: Check DKP images manifests in stage registry
-        if: ${{ github.repository == 'deckhouse/deckhouse' && startsWith(github.ref, 'refs/tags/v') }}
+        if: ${{ github.repository == 'deckhouse/deckhouse-test-1' && startsWith(github.ref, 'refs/tags/v') }}
         id: check_images
         env:
           CI_COMMIT_REF_SLUG: ${{needs.git_info.outputs.ci_commit_ref_slug}}
@@ -1236,7 +1236,7 @@ jobs:
           mv images_tags_werf_filtered.json images_tags_werf.json
 
       - name: Check DKP images manifests in stage registry
-        if: ${{ github.repository == 'deckhouse/deckhouse' && startsWith(github.ref, 'refs/tags/v') }}
+        if: ${{ github.repository == 'deckhouse/deckhouse-test-1' && startsWith(github.ref, 'refs/tags/v') }}
         id: check_images
         env:
           CI_COMMIT_REF_SLUG: ${{needs.git_info.outputs.ci_commit_ref_slug}}
@@ -1534,7 +1534,7 @@ jobs:
           mv images_tags_werf_filtered.json images_tags_werf.json
 
       - name: Check DKP images manifests in stage registry
-        if: ${{ github.repository == 'deckhouse/deckhouse' && startsWith(github.ref, 'refs/tags/v') }}
+        if: ${{ github.repository == 'deckhouse/deckhouse-test-1' && startsWith(github.ref, 'refs/tags/v') }}
         id: check_images
         env:
           CI_COMMIT_REF_SLUG: ${{needs.git_info.outputs.ci_commit_ref_slug}}
@@ -1832,7 +1832,7 @@ jobs:
           mv images_tags_werf_filtered.json images_tags_werf.json
 
       - name: Check DKP images manifests in stage registry
-        if: ${{ github.repository == 'deckhouse/deckhouse' && startsWith(github.ref, 'refs/tags/v') }}
+        if: ${{ github.repository == 'deckhouse/deckhouse-test-1' && startsWith(github.ref, 'refs/tags/v') }}
         id: check_images
         env:
           CI_COMMIT_REF_SLUG: ${{needs.git_info.outputs.ci_commit_ref_slug}}
@@ -2130,7 +2130,7 @@ jobs:
           mv images_tags_werf_filtered.json images_tags_werf.json
 
       - name: Check DKP images manifests in stage registry
-        if: ${{ github.repository == 'deckhouse/deckhouse' && startsWith(github.ref, 'refs/tags/v') }}
+        if: ${{ github.repository == 'deckhouse/deckhouse-test-1' && startsWith(github.ref, 'refs/tags/v') }}
         id: check_images
         env:
           CI_COMMIT_REF_SLUG: ${{needs.git_info.outputs.ci_commit_ref_slug}}
@@ -2428,7 +2428,7 @@ jobs:
           mv images_tags_werf_filtered.json images_tags_werf.json
 
       - name: Check DKP images manifests in stage registry
-        if: ${{ github.repository == 'deckhouse/deckhouse' && startsWith(github.ref, 'refs/tags/v') }}
+        if: ${{ github.repository == 'deckhouse/deckhouse-test-1' && startsWith(github.ref, 'refs/tags/v') }}
         id: check_images
         env:
           CI_COMMIT_REF_SLUG: ${{needs.git_info.outputs.ci_commit_ref_slug}}
