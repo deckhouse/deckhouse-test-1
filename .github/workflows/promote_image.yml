@@ -229,10 +229,6 @@ jobs:
                 fi
                 SRC="${REPO_SRC}:${IMAGE_TAG}"
                 DST="${REPO_DST}:${IMAGE_TAG}"
-                if ! regctl image manifest "${SRC}" >/dev/null 2>&1; then
-                  echo "⚠️ [$(date -u)] Image not found on stage, skipping: '${SRC}'"
-                  return 0
-                fi
                 echo "⚓️ 💫 [$(date -u)] Promoting '${SRC}' => '${DST}'"
                 regctl image copy "${SRC}" "${DST}"
                 local DIGEST
@@ -260,10 +256,6 @@ jobs:
                   [[ -z "${IMG_DIGEST}" ]] && continue
                   SRC_REF="${STAGE_PATH}@${IMG_DIGEST}"
                   DST_REF="${PROD_PATH}@${IMG_DIGEST}"
-                  if ! regctl image manifest "${SRC_REF}" >/dev/null 2>&1; then
-                    echo "⚠️ [$(date -u)] Image not found on stage, skipping: '${SRC_REF}'"
-                    continue
-                  fi
                   echo "⚓️ 💫 [$(date -u)] Promoting '${SRC_REF}' -> '${DST_REF}'"
                   regctl image copy "${SRC_REF}" "${DST_REF}"
                 done < <(jq -r '[.. | strings | select(test("^sha256:[a-f0-9]{64}$"))] | unique | .[]' "${DIGESTS_JSON}")
@@ -414,10 +406,6 @@ jobs:
                 fi
                 SRC="${REPO_SRC}:${IMAGE_TAG}"
                 DST="${REPO_DST}:${IMAGE_TAG}"
-                if ! regctl image manifest "${SRC}" >/dev/null 2>&1; then
-                  echo "⚠️ [$(date -u)] Image not found on stage, skipping: '${SRC}'"
-                  return 0
-                fi
                 echo "⚓️ 💫 [$(date -u)] Promoting '${SRC}' => '${DST}'"
                 regctl image copy "${SRC}" "${DST}"
                 local DIGEST
@@ -445,10 +433,6 @@ jobs:
                   [[ -z "${IMG_DIGEST}" ]] && continue
                   SRC_REF="${STAGE_PATH}@${IMG_DIGEST}"
                   DST_REF="${PROD_PATH}@${IMG_DIGEST}"
-                  if ! regctl image manifest "${SRC_REF}" >/dev/null 2>&1; then
-                    echo "⚠️ [$(date -u)] Image not found on stage, skipping: '${SRC_REF}'"
-                    continue
-                  fi
                   echo "⚓️ 💫 [$(date -u)] Promoting '${SRC_REF}' -> '${DST_REF}'"
                   regctl image copy "${SRC_REF}" "${DST_REF}"
                 done < <(jq -r '[.. | strings | select(test("^sha256:[a-f0-9]{64}$"))] | unique | .[]' "${DIGESTS_JSON}")
@@ -599,10 +583,6 @@ jobs:
                 fi
                 SRC="${REPO_SRC}:${IMAGE_TAG}"
                 DST="${REPO_DST}:${IMAGE_TAG}"
-                if ! regctl image manifest "${SRC}" >/dev/null 2>&1; then
-                  echo "⚠️ [$(date -u)] Image not found on stage, skipping: '${SRC}'"
-                  return 0
-                fi
                 echo "⚓️ 💫 [$(date -u)] Promoting '${SRC}' => '${DST}'"
                 regctl image copy "${SRC}" "${DST}"
                 local DIGEST
@@ -630,10 +610,6 @@ jobs:
                   [[ -z "${IMG_DIGEST}" ]] && continue
                   SRC_REF="${STAGE_PATH}@${IMG_DIGEST}"
                   DST_REF="${PROD_PATH}@${IMG_DIGEST}"
-                  if ! regctl image manifest "${SRC_REF}" >/dev/null 2>&1; then
-                    echo "⚠️ [$(date -u)] Image not found on stage, skipping: '${SRC_REF}'"
-                    continue
-                  fi
                   echo "⚓️ 💫 [$(date -u)] Promoting '${SRC_REF}' -> '${DST_REF}'"
                   regctl image copy "${SRC_REF}" "${DST_REF}"
                 done < <(jq -r '[.. | strings | select(test("^sha256:[a-f0-9]{64}$"))] | unique | .[]' "${DIGESTS_JSON}")
@@ -784,10 +760,6 @@ jobs:
                 fi
                 SRC="${REPO_SRC}:${IMAGE_TAG}"
                 DST="${REPO_DST}:${IMAGE_TAG}"
-                if ! regctl image manifest "${SRC}" >/dev/null 2>&1; then
-                  echo "⚠️ [$(date -u)] Image not found on stage, skipping: '${SRC}'"
-                  return 0
-                fi
                 echo "⚓️ 💫 [$(date -u)] Promoting '${SRC}' => '${DST}'"
                 regctl image copy "${SRC}" "${DST}"
                 local DIGEST
@@ -815,10 +787,6 @@ jobs:
                   [[ -z "${IMG_DIGEST}" ]] && continue
                   SRC_REF="${STAGE_PATH}@${IMG_DIGEST}"
                   DST_REF="${PROD_PATH}@${IMG_DIGEST}"
-                  if ! regctl image manifest "${SRC_REF}" >/dev/null 2>&1; then
-                    echo "⚠️ [$(date -u)] Image not found on stage, skipping: '${SRC_REF}'"
-                    continue
-                  fi
                   echo "⚓️ 💫 [$(date -u)] Promoting '${SRC_REF}' -> '${DST_REF}'"
                   regctl image copy "${SRC_REF}" "${DST_REF}"
                 done < <(jq -r '[.. | strings | select(test("^sha256:[a-f0-9]{64}$"))] | unique | .[]' "${DIGESTS_JSON}")
@@ -969,10 +937,6 @@ jobs:
                 fi
                 SRC="${REPO_SRC}:${IMAGE_TAG}"
                 DST="${REPO_DST}:${IMAGE_TAG}"
-                if ! regctl image manifest "${SRC}" >/dev/null 2>&1; then
-                  echo "⚠️ [$(date -u)] Image not found on stage, skipping: '${SRC}'"
-                  return 0
-                fi
                 echo "⚓️ 💫 [$(date -u)] Promoting '${SRC}' => '${DST}'"
                 regctl image copy "${SRC}" "${DST}"
                 local DIGEST
@@ -1000,10 +964,6 @@ jobs:
                   [[ -z "${IMG_DIGEST}" ]] && continue
                   SRC_REF="${STAGE_PATH}@${IMG_DIGEST}"
                   DST_REF="${PROD_PATH}@${IMG_DIGEST}"
-                  if ! regctl image manifest "${SRC_REF}" >/dev/null 2>&1; then
-                    echo "⚠️ [$(date -u)] Image not found on stage, skipping: '${SRC_REF}'"
-                    continue
-                  fi
                   echo "⚓️ 💫 [$(date -u)] Promoting '${SRC_REF}' -> '${DST_REF}'"
                   regctl image copy "${SRC_REF}" "${DST_REF}"
                 done < <(jq -r '[.. | strings | select(test("^sha256:[a-f0-9]{64}$"))] | unique | .[]' "${DIGESTS_JSON}")
@@ -1154,10 +1114,6 @@ jobs:
                 fi
                 SRC="${REPO_SRC}:${IMAGE_TAG}"
                 DST="${REPO_DST}:${IMAGE_TAG}"
-                if ! regctl image manifest "${SRC}" >/dev/null 2>&1; then
-                  echo "⚠️ [$(date -u)] Image not found on stage, skipping: '${SRC}'"
-                  return 0
-                fi
                 echo "⚓️ 💫 [$(date -u)] Promoting '${SRC}' => '${DST}'"
                 regctl image copy "${SRC}" "${DST}"
                 local DIGEST
@@ -1185,10 +1141,6 @@ jobs:
                   [[ -z "${IMG_DIGEST}" ]] && continue
                   SRC_REF="${STAGE_PATH}@${IMG_DIGEST}"
                   DST_REF="${PROD_PATH}@${IMG_DIGEST}"
-                  if ! regctl image manifest "${SRC_REF}" >/dev/null 2>&1; then
-                    echo "⚠️ [$(date -u)] Image not found on stage, skipping: '${SRC_REF}'"
-                    continue
-                  fi
                   echo "⚓️ 💫 [$(date -u)] Promoting '${SRC_REF}' -> '${DST_REF}'"
                   regctl image copy "${SRC_REF}" "${DST_REF}"
                 done < <(jq -r '[.. | strings | select(test("^sha256:[a-f0-9]{64}$"))] | unique | .[]' "${DIGESTS_JSON}")
