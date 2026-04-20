@@ -273,12 +273,11 @@ jobs:
             if: ${{ needs.detect_editions.outputs['PROMOTE_CE'] == 'true' && github.repository == 'deckhouse/deckhouse-test-1' && startsWith(github.ref, 'refs/tags/v') }}
             env:
               WERF_ENV: CE
-              CI_COMMIT_REF_SLUG: ${{ github.ref_name }}
               STAGE_REGISTRY_HOST: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_HOST }}
             run: |
               EDITION=$(echo ${WERF_ENV} | tr '[:upper:]' '[:lower:]')
               #
-              ./tools/check-release-images.sh --tag ${CI_COMMIT_REF_SLUG} --edition ${EDITION} --images-path ${STAGE_REGISTRY_HOST}/deckhouse/promote-test/
+              ./tools/check-release-images.sh --tag "${CI_COMMIT_TAG}" --edition "${EDITION}" --images-path "${STAGE_REGISTRY_HOST}/deckhouse/promote-test/"
 
 
 
@@ -385,12 +384,11 @@ jobs:
             if: ${{ needs.detect_editions.outputs['PROMOTE_EE'] == 'true' && github.repository == 'deckhouse/deckhouse-test-1' && startsWith(github.ref, 'refs/tags/v') }}
             env:
               WERF_ENV: EE
-              CI_COMMIT_REF_SLUG: ${{ github.ref_name }}
               STAGE_REGISTRY_HOST: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_HOST }}
             run: |
               EDITION=$(echo ${WERF_ENV} | tr '[:upper:]' '[:lower:]')
               #
-              ./tools/check-release-images.sh --tag ${CI_COMMIT_REF_SLUG} --edition ${EDITION} --images-path ${STAGE_REGISTRY_HOST}/deckhouse/promote-test/
+              ./tools/check-release-images.sh --tag "${CI_COMMIT_TAG}" --edition "${EDITION}" --images-path "${STAGE_REGISTRY_HOST}/deckhouse/promote-test/"
 
 
 
@@ -497,12 +495,11 @@ jobs:
             if: ${{ needs.detect_editions.outputs['PROMOTE_FE'] == 'true' && github.repository == 'deckhouse/deckhouse-test-1' && startsWith(github.ref, 'refs/tags/v') }}
             env:
               WERF_ENV: FE
-              CI_COMMIT_REF_SLUG: ${{ github.ref_name }}
               STAGE_REGISTRY_HOST: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_HOST }}
             run: |
               EDITION=$(echo ${WERF_ENV} | tr '[:upper:]' '[:lower:]')
               #
-              ./tools/check-release-images.sh --tag ${CI_COMMIT_REF_SLUG} --edition ${EDITION} --images-path ${STAGE_REGISTRY_HOST}/deckhouse/promote-test/
+              ./tools/check-release-images.sh --tag "${CI_COMMIT_TAG}" --edition "${EDITION}" --images-path "${STAGE_REGISTRY_HOST}/deckhouse/promote-test/"
 
 
 
@@ -609,12 +606,11 @@ jobs:
             if: ${{ needs.detect_editions.outputs['PROMOTE_BE'] == 'true' && github.repository == 'deckhouse/deckhouse-test-1' && startsWith(github.ref, 'refs/tags/v') }}
             env:
               WERF_ENV: BE
-              CI_COMMIT_REF_SLUG: ${{ github.ref_name }}
               STAGE_REGISTRY_HOST: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_HOST }}
             run: |
               EDITION=$(echo ${WERF_ENV} | tr '[:upper:]' '[:lower:]')
               #
-              ./tools/check-release-images.sh --tag ${CI_COMMIT_REF_SLUG} --edition ${EDITION} --images-path ${STAGE_REGISTRY_HOST}/deckhouse/promote-test/
+              ./tools/check-release-images.sh --tag "${CI_COMMIT_TAG}" --edition "${EDITION}" --images-path "${STAGE_REGISTRY_HOST}/deckhouse/promote-test/"
 
 
 
@@ -721,12 +717,11 @@ jobs:
             if: ${{ needs.detect_editions.outputs['PROMOTE_SE'] == 'true' && github.repository == 'deckhouse/deckhouse-test-1' && startsWith(github.ref, 'refs/tags/v') }}
             env:
               WERF_ENV: SE
-              CI_COMMIT_REF_SLUG: ${{ github.ref_name }}
               STAGE_REGISTRY_HOST: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_HOST }}
             run: |
               EDITION=$(echo ${WERF_ENV} | tr '[:upper:]' '[:lower:]')
               #
-              ./tools/check-release-images.sh --tag ${CI_COMMIT_REF_SLUG} --edition ${EDITION} --images-path ${STAGE_REGISTRY_HOST}/deckhouse/promote-test/
+              ./tools/check-release-images.sh --tag "${CI_COMMIT_TAG}" --edition "${EDITION}" --images-path "${STAGE_REGISTRY_HOST}/deckhouse/promote-test/"
 
 
 
@@ -833,12 +828,11 @@ jobs:
             if: ${{ needs.detect_editions.outputs['PROMOTE_SE-plus'] == 'true' && github.repository == 'deckhouse/deckhouse-test-1' && startsWith(github.ref, 'refs/tags/v') }}
             env:
               WERF_ENV: SE-plus
-              CI_COMMIT_REF_SLUG: ${{ github.ref_name }}
               STAGE_REGISTRY_HOST: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_HOST }}
             run: |
               EDITION=$(echo ${WERF_ENV} | tr '[:upper:]' '[:lower:]')
               #
-              ./tools/check-release-images.sh --tag ${CI_COMMIT_REF_SLUG} --edition ${EDITION} --images-path ${STAGE_REGISTRY_HOST}/deckhouse/promote-test/
+              ./tools/check-release-images.sh --tag "${CI_COMMIT_TAG}" --edition "${EDITION}" --images-path "${STAGE_REGISTRY_HOST}/deckhouse/promote-test/"
 
 
 
