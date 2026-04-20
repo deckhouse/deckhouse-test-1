@@ -171,6 +171,7 @@ jobs:
           # </template: werf_install_step>
 
           - name: Copy attestations
+            if: ${{ github.repository == 'deckhouse/deckhouse-test-1' && startsWith(github.ref, 'refs/tags/v') }}
             env:
               STAGE_REGISTRY_HOST: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_HOST }}
             run: |
@@ -204,6 +205,7 @@ jobs:
 
 
           - name: Promote images from stage to prod
+            if: ${{ github.repository == 'deckhouse/deckhouse-test-1' && startsWith(github.ref, 'refs/tags/v') }}
             env:
               STAGE_REGISTRY_HOST: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_HOST }}
             run: |
@@ -264,7 +266,7 @@ jobs:
                 echo "⚠️ [$(date -u)] Could not read /deckhouse/candi/images_digests.json from '${STAGE_PATH}/install:${IMAGE_TAG}', skipping digest-based promotion"
               fi
 
-          - name: Check DKP images manifests in prod registry
+          - name: Check DKP images manifests in public registry
             if: ${{ github.repository == 'deckhouse/deckhouse-test-1' && startsWith(github.ref, 'refs/tags/v') }}
             id: check_images
             env:
@@ -274,6 +276,7 @@ jobs:
               EDITION=$(echo ${WERF_ENV} | tr '[:upper:]' '[:lower:]')
 
               ./tools/check-release-images.sh --tag ${CI_COMMIT_REF_SLUG} --edition ${EDITION} --images-path ${STAGE_REGISTRY_HOST}/deckhouse/promote-test/
+
       # </template: promote_image_steps>
 
 
@@ -348,6 +351,7 @@ jobs:
           # </template: werf_install_step>
 
           - name: Copy attestations
+            if: ${{ github.repository == 'deckhouse/deckhouse-test-1' && startsWith(github.ref, 'refs/tags/v') }}
             env:
               STAGE_REGISTRY_HOST: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_HOST }}
             run: |
@@ -381,6 +385,7 @@ jobs:
 
 
           - name: Promote images from stage to prod
+            if: ${{ github.repository == 'deckhouse/deckhouse-test-1' && startsWith(github.ref, 'refs/tags/v') }}
             env:
               STAGE_REGISTRY_HOST: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_HOST }}
             run: |
@@ -441,7 +446,7 @@ jobs:
                 echo "⚠️ [$(date -u)] Could not read /deckhouse/candi/images_digests.json from '${STAGE_PATH}/install:${IMAGE_TAG}', skipping digest-based promotion"
               fi
 
-          - name: Check DKP images manifests in prod registry
+          - name: Check DKP images manifests in public registry
             if: ${{ github.repository == 'deckhouse/deckhouse-test-1' && startsWith(github.ref, 'refs/tags/v') }}
             id: check_images
             env:
@@ -451,6 +456,7 @@ jobs:
               EDITION=$(echo ${WERF_ENV} | tr '[:upper:]' '[:lower:]')
 
               ./tools/check-release-images.sh --tag ${CI_COMMIT_REF_SLUG} --edition ${EDITION} --images-path ${STAGE_REGISTRY_HOST}/deckhouse/promote-test/
+
       # </template: promote_image_steps>
 
 
@@ -525,6 +531,7 @@ jobs:
           # </template: werf_install_step>
 
           - name: Copy attestations
+            if: ${{ github.repository == 'deckhouse/deckhouse-test-1' && startsWith(github.ref, 'refs/tags/v') }}
             env:
               STAGE_REGISTRY_HOST: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_HOST }}
             run: |
@@ -558,6 +565,7 @@ jobs:
 
 
           - name: Promote images from stage to prod
+            if: ${{ github.repository == 'deckhouse/deckhouse-test-1' && startsWith(github.ref, 'refs/tags/v') }}
             env:
               STAGE_REGISTRY_HOST: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_HOST }}
             run: |
@@ -618,7 +626,7 @@ jobs:
                 echo "⚠️ [$(date -u)] Could not read /deckhouse/candi/images_digests.json from '${STAGE_PATH}/install:${IMAGE_TAG}', skipping digest-based promotion"
               fi
 
-          - name: Check DKP images manifests in prod registry
+          - name: Check DKP images manifests in public registry
             if: ${{ github.repository == 'deckhouse/deckhouse-test-1' && startsWith(github.ref, 'refs/tags/v') }}
             id: check_images
             env:
@@ -628,6 +636,7 @@ jobs:
               EDITION=$(echo ${WERF_ENV} | tr '[:upper:]' '[:lower:]')
 
               ./tools/check-release-images.sh --tag ${CI_COMMIT_REF_SLUG} --edition ${EDITION} --images-path ${STAGE_REGISTRY_HOST}/deckhouse/promote-test/
+
       # </template: promote_image_steps>
 
 
@@ -702,6 +711,7 @@ jobs:
           # </template: werf_install_step>
 
           - name: Copy attestations
+            if: ${{ github.repository == 'deckhouse/deckhouse-test-1' && startsWith(github.ref, 'refs/tags/v') }}
             env:
               STAGE_REGISTRY_HOST: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_HOST }}
             run: |
@@ -735,6 +745,7 @@ jobs:
 
 
           - name: Promote images from stage to prod
+            if: ${{ github.repository == 'deckhouse/deckhouse-test-1' && startsWith(github.ref, 'refs/tags/v') }}
             env:
               STAGE_REGISTRY_HOST: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_HOST }}
             run: |
@@ -795,7 +806,7 @@ jobs:
                 echo "⚠️ [$(date -u)] Could not read /deckhouse/candi/images_digests.json from '${STAGE_PATH}/install:${IMAGE_TAG}', skipping digest-based promotion"
               fi
 
-          - name: Check DKP images manifests in prod registry
+          - name: Check DKP images manifests in public registry
             if: ${{ github.repository == 'deckhouse/deckhouse-test-1' && startsWith(github.ref, 'refs/tags/v') }}
             id: check_images
             env:
@@ -805,6 +816,7 @@ jobs:
               EDITION=$(echo ${WERF_ENV} | tr '[:upper:]' '[:lower:]')
 
               ./tools/check-release-images.sh --tag ${CI_COMMIT_REF_SLUG} --edition ${EDITION} --images-path ${STAGE_REGISTRY_HOST}/deckhouse/promote-test/
+
       # </template: promote_image_steps>
 
 
@@ -879,6 +891,7 @@ jobs:
           # </template: werf_install_step>
 
           - name: Copy attestations
+            if: ${{ github.repository == 'deckhouse/deckhouse-test-1' && startsWith(github.ref, 'refs/tags/v') }}
             env:
               STAGE_REGISTRY_HOST: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_HOST }}
             run: |
@@ -912,6 +925,7 @@ jobs:
 
 
           - name: Promote images from stage to prod
+            if: ${{ github.repository == 'deckhouse/deckhouse-test-1' && startsWith(github.ref, 'refs/tags/v') }}
             env:
               STAGE_REGISTRY_HOST: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_HOST }}
             run: |
@@ -972,7 +986,7 @@ jobs:
                 echo "⚠️ [$(date -u)] Could not read /deckhouse/candi/images_digests.json from '${STAGE_PATH}/install:${IMAGE_TAG}', skipping digest-based promotion"
               fi
 
-          - name: Check DKP images manifests in prod registry
+          - name: Check DKP images manifests in public registry
             if: ${{ github.repository == 'deckhouse/deckhouse-test-1' && startsWith(github.ref, 'refs/tags/v') }}
             id: check_images
             env:
@@ -982,6 +996,7 @@ jobs:
               EDITION=$(echo ${WERF_ENV} | tr '[:upper:]' '[:lower:]')
 
               ./tools/check-release-images.sh --tag ${CI_COMMIT_REF_SLUG} --edition ${EDITION} --images-path ${STAGE_REGISTRY_HOST}/deckhouse/promote-test/
+
       # </template: promote_image_steps>
 
 
@@ -1056,6 +1071,7 @@ jobs:
           # </template: werf_install_step>
 
           - name: Copy attestations
+            if: ${{ github.repository == 'deckhouse/deckhouse-test-1' && startsWith(github.ref, 'refs/tags/v') }}
             env:
               STAGE_REGISTRY_HOST: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_HOST }}
             run: |
@@ -1089,6 +1105,7 @@ jobs:
 
 
           - name: Promote images from stage to prod
+            if: ${{ github.repository == 'deckhouse/deckhouse-test-1' && startsWith(github.ref, 'refs/tags/v') }}
             env:
               STAGE_REGISTRY_HOST: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_HOST }}
             run: |
@@ -1149,7 +1166,7 @@ jobs:
                 echo "⚠️ [$(date -u)] Could not read /deckhouse/candi/images_digests.json from '${STAGE_PATH}/install:${IMAGE_TAG}', skipping digest-based promotion"
               fi
 
-          - name: Check DKP images manifests in prod registry
+          - name: Check DKP images manifests in public registry
             if: ${{ github.repository == 'deckhouse/deckhouse-test-1' && startsWith(github.ref, 'refs/tags/v') }}
             id: check_images
             env:
@@ -1159,6 +1176,7 @@ jobs:
               EDITION=$(echo ${WERF_ENV} | tr '[:upper:]' '[:lower:]')
 
               ./tools/check-release-images.sh --tag ${CI_COMMIT_REF_SLUG} --edition ${EDITION} --images-path ${STAGE_REGISTRY_HOST}/deckhouse/promote-test/
+
       # </template: promote_image_steps>
 
   # </template: promote_image>
