@@ -647,9 +647,7 @@ jobs:
         run: |
           EDITION=$(echo ${WERF_ENV} | tr '[:upper:]' '[:lower:]')
 
-          ./tools/check-release-images.sh --tag ${CI_COMMIT_REF_SLUG} --edition ${EDITION} --images-path ${STAGE_REGISTRY_HOST}/${REGISTRY_PATH}
-
-
+          ./tools/check-release-images.sh --tag ${CI_COMMIT_REF_SLUG} --edition ${EDITION} --images-path ${STAGE_REGISTRY_HOST}/deckhouse/
 
       - name: Save build report
         if: ${{ always() && (steps.build.outcome == 'success' || steps.build.outcome == 'failure') }}
@@ -946,9 +944,7 @@ jobs:
         run: |
           EDITION=$(echo ${WERF_ENV} | tr '[:upper:]' '[:lower:]')
 
-          ./tools/check-release-images.sh --tag ${CI_COMMIT_REF_SLUG} --edition ${EDITION} --images-path ${STAGE_REGISTRY_HOST}/${REGISTRY_PATH}
-
-
+          ./tools/check-release-images.sh --tag ${CI_COMMIT_REF_SLUG} --edition ${EDITION} --images-path ${STAGE_REGISTRY_HOST}/deckhouse/
 
       - name: Save build report
         if: ${{ always() && (steps.build.outcome == 'success' || steps.build.outcome == 'failure') }}
@@ -1244,9 +1240,7 @@ jobs:
         run: |
           EDITION=$(echo ${WERF_ENV} | tr '[:upper:]' '[:lower:]')
 
-          ./tools/check-release-images.sh --tag ${CI_COMMIT_REF_SLUG} --edition ${EDITION} --images-path ${STAGE_REGISTRY_HOST}/${REGISTRY_PATH}
-
-
+          ./tools/check-release-images.sh --tag ${CI_COMMIT_REF_SLUG} --edition ${EDITION} --images-path ${STAGE_REGISTRY_HOST}/deckhouse/
 
       - name: Save build report
         if: ${{ always() && (steps.build.outcome == 'success' || steps.build.outcome == 'failure') }}
@@ -1542,9 +1536,7 @@ jobs:
         run: |
           EDITION=$(echo ${WERF_ENV} | tr '[:upper:]' '[:lower:]')
 
-          ./tools/check-release-images.sh --tag ${CI_COMMIT_REF_SLUG} --edition ${EDITION} --images-path ${STAGE_REGISTRY_HOST}/${REGISTRY_PATH}
-
-
+          ./tools/check-release-images.sh --tag ${CI_COMMIT_REF_SLUG} --edition ${EDITION} --images-path ${STAGE_REGISTRY_HOST}/deckhouse/
 
       - name: Save build report
         if: ${{ always() && (steps.build.outcome == 'success' || steps.build.outcome == 'failure') }}
@@ -1840,9 +1832,7 @@ jobs:
         run: |
           EDITION=$(echo ${WERF_ENV} | tr '[:upper:]' '[:lower:]')
 
-          ./tools/check-release-images.sh --tag ${CI_COMMIT_REF_SLUG} --edition ${EDITION} --images-path ${STAGE_REGISTRY_HOST}/${REGISTRY_PATH}
-
-
+          ./tools/check-release-images.sh --tag ${CI_COMMIT_REF_SLUG} --edition ${EDITION} --images-path ${STAGE_REGISTRY_HOST}/deckhouse/
 
       - name: Save build report
         if: ${{ always() && (steps.build.outcome == 'success' || steps.build.outcome == 'failure') }}
@@ -2138,9 +2128,7 @@ jobs:
         run: |
           EDITION=$(echo ${WERF_ENV} | tr '[:upper:]' '[:lower:]')
 
-          ./tools/check-release-images.sh --tag ${CI_COMMIT_REF_SLUG} --edition ${EDITION} --images-path ${STAGE_REGISTRY_HOST}/${REGISTRY_PATH}
-
-
+          ./tools/check-release-images.sh --tag ${CI_COMMIT_REF_SLUG} --edition ${EDITION} --images-path ${STAGE_REGISTRY_HOST}/deckhouse/
 
       - name: Save build report
         if: ${{ always() && (steps.build.outcome == 'success' || steps.build.outcome == 'failure') }}
@@ -2436,9 +2424,7 @@ jobs:
         run: |
           EDITION=$(echo ${WERF_ENV} | tr '[:upper:]' '[:lower:]')
 
-          ./tools/check-release-images.sh --tag ${CI_COMMIT_REF_SLUG} --edition ${EDITION} --images-path ${STAGE_REGISTRY_HOST}/${REGISTRY_PATH}
-
-
+          ./tools/check-release-images.sh --tag ${CI_COMMIT_REF_SLUG} --edition ${EDITION} --images-path ${STAGE_REGISTRY_HOST}/deckhouse/
 
       - name: Save build report
         if: ${{ always() && (steps.build.outcome == 'success' || steps.build.outcome == 'failure') }}
