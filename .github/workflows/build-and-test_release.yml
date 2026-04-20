@@ -297,7 +297,8 @@ jobs:
         with:
           url: https://seguro.flant.com
           path: github
-          role: "${{ steps.split.outputs.name }}"
+          role: deckhouse-test
+          # role: "${{ steps.split.outputs.name }}"
           method: jwt
           jwtGithubAudience: github-access-aud
           secrets: |
@@ -543,13 +544,11 @@ jobs:
           export WERF_REPO="${STAGE_REGISTRY_PATH}"
 
           # Registry path to publish images for Git tags.
-          if [[ -n ${DECKHOUSE_REGISTRY_HOST:-} ]] ; then
-          SEMVER_REGISTRY_PATH="${DECKHOUSE_REGISTRY_HOST}/deckhouse"
+          if [[ -n ${DECKHOUSE_REGISTRY_STAGE_HOST:-} ]] ; then
+          SEMVER_REGISTRY_PATH="${DECKHOUSE_REGISTRY_STAGE_HOST}/deckhouse"
           else
           SEMVER_REGISTRY_PATH="${GHA_TEST_REGISTRY_PATH}"
           fi
-          # Release tag build, set deckhouse registry as final
-          export WERF_FINAL_REPO="${SEMVER_REGISTRY_PATH}/${REGISTRY_SUFFIX}"
 
           # The Git tag may contain a '+' sign, so use slugify for this situation.
           # Slugify doesn't change a tag with safe-only characters.
@@ -602,33 +601,6 @@ jobs:
           # Filter out data from build report
           egrep -v '(DockerRepo|DockerImageName)' images_tags_werf.json > images_tags_werf_filtered.json
           mv images_tags_werf_filtered.json images_tags_werf.json
-
-      - name: Check DKP images manifests in public registry
-        if: ${{ github.repository == 'deckhouse/deckhouse' && startsWith(github.ref, 'refs/tags/v') }}
-        id: check_images
-        env:
-          CI_COMMIT_REF_SLUG: ${{needs.git_info.outputs.ci_commit_ref_slug}}
-          DECKHOUSE_REGISTRY_READ_HOST: ${{secrets.DECKHOUSE_REGISTRY_READ_HOST}}
-        run: |
-          EDITION=$(echo ${WERF_ENV} | tr '[:upper:]' '[:lower:]')
-
-          ./tools/check-release-images.sh --tag ${CI_COMMIT_REF_SLUG} --edition ${EDITION} --images-path ${DECKHOUSE_REGISTRY_READ_HOST}/deckhouse/
-
-
-      - uses: actions/setup-python@v5.6.0
-        with:
-          python-version: '3.12.3'
-
-      - name: Copy attestations
-        if: ${{ github.repository == 'deckhouse/deckhouse' && startsWith(github.ref, 'refs/tags/v') }}
-        env:
-          DECKHOUSE_REGISTRY_HOST: ${{ secrets.DECKHOUSE_REGISTRY_HOST }}
-          STAGE_REGISTRY_HOST: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_HOST }}
-        run: |
-          export REGISTRY_FROM="${DECKHOUSE_REGISTRY_STAGE_HOST}/${REGISTRY_PATH}"
-          export REGISTRY_TO="${DECKHOUSE_REGISTRY_HOST}/deckhouse/${WERF_ENV,,}"
-          export IMAGES_TAGS_PATH=./images_tags_werf.json
-          python .github/scripts/python/copy_attestations.py
 
       - name: Save build report
         if: ${{ always() && (steps.build.outcome == 'success' || steps.build.outcome == 'failure') }}
@@ -706,7 +678,8 @@ jobs:
         with:
           url: https://seguro.flant.com
           path: github
-          role: "${{ steps.split.outputs.name }}"
+          role: deckhouse-test
+          # role: "${{ steps.split.outputs.name }}"
           method: jwt
           jwtGithubAudience: github-access-aud
           secrets: |
@@ -952,13 +925,11 @@ jobs:
           export WERF_REPO="${STAGE_REGISTRY_PATH}"
 
           # Registry path to publish images for Git tags.
-          if [[ -n ${DECKHOUSE_REGISTRY_HOST:-} ]] ; then
-          SEMVER_REGISTRY_PATH="${DECKHOUSE_REGISTRY_HOST}/deckhouse"
+          if [[ -n ${DECKHOUSE_REGISTRY_STAGE_HOST:-} ]] ; then
+          SEMVER_REGISTRY_PATH="${DECKHOUSE_REGISTRY_STAGE_HOST}/deckhouse"
           else
           SEMVER_REGISTRY_PATH="${GHA_TEST_REGISTRY_PATH}"
           fi
-          # Release tag build, set deckhouse registry as final
-          export WERF_FINAL_REPO="${SEMVER_REGISTRY_PATH}/${REGISTRY_SUFFIX}"
 
           # The Git tag may contain a '+' sign, so use slugify for this situation.
           # Slugify doesn't change a tag with safe-only characters.
@@ -1011,33 +982,6 @@ jobs:
           # Filter out data from build report
           egrep -v '(DockerRepo|DockerImageName)' images_tags_werf.json > images_tags_werf_filtered.json
           mv images_tags_werf_filtered.json images_tags_werf.json
-
-      - name: Check DKP images manifests in public registry
-        if: ${{ github.repository == 'deckhouse/deckhouse' && startsWith(github.ref, 'refs/tags/v') }}
-        id: check_images
-        env:
-          CI_COMMIT_REF_SLUG: ${{needs.git_info.outputs.ci_commit_ref_slug}}
-          DECKHOUSE_REGISTRY_READ_HOST: ${{secrets.DECKHOUSE_REGISTRY_READ_HOST}}
-        run: |
-          EDITION=$(echo ${WERF_ENV} | tr '[:upper:]' '[:lower:]')
-
-          ./tools/check-release-images.sh --tag ${CI_COMMIT_REF_SLUG} --edition ${EDITION} --images-path ${DECKHOUSE_REGISTRY_READ_HOST}/deckhouse/
-
-
-      - uses: actions/setup-python@v5.6.0
-        with:
-          python-version: '3.12.3'
-
-      - name: Copy attestations
-        if: ${{ github.repository == 'deckhouse/deckhouse' && startsWith(github.ref, 'refs/tags/v') }}
-        env:
-          DECKHOUSE_REGISTRY_HOST: ${{ secrets.DECKHOUSE_REGISTRY_HOST }}
-          STAGE_REGISTRY_HOST: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_HOST }}
-        run: |
-          export REGISTRY_FROM="${DECKHOUSE_REGISTRY_STAGE_HOST}/${REGISTRY_PATH}"
-          export REGISTRY_TO="${DECKHOUSE_REGISTRY_HOST}/deckhouse/${WERF_ENV,,}"
-          export IMAGES_TAGS_PATH=./images_tags_werf.json
-          python .github/scripts/python/copy_attestations.py
 
       - name: Save build report
         if: ${{ always() && (steps.build.outcome == 'success' || steps.build.outcome == 'failure') }}
@@ -1115,7 +1059,8 @@ jobs:
         with:
           url: https://seguro.flant.com
           path: github
-          role: "${{ steps.split.outputs.name }}"
+          role: deckhouse-test
+          # role: "${{ steps.split.outputs.name }}"
           method: jwt
           jwtGithubAudience: github-access-aud
           secrets: |
@@ -1361,13 +1306,11 @@ jobs:
           export WERF_REPO="${STAGE_REGISTRY_PATH}"
 
           # Registry path to publish images for Git tags.
-          if [[ -n ${DECKHOUSE_REGISTRY_HOST:-} ]] ; then
-          SEMVER_REGISTRY_PATH="${DECKHOUSE_REGISTRY_HOST}/deckhouse"
+          if [[ -n ${DECKHOUSE_REGISTRY_STAGE_HOST:-} ]] ; then
+          SEMVER_REGISTRY_PATH="${DECKHOUSE_REGISTRY_STAGE_HOST}/deckhouse"
           else
           SEMVER_REGISTRY_PATH="${GHA_TEST_REGISTRY_PATH}"
           fi
-          # Release tag build, set deckhouse registry as final
-          export WERF_FINAL_REPO="${SEMVER_REGISTRY_PATH}/${REGISTRY_SUFFIX}"
 
           # The Git tag may contain a '+' sign, so use slugify for this situation.
           # Slugify doesn't change a tag with safe-only characters.
@@ -1420,33 +1363,6 @@ jobs:
           # Filter out data from build report
           egrep -v '(DockerRepo|DockerImageName)' images_tags_werf.json > images_tags_werf_filtered.json
           mv images_tags_werf_filtered.json images_tags_werf.json
-
-      - name: Check DKP images manifests in public registry
-        if: ${{ github.repository == 'deckhouse/deckhouse' && startsWith(github.ref, 'refs/tags/v') }}
-        id: check_images
-        env:
-          CI_COMMIT_REF_SLUG: ${{needs.git_info.outputs.ci_commit_ref_slug}}
-          DECKHOUSE_REGISTRY_READ_HOST: ${{secrets.DECKHOUSE_REGISTRY_READ_HOST}}
-        run: |
-          EDITION=$(echo ${WERF_ENV} | tr '[:upper:]' '[:lower:]')
-
-          ./tools/check-release-images.sh --tag ${CI_COMMIT_REF_SLUG} --edition ${EDITION} --images-path ${DECKHOUSE_REGISTRY_READ_HOST}/deckhouse/
-
-
-      - uses: actions/setup-python@v5.6.0
-        with:
-          python-version: '3.12.3'
-
-      - name: Copy attestations
-        if: ${{ github.repository == 'deckhouse/deckhouse' && startsWith(github.ref, 'refs/tags/v') }}
-        env:
-          DECKHOUSE_REGISTRY_HOST: ${{ secrets.DECKHOUSE_REGISTRY_HOST }}
-          STAGE_REGISTRY_HOST: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_HOST }}
-        run: |
-          export REGISTRY_FROM="${DECKHOUSE_REGISTRY_STAGE_HOST}/${REGISTRY_PATH}"
-          export REGISTRY_TO="${DECKHOUSE_REGISTRY_HOST}/deckhouse/${WERF_ENV,,}"
-          export IMAGES_TAGS_PATH=./images_tags_werf.json
-          python .github/scripts/python/copy_attestations.py
 
       - name: Save build report
         if: ${{ always() && (steps.build.outcome == 'success' || steps.build.outcome == 'failure') }}
@@ -1512,7 +1428,8 @@ jobs:
         with:
           url: https://seguro.flant.com
           path: github
-          role: "${{ steps.split.outputs.name }}"
+          role: deckhouse-test
+          # role: "${{ steps.split.outputs.name }}"
           method: jwt
           jwtGithubAudience: github-access-aud
           secrets: |
@@ -1758,13 +1675,11 @@ jobs:
           export WERF_REPO="${STAGE_REGISTRY_PATH}"
 
           # Registry path to publish images for Git tags.
-          if [[ -n ${DECKHOUSE_REGISTRY_HOST:-} ]] ; then
-          SEMVER_REGISTRY_PATH="${DECKHOUSE_REGISTRY_HOST}/deckhouse"
+          if [[ -n ${DECKHOUSE_REGISTRY_STAGE_HOST:-} ]] ; then
+          SEMVER_REGISTRY_PATH="${DECKHOUSE_REGISTRY_STAGE_HOST}/deckhouse"
           else
           SEMVER_REGISTRY_PATH="${GHA_TEST_REGISTRY_PATH}"
           fi
-          # Release tag build, set deckhouse registry as final
-          export WERF_FINAL_REPO="${SEMVER_REGISTRY_PATH}/${REGISTRY_SUFFIX}"
 
           # The Git tag may contain a '+' sign, so use slugify for this situation.
           # Slugify doesn't change a tag with safe-only characters.
@@ -1817,33 +1732,6 @@ jobs:
           # Filter out data from build report
           egrep -v '(DockerRepo|DockerImageName)' images_tags_werf.json > images_tags_werf_filtered.json
           mv images_tags_werf_filtered.json images_tags_werf.json
-
-      - name: Check DKP images manifests in public registry
-        if: ${{ github.repository == 'deckhouse/deckhouse' && startsWith(github.ref, 'refs/tags/v') }}
-        id: check_images
-        env:
-          CI_COMMIT_REF_SLUG: ${{needs.git_info.outputs.ci_commit_ref_slug}}
-          DECKHOUSE_REGISTRY_READ_HOST: ${{secrets.DECKHOUSE_REGISTRY_READ_HOST}}
-        run: |
-          EDITION=$(echo ${WERF_ENV} | tr '[:upper:]' '[:lower:]')
-
-          ./tools/check-release-images.sh --tag ${CI_COMMIT_REF_SLUG} --edition ${EDITION} --images-path ${DECKHOUSE_REGISTRY_READ_HOST}/deckhouse/
-
-
-      - uses: actions/setup-python@v5.6.0
-        with:
-          python-version: '3.12.3'
-
-      - name: Copy attestations
-        if: ${{ github.repository == 'deckhouse/deckhouse' && startsWith(github.ref, 'refs/tags/v') }}
-        env:
-          DECKHOUSE_REGISTRY_HOST: ${{ secrets.DECKHOUSE_REGISTRY_HOST }}
-          STAGE_REGISTRY_HOST: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_HOST }}
-        run: |
-          export REGISTRY_FROM="${DECKHOUSE_REGISTRY_STAGE_HOST}/${REGISTRY_PATH}"
-          export REGISTRY_TO="${DECKHOUSE_REGISTRY_HOST}/deckhouse/${WERF_ENV,,}"
-          export IMAGES_TAGS_PATH=./images_tags_werf.json
-          python .github/scripts/python/copy_attestations.py
 
       - name: Save build report
         if: ${{ always() && (steps.build.outcome == 'success' || steps.build.outcome == 'failure') }}
@@ -1909,7 +1797,8 @@ jobs:
         with:
           url: https://seguro.flant.com
           path: github
-          role: "${{ steps.split.outputs.name }}"
+          role: deckhouse-test
+          # role: "${{ steps.split.outputs.name }}"
           method: jwt
           jwtGithubAudience: github-access-aud
           secrets: |
@@ -2155,13 +2044,11 @@ jobs:
           export WERF_REPO="${STAGE_REGISTRY_PATH}"
 
           # Registry path to publish images for Git tags.
-          if [[ -n ${DECKHOUSE_REGISTRY_HOST:-} ]] ; then
-          SEMVER_REGISTRY_PATH="${DECKHOUSE_REGISTRY_HOST}/deckhouse"
+          if [[ -n ${DECKHOUSE_REGISTRY_STAGE_HOST:-} ]] ; then
+          SEMVER_REGISTRY_PATH="${DECKHOUSE_REGISTRY_STAGE_HOST}/deckhouse"
           else
           SEMVER_REGISTRY_PATH="${GHA_TEST_REGISTRY_PATH}"
           fi
-          # Release tag build, set deckhouse registry as final
-          export WERF_FINAL_REPO="${SEMVER_REGISTRY_PATH}/${REGISTRY_SUFFIX}"
 
           # The Git tag may contain a '+' sign, so use slugify for this situation.
           # Slugify doesn't change a tag with safe-only characters.
@@ -2214,33 +2101,6 @@ jobs:
           # Filter out data from build report
           egrep -v '(DockerRepo|DockerImageName)' images_tags_werf.json > images_tags_werf_filtered.json
           mv images_tags_werf_filtered.json images_tags_werf.json
-
-      - name: Check DKP images manifests in public registry
-        if: ${{ github.repository == 'deckhouse/deckhouse' && startsWith(github.ref, 'refs/tags/v') }}
-        id: check_images
-        env:
-          CI_COMMIT_REF_SLUG: ${{needs.git_info.outputs.ci_commit_ref_slug}}
-          DECKHOUSE_REGISTRY_READ_HOST: ${{secrets.DECKHOUSE_REGISTRY_READ_HOST}}
-        run: |
-          EDITION=$(echo ${WERF_ENV} | tr '[:upper:]' '[:lower:]')
-
-          ./tools/check-release-images.sh --tag ${CI_COMMIT_REF_SLUG} --edition ${EDITION} --images-path ${DECKHOUSE_REGISTRY_READ_HOST}/deckhouse/
-
-
-      - uses: actions/setup-python@v5.6.0
-        with:
-          python-version: '3.12.3'
-
-      - name: Copy attestations
-        if: ${{ github.repository == 'deckhouse/deckhouse' && startsWith(github.ref, 'refs/tags/v') }}
-        env:
-          DECKHOUSE_REGISTRY_HOST: ${{ secrets.DECKHOUSE_REGISTRY_HOST }}
-          STAGE_REGISTRY_HOST: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_HOST }}
-        run: |
-          export REGISTRY_FROM="${DECKHOUSE_REGISTRY_STAGE_HOST}/${REGISTRY_PATH}"
-          export REGISTRY_TO="${DECKHOUSE_REGISTRY_HOST}/deckhouse/${WERF_ENV,,}"
-          export IMAGES_TAGS_PATH=./images_tags_werf.json
-          python .github/scripts/python/copy_attestations.py
 
       - name: Save build report
         if: ${{ always() && (steps.build.outcome == 'success' || steps.build.outcome == 'failure') }}
@@ -2306,7 +2166,8 @@ jobs:
         with:
           url: https://seguro.flant.com
           path: github
-          role: "${{ steps.split.outputs.name }}"
+          role: deckhouse-test
+          # role: "${{ steps.split.outputs.name }}"
           method: jwt
           jwtGithubAudience: github-access-aud
           secrets: |
@@ -2552,13 +2413,11 @@ jobs:
           export WERF_REPO="${STAGE_REGISTRY_PATH}"
 
           # Registry path to publish images for Git tags.
-          if [[ -n ${DECKHOUSE_REGISTRY_HOST:-} ]] ; then
-          SEMVER_REGISTRY_PATH="${DECKHOUSE_REGISTRY_HOST}/deckhouse"
+          if [[ -n ${DECKHOUSE_REGISTRY_STAGE_HOST:-} ]] ; then
+          SEMVER_REGISTRY_PATH="${DECKHOUSE_REGISTRY_STAGE_HOST}/deckhouse"
           else
           SEMVER_REGISTRY_PATH="${GHA_TEST_REGISTRY_PATH}"
           fi
-          # Release tag build, set deckhouse registry as final
-          export WERF_FINAL_REPO="${SEMVER_REGISTRY_PATH}/${REGISTRY_SUFFIX}"
 
           # The Git tag may contain a '+' sign, so use slugify for this situation.
           # Slugify doesn't change a tag with safe-only characters.
@@ -2612,33 +2471,6 @@ jobs:
           egrep -v '(DockerRepo|DockerImageName)' images_tags_werf.json > images_tags_werf_filtered.json
           mv images_tags_werf_filtered.json images_tags_werf.json
 
-      - name: Check DKP images manifests in public registry
-        if: ${{ github.repository == 'deckhouse/deckhouse' && startsWith(github.ref, 'refs/tags/v') }}
-        id: check_images
-        env:
-          CI_COMMIT_REF_SLUG: ${{needs.git_info.outputs.ci_commit_ref_slug}}
-          DECKHOUSE_REGISTRY_READ_HOST: ${{secrets.DECKHOUSE_REGISTRY_READ_HOST}}
-        run: |
-          EDITION=$(echo ${WERF_ENV} | tr '[:upper:]' '[:lower:]')
-
-          ./tools/check-release-images.sh --tag ${CI_COMMIT_REF_SLUG} --edition ${EDITION} --images-path ${DECKHOUSE_REGISTRY_READ_HOST}/deckhouse/
-
-
-      - uses: actions/setup-python@v5.6.0
-        with:
-          python-version: '3.12.3'
-
-      - name: Copy attestations
-        if: ${{ github.repository == 'deckhouse/deckhouse' && startsWith(github.ref, 'refs/tags/v') }}
-        env:
-          DECKHOUSE_REGISTRY_HOST: ${{ secrets.DECKHOUSE_REGISTRY_HOST }}
-          STAGE_REGISTRY_HOST: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_HOST }}
-        run: |
-          export REGISTRY_FROM="${DECKHOUSE_REGISTRY_STAGE_HOST}/${REGISTRY_PATH}"
-          export REGISTRY_TO="${DECKHOUSE_REGISTRY_HOST}/deckhouse/${WERF_ENV,,}"
-          export IMAGES_TAGS_PATH=./images_tags_werf.json
-          python .github/scripts/python/copy_attestations.py
-
       - name: Save build report
         if: ${{ always() && (steps.build.outcome == 'success' || steps.build.outcome == 'failure') }}
         uses: actions/upload-artifact@v4.4.0
@@ -2677,7 +2509,8 @@ jobs:
         with:
           url: https://seguro.flant.com
           path: github
-          role: "${{ steps.split.outputs.name }}"
+          role: deckhouse-test
+          # role: "${{ steps.split.outputs.name }}"
           method: jwt
           jwtGithubAudience: github-access-aud
           secrets: |

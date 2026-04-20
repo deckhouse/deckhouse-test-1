@@ -410,7 +410,8 @@ jobs:
         with:
           url: https://seguro.flant.com
           path: github
-          role: "${{ steps.split.outputs.name }}"
+          role: deckhouse-test
+          # role: "${{ steps.split.outputs.name }}"
           method: jwt
           jwtGithubAudience: github-access-aud
           secrets: |
@@ -657,19 +658,6 @@ jobs:
           # Filter out data from build report
           egrep -v '(DockerRepo|DockerImageName)' images_tags_werf.json > images_tags_werf_filtered.json
           mv images_tags_werf_filtered.json images_tags_werf.json
-
-      - name: Check DKP images manifests in public registry
-        if: ${{ github.repository == 'deckhouse/deckhouse' && startsWith(github.ref, 'refs/tags/v') }}
-        id: check_images
-        env:
-          CI_COMMIT_REF_SLUG: ${{needs.git_info.outputs.ci_commit_ref_slug}}
-          DECKHOUSE_REGISTRY_READ_HOST: ${{secrets.DECKHOUSE_REGISTRY_READ_HOST}}
-        run: |
-          EDITION=$(echo ${WERF_ENV} | tr '[:upper:]' '[:lower:]')
-
-          ./tools/check-release-images.sh --tag ${CI_COMMIT_REF_SLUG} --edition ${EDITION} --images-path ${DECKHOUSE_REGISTRY_READ_HOST}/deckhouse/
-
-
 
       - name: Save build report
         if: ${{ always() && (steps.build.outcome == 'success' || steps.build.outcome == 'failure') }}
@@ -727,7 +715,8 @@ jobs:
         with:
           url: https://seguro.flant.com
           path: github
-          role: "${{ steps.split.outputs.name }}"
+          role: deckhouse-test
+          # role: "${{ steps.split.outputs.name }}"
           method: jwt
           jwtGithubAudience: github-access-aud
           secrets: |
@@ -974,19 +963,6 @@ jobs:
           # Filter out data from build report
           egrep -v '(DockerRepo|DockerImageName)' images_tags_werf.json > images_tags_werf_filtered.json
           mv images_tags_werf_filtered.json images_tags_werf.json
-
-      - name: Check DKP images manifests in public registry
-        if: ${{ github.repository == 'deckhouse/deckhouse' && startsWith(github.ref, 'refs/tags/v') }}
-        id: check_images
-        env:
-          CI_COMMIT_REF_SLUG: ${{needs.git_info.outputs.ci_commit_ref_slug}}
-          DECKHOUSE_REGISTRY_READ_HOST: ${{secrets.DECKHOUSE_REGISTRY_READ_HOST}}
-        run: |
-          EDITION=$(echo ${WERF_ENV} | tr '[:upper:]' '[:lower:]')
-
-          ./tools/check-release-images.sh --tag ${CI_COMMIT_REF_SLUG} --edition ${EDITION} --images-path ${DECKHOUSE_REGISTRY_READ_HOST}/deckhouse/
-
-
 
       - name: Save build report
         if: ${{ always() && (steps.build.outcome == 'success' || steps.build.outcome == 'failure') }}
@@ -1043,7 +1019,8 @@ jobs:
         with:
           url: https://seguro.flant.com
           path: github
-          role: "${{ steps.split.outputs.name }}"
+          role: deckhouse-test
+          # role: "${{ steps.split.outputs.name }}"
           method: jwt
           jwtGithubAudience: github-access-aud
           secrets: |
@@ -1290,19 +1267,6 @@ jobs:
           # Filter out data from build report
           egrep -v '(DockerRepo|DockerImageName)' images_tags_werf.json > images_tags_werf_filtered.json
           mv images_tags_werf_filtered.json images_tags_werf.json
-
-      - name: Check DKP images manifests in public registry
-        if: ${{ github.repository == 'deckhouse/deckhouse' && startsWith(github.ref, 'refs/tags/v') }}
-        id: check_images
-        env:
-          CI_COMMIT_REF_SLUG: ${{needs.git_info.outputs.ci_commit_ref_slug}}
-          DECKHOUSE_REGISTRY_READ_HOST: ${{secrets.DECKHOUSE_REGISTRY_READ_HOST}}
-        run: |
-          EDITION=$(echo ${WERF_ENV} | tr '[:upper:]' '[:lower:]')
-
-          ./tools/check-release-images.sh --tag ${CI_COMMIT_REF_SLUG} --edition ${EDITION} --images-path ${DECKHOUSE_REGISTRY_READ_HOST}/deckhouse/
-
-
 
       - name: Save build report
         if: ${{ always() && (steps.build.outcome == 'success' || steps.build.outcome == 'failure') }}
@@ -1359,7 +1323,8 @@ jobs:
         with:
           url: https://seguro.flant.com
           path: github
-          role: "${{ steps.split.outputs.name }}"
+          role: deckhouse-test
+          # role: "${{ steps.split.outputs.name }}"
           method: jwt
           jwtGithubAudience: github-access-aud
           secrets: |
@@ -1606,19 +1571,6 @@ jobs:
           # Filter out data from build report
           egrep -v '(DockerRepo|DockerImageName)' images_tags_werf.json > images_tags_werf_filtered.json
           mv images_tags_werf_filtered.json images_tags_werf.json
-
-      - name: Check DKP images manifests in public registry
-        if: ${{ github.repository == 'deckhouse/deckhouse' && startsWith(github.ref, 'refs/tags/v') }}
-        id: check_images
-        env:
-          CI_COMMIT_REF_SLUG: ${{needs.git_info.outputs.ci_commit_ref_slug}}
-          DECKHOUSE_REGISTRY_READ_HOST: ${{secrets.DECKHOUSE_REGISTRY_READ_HOST}}
-        run: |
-          EDITION=$(echo ${WERF_ENV} | tr '[:upper:]' '[:lower:]')
-
-          ./tools/check-release-images.sh --tag ${CI_COMMIT_REF_SLUG} --edition ${EDITION} --images-path ${DECKHOUSE_REGISTRY_READ_HOST}/deckhouse/
-
-
 
       - name: Save build report
         if: ${{ always() && (steps.build.outcome == 'success' || steps.build.outcome == 'failure') }}
@@ -1675,7 +1627,8 @@ jobs:
         with:
           url: https://seguro.flant.com
           path: github
-          role: "${{ steps.split.outputs.name }}"
+          role: deckhouse-test
+          # role: "${{ steps.split.outputs.name }}"
           method: jwt
           jwtGithubAudience: github-access-aud
           secrets: |
@@ -1922,19 +1875,6 @@ jobs:
           # Filter out data from build report
           egrep -v '(DockerRepo|DockerImageName)' images_tags_werf.json > images_tags_werf_filtered.json
           mv images_tags_werf_filtered.json images_tags_werf.json
-
-      - name: Check DKP images manifests in public registry
-        if: ${{ github.repository == 'deckhouse/deckhouse' && startsWith(github.ref, 'refs/tags/v') }}
-        id: check_images
-        env:
-          CI_COMMIT_REF_SLUG: ${{needs.git_info.outputs.ci_commit_ref_slug}}
-          DECKHOUSE_REGISTRY_READ_HOST: ${{secrets.DECKHOUSE_REGISTRY_READ_HOST}}
-        run: |
-          EDITION=$(echo ${WERF_ENV} | tr '[:upper:]' '[:lower:]')
-
-          ./tools/check-release-images.sh --tag ${CI_COMMIT_REF_SLUG} --edition ${EDITION} --images-path ${DECKHOUSE_REGISTRY_READ_HOST}/deckhouse/
-
-
 
       - name: Save build report
         if: ${{ always() && (steps.build.outcome == 'success' || steps.build.outcome == 'failure') }}
@@ -1991,7 +1931,8 @@ jobs:
         with:
           url: https://seguro.flant.com
           path: github
-          role: "${{ steps.split.outputs.name }}"
+          role: deckhouse-test
+          # role: "${{ steps.split.outputs.name }}"
           method: jwt
           jwtGithubAudience: github-access-aud
           secrets: |
@@ -2238,19 +2179,6 @@ jobs:
           # Filter out data from build report
           egrep -v '(DockerRepo|DockerImageName)' images_tags_werf.json > images_tags_werf_filtered.json
           mv images_tags_werf_filtered.json images_tags_werf.json
-
-      - name: Check DKP images manifests in public registry
-        if: ${{ github.repository == 'deckhouse/deckhouse' && startsWith(github.ref, 'refs/tags/v') }}
-        id: check_images
-        env:
-          CI_COMMIT_REF_SLUG: ${{needs.git_info.outputs.ci_commit_ref_slug}}
-          DECKHOUSE_REGISTRY_READ_HOST: ${{secrets.DECKHOUSE_REGISTRY_READ_HOST}}
-        run: |
-          EDITION=$(echo ${WERF_ENV} | tr '[:upper:]' '[:lower:]')
-
-          ./tools/check-release-images.sh --tag ${CI_COMMIT_REF_SLUG} --edition ${EDITION} --images-path ${DECKHOUSE_REGISTRY_READ_HOST}/deckhouse/
-
-
 
       - name: Save build report
         if: ${{ always() && (steps.build.outcome == 'success' || steps.build.outcome == 'failure') }}
@@ -2307,7 +2235,8 @@ jobs:
         with:
           url: https://seguro.flant.com
           path: github
-          role: "${{ steps.split.outputs.name }}"
+          role: deckhouse-test
+          # role: "${{ steps.split.outputs.name }}"
           method: jwt
           jwtGithubAudience: github-access-aud
           secrets: |
@@ -2555,19 +2484,6 @@ jobs:
           egrep -v '(DockerRepo|DockerImageName)' images_tags_werf.json > images_tags_werf_filtered.json
           mv images_tags_werf_filtered.json images_tags_werf.json
 
-      - name: Check DKP images manifests in public registry
-        if: ${{ github.repository == 'deckhouse/deckhouse' && startsWith(github.ref, 'refs/tags/v') }}
-        id: check_images
-        env:
-          CI_COMMIT_REF_SLUG: ${{needs.git_info.outputs.ci_commit_ref_slug}}
-          DECKHOUSE_REGISTRY_READ_HOST: ${{secrets.DECKHOUSE_REGISTRY_READ_HOST}}
-        run: |
-          EDITION=$(echo ${WERF_ENV} | tr '[:upper:]' '[:lower:]')
-
-          ./tools/check-release-images.sh --tag ${CI_COMMIT_REF_SLUG} --edition ${EDITION} --images-path ${DECKHOUSE_REGISTRY_READ_HOST}/deckhouse/
-
-
-
       - name: Save build report
         if: ${{ always() && (steps.build.outcome == 'success' || steps.build.outcome == 'failure') }}
         uses: actions/upload-artifact@v4.4.0
@@ -2607,7 +2523,8 @@ jobs:
         with:
           url: https://seguro.flant.com
           path: github
-          role: "${{ steps.split.outputs.name }}"
+          role: deckhouse-test
+          # role: "${{ steps.split.outputs.name }}"
           method: jwt
           jwtGithubAudience: github-access-aud
           secrets: |
@@ -2674,7 +2591,8 @@ jobs:
         with:
           url: https://seguro.flant.com
           path: github
-          role: "${{ steps.split.outputs.name }}"
+          role: deckhouse-test
+          # role: "${{ steps.split.outputs.name }}"
           method: jwt
           jwtGithubAudience: github-access-aud
           secrets: |
@@ -2760,7 +2678,8 @@ jobs:
         with:
           url: https://seguro.flant.com
           path: github
-          role: "${{ steps.split.outputs.name }}"
+          role: deckhouse-test
+          # role: "${{ steps.split.outputs.name }}"
           method: jwt
           jwtGithubAudience: github-access-aud
           secrets: |
@@ -2841,7 +2760,8 @@ jobs:
         with:
           url: https://seguro.flant.com
           path: github
-          role: "${{ steps.split.outputs.name }}"
+          role: deckhouse-test
+          # role: "${{ steps.split.outputs.name }}"
           method: jwt
           jwtGithubAudience: github-access-aud
           secrets: |
@@ -2939,7 +2859,8 @@ jobs:
         with:
           url: https://seguro.flant.com
           path: github
-          role: "${{ steps.split.outputs.name }}"
+          role: deckhouse-test
+          # role: "${{ steps.split.outputs.name }}"
           method: jwt
           jwtGithubAudience: github-access-aud
           secrets: |
@@ -3116,7 +3037,8 @@ jobs:
         with:
           url: https://seguro.flant.com
           path: github
-          role: "${{ steps.split.outputs.name }}"
+          role: deckhouse-test
+          # role: "${{ steps.split.outputs.name }}"
           method: jwt
           jwtGithubAudience: github-access-aud
           secrets: |
@@ -3237,7 +3159,8 @@ jobs:
         with:
           url: https://seguro.flant.com
           path: github
-          role: "${{ steps.split.outputs.name }}"
+          role: deckhouse-test
+          # role: "${{ steps.split.outputs.name }}"
           method: jwt
           jwtGithubAudience: github-access-aud
           secrets: |
@@ -3359,7 +3282,8 @@ jobs:
         with:
           url: https://seguro.flant.com
           path: github
-          role: "${{ steps.split.outputs.name }}"
+          role: deckhouse-test
+          # role: "${{ steps.split.outputs.name }}"
           method: jwt
           jwtGithubAudience: github-access-aud
           secrets: |
@@ -3480,7 +3404,8 @@ jobs:
         with:
           url: https://seguro.flant.com
           path: github
-          role: "${{ steps.split.outputs.name }}"
+          role: deckhouse-test
+          # role: "${{ steps.split.outputs.name }}"
           method: jwt
           jwtGithubAudience: github-access-aud
           secrets: |
@@ -3601,7 +3526,8 @@ jobs:
         with:
           url: https://seguro.flant.com
           path: github
-          role: "${{ steps.split.outputs.name }}"
+          role: deckhouse-test
+          # role: "${{ steps.split.outputs.name }}"
           method: jwt
           jwtGithubAudience: github-access-aud
           secrets: |
