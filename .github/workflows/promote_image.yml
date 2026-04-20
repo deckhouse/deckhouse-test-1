@@ -82,9 +82,9 @@ jobs:
           EDITIONS: ${{ github.event.inputs.editions || '' }}
         run: |
           echo "Promote editions filter: '${EDITIONS}' (empty => all)"
-
+          #
           RESTRICTED=no
-
+          #
           for edition in CE EE FE BE SE SE-plus ; do
             if grep -i ",${edition}," <<<",${EDITIONS}," 2>/dev/null 1>&2 ; then
               echo "  - enable promote of ${edition} edition."
@@ -92,7 +92,7 @@ jobs:
               RESTRICTED=yes
             fi
           done
-
+          #
           if [[ $RESTRICTED == "no" ]] ; then
             echo "No restrictions. Enable promote for all editions."
             for edition in CE EE FE BE SE SE-plus ; do
@@ -100,17 +100,15 @@ jobs:
             done
           fi
 
-  promote_ce:
-    name: Promote CE
+  run_promote:
+    name: Promote images to prod
     needs:
       - detect_editions
-    if: ${{ needs.detect_editions.outputs.PROMOTE_CE == 'true' }}
     runs-on: [self-hosted, stage]
     env:
-      WERF_ENV: CE
       CI_COMMIT_TAG: ${{ github.ref_name }}
     steps:
-      # <template: promote_image_steps>
+      # <template: promote_image_setup_steps>
 
           # </template: docker-config-isolation>
           - name: Isolate docker config
@@ -169,26 +167,30 @@ jobs:
             with:
               version: ${{env.WERF_VERSION}}
           # </template: werf_install_step>
+      # </template: promote_image_setup_steps>
 
-          - name: Copy attestations
-            if: ${{ github.repository == 'deckhouse/deckhouse-test-1' && startsWith(github.ref, 'refs/tags/v') }}
+
+          - name: Copy attestations (CE)
+            if: ${{ needs.detect_editions.outputs['PROMOTE_CE'] == 'true' && github.repository == 'deckhouse/deckhouse-test-1' && startsWith(github.ref, 'refs/tags/v') }}
             env:
+              WERF_ENV: CE
               STAGE_REGISTRY_HOST: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_HOST }}
+              CI_COMMIT_TAG: ${{ github.ref_name }}
             run: |
               set -euo pipefail
-
+              #
               REGISTRY_SUFFIX=$(echo "${WERF_ENV}" | tr '[:upper:]' '[:lower:]')
               IMAGE_TAG=$(werf slugify --format docker-tag "${CI_COMMIT_TAG}")
               STAGE_PATH="${STAGE_REGISTRY_HOST}/deckhouse/${REGISTRY_SUFFIX}"
               PROD_PATH="${STAGE_REGISTRY_HOST}/deckhouse/promote-test/${REGISTRY_SUFFIX}"
-
+              #
               DIGESTS_JSON="images_digests-att.json"
-
+              #
               if ! regctl image get-file "${STAGE_PATH}/install:${IMAGE_TAG}" /deckhouse/candi/images_digests.json > "${DIGESTS_JSON}" 2>/dev/null; then
                 echo "⚠️ [$(date -u)] Could not read /deckhouse/candi/images_digests.json from '${STAGE_PATH}/install:${IMAGE_TAG}', skipping digest attestations copy"
                 exit 0
               fi
-
+              #
               STAGE_OSS="${STAGE_REGISTRY_HOST}/sys/deckhouse-oss"
               while IFS= read -r IMG_DIGEST; do
                 [[ -z "${IMG_DIGEST}" ]] && continue
@@ -200,25 +202,26 @@ jobs:
                   regctl image copy "${SRC_ATT}" "${DST_ATT}"
                 fi
               done < <(jq -r '[.. | strings | select(test("^sha256:[a-f0-9]{64}$"))] | unique | .[]' "${DIGESTS_JSON}")
-
+              #
               rm -rf ${DIGESTS_JSON}
 
-
-          - name: Promote images from stage to prod
-            if: ${{ github.repository == 'deckhouse/deckhouse-test-1' && startsWith(github.ref, 'refs/tags/v') }}
+          - name: Promote images from stage to prod (CE)
+            if: ${{ needs.detect_editions.outputs['PROMOTE_CE'] == 'true' && github.repository == 'deckhouse/deckhouse-test-1' && startsWith(github.ref, 'refs/tags/v') }}
             env:
+              WERF_ENV: CE
               STAGE_REGISTRY_HOST: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_HOST }}
+              CI_COMMIT_TAG: ${{ github.ref_name }}
             run: |
               set -euo pipefail
-
+              #
               # CE/EE/FE -> ce/ee/fe
               REGISTRY_SUFFIX=$(echo "${WERF_ENV}" | tr '[:upper:]' '[:lower:]')
-
+              #
               IMAGE_TAG=$(werf slugify --format docker-tag "${CI_COMMIT_TAG}")
-
+              #
               STAGE_PATH="${STAGE_REGISTRY_HOST}/deckhouse/${REGISTRY_SUFFIX}"
               PROD_PATH="${STAGE_REGISTRY_HOST}/deckhouse/promote-test/${REGISTRY_SUFFIX}"
-
+              #
               promote_with_att() {
                 local SUBPATH="$1"
                 local REPO_SRC REPO_DST SRC DST
@@ -242,14 +245,14 @@ jobs:
                   echo "⚓️ 💫 [$(date -u)] Attestation for '${REPO_SRC}' not found, skipping..."
                 fi
               }
-
+              #
               promote_with_att ""
               promote_with_att "install"
               promote_with_att "install-standalone"
               promote_with_att "release-channel"
-
+              #
               DIGESTS_JSON="images_digests-promote.json"
-
+              #
               # Promote from images_digests.json
               if regctl image get-file "${STAGE_PATH}/install:${IMAGE_TAG}" /deckhouse/candi/images_digests.json > "${DIGESTS_JSON}" 2>/dev/null; then
                 echo "⚓️ 💫 [$(date -u)] Promoting component images from images_digests.json (by digest)"
@@ -265,110 +268,41 @@ jobs:
               else
                 echo "⚠️ [$(date -u)] Could not read /deckhouse/candi/images_digests.json from '${STAGE_PATH}/install:${IMAGE_TAG}', skipping digest-based promotion"
               fi
-
-          - name: Check DKP images manifests in public registry
-            if: ${{ github.repository == 'deckhouse/deckhouse-test-1' && startsWith(github.ref, 'refs/tags/v') }}
-            id: check_images
+              #
+          - name: Check DKP images manifests in public registry (CE)
+            if: ${{ needs.detect_editions.outputs['PROMOTE_CE'] == 'true' && github.repository == 'deckhouse/deckhouse-test-1' && startsWith(github.ref, 'refs/tags/v') }}
             env:
-              CI_COMMIT_REF_SLUG: ${{needs.git_info.outputs.ci_commit_ref_slug}}
+              WERF_ENV: CE
+              CI_COMMIT_REF_SLUG: ${{ github.ref_name }}
               STAGE_REGISTRY_HOST: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_HOST }}
             run: |
               EDITION=$(echo ${WERF_ENV} | tr '[:upper:]' '[:lower:]')
-
+              #
               ./tools/check-release-images.sh --tag ${CI_COMMIT_REF_SLUG} --edition ${EDITION} --images-path ${STAGE_REGISTRY_HOST}/deckhouse/promote-test/
 
-      # </template: promote_image_steps>
 
 
-  promote_ee:
-    name: Promote EE
-    needs:
-      - detect_editions
-    if: ${{ needs.detect_editions.outputs.PROMOTE_EE == 'true' }}
-    runs-on: [self-hosted, stage]
-    env:
-      WERF_ENV: EE
-      CI_COMMIT_TAG: ${{ github.ref_name }}
-    steps:
-      # <template: promote_image_steps>
-
-          # </template: docker-config-isolation>
-          - name: Isolate docker config
-            id: docker-config-isolation
-            run: |
-              mkdir -p $RUNNER_TEMP/.docker
-              echo "DOCKER_CONFIG=$RUNNER_TEMP/.docker" >> $GITHUB_ENV
-
-          # </template: docker_config_isolation>
-          # <template: import_secrets>
-          - name: Split repository name
-            id: split
+          - name: Copy attestations (EE)
+            if: ${{ needs.detect_editions.outputs['PROMOTE_EE'] == 'true' && github.repository == 'deckhouse/deckhouse-test-1' && startsWith(github.ref, 'refs/tags/v') }}
             env:
-              REPO: ${{ github.repository }}
-            run: echo "name=${REPO##*/}" >> $GITHUB_OUTPUT
-          - name: Import secrets
-            id: secrets
-            uses: hashicorp/vault-action@v2
-            with:
-              url: https://seguro.flant.com
-              path: github
-              role: deckhouse-test
-              # role: "${{ steps.split.outputs.name }}"
-              method: jwt
-              jwtGithubAudience: github-access-aud
-              secrets: |
-                projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/github/registry_host DECKHOUSE_REGISTRY_STAGE_HOST | DECKHOUSE_REGISTRY_STAGE_HOST ;
-                projects/data/101ceaca-97cd-462f-aed5-070d9b9de175/stage-registry/writetoken login | DECKHOUSE_REGISTRY_STAGE_USER ;
-                projects/data/101ceaca-97cd-462f-aed5-070d9b9de175/stage-registry/writetoken password | DECKHOUSE_REGISTRY_STAGE_PASSWORD ;
-
-          # </template: import_secrets>
-
-          # <template: login_stage_registry_step>
-          - name: Check stage registry credentials
-            id: check_stage_registry
-            env:
-              HOST: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_HOST }}
-            run: |
-              if [[ -n $HOST ]]; then
-                echo "has_credentials=true" >> $GITHUB_OUTPUT
-                echo "web_registry_path=${{secrets.DECKHOUSE_REGISTRY_STAGE_HOST }}/deckhouse/site" >> $GITHUB_OUTPUT
-              fi
-          - name: Login to stage registry
-            uses: docker/login-action@v2.1.0
-            if: ${{ steps.check_stage_registry.outputs.has_credentials == 'true' }}
-            with:
-              registry: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_HOST }}
-              username: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_USER }}
-              password: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_PASSWORD }}
-              logout: false
-          # </template: login_stage_registry_step>
-
-          # <template: werf_install_step>
-          - name: Install werf CLI
-            uses: werf/actions/install@v2
-            with:
-              version: ${{env.WERF_VERSION}}
-          # </template: werf_install_step>
-
-          - name: Copy attestations
-            if: ${{ github.repository == 'deckhouse/deckhouse-test-1' && startsWith(github.ref, 'refs/tags/v') }}
-            env:
+              WERF_ENV: EE
               STAGE_REGISTRY_HOST: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_HOST }}
+              CI_COMMIT_TAG: ${{ github.ref_name }}
             run: |
               set -euo pipefail
-
+              #
               REGISTRY_SUFFIX=$(echo "${WERF_ENV}" | tr '[:upper:]' '[:lower:]')
               IMAGE_TAG=$(werf slugify --format docker-tag "${CI_COMMIT_TAG}")
               STAGE_PATH="${STAGE_REGISTRY_HOST}/deckhouse/${REGISTRY_SUFFIX}"
               PROD_PATH="${STAGE_REGISTRY_HOST}/deckhouse/promote-test/${REGISTRY_SUFFIX}"
-
+              #
               DIGESTS_JSON="images_digests-att.json"
-
+              #
               if ! regctl image get-file "${STAGE_PATH}/install:${IMAGE_TAG}" /deckhouse/candi/images_digests.json > "${DIGESTS_JSON}" 2>/dev/null; then
                 echo "⚠️ [$(date -u)] Could not read /deckhouse/candi/images_digests.json from '${STAGE_PATH}/install:${IMAGE_TAG}', skipping digest attestations copy"
                 exit 0
               fi
-
+              #
               STAGE_OSS="${STAGE_REGISTRY_HOST}/sys/deckhouse-oss"
               while IFS= read -r IMG_DIGEST; do
                 [[ -z "${IMG_DIGEST}" ]] && continue
@@ -380,25 +314,26 @@ jobs:
                   regctl image copy "${SRC_ATT}" "${DST_ATT}"
                 fi
               done < <(jq -r '[.. | strings | select(test("^sha256:[a-f0-9]{64}$"))] | unique | .[]' "${DIGESTS_JSON}")
-
+              #
               rm -rf ${DIGESTS_JSON}
 
-
-          - name: Promote images from stage to prod
-            if: ${{ github.repository == 'deckhouse/deckhouse-test-1' && startsWith(github.ref, 'refs/tags/v') }}
+          - name: Promote images from stage to prod (EE)
+            if: ${{ needs.detect_editions.outputs['PROMOTE_EE'] == 'true' && github.repository == 'deckhouse/deckhouse-test-1' && startsWith(github.ref, 'refs/tags/v') }}
             env:
+              WERF_ENV: EE
               STAGE_REGISTRY_HOST: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_HOST }}
+              CI_COMMIT_TAG: ${{ github.ref_name }}
             run: |
               set -euo pipefail
-
+              #
               # CE/EE/FE -> ce/ee/fe
               REGISTRY_SUFFIX=$(echo "${WERF_ENV}" | tr '[:upper:]' '[:lower:]')
-
+              #
               IMAGE_TAG=$(werf slugify --format docker-tag "${CI_COMMIT_TAG}")
-
+              #
               STAGE_PATH="${STAGE_REGISTRY_HOST}/deckhouse/${REGISTRY_SUFFIX}"
               PROD_PATH="${STAGE_REGISTRY_HOST}/deckhouse/promote-test/${REGISTRY_SUFFIX}"
-
+              #
               promote_with_att() {
                 local SUBPATH="$1"
                 local REPO_SRC REPO_DST SRC DST
@@ -422,14 +357,14 @@ jobs:
                   echo "⚓️ 💫 [$(date -u)] Attestation for '${REPO_SRC}' not found, skipping..."
                 fi
               }
-
+              #
               promote_with_att ""
               promote_with_att "install"
               promote_with_att "install-standalone"
               promote_with_att "release-channel"
-
+              #
               DIGESTS_JSON="images_digests-promote.json"
-
+              #
               # Promote from images_digests.json
               if regctl image get-file "${STAGE_PATH}/install:${IMAGE_TAG}" /deckhouse/candi/images_digests.json > "${DIGESTS_JSON}" 2>/dev/null; then
                 echo "⚓️ 💫 [$(date -u)] Promoting component images from images_digests.json (by digest)"
@@ -445,110 +380,41 @@ jobs:
               else
                 echo "⚠️ [$(date -u)] Could not read /deckhouse/candi/images_digests.json from '${STAGE_PATH}/install:${IMAGE_TAG}', skipping digest-based promotion"
               fi
-
-          - name: Check DKP images manifests in public registry
-            if: ${{ github.repository == 'deckhouse/deckhouse-test-1' && startsWith(github.ref, 'refs/tags/v') }}
-            id: check_images
+              #
+          - name: Check DKP images manifests in public registry (EE)
+            if: ${{ needs.detect_editions.outputs['PROMOTE_EE'] == 'true' && github.repository == 'deckhouse/deckhouse-test-1' && startsWith(github.ref, 'refs/tags/v') }}
             env:
-              CI_COMMIT_REF_SLUG: ${{needs.git_info.outputs.ci_commit_ref_slug}}
+              WERF_ENV: EE
+              CI_COMMIT_REF_SLUG: ${{ github.ref_name }}
               STAGE_REGISTRY_HOST: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_HOST }}
             run: |
               EDITION=$(echo ${WERF_ENV} | tr '[:upper:]' '[:lower:]')
-
+              #
               ./tools/check-release-images.sh --tag ${CI_COMMIT_REF_SLUG} --edition ${EDITION} --images-path ${STAGE_REGISTRY_HOST}/deckhouse/promote-test/
 
-      # </template: promote_image_steps>
 
 
-  promote_fe:
-    name: Promote FE
-    needs:
-      - detect_editions
-    if: ${{ needs.detect_editions.outputs.PROMOTE_FE == 'true' }}
-    runs-on: [self-hosted, stage]
-    env:
-      WERF_ENV: FE
-      CI_COMMIT_TAG: ${{ github.ref_name }}
-    steps:
-      # <template: promote_image_steps>
-
-          # </template: docker-config-isolation>
-          - name: Isolate docker config
-            id: docker-config-isolation
-            run: |
-              mkdir -p $RUNNER_TEMP/.docker
-              echo "DOCKER_CONFIG=$RUNNER_TEMP/.docker" >> $GITHUB_ENV
-
-          # </template: docker_config_isolation>
-          # <template: import_secrets>
-          - name: Split repository name
-            id: split
+          - name: Copy attestations (FE)
+            if: ${{ needs.detect_editions.outputs['PROMOTE_FE'] == 'true' && github.repository == 'deckhouse/deckhouse-test-1' && startsWith(github.ref, 'refs/tags/v') }}
             env:
-              REPO: ${{ github.repository }}
-            run: echo "name=${REPO##*/}" >> $GITHUB_OUTPUT
-          - name: Import secrets
-            id: secrets
-            uses: hashicorp/vault-action@v2
-            with:
-              url: https://seguro.flant.com
-              path: github
-              role: deckhouse-test
-              # role: "${{ steps.split.outputs.name }}"
-              method: jwt
-              jwtGithubAudience: github-access-aud
-              secrets: |
-                projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/github/registry_host DECKHOUSE_REGISTRY_STAGE_HOST | DECKHOUSE_REGISTRY_STAGE_HOST ;
-                projects/data/101ceaca-97cd-462f-aed5-070d9b9de175/stage-registry/writetoken login | DECKHOUSE_REGISTRY_STAGE_USER ;
-                projects/data/101ceaca-97cd-462f-aed5-070d9b9de175/stage-registry/writetoken password | DECKHOUSE_REGISTRY_STAGE_PASSWORD ;
-
-          # </template: import_secrets>
-
-          # <template: login_stage_registry_step>
-          - name: Check stage registry credentials
-            id: check_stage_registry
-            env:
-              HOST: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_HOST }}
-            run: |
-              if [[ -n $HOST ]]; then
-                echo "has_credentials=true" >> $GITHUB_OUTPUT
-                echo "web_registry_path=${{secrets.DECKHOUSE_REGISTRY_STAGE_HOST }}/deckhouse/site" >> $GITHUB_OUTPUT
-              fi
-          - name: Login to stage registry
-            uses: docker/login-action@v2.1.0
-            if: ${{ steps.check_stage_registry.outputs.has_credentials == 'true' }}
-            with:
-              registry: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_HOST }}
-              username: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_USER }}
-              password: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_PASSWORD }}
-              logout: false
-          # </template: login_stage_registry_step>
-
-          # <template: werf_install_step>
-          - name: Install werf CLI
-            uses: werf/actions/install@v2
-            with:
-              version: ${{env.WERF_VERSION}}
-          # </template: werf_install_step>
-
-          - name: Copy attestations
-            if: ${{ github.repository == 'deckhouse/deckhouse-test-1' && startsWith(github.ref, 'refs/tags/v') }}
-            env:
+              WERF_ENV: FE
               STAGE_REGISTRY_HOST: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_HOST }}
+              CI_COMMIT_TAG: ${{ github.ref_name }}
             run: |
               set -euo pipefail
-
+              #
               REGISTRY_SUFFIX=$(echo "${WERF_ENV}" | tr '[:upper:]' '[:lower:]')
               IMAGE_TAG=$(werf slugify --format docker-tag "${CI_COMMIT_TAG}")
               STAGE_PATH="${STAGE_REGISTRY_HOST}/deckhouse/${REGISTRY_SUFFIX}"
               PROD_PATH="${STAGE_REGISTRY_HOST}/deckhouse/promote-test/${REGISTRY_SUFFIX}"
-
+              #
               DIGESTS_JSON="images_digests-att.json"
-
+              #
               if ! regctl image get-file "${STAGE_PATH}/install:${IMAGE_TAG}" /deckhouse/candi/images_digests.json > "${DIGESTS_JSON}" 2>/dev/null; then
                 echo "⚠️ [$(date -u)] Could not read /deckhouse/candi/images_digests.json from '${STAGE_PATH}/install:${IMAGE_TAG}', skipping digest attestations copy"
                 exit 0
               fi
-
+              #
               STAGE_OSS="${STAGE_REGISTRY_HOST}/sys/deckhouse-oss"
               while IFS= read -r IMG_DIGEST; do
                 [[ -z "${IMG_DIGEST}" ]] && continue
@@ -560,25 +426,26 @@ jobs:
                   regctl image copy "${SRC_ATT}" "${DST_ATT}"
                 fi
               done < <(jq -r '[.. | strings | select(test("^sha256:[a-f0-9]{64}$"))] | unique | .[]' "${DIGESTS_JSON}")
-
+              #
               rm -rf ${DIGESTS_JSON}
 
-
-          - name: Promote images from stage to prod
-            if: ${{ github.repository == 'deckhouse/deckhouse-test-1' && startsWith(github.ref, 'refs/tags/v') }}
+          - name: Promote images from stage to prod (FE)
+            if: ${{ needs.detect_editions.outputs['PROMOTE_FE'] == 'true' && github.repository == 'deckhouse/deckhouse-test-1' && startsWith(github.ref, 'refs/tags/v') }}
             env:
+              WERF_ENV: FE
               STAGE_REGISTRY_HOST: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_HOST }}
+              CI_COMMIT_TAG: ${{ github.ref_name }}
             run: |
               set -euo pipefail
-
+              #
               # CE/EE/FE -> ce/ee/fe
               REGISTRY_SUFFIX=$(echo "${WERF_ENV}" | tr '[:upper:]' '[:lower:]')
-
+              #
               IMAGE_TAG=$(werf slugify --format docker-tag "${CI_COMMIT_TAG}")
-
+              #
               STAGE_PATH="${STAGE_REGISTRY_HOST}/deckhouse/${REGISTRY_SUFFIX}"
               PROD_PATH="${STAGE_REGISTRY_HOST}/deckhouse/promote-test/${REGISTRY_SUFFIX}"
-
+              #
               promote_with_att() {
                 local SUBPATH="$1"
                 local REPO_SRC REPO_DST SRC DST
@@ -602,14 +469,14 @@ jobs:
                   echo "⚓️ 💫 [$(date -u)] Attestation for '${REPO_SRC}' not found, skipping..."
                 fi
               }
-
+              #
               promote_with_att ""
               promote_with_att "install"
               promote_with_att "install-standalone"
               promote_with_att "release-channel"
-
+              #
               DIGESTS_JSON="images_digests-promote.json"
-
+              #
               # Promote from images_digests.json
               if regctl image get-file "${STAGE_PATH}/install:${IMAGE_TAG}" /deckhouse/candi/images_digests.json > "${DIGESTS_JSON}" 2>/dev/null; then
                 echo "⚓️ 💫 [$(date -u)] Promoting component images from images_digests.json (by digest)"
@@ -625,110 +492,41 @@ jobs:
               else
                 echo "⚠️ [$(date -u)] Could not read /deckhouse/candi/images_digests.json from '${STAGE_PATH}/install:${IMAGE_TAG}', skipping digest-based promotion"
               fi
-
-          - name: Check DKP images manifests in public registry
-            if: ${{ github.repository == 'deckhouse/deckhouse-test-1' && startsWith(github.ref, 'refs/tags/v') }}
-            id: check_images
+              #
+          - name: Check DKP images manifests in public registry (FE)
+            if: ${{ needs.detect_editions.outputs['PROMOTE_FE'] == 'true' && github.repository == 'deckhouse/deckhouse-test-1' && startsWith(github.ref, 'refs/tags/v') }}
             env:
-              CI_COMMIT_REF_SLUG: ${{needs.git_info.outputs.ci_commit_ref_slug}}
+              WERF_ENV: FE
+              CI_COMMIT_REF_SLUG: ${{ github.ref_name }}
               STAGE_REGISTRY_HOST: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_HOST }}
             run: |
               EDITION=$(echo ${WERF_ENV} | tr '[:upper:]' '[:lower:]')
-
+              #
               ./tools/check-release-images.sh --tag ${CI_COMMIT_REF_SLUG} --edition ${EDITION} --images-path ${STAGE_REGISTRY_HOST}/deckhouse/promote-test/
 
-      # </template: promote_image_steps>
 
 
-  promote_be:
-    name: Promote BE
-    needs:
-      - detect_editions
-    if: ${{ needs.detect_editions.outputs.PROMOTE_BE == 'true' }}
-    runs-on: [self-hosted, stage]
-    env:
-      WERF_ENV: BE
-      CI_COMMIT_TAG: ${{ github.ref_name }}
-    steps:
-      # <template: promote_image_steps>
-
-          # </template: docker-config-isolation>
-          - name: Isolate docker config
-            id: docker-config-isolation
-            run: |
-              mkdir -p $RUNNER_TEMP/.docker
-              echo "DOCKER_CONFIG=$RUNNER_TEMP/.docker" >> $GITHUB_ENV
-
-          # </template: docker_config_isolation>
-          # <template: import_secrets>
-          - name: Split repository name
-            id: split
+          - name: Copy attestations (BE)
+            if: ${{ needs.detect_editions.outputs['PROMOTE_BE'] == 'true' && github.repository == 'deckhouse/deckhouse-test-1' && startsWith(github.ref, 'refs/tags/v') }}
             env:
-              REPO: ${{ github.repository }}
-            run: echo "name=${REPO##*/}" >> $GITHUB_OUTPUT
-          - name: Import secrets
-            id: secrets
-            uses: hashicorp/vault-action@v2
-            with:
-              url: https://seguro.flant.com
-              path: github
-              role: deckhouse-test
-              # role: "${{ steps.split.outputs.name }}"
-              method: jwt
-              jwtGithubAudience: github-access-aud
-              secrets: |
-                projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/github/registry_host DECKHOUSE_REGISTRY_STAGE_HOST | DECKHOUSE_REGISTRY_STAGE_HOST ;
-                projects/data/101ceaca-97cd-462f-aed5-070d9b9de175/stage-registry/writetoken login | DECKHOUSE_REGISTRY_STAGE_USER ;
-                projects/data/101ceaca-97cd-462f-aed5-070d9b9de175/stage-registry/writetoken password | DECKHOUSE_REGISTRY_STAGE_PASSWORD ;
-
-          # </template: import_secrets>
-
-          # <template: login_stage_registry_step>
-          - name: Check stage registry credentials
-            id: check_stage_registry
-            env:
-              HOST: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_HOST }}
-            run: |
-              if [[ -n $HOST ]]; then
-                echo "has_credentials=true" >> $GITHUB_OUTPUT
-                echo "web_registry_path=${{secrets.DECKHOUSE_REGISTRY_STAGE_HOST }}/deckhouse/site" >> $GITHUB_OUTPUT
-              fi
-          - name: Login to stage registry
-            uses: docker/login-action@v2.1.0
-            if: ${{ steps.check_stage_registry.outputs.has_credentials == 'true' }}
-            with:
-              registry: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_HOST }}
-              username: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_USER }}
-              password: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_PASSWORD }}
-              logout: false
-          # </template: login_stage_registry_step>
-
-          # <template: werf_install_step>
-          - name: Install werf CLI
-            uses: werf/actions/install@v2
-            with:
-              version: ${{env.WERF_VERSION}}
-          # </template: werf_install_step>
-
-          - name: Copy attestations
-            if: ${{ github.repository == 'deckhouse/deckhouse-test-1' && startsWith(github.ref, 'refs/tags/v') }}
-            env:
+              WERF_ENV: BE
               STAGE_REGISTRY_HOST: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_HOST }}
+              CI_COMMIT_TAG: ${{ github.ref_name }}
             run: |
               set -euo pipefail
-
+              #
               REGISTRY_SUFFIX=$(echo "${WERF_ENV}" | tr '[:upper:]' '[:lower:]')
               IMAGE_TAG=$(werf slugify --format docker-tag "${CI_COMMIT_TAG}")
               STAGE_PATH="${STAGE_REGISTRY_HOST}/deckhouse/${REGISTRY_SUFFIX}"
               PROD_PATH="${STAGE_REGISTRY_HOST}/deckhouse/promote-test/${REGISTRY_SUFFIX}"
-
+              #
               DIGESTS_JSON="images_digests-att.json"
-
+              #
               if ! regctl image get-file "${STAGE_PATH}/install:${IMAGE_TAG}" /deckhouse/candi/images_digests.json > "${DIGESTS_JSON}" 2>/dev/null; then
                 echo "⚠️ [$(date -u)] Could not read /deckhouse/candi/images_digests.json from '${STAGE_PATH}/install:${IMAGE_TAG}', skipping digest attestations copy"
                 exit 0
               fi
-
+              #
               STAGE_OSS="${STAGE_REGISTRY_HOST}/sys/deckhouse-oss"
               while IFS= read -r IMG_DIGEST; do
                 [[ -z "${IMG_DIGEST}" ]] && continue
@@ -740,25 +538,26 @@ jobs:
                   regctl image copy "${SRC_ATT}" "${DST_ATT}"
                 fi
               done < <(jq -r '[.. | strings | select(test("^sha256:[a-f0-9]{64}$"))] | unique | .[]' "${DIGESTS_JSON}")
-
+              #
               rm -rf ${DIGESTS_JSON}
 
-
-          - name: Promote images from stage to prod
-            if: ${{ github.repository == 'deckhouse/deckhouse-test-1' && startsWith(github.ref, 'refs/tags/v') }}
+          - name: Promote images from stage to prod (BE)
+            if: ${{ needs.detect_editions.outputs['PROMOTE_BE'] == 'true' && github.repository == 'deckhouse/deckhouse-test-1' && startsWith(github.ref, 'refs/tags/v') }}
             env:
+              WERF_ENV: BE
               STAGE_REGISTRY_HOST: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_HOST }}
+              CI_COMMIT_TAG: ${{ github.ref_name }}
             run: |
               set -euo pipefail
-
+              #
               # CE/EE/FE -> ce/ee/fe
               REGISTRY_SUFFIX=$(echo "${WERF_ENV}" | tr '[:upper:]' '[:lower:]')
-
+              #
               IMAGE_TAG=$(werf slugify --format docker-tag "${CI_COMMIT_TAG}")
-
+              #
               STAGE_PATH="${STAGE_REGISTRY_HOST}/deckhouse/${REGISTRY_SUFFIX}"
               PROD_PATH="${STAGE_REGISTRY_HOST}/deckhouse/promote-test/${REGISTRY_SUFFIX}"
-
+              #
               promote_with_att() {
                 local SUBPATH="$1"
                 local REPO_SRC REPO_DST SRC DST
@@ -782,14 +581,14 @@ jobs:
                   echo "⚓️ 💫 [$(date -u)] Attestation for '${REPO_SRC}' not found, skipping..."
                 fi
               }
-
+              #
               promote_with_att ""
               promote_with_att "install"
               promote_with_att "install-standalone"
               promote_with_att "release-channel"
-
+              #
               DIGESTS_JSON="images_digests-promote.json"
-
+              #
               # Promote from images_digests.json
               if regctl image get-file "${STAGE_PATH}/install:${IMAGE_TAG}" /deckhouse/candi/images_digests.json > "${DIGESTS_JSON}" 2>/dev/null; then
                 echo "⚓️ 💫 [$(date -u)] Promoting component images from images_digests.json (by digest)"
@@ -805,110 +604,41 @@ jobs:
               else
                 echo "⚠️ [$(date -u)] Could not read /deckhouse/candi/images_digests.json from '${STAGE_PATH}/install:${IMAGE_TAG}', skipping digest-based promotion"
               fi
-
-          - name: Check DKP images manifests in public registry
-            if: ${{ github.repository == 'deckhouse/deckhouse-test-1' && startsWith(github.ref, 'refs/tags/v') }}
-            id: check_images
+              #
+          - name: Check DKP images manifests in public registry (BE)
+            if: ${{ needs.detect_editions.outputs['PROMOTE_BE'] == 'true' && github.repository == 'deckhouse/deckhouse-test-1' && startsWith(github.ref, 'refs/tags/v') }}
             env:
-              CI_COMMIT_REF_SLUG: ${{needs.git_info.outputs.ci_commit_ref_slug}}
+              WERF_ENV: BE
+              CI_COMMIT_REF_SLUG: ${{ github.ref_name }}
               STAGE_REGISTRY_HOST: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_HOST }}
             run: |
               EDITION=$(echo ${WERF_ENV} | tr '[:upper:]' '[:lower:]')
-
+              #
               ./tools/check-release-images.sh --tag ${CI_COMMIT_REF_SLUG} --edition ${EDITION} --images-path ${STAGE_REGISTRY_HOST}/deckhouse/promote-test/
 
-      # </template: promote_image_steps>
 
 
-  promote_se:
-    name: Promote SE
-    needs:
-      - detect_editions
-    if: ${{ needs.detect_editions.outputs.PROMOTE_SE == 'true' }}
-    runs-on: [self-hosted, stage]
-    env:
-      WERF_ENV: SE
-      CI_COMMIT_TAG: ${{ github.ref_name }}
-    steps:
-      # <template: promote_image_steps>
-
-          # </template: docker-config-isolation>
-          - name: Isolate docker config
-            id: docker-config-isolation
-            run: |
-              mkdir -p $RUNNER_TEMP/.docker
-              echo "DOCKER_CONFIG=$RUNNER_TEMP/.docker" >> $GITHUB_ENV
-
-          # </template: docker_config_isolation>
-          # <template: import_secrets>
-          - name: Split repository name
-            id: split
+          - name: Copy attestations (SE)
+            if: ${{ needs.detect_editions.outputs['PROMOTE_SE'] == 'true' && github.repository == 'deckhouse/deckhouse-test-1' && startsWith(github.ref, 'refs/tags/v') }}
             env:
-              REPO: ${{ github.repository }}
-            run: echo "name=${REPO##*/}" >> $GITHUB_OUTPUT
-          - name: Import secrets
-            id: secrets
-            uses: hashicorp/vault-action@v2
-            with:
-              url: https://seguro.flant.com
-              path: github
-              role: deckhouse-test
-              # role: "${{ steps.split.outputs.name }}"
-              method: jwt
-              jwtGithubAudience: github-access-aud
-              secrets: |
-                projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/github/registry_host DECKHOUSE_REGISTRY_STAGE_HOST | DECKHOUSE_REGISTRY_STAGE_HOST ;
-                projects/data/101ceaca-97cd-462f-aed5-070d9b9de175/stage-registry/writetoken login | DECKHOUSE_REGISTRY_STAGE_USER ;
-                projects/data/101ceaca-97cd-462f-aed5-070d9b9de175/stage-registry/writetoken password | DECKHOUSE_REGISTRY_STAGE_PASSWORD ;
-
-          # </template: import_secrets>
-
-          # <template: login_stage_registry_step>
-          - name: Check stage registry credentials
-            id: check_stage_registry
-            env:
-              HOST: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_HOST }}
-            run: |
-              if [[ -n $HOST ]]; then
-                echo "has_credentials=true" >> $GITHUB_OUTPUT
-                echo "web_registry_path=${{secrets.DECKHOUSE_REGISTRY_STAGE_HOST }}/deckhouse/site" >> $GITHUB_OUTPUT
-              fi
-          - name: Login to stage registry
-            uses: docker/login-action@v2.1.0
-            if: ${{ steps.check_stage_registry.outputs.has_credentials == 'true' }}
-            with:
-              registry: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_HOST }}
-              username: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_USER }}
-              password: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_PASSWORD }}
-              logout: false
-          # </template: login_stage_registry_step>
-
-          # <template: werf_install_step>
-          - name: Install werf CLI
-            uses: werf/actions/install@v2
-            with:
-              version: ${{env.WERF_VERSION}}
-          # </template: werf_install_step>
-
-          - name: Copy attestations
-            if: ${{ github.repository == 'deckhouse/deckhouse-test-1' && startsWith(github.ref, 'refs/tags/v') }}
-            env:
+              WERF_ENV: SE
               STAGE_REGISTRY_HOST: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_HOST }}
+              CI_COMMIT_TAG: ${{ github.ref_name }}
             run: |
               set -euo pipefail
-
+              #
               REGISTRY_SUFFIX=$(echo "${WERF_ENV}" | tr '[:upper:]' '[:lower:]')
               IMAGE_TAG=$(werf slugify --format docker-tag "${CI_COMMIT_TAG}")
               STAGE_PATH="${STAGE_REGISTRY_HOST}/deckhouse/${REGISTRY_SUFFIX}"
               PROD_PATH="${STAGE_REGISTRY_HOST}/deckhouse/promote-test/${REGISTRY_SUFFIX}"
-
+              #
               DIGESTS_JSON="images_digests-att.json"
-
+              #
               if ! regctl image get-file "${STAGE_PATH}/install:${IMAGE_TAG}" /deckhouse/candi/images_digests.json > "${DIGESTS_JSON}" 2>/dev/null; then
                 echo "⚠️ [$(date -u)] Could not read /deckhouse/candi/images_digests.json from '${STAGE_PATH}/install:${IMAGE_TAG}', skipping digest attestations copy"
                 exit 0
               fi
-
+              #
               STAGE_OSS="${STAGE_REGISTRY_HOST}/sys/deckhouse-oss"
               while IFS= read -r IMG_DIGEST; do
                 [[ -z "${IMG_DIGEST}" ]] && continue
@@ -920,25 +650,26 @@ jobs:
                   regctl image copy "${SRC_ATT}" "${DST_ATT}"
                 fi
               done < <(jq -r '[.. | strings | select(test("^sha256:[a-f0-9]{64}$"))] | unique | .[]' "${DIGESTS_JSON}")
-
+              #
               rm -rf ${DIGESTS_JSON}
 
-
-          - name: Promote images from stage to prod
-            if: ${{ github.repository == 'deckhouse/deckhouse-test-1' && startsWith(github.ref, 'refs/tags/v') }}
+          - name: Promote images from stage to prod (SE)
+            if: ${{ needs.detect_editions.outputs['PROMOTE_SE'] == 'true' && github.repository == 'deckhouse/deckhouse-test-1' && startsWith(github.ref, 'refs/tags/v') }}
             env:
+              WERF_ENV: SE
               STAGE_REGISTRY_HOST: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_HOST }}
+              CI_COMMIT_TAG: ${{ github.ref_name }}
             run: |
               set -euo pipefail
-
+              #
               # CE/EE/FE -> ce/ee/fe
               REGISTRY_SUFFIX=$(echo "${WERF_ENV}" | tr '[:upper:]' '[:lower:]')
-
+              #
               IMAGE_TAG=$(werf slugify --format docker-tag "${CI_COMMIT_TAG}")
-
+              #
               STAGE_PATH="${STAGE_REGISTRY_HOST}/deckhouse/${REGISTRY_SUFFIX}"
               PROD_PATH="${STAGE_REGISTRY_HOST}/deckhouse/promote-test/${REGISTRY_SUFFIX}"
-
+              #
               promote_with_att() {
                 local SUBPATH="$1"
                 local REPO_SRC REPO_DST SRC DST
@@ -962,14 +693,14 @@ jobs:
                   echo "⚓️ 💫 [$(date -u)] Attestation for '${REPO_SRC}' not found, skipping..."
                 fi
               }
-
+              #
               promote_with_att ""
               promote_with_att "install"
               promote_with_att "install-standalone"
               promote_with_att "release-channel"
-
+              #
               DIGESTS_JSON="images_digests-promote.json"
-
+              #
               # Promote from images_digests.json
               if regctl image get-file "${STAGE_PATH}/install:${IMAGE_TAG}" /deckhouse/candi/images_digests.json > "${DIGESTS_JSON}" 2>/dev/null; then
                 echo "⚓️ 💫 [$(date -u)] Promoting component images from images_digests.json (by digest)"
@@ -985,110 +716,41 @@ jobs:
               else
                 echo "⚠️ [$(date -u)] Could not read /deckhouse/candi/images_digests.json from '${STAGE_PATH}/install:${IMAGE_TAG}', skipping digest-based promotion"
               fi
-
-          - name: Check DKP images manifests in public registry
-            if: ${{ github.repository == 'deckhouse/deckhouse-test-1' && startsWith(github.ref, 'refs/tags/v') }}
-            id: check_images
+              #
+          - name: Check DKP images manifests in public registry (SE)
+            if: ${{ needs.detect_editions.outputs['PROMOTE_SE'] == 'true' && github.repository == 'deckhouse/deckhouse-test-1' && startsWith(github.ref, 'refs/tags/v') }}
             env:
-              CI_COMMIT_REF_SLUG: ${{needs.git_info.outputs.ci_commit_ref_slug}}
+              WERF_ENV: SE
+              CI_COMMIT_REF_SLUG: ${{ github.ref_name }}
               STAGE_REGISTRY_HOST: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_HOST }}
             run: |
               EDITION=$(echo ${WERF_ENV} | tr '[:upper:]' '[:lower:]')
-
+              #
               ./tools/check-release-images.sh --tag ${CI_COMMIT_REF_SLUG} --edition ${EDITION} --images-path ${STAGE_REGISTRY_HOST}/deckhouse/promote-test/
 
-      # </template: promote_image_steps>
 
 
-  promote_se_plus:
-    name: Promote SE-plus
-    needs:
-      - detect_editions
-    if: ${{ needs.detect_editions.outputs['PROMOTE_SE-plus'] == 'true' }}
-    runs-on: [self-hosted, stage]
-    env:
-      WERF_ENV: SE-plus
-      CI_COMMIT_TAG: ${{ github.ref_name }}
-    steps:
-      # <template: promote_image_steps>
-
-          # </template: docker-config-isolation>
-          - name: Isolate docker config
-            id: docker-config-isolation
-            run: |
-              mkdir -p $RUNNER_TEMP/.docker
-              echo "DOCKER_CONFIG=$RUNNER_TEMP/.docker" >> $GITHUB_ENV
-
-          # </template: docker_config_isolation>
-          # <template: import_secrets>
-          - name: Split repository name
-            id: split
+          - name: Copy attestations (SE-plus)
+            if: ${{ needs.detect_editions.outputs['PROMOTE_SE-plus'] == 'true' && github.repository == 'deckhouse/deckhouse-test-1' && startsWith(github.ref, 'refs/tags/v') }}
             env:
-              REPO: ${{ github.repository }}
-            run: echo "name=${REPO##*/}" >> $GITHUB_OUTPUT
-          - name: Import secrets
-            id: secrets
-            uses: hashicorp/vault-action@v2
-            with:
-              url: https://seguro.flant.com
-              path: github
-              role: deckhouse-test
-              # role: "${{ steps.split.outputs.name }}"
-              method: jwt
-              jwtGithubAudience: github-access-aud
-              secrets: |
-                projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/github/registry_host DECKHOUSE_REGISTRY_STAGE_HOST | DECKHOUSE_REGISTRY_STAGE_HOST ;
-                projects/data/101ceaca-97cd-462f-aed5-070d9b9de175/stage-registry/writetoken login | DECKHOUSE_REGISTRY_STAGE_USER ;
-                projects/data/101ceaca-97cd-462f-aed5-070d9b9de175/stage-registry/writetoken password | DECKHOUSE_REGISTRY_STAGE_PASSWORD ;
-
-          # </template: import_secrets>
-
-          # <template: login_stage_registry_step>
-          - name: Check stage registry credentials
-            id: check_stage_registry
-            env:
-              HOST: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_HOST }}
-            run: |
-              if [[ -n $HOST ]]; then
-                echo "has_credentials=true" >> $GITHUB_OUTPUT
-                echo "web_registry_path=${{secrets.DECKHOUSE_REGISTRY_STAGE_HOST }}/deckhouse/site" >> $GITHUB_OUTPUT
-              fi
-          - name: Login to stage registry
-            uses: docker/login-action@v2.1.0
-            if: ${{ steps.check_stage_registry.outputs.has_credentials == 'true' }}
-            with:
-              registry: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_HOST }}
-              username: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_USER }}
-              password: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_PASSWORD }}
-              logout: false
-          # </template: login_stage_registry_step>
-
-          # <template: werf_install_step>
-          - name: Install werf CLI
-            uses: werf/actions/install@v2
-            with:
-              version: ${{env.WERF_VERSION}}
-          # </template: werf_install_step>
-
-          - name: Copy attestations
-            if: ${{ github.repository == 'deckhouse/deckhouse-test-1' && startsWith(github.ref, 'refs/tags/v') }}
-            env:
+              WERF_ENV: SE-plus
               STAGE_REGISTRY_HOST: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_HOST }}
+              CI_COMMIT_TAG: ${{ github.ref_name }}
             run: |
               set -euo pipefail
-
+              #
               REGISTRY_SUFFIX=$(echo "${WERF_ENV}" | tr '[:upper:]' '[:lower:]')
               IMAGE_TAG=$(werf slugify --format docker-tag "${CI_COMMIT_TAG}")
               STAGE_PATH="${STAGE_REGISTRY_HOST}/deckhouse/${REGISTRY_SUFFIX}"
               PROD_PATH="${STAGE_REGISTRY_HOST}/deckhouse/promote-test/${REGISTRY_SUFFIX}"
-
+              #
               DIGESTS_JSON="images_digests-att.json"
-
+              #
               if ! regctl image get-file "${STAGE_PATH}/install:${IMAGE_TAG}" /deckhouse/candi/images_digests.json > "${DIGESTS_JSON}" 2>/dev/null; then
                 echo "⚠️ [$(date -u)] Could not read /deckhouse/candi/images_digests.json from '${STAGE_PATH}/install:${IMAGE_TAG}', skipping digest attestations copy"
                 exit 0
               fi
-
+              #
               STAGE_OSS="${STAGE_REGISTRY_HOST}/sys/deckhouse-oss"
               while IFS= read -r IMG_DIGEST; do
                 [[ -z "${IMG_DIGEST}" ]] && continue
@@ -1100,25 +762,26 @@ jobs:
                   regctl image copy "${SRC_ATT}" "${DST_ATT}"
                 fi
               done < <(jq -r '[.. | strings | select(test("^sha256:[a-f0-9]{64}$"))] | unique | .[]' "${DIGESTS_JSON}")
-
+              #
               rm -rf ${DIGESTS_JSON}
 
-
-          - name: Promote images from stage to prod
-            if: ${{ github.repository == 'deckhouse/deckhouse-test-1' && startsWith(github.ref, 'refs/tags/v') }}
+          - name: Promote images from stage to prod (SE-plus)
+            if: ${{ needs.detect_editions.outputs['PROMOTE_SE-plus'] == 'true' && github.repository == 'deckhouse/deckhouse-test-1' && startsWith(github.ref, 'refs/tags/v') }}
             env:
+              WERF_ENV: SE-plus
               STAGE_REGISTRY_HOST: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_HOST }}
+              CI_COMMIT_TAG: ${{ github.ref_name }}
             run: |
               set -euo pipefail
-
+              #
               # CE/EE/FE -> ce/ee/fe
               REGISTRY_SUFFIX=$(echo "${WERF_ENV}" | tr '[:upper:]' '[:lower:]')
-
+              #
               IMAGE_TAG=$(werf slugify --format docker-tag "${CI_COMMIT_TAG}")
-
+              #
               STAGE_PATH="${STAGE_REGISTRY_HOST}/deckhouse/${REGISTRY_SUFFIX}"
               PROD_PATH="${STAGE_REGISTRY_HOST}/deckhouse/promote-test/${REGISTRY_SUFFIX}"
-
+              #
               promote_with_att() {
                 local SUBPATH="$1"
                 local REPO_SRC REPO_DST SRC DST
@@ -1142,14 +805,14 @@ jobs:
                   echo "⚓️ 💫 [$(date -u)] Attestation for '${REPO_SRC}' not found, skipping..."
                 fi
               }
-
+              #
               promote_with_att ""
               promote_with_att "install"
               promote_with_att "install-standalone"
               promote_with_att "release-channel"
-
+              #
               DIGESTS_JSON="images_digests-promote.json"
-
+              #
               # Promote from images_digests.json
               if regctl image get-file "${STAGE_PATH}/install:${IMAGE_TAG}" /deckhouse/candi/images_digests.json > "${DIGESTS_JSON}" 2>/dev/null; then
                 echo "⚓️ 💫 [$(date -u)] Promoting component images from images_digests.json (by digest)"
@@ -1165,19 +828,19 @@ jobs:
               else
                 echo "⚠️ [$(date -u)] Could not read /deckhouse/candi/images_digests.json from '${STAGE_PATH}/install:${IMAGE_TAG}', skipping digest-based promotion"
               fi
-
-          - name: Check DKP images manifests in public registry
-            if: ${{ github.repository == 'deckhouse/deckhouse-test-1' && startsWith(github.ref, 'refs/tags/v') }}
-            id: check_images
+              #
+          - name: Check DKP images manifests in public registry (SE-plus)
+            if: ${{ needs.detect_editions.outputs['PROMOTE_SE-plus'] == 'true' && github.repository == 'deckhouse/deckhouse-test-1' && startsWith(github.ref, 'refs/tags/v') }}
             env:
-              CI_COMMIT_REF_SLUG: ${{needs.git_info.outputs.ci_commit_ref_slug}}
+              WERF_ENV: SE-plus
+              CI_COMMIT_REF_SLUG: ${{ github.ref_name }}
               STAGE_REGISTRY_HOST: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_HOST }}
             run: |
               EDITION=$(echo ${WERF_ENV} | tr '[:upper:]' '[:lower:]')
-
+              #
               ./tools/check-release-images.sh --tag ${CI_COMMIT_REF_SLUG} --edition ${EDITION} --images-path ${STAGE_REGISTRY_HOST}/deckhouse/promote-test/
 
-      # </template: promote_image_steps>
+
 
   # </template: promote_image>
 
