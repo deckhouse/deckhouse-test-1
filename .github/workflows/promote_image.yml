@@ -104,7 +104,7 @@ jobs:
     name: Promote images (CE)
     needs:
       - detect_editions
-    if: ${{ needs.detect_editions.outputs['promote_ce'] == 'true' && github.repository == 'deckhouse/deckhouse' && startsWith(github.ref, 'refs/tags/v') }}
+    if: ${{ needs.detect_editions.outputs['promote_ce'] == 'true' && github.repository == 'deckhouse/deckhouse-test-1' && startsWith(github.ref, 'refs/tags/v') }}
     runs-on: [self-hosted, stage]
     env:
       CI_COMMIT_TAG: ${{ github.ref_name }}
@@ -279,7 +279,7 @@ jobs:
     name: Promote images (EE)
     needs:
       - detect_editions
-    if: ${{ needs.detect_editions.outputs['promote_ee'] == 'true' && github.repository == 'deckhouse/deckhouse' && startsWith(github.ref, 'refs/tags/v') }}
+    if: ${{ needs.detect_editions.outputs['promote_ee'] == 'true' && github.repository == 'deckhouse/deckhouse-test-1' && startsWith(github.ref, 'refs/tags/v') }}
     runs-on: [self-hosted, stage]
     env:
       CI_COMMIT_TAG: ${{ github.ref_name }}
@@ -454,7 +454,7 @@ jobs:
     name: Promote images (FE)
     needs:
       - detect_editions
-    if: ${{ needs.detect_editions.outputs['promote_fe'] == 'true' && github.repository == 'deckhouse/deckhouse' && startsWith(github.ref, 'refs/tags/v') }}
+    if: ${{ needs.detect_editions.outputs['promote_fe'] == 'true' && github.repository == 'deckhouse/deckhouse-test-1' && startsWith(github.ref, 'refs/tags/v') }}
     runs-on: [self-hosted, stage]
     env:
       CI_COMMIT_TAG: ${{ github.ref_name }}
@@ -629,7 +629,7 @@ jobs:
     name: Promote images (BE)
     needs:
       - detect_editions
-    if: ${{ needs.detect_editions.outputs['promote_be'] == 'true' && github.repository == 'deckhouse/deckhouse' && startsWith(github.ref, 'refs/tags/v') }}
+    if: ${{ needs.detect_editions.outputs['promote_be'] == 'true' && github.repository == 'deckhouse/deckhouse-test-1' && startsWith(github.ref, 'refs/tags/v') }}
     runs-on: [self-hosted, stage]
     env:
       CI_COMMIT_TAG: ${{ github.ref_name }}
@@ -804,7 +804,7 @@ jobs:
     name: Promote images (SE)
     needs:
       - detect_editions
-    if: ${{ needs.detect_editions.outputs['promote_se'] == 'true' && github.repository == 'deckhouse/deckhouse' && startsWith(github.ref, 'refs/tags/v') }}
+    if: ${{ needs.detect_editions.outputs['promote_se'] == 'true' && github.repository == 'deckhouse/deckhouse-test-1' && startsWith(github.ref, 'refs/tags/v') }}
     runs-on: [self-hosted, stage]
     env:
       CI_COMMIT_TAG: ${{ github.ref_name }}
@@ -979,7 +979,7 @@ jobs:
     name: Promote images (SE-plus)
     needs:
       - detect_editions
-    if: ${{ needs.detect_editions.outputs['promote_se-plus'] == 'true' && github.repository == 'deckhouse/deckhouse' && startsWith(github.ref, 'refs/tags/v') }}
+    if: ${{ needs.detect_editions.outputs['promote_se-plus'] == 'true' && github.repository == 'deckhouse/deckhouse-test-1' && startsWith(github.ref, 'refs/tags/v') }}
     runs-on: [self-hosted, stage]
     env:
       CI_COMMIT_TAG: ${{ github.ref_name }}
