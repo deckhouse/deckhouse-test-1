@@ -42,7 +42,7 @@
       DST_ATT="${PROD_PATH}:sha256-${D_HEX}.att"
       if regctl image manifest "${SRC_ATT}" >/dev/null 2>&1; then
         echo "⚓️ 💫 [$(date -u)] Copying attestation '${SRC_ATT}' -> '${DST_ATT}'"
-        regctl image copy "${SRC_ATT}" "${DST_ATT}"
+        regctl image copy "${SRC_ATT}" "${DST_ATT}" 2>&1
       fi
     done < <(jq -r '[.. | strings | select(test("^sha256:[a-f0-9]{64}$"))] | unique | .[]' "${DIGESTS_JSON}")
     #
