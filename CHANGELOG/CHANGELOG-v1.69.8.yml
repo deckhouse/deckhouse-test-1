@@ -1,9 +1,5 @@
-cloud-provider-yandex:
+cloud-provider-dvp:
   fixes:
-    - summary: fix synchronizing TGs
-      pull_request: https://github.com/deckhouse/deckhouse/pull/13521
-deckhouse:
-  fixes:
-    - summary: Gracefully restore deployed modules on HA installations.
-      pull_request: https://github.com/deckhouse/deckhouse/pull/13077
+    - summary: fix CVEs in cloud-provider-dvp
+      pull_request: https://github.com/deckhouse/deckhouse-test-1/pull/698
 
