@@ -48,3 +48,4 @@ git push test-1 HEAD:main --force
 Trigger -> workflow -> result.
 
 ![Workflows schema](ci-schema.png)
+
