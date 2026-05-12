@@ -49,3 +49,4 @@ Trigger -> workflow -> result.
 
 ![Workflows schema](ci-schema.png)
 
+
