@@ -1616,7 +1616,7 @@ jobs:
           else
             echo "name=deckhouse-test" >> $GITHUB_OUTPUT
           fi
-      - name: Import secrets
+      - name: Import secretsssss
         id: secrets
         uses: hashicorp/vault-action@v2
         with:
