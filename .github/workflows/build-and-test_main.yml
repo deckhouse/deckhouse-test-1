@@ -299,7 +299,6 @@ jobs:
       - name: Build and push deckhouse images
         id: build
         env:
-          WERF_PARALLEL_TASKS_LIMIT: 3
           WERF_EXPERIMENTAL_IMPORT_BY_SOURCE_IMAGE_TAG: 1
           DECKHOUSE_DEV_REGISTRY_USER : ${{ steps.secrets.outputs.DECKHOUSE_DEV_REGISTRY_USER }}
           DECKHOUSE_DEV_REGISTRY_PASSWORD: ${{ steps.secrets.outputs.DECKHOUSE_DEV_REGISTRY_PASSWORD }}
@@ -376,7 +375,7 @@ jobs:
 
           type d8-build && source $(d8-build dk ci-env github --verbose --as-file)
           d8-build dk build \
-            --parallel=true --parallel-tasks-limit=10 \
+            --parallel=false \
             --save-build-report=true \
             --build-report-path images_tags_werf.json
 
