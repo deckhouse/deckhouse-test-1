@@ -75,6 +75,8 @@ secrets:
 - id: GOPROXY
   value: {{ $.GOPROXY }}
 shell:
+  beforeInstall:
+  - pm install sh
   setup:
   - export GOPROXY=$(cat /run/secrets/GOPROXY)
   - cd /src/cri-tools
