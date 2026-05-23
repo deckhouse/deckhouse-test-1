@@ -405,6 +405,7 @@ jobs:
       - name: Set PR Label
         env:
           PR_NUMBER: ${{ github.event.pull_request.number }}
+          GH_REPO: ${{ github.repository }}
         run: |
           echo "PR Number: $PR_NUMBER"
           if [ "${{ needs.gitleaks_scan.result }}" == "success" ]; then
@@ -582,6 +583,7 @@ jobs:
       - name: Set PR Label
         env:
           PR_NUMBER: ${{ github.event.pull_request.number }}
+          GH_REPO: ${{ github.repository }}
         run: |
           echo "PR Number: $PR_NUMBER"
           if [ "${{ needs.test_cve_report_main.result }}" == "success" ]; then
@@ -665,9 +667,20 @@ jobs:
         run: |
           ln -s ~/deckhouse-bin-cache bin
       # </template: link_bin_step>
+      - name: Set PR scan tag
+        id: scan_tag
+        run: |
+          PR_NUMBER="${{ github.event.pull_request.number }}"
+          REPO_SUFFIX=${GITHUB_REPOSITORY#deckhouse/deckhouse-}
+          if [[ ${REPO_SUFFIX} == ${GITHUB_REPOSITORY} ]] ; then
+            TAG="pr${PR_NUMBER}"
+          else
+            TAG="pr${PR_NUMBER}-${REPO_SUFFIX}"
+          fi
+          echo "TAG=${TAG}" >> $GITHUB_OUTPUT
       - name: Running default user validation on ${{env.TAG}}
         env:
-          TAG: ${{needs.pull_request_info.outputs.ref_slug}}
+          TAG: ${{ steps.scan_tag.outputs.TAG }}
           IMAGE: "${{ steps.secrets.outputs.DECKHOUSE_DEV_REGISTRY_HOST }}/sys/deckhouse-oss"
           DECKHOUSE_PRIVATE_REPO: ${{ steps.secrets.outputs.DECKHOUSE_PRIVATE_REPO }}
         run: |
@@ -716,6 +729,7 @@ jobs:
       - name: Set PR Label
         env:
           PR_NUMBER: ${{ github.event.pull_request.number }}
+          GH_REPO: ${{ github.repository }}
         run: |
           echo "PR Number: $PR_NUMBER"
           if [ "${{ needs.security_scan_images.result }}" == "success" ]; then
@@ -1005,6 +1019,7 @@ jobs:
       - name: Set PR Label
         env:
           PR_NUMBER: ${{ github.event.pull_request.number }}
+          GH_REPO: ${{ github.repository }}
         run: |
           echo "PR Number: $PR_NUMBER"
           if [ "${{ needs.drweb-scan.result }}" == "success" ] && [ "${{ needs.kaspersky-scan.result }}" == "success" ]; then

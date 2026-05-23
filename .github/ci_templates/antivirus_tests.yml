@@ -146,6 +146,7 @@ set_security_antivirus_requirement_status:
     - name: Set PR Label
       env:
         PR_NUMBER: ${{ github.event.pull_request.number }}
+        GH_REPO: ${{ github.repository }}
       run: |
         echo "PR Number: $PR_NUMBER"
         if [ "${{ needs.drweb-scan.result }}" == "success" ] && [ "${{ needs.kaspersky-scan.result }}" == "success" ]; then

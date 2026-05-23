@@ -79,6 +79,7 @@ jobs:
       - name: Set PR Label
         env:
           PR_NUMBER: ${{ github.event.pull_request.number }}
+          GH_REPO: ${{ github.repository }}
         run: |
           echo "PR Number: $PR_NUMBER"
           if [ "${{ needs.gitleaks_scan.result }}" == "success" ]; then
