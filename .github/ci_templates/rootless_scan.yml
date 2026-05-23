@@ -57,7 +57,7 @@ set_security_rootless_requirement_status:
   needs:
     - pull_request_info
     - security_scan_images
-  if: ${{ always() && needs.security_scan_images.result != 'skipped' }}
+  if: ${{ always() }}
   permissions:
     contents: read
     pull-requests: write
@@ -70,12 +70,15 @@ set_security_rootless_requirement_status:
       env:
         PR_NUMBER: ${{ github.event.pull_request.number }}
         GH_REPO: ${{ github.repository }}
+        RESULT: ${{ needs.security_scan_images.result }}
       run: |
-        echo "PR Number: $PR_NUMBER"
-        if [ "${{ needs.security_scan_images.result }}" == "success" ]; then
-          gh pr edit "$PR_NUMBER" --add-label "security/rootless/success"
+        echo "PR Number: $PR_NUMBER | Result: $RESULT"
+        if [ "$RESULT" == "success" ]; then
+          gh pr edit "$PR_NUMBER" --add-label "security/rootless/success" --remove-label "security/rootless/failed"
+        elif [ "$RESULT" == "skipped" ]; then
+          gh pr edit "$PR_NUMBER" --remove-label "security/rootless/success" --remove-label "security/rootless/failed"
         else
-          gh pr edit "$PR_NUMBER" --add-label "security/rootless/failed"
+          gh pr edit "$PR_NUMBER" --add-label "security/rootless/failed" --remove-label "security/rootless/success"
         fi
 # </template: set_security_rootless_requirement_status>
 {!{- end -}!}
