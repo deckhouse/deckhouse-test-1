@@ -72,8 +72,6 @@ set_security_rootless_requirement_status:
         GH_REPO: ${{ github.repository }}
       run: |
         echo "PR Number: $PR_NUMBER"
-        gh label create "security/rootless/success" --color "0E8A16" --description "Rootless scan passed" 2>/dev/null || true
-        gh label create "security/rootless/failed"  --color "B60205" --description "Rootless scan failed" 2>/dev/null || true
         if [ "${{ needs.security_scan_images.result }}" == "success" ]; then
           gh pr edit "$PR_NUMBER" --add-label "security/rootless/success"
         else

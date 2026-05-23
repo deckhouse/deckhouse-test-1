@@ -82,8 +82,6 @@ jobs:
           GH_REPO: ${{ github.repository }}
         run: |
           echo "PR Number: $PR_NUMBER"
-          gh label create "security/gitleaks/success" --color "0E8A16" --description "Gitleaks scan passed" 2>/dev/null || true
-          gh label create "security/gitleaks/failed"  --color "B60205" --description "Gitleaks scan failed" 2>/dev/null || true
           if [ "${{ needs.gitleaks_scan.result }}" == "success" ]; then
             gh pr edit "$PR_NUMBER" --add-label "security/gitleaks/success"
           else
