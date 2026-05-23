@@ -20,6 +20,8 @@ set_security_scan_requirement_status:
         GH_REPO: ${{ github.repository }}
       run: |
         echo "PR Number: $PR_NUMBER"
+        gh label create "security/cve/success" --color "0E8A16" --description "CVE scan passed" 2>/dev/null || true
+        gh label create "security/cve/failed"  --color "B60205" --description "CVE scan failed" 2>/dev/null || true
         if [ "${{ needs.test_cve_report_main.result }}" == "success" ]; then
           gh pr edit "$PR_NUMBER" --add-label "security/cve/success"
         else

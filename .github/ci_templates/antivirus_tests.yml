@@ -149,6 +149,8 @@ set_security_antivirus_requirement_status:
         GH_REPO: ${{ github.repository }}
       run: |
         echo "PR Number: $PR_NUMBER"
+        gh label create "security/antivirus/success" --color "0E8A16" --description "Antivirus scan passed" 2>/dev/null || true
+        gh label create "security/antivirus/failed"  --color "B60205" --description "Antivirus scan failed" 2>/dev/null || true
         if [ "${{ needs.drweb-scan.result }}" == "success" ] && [ "${{ needs.kaspersky-scan.result }}" == "success" ]; then
           gh pr edit "$PR_NUMBER" --add-label "security/antivirus/success"
         else
