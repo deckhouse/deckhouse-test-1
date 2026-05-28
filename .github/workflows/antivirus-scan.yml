@@ -123,12 +123,12 @@ jobs:
 
     if: github.repository == 'deckhouse/deckhouse-test-1'
     needs: get-tags
-    env:
-      BRANCH: ${{ fromJson(needs.get-tags.outputs.tags)[0] }}
-    # strategy:
-    #   matrix:
-    #     branch: ${{ fromJson(needs.get-tags.outputs.tags) }}
-    #   fail-fast: false
+    # env:
+    #   BRANCH: ${{ fromJson(needs.get-tags.outputs.tags)[0] }}
+    strategy:
+      matrix:
+        branch: ${{ fromJson(needs.get-tags.outputs.tags) }}
+      fail-fast: false
     permissions:
       id-token: write
     outputs:
@@ -228,11 +228,11 @@ jobs:
 
     if: github.repository == 'deckhouse/deckhouse-test-1'
     needs: get-tags
-    env:
-      BRANCH: ${{ fromJson(needs.get-tags.outputs.tags)[0] }}
-    # strategy:
-    #   matrix:
-    #     branch: ${{ fromJson(needs.get-tags.outputs.tags) }}
+    # env:
+    #   BRANCH: ${{ fromJson(needs.get-tags.outputs.tags)[0] }}
+    strategy:
+      matrix:
+        branch: ${{ fromJson(needs.get-tags.outputs.tags) }}
       fail-fast: false
     permissions:
       id-token: write
