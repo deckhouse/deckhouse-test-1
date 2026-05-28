@@ -245,7 +245,7 @@ jobs:
         env:
           REPO: ${{ github.repository }}
         run: |
-          if [ $REPO == "deckhouse/deckhouse-test-1" ]; then
+          if [ $REPO == "deckhouse/deckhouse" ]; then
             echo "name=deckhouse" >> $GITHUB_OUTPUT
           else
             echo "name=deckhouse-test" >> $GITHUB_OUTPUT
