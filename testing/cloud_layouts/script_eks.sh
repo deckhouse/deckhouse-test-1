@@ -83,6 +83,10 @@ function prepare_environment() {
     return 1
   fi
   export DEV_BRANCH="${DECKHOUSE_IMAGE_TAG}"
+  # Fork repos append REPO_SUFFIX to DECKHOUSE_IMAGE_TAG (e.g. v1.76.0-test-1); use clean tag for registry paths.
+  if [[ -n "${CI_COMMIT_TAG}" ]]; then
+    DEV_BRANCH="${CI_COMMIT_TAG}"
+  fi
 
   if [[ "$DEV_BRANCH" =~ ^release-[0-9]+\.[0-9]+ ]] || [[ "$DEV_BRANCH" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
     echo "DEV_BRANCH = $DEV_BRANCH: detected release branch or semver tag"
