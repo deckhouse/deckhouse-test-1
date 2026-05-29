@@ -32,7 +32,7 @@ jobs:
   get-tags:
     name: Get tags for scanning
     runs-on: [self-hosted, regular]
-    if: github.repository == 'deckhouse/deckhouse'
+    if: github.repository == 'deckhouse/deckhouse-test-1'
     outputs:
       tags: ${{ steps.set-manual-tag.outputs.tags || steps.get-tags.outputs.tags || steps.set-default.outputs.tags }}
     steps:
@@ -85,7 +85,7 @@ jobs:
         run: |
           ref=${{ github.event.inputs.branch }}
           TAGS=""
-          if [[ "${ref}" =~ {!{ tmpl.Exec "av_semver_regexp" . }!} ]]; then
+          if [[ "${ref}" =~ ^v?[0-9]+.[0-9]+.[0-9]+$ ]]; then
             for edition in fe ee se se-plus be ce cse
             do
               TAGS+=$'\n'"$edition:$ref"
