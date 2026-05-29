@@ -36,7 +36,7 @@ jobs:
   get-tags:
     name: Get tags for scanning
     runs-on: [self-hosted, regular]
-    if: github.repository == 'deckhouse/deckhouse'
+    if: github.repository == 'deckhouse/deckhouse-test-1'
     outputs:
       tags: ${{ steps.set-manual-tag.outputs.tags || steps.get-tags.outputs.tags || steps.set-default.outputs.tags }}
     steps:
@@ -119,7 +119,7 @@ jobs:
   drweb-scan:
     name: Dr.Web Scan ${{ matrix.branch }}
     runs-on: [self-hosted, antivirus]
-    if: github.repository == 'deckhouse/deckhouse'
+    if: github.repository == 'deckhouse/deckhouse-test-1'
     needs: get-tags
     strategy:
       matrix:
@@ -180,18 +180,18 @@ jobs:
             registry_host=${{ steps.secrets.outputs.DECKHOUSE_DEV_REGISTRY_HOST }}
           fi
           CONTAINER_NAME=registry_drweb
+          GID=$(id -g)
           SCAN_ID+="-$CONTAINER_NAME"
+          SCAN_DIR=/opt/actions-runners/scans/drweb
           echo "scan_id=${SCAN_ID}" >> $GITHUB_OUTPUT
+          echo "scan_dir=${SCAN_DIR}" >> $GITHUB_OUTPUT
           echo $CONTAINER_NAME
           docker exec ${CONTAINER_NAME} scanner ${ref} ${registry_host}${registry_image_path} ${SCAN_ID}
+          docker exec ${CONTAINER_NAME} chown -R ${UID}:${GID} scans/${SCAN_ID}
 
-          mkdir -p scans/${SCAN_ID}
-          docker cp ${CONTAINER_NAME}:/drweb/scans/${SCAN_ID}/scan_results_clean.md ./scans/${SCAN_ID}/scan_results_clean.md
-          docker cp ${CONTAINER_NAME}:/drweb/scans/${SCAN_ID}/scan_results_threats.md ./scans/${SCAN_ID}/scan_results_threats.md
-
-          if [ -f scans/${SCAN_ID}/scan_results_threats.md ]; then
-            THREAT_COUNT=$(sed -n 's/.*Images with threats | \([0-9]\+\) |.*/\1/p' scans/${SCAN_ID}/scan_results_threats.md | head -1)
-            ERRORS_COUNT=$(sed -n 's/.*Errors | \([0-9]\+\) |.*/\1/p' scans/${SCAN_ID}/scan_results_threats.md | head -1)
+          if [ -f ${SCAN_DIR}/${SCAN_ID}/scan_results_threats.md ]; then
+            THREAT_COUNT=$(sed -n 's/.*Images with threats | \([0-9]\+\) |.*/\1/p' ${SCAN_DIR}/${SCAN_ID}/scan_results_threats.md | head -1)
+            ERRORS_COUNT=$(sed -n 's/.*Errors | \([0-9]\+\) |.*/\1/p' ${SCAN_DIR}/${SCAN_ID}/scan_results_threats.md | head -1)
             if [ -n "$THREAT_COUNT" ] && [ "$THREAT_COUNT" -gt 0 ]; then
               echo "❌ THREATS DETECTED: $THREAT_COUNT images contain threats!"
               exit 1
@@ -209,25 +209,26 @@ jobs:
           echo "✅ ${CONTAINER_NAME} scan completed for ${{ matrix.branch }}"
 
       - name: Upload scan artifacts
-        if: github.repository == 'deckhouse/deckhouse' && always()
+        if: github.repository == 'deckhouse/deckhouse-test-1' && always()
         uses: actions/upload-artifact@v4.4.0
         with:
           name: drweb-scan-results-${{ steps.scan.outputs.scan_id }}
-          path: scans/${{ steps.scan.outputs.scan_id }}
+          path: ${{ steps.scan.outputs.scan_dir }}/${{ steps.scan.outputs.scan_id }}
           retention-days: 5
 
       - name: Cleanup scan results on runner
         if: always()
         env:
           SCAN_ID: ${{ steps.scan.outputs.scan_id }}
+          SCAN_DIR: ${{ steps.scan.outputs.scan_dir }}
         run: |
           if [ -z "${SCAN_ID}" ]; then
             echo "scan_id is empty, nothing to clean up"
             exit 0
           fi
-          CONTAINER_NAME=registry_drweb
-          rm -rf "scans/${SCAN_ID}"
-          docker exec ${CONTAINER_NAME} rm -rf /drweb/scans/${SCAN_ID} || true
+          if [[ -d ${SCAN_DIR}/${SCAN_ID} ]]; then
+            rm -rf ${SCAN_DIR}/${SCAN_ID} || true
+          fi
 
   # </template: drweb_scan_job>
 
@@ -237,7 +238,7 @@ jobs:
   kaspersky-scan:
     name: Kaspersky Scan ${{ matrix.branch }}
     runs-on: [self-hosted, antivirus]
-    if: github.repository == 'deckhouse/deckhouse'
+    if: github.repository == 'deckhouse/deckhouse-test-1'
     needs: get-tags
     strategy:
       matrix:
@@ -298,18 +299,19 @@ jobs:
             registry_host=${{ steps.secrets.outputs.DECKHOUSE_DEV_REGISTRY_HOST }}
           fi
           CONTAINER_NAME=registry_kaspersky
+          GID=$(id -g)
           SCAN_ID+="-$CONTAINER_NAME"
+          SCAN_DIR=/opt/actions-runners/scans/kaspersky
           echo "scan_id=${SCAN_ID}" >> $GITHUB_OUTPUT
+          echo "scan_dir=${SCAN_DIR}" >> $GITHUB_OUTPUT
           echo $CONTAINER_NAME
           docker exec ${CONTAINER_NAME} scanner ${ref} ${registry_host}${registry_image_path} ${SCAN_ID}
+          docker exec ${CONTAINER_NAME} chown -R ${UID}:${GID} scans/${SCAN_ID}
 
-          mkdir -p scans/${SCAN_ID}
-          docker cp ${CONTAINER_NAME}:/antivirus/scans/${SCAN_ID}/scan_results_clean.md ./scans/${SCAN_ID}/scan_results_clean.md
-          docker cp ${CONTAINER_NAME}:/antivirus/scans/${SCAN_ID}/scan_results_threats.md ./scans/${SCAN_ID}/scan_results_threats.md
 
-          if [ -f scans/${SCAN_ID}/scan_results_threats.md ]; then
-            THREAT_COUNT=$(sed -n 's/.*Images with threats | \([0-9]\+\) |.*/\1/p' scans/${SCAN_ID}/scan_results_threats.md | head -1)
-            ERRORS_COUNT=$(sed -n 's/.*Errors | \([0-9]\+\) |.*/\1/p' scans/${SCAN_ID}/scan_results_threats.md | head -1)
+          if [ -f ${SCAN_DIR}/${SCAN_ID}/scan_results_threats.md ]; then
+            THREAT_COUNT=$(sed -n 's/.*Images with threats | \([0-9]\+\) |.*/\1/p' ${SCAN_DIR}/${SCAN_ID}/scan_results_threats.md | head -1)
+            ERRORS_COUNT=$(sed -n 's/.*Errors | \([0-9]\+\) |.*/\1/p' ${SCAN_DIR}/${SCAN_ID}/scan_results_threats.md | head -1)
             if [ -n "$THREAT_COUNT" ] && [ "$THREAT_COUNT" -gt 0 ]; then
               echo "❌ THREATS DETECTED: $THREAT_COUNT images contain threats!"
               exit 1
@@ -327,25 +329,26 @@ jobs:
           echo "✅ ${CONTAINER_NAME} scan completed for ${{ matrix.branch }}"
 
       - name: Upload scan artifacts
-        if: github.repository == 'deckhouse/deckhouse' && always()
+        if: github.repository == 'deckhouse/deckhouse-test-1' && always()
         uses: actions/upload-artifact@v4.4.0
         with:
           name: kaspersky-scan-results-${{ steps.scan.outputs.scan_id }}
-          path: scans/${{ steps.scan.outputs.scan_id }}
+          path: ${{ steps.scan.outputs.scan_dir }}/${{ steps.scan.outputs.scan_id }}
           retention-days: 5
 
       - name: Cleanup scan results on runner
         if: always()
         env:
           SCAN_ID: ${{ steps.scan.outputs.scan_id }}
+          SCAN_DIR: ${{ steps.scan.outputs.scan_dir }}
         run: |
           if [ -z "${SCAN_ID}" ]; then
             echo "scan_id is empty, nothing to clean up"
             exit 0
           fi
-          CONTAINER_NAME=registry_kaspersky
-          rm -rf "scans/${SCAN_ID}"
-          docker exec ${CONTAINER_NAME} rm -rf /antivirus/scans/${SCAN_ID} || true
+          if [[ -d ${SCAN_DIR}/${SCAN_ID} ]]; then
+            rm -rf ${SCAN_DIR}/${SCAN_ID} || true
+          fi
 
   # </template: kaspersky_scan_job>
 
@@ -366,7 +369,7 @@ jobs:
         env:
           REPO: ${{ github.repository }}
         run: |
-          if [ $REPO == "deckhouse/deckhouse" ]; then
+          if [ $REPO == "deckhouse/deckhouse-test-1" ]; then
             echo "name=deckhouse" >> $GITHUB_OUTPUT
           else
             echo "name=deckhouse-test" >> $GITHUB_OUTPUT
@@ -417,4 +420,3 @@ jobs:
             -H "Content-Type: application/json" \
             --data "{\"type\": \"ci_fail\",\"message\":\"$MESSAGE\"}"
   # </template: antivirus_notify_failure_job>
-
