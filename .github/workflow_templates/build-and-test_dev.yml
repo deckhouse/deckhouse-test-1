@@ -50,6 +50,36 @@ jobs:
       SVACE_ENABLED: ${{ contains(github.event.pull_request.labels.*.name, 'analyze/svace') && true || false }}
 {!{ tmpl.Exec "build_template" (slice $ctx "dev" "FE") | strings.Indent 4 }!}
 
+  # Trigger the image-based security scans (CVE / rootless / antivirus) right
+  # after Build FE has produced the deckhouse-oss image and the build_report_FE
+  # artifact. The dispatched workflow is independent and idempotent: every
+  # build re-run yields a fresh Security Scan Images run, with the previous
+  # one cancelled by the workflow's own concurrency group.
+  trigger_security_scan_images:
+    name: Trigger Security Scan Images
+    needs:
+      - pull_request_info
+      - build_fe
+    if: ${{ success() && github.repository == 'deckhouse/deckhouse' }}
+    runs-on: ubuntu-slim
+    permissions:
+      actions: write
+    steps:
+      - name: Dispatch Security Scan Images workflow
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          BUILD_RUN_ID: ${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          gh workflow run security-scan-images.yml \
+            --repo "${REPO}" \
+            --ref  "main" \
+            -f issue_number="${PR_NUMBER}" \
+            -f build_run_id="${BUILD_RUN_ID}"
+          echo "Dispatched Security Scan Images for PR #${PR_NUMBER} with build_run_id ${BUILD_RUN_ID}"
+
   build_tests:
     if: ${{ needs.pull_request_info.outputs.changes_not_markdown == 'true' }}
     name: Build tests image
@@ -200,7 +230,7 @@ jobs:
       - go_generate
       - dhctl_tests
       - tests
-    runs-on: "ubuntu-latest"
+    runs-on: "ubuntu-slim"
     steps:
 {!{ tmpl.Exec "checkout_step" . | strings.Indent 6 }!}
       - name: Set commit status after e2e run

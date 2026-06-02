@@ -3,7 +3,7 @@
 # <template: set_security_scan_requirement_status>
 set_security_scan_requirement_status:
   name: Set commit status after security scan run
-  runs-on: "ubuntu-latest"
+  runs-on: "ubuntu-slim"
   needs: test_cve_report_main
   if: ${{ always() }}
   permissions:
@@ -16,7 +16,7 @@ set_security_scan_requirement_status:
       run: echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
     - name: Set PR Label
       env:
-        PR_NUMBER: ${{ github.event.pull_request.number }}
+        PR_NUMBER: ${{ github.event.inputs.issue_number }}
         GH_REPO: ${{ github.repository }}
         RESULT: ${{ needs.test_cve_report_main.result }}
       run: |
@@ -59,7 +59,7 @@ set_security_scan_requirement_status:
 - name: Set scan target type
   id: scan_type
   run: |
-    PR_NUMBER="${{ github.event.pull_request.number }}"
+    PR_NUMBER="${{ github.event.inputs.issue_number }}"
     echo "PR_NUMBER=${PR_NUMBER}"
     REPO_SUFFIX=${GITHUB_REPOSITORY#deckhouse/deckhouse-}
     if [[ ${REPO_SUFFIX} == ${GITHUB_REPOSITORY} ]] ; then

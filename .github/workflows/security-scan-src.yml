@@ -2,7 +2,7 @@
 # THIS FILE IS GENERATED, PLEASE DO NOT EDIT.
 #
 
-# Copyright 2022 Flant JSC
+# Copyright 2026 Flant JSC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,14 +16,28 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# This workflow reacts to labels and restart workflows if needed.
-# Cloud layout tests and deploy web are restarted only when PR is labeled.
-# Validation workflow is restarted when PR is labeled or unlabeled.
-name: Rerun workflows for pull request
+name: Security Scan Src
 
+# Source-code scans that do not require built images. Triggers on every PR
+# event the same way the umbrella security workflow used to — image-based
+# scans now live in `Security Scan Images` and are dispatched from the build.
 on:
   pull_request_target:
-    types: [labeled, unlabeled]
+    types:
+      - opened
+      - reopened
+      - synchronize
+
+# Cancel in-progress src scans for the same PR.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  id-token: write
+  pull-requests: write
+
 jobs:
 
   # <template: pull_request_info>
@@ -253,23 +267,115 @@ jobs:
             core.setFailed('External PR contains dangerous changes.')
 
   # </template: pull_request_info>
-  rerun_workflow_for_pull_request:
-    name: Rerun workflow for pull request
+
+  # ============================================================================
+  # Gitleaks — secret scanning on PR diff.
+  # ============================================================================
+  gitleaks_scan:
+    name: Gitleaks scan
+    runs-on: ubuntu-slim
+    needs: pull_request_info
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      # <template: import_secrets>
+      - name: Split repository name
+        id: split
+        env:
+          REPO: ${{ github.repository }}
+        run: |
+          if [ $REPO == "deckhouse/deckhouse" ]; then
+            echo "name=deckhouse" >> $GITHUB_OUTPUT
+          else
+            echo "name=deckhouse-test" >> $GITHUB_OUTPUT
+          fi
+      - name: Import secrets
+        id: secrets
+        uses: hashicorp/vault-action@v2
+        with:
+          url: https://seguro.flant.com
+          path: github
+          role: "${{ steps.split.outputs.name }}"
+          method: jwt
+          jwtGithubAudience: github-access-aud
+          secrets: |
+            projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/team-ssdlc/loop webhook_url | LOOP_SERVICE_NOTIFICATIONS ;
+
+      # </template: import_secrets>
+      # The action checks out refs/pull/<num>/merge itself,
+      # so the PR branch is scanned (not the base branch).
+      - name: Run Gitleaks diff scan
+        uses: deckhouse/modules-actions/gitleaks@main
+        with:
+          scan_mode: diff
+          gitleaks_version: v8.28.0
+
+      # <template: send_fail_report>
+      - name: Send fail report
+        if: ${{ failure() && github.repository == 'deckhouse/deckhouse' }}
+        env:
+          LOOP_SERVICE_NOTIFICATIONS: ${{ steps.secrets.outputs.LOOP_SERVICE_NOTIFICATIONS }}
+          JOB_NAME: ${{ github.job }}
+          WORKFLOW_NAME: ${{ github.workflow }}
+          WORKFLOW_URL: ${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}/
+        run: |
+          bash ./.github/scripts/send-report.sh --webhook "ci_fail"
+      # </template: send_fail_report>
+
+  set_security_gitleaks_requirement_status:
+    name: Set commit status after gitleaks scan run
     runs-on: "ubuntu-slim"
+    needs: gitleaks_scan
+    if: ${{ always() }}
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Install GitHub CLI
+        run: sudo apt-get install gh -y
+      - name: Auth with GitHub CLI
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
+      - name: Set PR Label
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          GH_REPO: ${{ github.repository }}
+          RESULT: ${{ needs.gitleaks_scan.result }}
+        run: |
+          echo "PR Number: $PR_NUMBER | Result: $RESULT"
+          if [ "$RESULT" == "success" ]; then
+            gh pr edit "$PR_NUMBER" --add-label "security/gitleaks/success" --remove-label "security/gitleaks/failed"
+          elif [ "$RESULT" == "skipped" ]; then
+            gh pr edit "$PR_NUMBER" --remove-label "security/gitleaks/success" --remove-label "security/gitleaks/failed"
+          else
+            gh pr edit "$PR_NUMBER" --add-label "security/gitleaks/failed" --remove-label "security/gitleaks/success"
+          fi
+
+  # ============================================================================
+  # Aggregator — single required check for branch protection.
+  # Fails if the src scan did not finish with success.
+  # ============================================================================
+  security_scan_src_required:
+    name: Security scan src required
+    runs-on: ubuntu-slim
+    if: ${{ always() && needs.pull_request_info.result == 'success' }}
     needs:
       - pull_request_info
+      - gitleaks_scan
     steps:
-
-      # <template: checkout_step>
-      - name: Checkout sources
-        uses: actions/checkout@v3.5.2
-
-      # </template: checkout_step>
-      - name: Rerun workflow
-        uses: actions/github-script@v6.4.1
-        with:
-          github-token: ${{ secrets.BOATSWAIN_GITHUB_TOKEN }}
-          script: |
-            const ci = require('./.github/scripts/js/ci');
-            const ref = "${{ needs.pull_request_info.outputs.ref }}"
-            return await ci.runWorkflowForPullRequest({ github, context, core, ref });
+      - name: Aggregate scan results
+        run: |
+          declare -A results=(
+            [gitleaks]="${{ needs.gitleaks_scan.result }}"
+          )
+          failed=0
+          for name in "${!results[@]}"; do
+            r="${results[$name]}"
+            if [[ "$r" == "success" ]]; then
+              echo "✅ $name: $r"
+              continue
+            fi
+            echo "::error::Scan '$name' result: $r"
+            failed=1
+          done
+          exit $failed

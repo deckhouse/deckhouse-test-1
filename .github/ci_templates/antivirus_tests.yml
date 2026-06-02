@@ -3,6 +3,12 @@
 {!{ define "av_scan_step" }!}
 - name: Run {!{ .container_name }!} scan
   id: scan
+  {!{- if .image_filter_expr }!}
+  env:
+    # Comes from the `changed_images` job. Wired here only for drweb-scan; the
+    # kaspersky-scan job stays on the legacy "scan everything" code path.
+    IMAGE_FILTER: {!{ .image_filter_expr }!}
+  {!{- end }!}
   run: |
     registry_image_path=/sys/deckhouse-oss
     ref=$(echo "${{ matrix.branch }}" | awk -F':' '{ print $2 }' | tr -d '\n')
@@ -29,7 +35,23 @@
     SCAN_ID+="-$CONTAINER_NAME"
     echo "scan_id=${SCAN_ID}" >> $GITHUB_OUTPUT
     echo $CONTAINER_NAME
+    {!{- if .image_filter_expr }!}
+    # IMAGE_FILTER comes from needs.changed_images.outputs.changed_compact.
+    # If the PR did not change any images, the upstream job emits "[]" (or empty);
+    # in that case we fall back to the legacy "scan everything" call so we never
+    # accidentally pass an empty 4th argument to the scanner (it would reject it).
+    if [ -n "${IMAGE_FILTER}" ] && [ "${IMAGE_FILTER}" != "[]" ]; then
+      echo "📜 Forwarding image filter (${#IMAGE_FILTER} chars) to the {!{ .container_name }!} scanner."
+      docker exec -e IMAGE_FILTER="${IMAGE_FILTER}" ${CONTAINER_NAME} \
+        bash -c 'scanner "$1" "$2" "$3" "$IMAGE_FILTER"' bash \
+        "${ref}" "${registry_host}${registry_image_path}" "${SCAN_ID}"
+    else
+      echo "📜 No image filter provided (changed_images is empty); falling back to full scan."
+      docker exec ${CONTAINER_NAME} scanner ${ref} ${registry_host}${registry_image_path} ${SCAN_ID}
+    fi
+    {!{- else }!}
     docker exec ${CONTAINER_NAME} scanner ${ref} ${registry_host}${registry_image_path} ${SCAN_ID}
+    {!{- end }!}
 
     mkdir -p scans/${SCAN_ID}
     docker cp ${CONTAINER_NAME}:/{!{ .scan_path }!}/scans/${SCAN_ID}/scan_results_clean.md ./scans/${SCAN_ID}/scan_results_clean.md
@@ -82,7 +104,11 @@ drweb-scan:
   name: Dr.Web Scan ${{ matrix.branch }}
   runs-on: [self-hosted, antivirus]
   if: github.repository == 'deckhouse/deckhouse'
-  needs: get-tags
+  # `changed_images` is intentionally a soft dependency: when the workflow is
+  # invoked outside of a PR context (release/main/manual) the job is skipped
+  # and its outputs come through as empty — the scanner falls back to the
+  # legacy "scan everything" mode (see av_scan_step).
+  needs: [get-tags, changed_images]
   strategy:
     matrix:
       branch: ${{ fromJson(needs.get-tags.outputs.tags) }}
@@ -97,7 +123,11 @@ drweb-scan:
     {!{- $secrets = append ( slice "projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/github/registry_host" "DECKHOUSE_REGISTRY_STAGE_HOST" "DECKHOUSE_STAGE_REGISTRY_HOST" ) $secrets -}!}
     {!{ tmpl.Exec "import_secrets" $secrets | strings.Indent 4 }!}
 
-    {!{- $args := dict "container_name" "drweb" "scan_path" "drweb" -}!}
+    {!{- $args := dict
+        "container_name"      "drweb"
+        "scan_path"           "drweb"
+        "image_filter_expr"   "${{ needs.changed_images.outputs.changed_compact }}"
+    -}!}
     {!{ tmpl.Exec "av_scan_step" $args | strings.Indent 4 }!}
 # </template: drweb_scan_job>
 {!{ end }!}
@@ -123,7 +153,11 @@ kaspersky-scan:
     {!{- $secrets = append ( slice "projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/github/registry_host" "DECKHOUSE_REGISTRY_STAGE_HOST" "DECKHOUSE_STAGE_REGISTRY_HOST" ) $secrets -}!}
     {!{ tmpl.Exec "import_secrets" $secrets | strings.Indent 4 }!}
 
-    {!{- $args := dict "container_name" "kaspersky" "scan_path" "antivirus" -}!}
+    {!{- $args := dict
+        "container_name"    "kaspersky"
+        "scan_path"         "antivirus"
+        "image_filter_expr" ""
+    -}!}
     {!{ tmpl.Exec "av_scan_step" $args | strings.Indent 4 }!}
 # </template: kaspersky_scan_job>
 {!{ end }!}
@@ -132,7 +166,7 @@ kaspersky-scan:
 # <template: set_security_antivirus_requirement_status>
 set_security_antivirus_requirement_status:
   name: Set commit status after antivirus scan run
-  runs-on: "ubuntu-latest"
+  runs-on: "ubuntu-slim"
   needs: [drweb-scan, kaspersky-scan]
   if: ${{ always() }}
   permissions:
@@ -145,7 +179,7 @@ set_security_antivirus_requirement_status:
       run: echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
     - name: Set PR Label
       env:
-        PR_NUMBER: ${{ github.event.pull_request.number }}
+        PR_NUMBER: ${{ github.event.inputs.issue_number }}
         GH_REPO: ${{ github.repository }}
         DRWEB: ${{ needs.drweb-scan.result }}
         KASPERSKY: ${{ needs.kaspersky-scan.result }}
@@ -197,9 +231,10 @@ notify-failure:
         MESSAGE="🛑 Github Antivirus Scan Failed!\n\n"
         MESSAGE+="**Failed jobs:**\n"
         MESSAGE+="${{ steps.check-failures.outputs.failed_jobs }}\n"
-        if [ "${{ github.event_name }}" == "pull_request_target" ]; then
-          pr_url="https://github.com/${{ github.repository }}/pull/${{ github.event.pull_request.number }}"
-          MESSAGE+="**PR:** [#${{ github.event.pull_request.number }}]($pr_url)\n"
+        PR_NUMBER="${{ github.event.inputs.issue_number }}"
+        if [ -n "$PR_NUMBER" ]; then
+          pr_url="https://github.com/${{ github.repository }}/pull/${PR_NUMBER}"
+          MESSAGE+="**PR:** [#${PR_NUMBER}]($pr_url)\n"
         fi
         MESSAGE+="**Workflow URL:** [View Run]($workflow_url)\n"
 
