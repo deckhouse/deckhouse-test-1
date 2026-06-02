@@ -25,8 +25,8 @@ User-stories:
 package template_tests
 
 import (
-	"encoding/base64"
 	"fmt"
+	"encoding/base64"
 	"testing"
 
 	. "github.com/onsi/ginkgo"
@@ -39,7 +39,6 @@ func Test(t *testing.T) {
 	RegisterFailHandler(Fail)
 	RunSpecs(t, "")
 }
-
 const providerID = "yandex"
 const nameLabelKey = "cloud-provider\\.deckhouse\\.io/name"
 const registrationLabelKey = "cloud-provider\\.deckhouse\\.io/registration"
@@ -60,7 +59,7 @@ const globalValues = `
     clusterType: Cloud
     defaultCRI: Containerd
     kind: ClusterConfiguration
-    kubernetesVersion: "1.32"
+    kubernetesVersion: "1.31"
     podSubnetCIDR: 10.111.0.0/16
     podSubnetNodeCIDRPrefix: "24"
     serviceSubnetCIDR: 10.222.0.0/16
@@ -71,7 +70,7 @@ const globalValues = `
       worker: 1
       master: 3
     podSubnet: 10.0.1.0/16
-    kubernetesVersion: 1.32.0
+    kubernetesVersion: 1.31.0
     clusterUUID: 3b5058e1-e93a-4dfa-be32-395ef4b3da45
 `
 
@@ -316,6 +315,26 @@ var _ = Describe("Module :: cloud-provider-yandex :: helm template ::", func() {
 			Expect(registrySecret.Exists()).To(BeTrue())
 			Expect(userAuthzUser.Exists()).To(BeTrue())
 			Expect(userAuthzClusterAdmin.Exists()).To(BeTrue())
+			Expect(userAuthzUser.Field("rules").String()).To(MatchYAML(`
+- apiGroups:
+  - deckhouse.io
+  resources:
+  - yandexinstanceclasses
+  verbs:
+  - get
+  - list
+  - watch`))
+			Expect(userAuthzClusterAdmin.Field("rules").String()).To(MatchYAML(`
+- apiGroups:
+  - deckhouse.io
+  resources:
+  - yandexinstanceclasses
+  verbs:
+  - create
+  - delete
+  - deletecollection
+  - patch
+  - update`))
 
 			// user story #1
 			providerRegistrationSecret := f.KubernetesResource("Secret", "kube-system", "d8-node-manager-cloud-provider")
