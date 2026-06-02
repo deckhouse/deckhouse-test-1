@@ -26,7 +26,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/deckhouse/deckhouse/dhctl/pkg/app/options"
 	"github.com/deckhouse/deckhouse/dhctl/pkg/config"
 	"github.com/deckhouse/deckhouse/dhctl/pkg/infrastructure/plan"
 	"github.com/deckhouse/deckhouse/dhctl/pkg/log"
@@ -80,6 +79,7 @@ func GetMasterIPAddressForSSH(ctx context.Context, statePath string, executor Ou
 			StatePath: statePath,
 			OutFields: []string{k},
 		})
+
 		if err != nil {
 			var ee *exec.ExitError
 			if errors.As(err, &ee) {
@@ -110,8 +110,7 @@ func ApplyPipeline(
 	ctx context.Context,
 	r RunnerInterface,
 	name string,
-	globalOptions *options.GlobalOptions,
-	extractFn func(ctx context.Context, r RunnerInterface, globalOptions *options.GlobalOptions) (*PipelineOutputs, error),
+	extractFn func(ctx context.Context, r RunnerInterface) (*PipelineOutputs, error),
 ) (*PipelineOutputs, error) {
 	var extractedData *PipelineOutputs
 
@@ -129,18 +128,14 @@ func ApplyPipeline(
 		}
 		span.AddEvent("Plan done")
 
-		defer func() {
-			if err == nil {
-				extractedData, err = extractFn(ctx, r, globalOptions)
-			}
-		}()
+		defer func() { extractedData, err = extractFn(ctx, r) }()
 
 		if err := r.Apply(ctx); err != nil {
 			return err
 		}
 		span.AddEvent("Apply done")
 
-		extractedData, err = extractFn(ctx, r, globalOptions)
+		extractedData, err = extractFn(ctx, r)
 		span.AddEvent("Extracted data")
 
 		return err
@@ -215,7 +210,6 @@ func CheckBaseInfrastructurePipeline(
 	ctx context.Context,
 	r RunnerInterface,
 	name string,
-	globalOptions *options.GlobalOptions,
 ) (int, plan.Plan, *BaseInfrastructureDestructiveChanges, error) {
 	isChange := plan.HasNoChanges
 
@@ -247,7 +241,7 @@ func CheckBaseInfrastructurePipeline(
 			return nil
 		}
 
-		info, err := GetBaseInfraResult(ctx, r, globalOptions)
+		info, err := GetBaseInfraResult(ctx, r)
 		if err != nil {
 			isChange = plan.HasDestructiveChanges
 			getOrCreateDestructiveChanges().OutputBrokenReason = err.Error()
@@ -331,13 +325,13 @@ func DestroyPipeline(ctx context.Context, r RunnerInterface, name string) error 
 	)
 }
 
-func GetBaseInfraResult(ctx context.Context, r RunnerInterface, globalOptions *options.GlobalOptions) (*PipelineOutputs, error) {
+func GetBaseInfraResult(ctx context.Context, r RunnerInterface) (*PipelineOutputs, error) {
 	cloudDiscovery, err := r.GetInfrastructureOutput(ctx, "cloud_discovery_data")
 	if err != nil {
 		return nil, err
 	}
 
-	schemaStore := config.NewSchemaStore(globalOptions)
+	schemaStore := config.NewSchemaStore(nil)
 	_, err = schemaStore.Validate(&cloudDiscovery)
 	if err != nil {
 		return nil, fmt.Errorf("validate cloud_discovery_data: %v", err)
@@ -358,7 +352,7 @@ func GetBaseInfraResult(ctx context.Context, r RunnerInterface, globalOptions *o
 	}, nil
 }
 
-func GetMasterNodeResult(ctx context.Context, r RunnerInterface, _ *options.GlobalOptions) (*PipelineOutputs, error) {
+func GetMasterNodeResult(ctx context.Context, r RunnerInterface) (*PipelineOutputs, error) {
 	masterIPAddressForSSH, err := getStringOrIntOutput(ctx, r, masterSSHIPOutputKey)
 	if err != nil {
 		return nil, err
@@ -426,7 +420,7 @@ func GetMasterNodeResultNoStrict(ctx context.Context, r RunnerInterface) (*Pipel
 	return res, nil
 }
 
-func OnlyState(_ context.Context, r RunnerInterface, _ *options.GlobalOptions) (*PipelineOutputs, error) {
+func OnlyState(_ context.Context, r RunnerInterface) (*PipelineOutputs, error) {
 	tfState, err := r.GetState()
 	if err != nil {
 		return nil, err
@@ -574,7 +568,7 @@ func logDebugPlanIfNeed(ctx context.Context, r RunnerInterface, name string, des
 	}
 }
 
-func extractChangesStrings(target, planOutput string) (string, string) {
+func extractChangesStrings(target string, planOutput string) (string, string) {
 	var mapOut map[string]any
 	err := json.Unmarshal([]byte(planOutput), &mapOut)
 	if err != nil {

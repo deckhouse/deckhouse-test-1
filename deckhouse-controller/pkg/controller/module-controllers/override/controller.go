@@ -75,16 +75,20 @@ func RegisterController(runtimeManager manager.Manager,
 		return fmt.Errorf("add preflight: %w", err)
 	}
 
+	pullOverrideController, err := controller.New(controllerName, runtimeManager, controller.Options{
+		MaxConcurrentReconciles: maxConcurrentReconciles,
+		CacheSyncTimeout:        cacheSyncTimeout,
+		NeedLeaderElection:      ptr.To(false),
+		Reconciler:              r,
+	})
+	if err != nil {
+		return fmt.Errorf("create controller: %w", err)
+	}
+
 	if err := ctrl.NewControllerManagedBy(runtimeManager).
-		Named(controllerName).
 		For(&v1alpha2.ModulePullOverride{}).
 		WithEventFilter(predicate.Or(predicate.GenerationChangedPredicate{}, predicate.AnnotationChangedPredicate{})).
-		WithOptions(controller.Options{
-			MaxConcurrentReconciles: maxConcurrentReconciles,
-			CacheSyncTimeout:        cacheSyncTimeout,
-			NeedLeaderElection:      ptr.To(false),
-		}).
-		Complete(r); err != nil {
+		Complete(pullOverrideController); err != nil {
 		return fmt.Errorf("complete: %w", err)
 	}
 	return nil

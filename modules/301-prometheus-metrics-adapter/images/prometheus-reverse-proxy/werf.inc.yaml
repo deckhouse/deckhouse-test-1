@@ -6,6 +6,7 @@ import:
   add: /src/prometheus-reverse-proxy
   to: /prometheus-reverse-proxy
   before: setup
+git:  
 {{- include "image mount points" . }}  
 imageSpec:
   config:
@@ -20,9 +21,6 @@ git:
   stageDependencies:
     install:
     - '**/*'
-shell:
-  install:
-  - set -e
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact
 from: {{ index $.Images "builder/golang-alpine" }}

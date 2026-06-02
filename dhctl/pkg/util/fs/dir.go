@@ -17,7 +17,6 @@ package fs
 import (
 	"fmt"
 	"os"
-	"path"
 	"path/filepath"
 	"runtime"
 	"slices"
@@ -146,8 +145,7 @@ func IsSystemDirOrUserHome(dir string) (bool, []string, error) {
 		return false, nil, err
 	}
 
-	additionalSystems := make([]string, 0, 3+len(systemDirectories))
-	additionalSystems = append(additionalSystems, homeDir, "/home", "/media")
+	additionalSystems := []string{homeDir, "/home", "/media"}
 
 	all := append(additionalSystems, systemDirectories...)
 	return slices.Contains(all, dir), all, nil
@@ -161,12 +159,4 @@ func IsInSystemDirs(dir string) (bool, []string) {
 	}
 
 	return false, GetSystemDirectories()
-}
-
-// JoinLinux
-// because in future we can use dhctl from windows
-// but we can to install to linux only
-// we should use / separator for routines
-func JoinLinux(elem ...string) string {
-	return path.Join(elem...)
 }

@@ -16,6 +16,7 @@ package input
 
 import (
 	"bufio"
+	"fmt"
 	"os"
 	"strings"
 
@@ -62,7 +63,7 @@ func (c *Confirmation) Ask() bool {
 	} else {
 		reader := bufio.NewReader(os.Stdin)
 		for {
-			log.InteractiveWarnF("%s [y/n]: ", c.message)
+			log.WarnF(fmt.Sprintf("%s [y/n]: ", c.message))
 			line, _, err := reader.ReadLine()
 			if err != nil {
 				log.ErrorF("can't read from stdin: %v\n", err)
@@ -73,17 +74,18 @@ func (c *Confirmation) Ask() bool {
 
 			switch response {
 			case "y", "yes":
-				log.InteractiveInfoF("\r")
+				log.InfoF("\r")
 				return true
 
 			case "n", "no":
-				log.InteractiveInfoF("\r")
+				log.InfoF("\r")
 				return false
 			}
 
-			log.InteractiveInfoF("\r")
+			log.InfoF("\r")
 		}
 	}
+
 }
 
 func IsTerminal() bool {

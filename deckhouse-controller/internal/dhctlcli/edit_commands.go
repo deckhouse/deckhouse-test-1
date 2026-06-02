@@ -56,7 +56,6 @@ func baseEditConfigCMD(parent *kingpin.CmdClause, opts *options.Options, name, s
 			ctx,
 			params,
 			providerinitializer.WithKubeFlagsDefined(opts.Kube.IsDefined()),
-			providerinitializer.WithKubeConfig(opts.Kube.Config, opts.Kube.ConfigContext, opts.Kube.InCluster),
 			providerinitializer.WithRequiredKubeProvider(),
 		)
 		if err != nil {
@@ -85,7 +84,7 @@ func baseEditConfigCMD(parent *kingpin.CmdClause, opts *options.Options, name, s
 			name, "kube-system", secret, dataKey, map[string]string{
 				"name": name,
 			},
-			&opts.Global,
+			opts.DirConfig(),
 			operations.EditOptions{
 				Editor:      opts.Render.Editor,
 				TmpDir:      opts.Global.TmpDir,

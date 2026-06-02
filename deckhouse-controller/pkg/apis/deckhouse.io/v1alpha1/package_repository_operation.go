@@ -23,8 +23,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
-type PackageRepositoryOperationType string
-
 const (
 	PackageRepositoryOperationResource = "packagerepositoryoperations"
 	PackageRepositoryOperationKind     = "PackageRepositoryOperation"
@@ -42,8 +40,8 @@ const (
 	// that belong to a specific PackageRepository
 	PackagesRepositoryOperationLabelRepository = "packages.deckhouse.io/repository"
 
-	PackagesRepositoryOperationLabelOperationType                                = "packages.deckhouse.io/operation-type"
-	PackageRepositoryOperationTypeUpdate          PackageRepositoryOperationType = "Update"
+	PackagesRepositoryOperationLabelOperationType = "packages.deckhouse.io/operation-type"
+	PackageRepositoryOperationTypeUpdate          = "Update"
 
 	PackagesRepositoryOperationLabelOperationTrigger = "packages.deckhouse.io/operation-trigger"
 	PackagesRepositoryTriggerManual                  = "manual"
@@ -95,10 +93,7 @@ type PackageRepositoryOperationSpec struct {
 	PackageRepositoryName string `json:"packageRepositoryName"`
 
 	// Type of operation to perform.
-	// +required
-	// +kubebuilder:validation:Required
-	// +kubebuilder:validation:Enum=Update
-	Type PackageRepositoryOperationType `json:"type"`
+	Type string `json:"type"`
 
 	// Configuration for update operations.
 	// +optional
@@ -157,14 +152,6 @@ type PackageRepositoryOperationStatusPackages struct {
 	// Total number of packages found.
 	// +optional
 	Total int `json:"total,omitempty"`
-
-	// Total number of newly found versions across all packages in this operation.
-	// A version is counted as new if its ApplicationPackageVersion or
-	// ModulePackageVersion did not exist in the cluster, or (ApplicationPackageVersion
-	// only) existed with the "not in registry" mark and its image was found in the
-	// registry during this operation.
-	// +optional
-	NewVersionsOverall int `json:"newVersionsOverall,omitempty"`
 }
 
 type PackageRepositoryOperationStatusDiscoveredPackage struct {
@@ -199,14 +186,6 @@ type PackageRepositoryOperationStatusPackage struct {
 	// Number of versions found during this operation.
 	// +optional
 	FoundVersions int `json:"foundVersions,omitempty"`
-
-	// Number of newly found versions during this operation.
-	// A version is counted as new if its ApplicationPackageVersion or
-	// ModulePackageVersion did not exist in the cluster, or (ApplicationPackageVersion
-	// only) existed with the "not in registry" mark and its image was found in the
-	// registry during this operation.
-	// +optional
-	NewVersions int `json:"newVersions,omitempty"`
 }
 
 func (o *PackageRepositoryOperation) GetStateByCondition() string {

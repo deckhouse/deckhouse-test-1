@@ -37,12 +37,14 @@ const (
 	PhaseSkipped    = "Skipped"
 )
 
-// ModuleConfigGVR GroupVersionResource
-var DeckhouseReleaseGVR = schema.GroupVersionResource{
-	Group:    "deckhouse.io",
-	Version:  "v1alpha1",
-	Resource: "deckhousereleases",
-}
+var (
+	// ModuleConfigGVR GroupVersionResource
+	DeckhouseReleaseGVR = schema.GroupVersionResource{
+		Group:    "deckhouse.io",
+		Version:  "v1alpha1",
+		Resource: "deckhousereleases",
+	}
+)
 
 // +k8s:deepcopy-gen=false
 

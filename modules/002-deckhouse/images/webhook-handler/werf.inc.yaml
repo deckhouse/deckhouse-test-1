@@ -34,7 +34,6 @@ import:
   excludePaths:
   - usr/lib/python*/site-packages/pip-25.3*
   - usr/lib/python*/test
-{{- include "image mount points" . }}
 git:
 - add: /{{ .ModulePath }}
   to: /available_hooks
@@ -68,9 +67,7 @@ git:
   stageDependencies:
     install:
       - '**/*'
-shell:
-  install:
-  - set -e
+{{- include "image mount points" . }}
 imageSpec:
   config:
     env: {"PYTHONPATH": "/frameworks/python"}
@@ -91,9 +88,6 @@ git:
     - '**/*.go'
     - '**/go.mod'
     - '**/go.sum'
-shell:
-  install:
-  - set -e
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}-label-converter-artifact
 final: false

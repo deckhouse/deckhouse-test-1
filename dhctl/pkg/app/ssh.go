@@ -164,6 +164,10 @@ func ProviderParams(o *options.GlobalOptions, loggerProvider libdhctl_log.Logger
 
 // DefaultProviderParams is ProviderParams with the default global logger.
 func DefaultProviderParams(o *options.GlobalOptions) (settings.ProviderParams, error) {
-	loggerProvider := log.ExternalLoggerProvider(log.GetDefaultLogger())
+	logger, ok := log.GetDefaultLogger().(*log.ExternalLogger)
+	if !ok {
+		return settings.ProviderParams{}, fmt.Errorf("cannot convert logger to ExternalLogger")
+	}
+	loggerProvider := libdhctl_log.SimpleLoggerProvider(logger.GetLogger())
 	return ProviderParams(o, loggerProvider), nil
 }

@@ -173,8 +173,7 @@ func TestDestructiveChangeID(t *testing.T) {
 							},
 						},
 					},
-				},
-			},
+				}},
 			expected: `{"cluster:resource_recreated:0:next":{"key":"value","name":"some_name","type":"some_type"}}`,
 		},
 		"multiple changes": {

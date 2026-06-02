@@ -1,5 +1,5 @@
 /*
-Copyright 2026 Flant JSC
+Copyright 2023 Flant JSC
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -18,22 +18,20 @@ package controller
 
 import (
 	"context"
-	"errors"
-	"fmt"
 	"net/url"
 	"strconv"
 
+	"github.com/pkg/errors"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/rest"
-	"k8s.io/utils/ptr"
 	clusterv1 "sigs.k8s.io/cluster-api/api/core/v1beta2"
 	"sigs.k8s.io/cluster-api/util"
-	"sigs.k8s.io/cluster-api/util/patch"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	infrav1 "caps-controller-manager/api/infrastructure/v1alpha1"
+	"caps-controller-manager/internal/scope"
 )
 
 // StaticClusterReconciler reconciles a StaticCluster object
@@ -43,10 +41,10 @@ type StaticClusterReconciler struct {
 	Config *rest.Config
 }
 
-// +kubebuilder:rbac:groups=infrastructure.cluster.x-k8s.io,resources=staticclusters,verbs=get;list;watch;update;patch
-// +kubebuilder:rbac:groups=infrastructure.cluster.x-k8s.io,resources=staticclusters/status,verbs=get;update;patch
-// +kubebuilder:rbac:groups=cluster.x-k8s.io,resources=clusters,verbs=get;list;watch
-// +kubebuilder:rbac:groups=cluster.x-k8s.io,resources=clusters/status,verbs=get
+//+kubebuilder:rbac:groups=infrastructure.cluster.x-k8s.io,resources=staticclusters,verbs=get;list;watch;update;patch
+//+kubebuilder:rbac:groups=infrastructure.cluster.x-k8s.io,resources=staticclusters/status,verbs=get;update;patch
+//+kubebuilder:rbac:groups=cluster.x-k8s.io,resources=clusters,verbs=get;list;watch
+//+kubebuilder:rbac:groups=cluster.x-k8s.io,resources=clusters/status,verbs=get
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
@@ -57,11 +55,11 @@ type StaticClusterReconciler struct {
 //
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.15.0/pkg/reconcile
-//
-//nolint:nonamedreturns
 func (r *StaticClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	logger := ctrl.LoggerFrom(ctx)
-	logger.Info("Reconciling StaticCluster")
+	logger := ctrl.LoggerFrom(ctx).WithValues("staticCluster", req.NamespacedName.String())
+	ctx = ctrl.LoggerInto(ctx, logger)
+
+	logger.V(1).Info("Reconciling StaticCluster")
 
 	staticCluster := &infrav1.StaticCluster{}
 	err := r.Get(ctx, req.NamespacedName, staticCluster)
@@ -69,17 +67,31 @@ func (r *StaticClusterReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 		if apierrors.IsNotFound(err) {
 			return ctrl.Result{}, nil
 		}
-		return ctrl.Result{}, fmt.Errorf("failed to get StaticCluster: %w", err)
+
+		logger.Error(err, "failed to get StaticCluster")
+		return ctrl.Result{}, err
 	}
 
 	// Fetch the Cluster.
 	cluster, err := util.GetOwnerCluster(ctx, r.Client, staticCluster.ObjectMeta)
 	if err != nil {
-		return ctrl.Result{}, fmt.Errorf("failed to get owner Cluster: %w", err)
+		logger.Error(err, "failed to get owner Cluster")
+		return ctrl.Result{}, err
 	}
 	if cluster == nil {
-		logger.Info("Cluster Controller has not yet set OwnerRef. Won't reconcile")
+		logger.V(1).Info("Cluster Controller has not yet set OwnerRef")
+
 		return ctrl.Result{}, nil
+	}
+
+	newScope, err := scope.NewScope(r.Client, r.Config, ctrl.LoggerFrom(ctx))
+	if err != nil {
+		return ctrl.Result{}, errors.Wrap(err, "failed to create a scope")
+	}
+
+	clusterScope, err := scope.NewClusterScope(newScope, cluster, staticCluster)
+	if err != nil {
+		return ctrl.Result{}, errors.Wrap(err, "failed to create a cluster scope")
 	}
 
 	// Handle deleted cluster
@@ -87,39 +99,42 @@ func (r *StaticClusterReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 		return ctrl.Result{}, nil
 	}
 
-	return r.reconcile(ctx, staticCluster)
-}
-
-//nolint:nonamedreturns
-func (r *StaticClusterReconciler) reconcile(ctx context.Context, staticCluster *infrav1.StaticCluster) (res ctrl.Result, resErr error) {
-	patchHelper, err := patch.NewHelper(staticCluster, r.Client)
-	if err != nil {
-		return ctrl.Result{}, fmt.Errorf("failed to init patch helper: %w", err)
+	reconcileErr := r.reconcile(ctx, clusterScope)
+	if reconcileErr != nil {
+		clusterScope.Logger.Error(reconcileErr, "failed to reconcile StaticCluster")
 	}
 
-	defer func() {
-		if err := patchHelper.Patch(ctx, staticCluster); err != nil {
-			resErr = errors.Join(resErr, fmt.Errorf("failed to patch StaticCluster: %w", err))
-		}
-	}()
+	return ctrl.Result{}, reconcileErr
+}
 
+func (r *StaticClusterReconciler) reconcile(
+	ctx context.Context,
+	clusterScope *scope.ClusterScope,
+) error {
 	controlPlaneEndpointURL, err := url.Parse(r.Config.Host)
 	if err != nil {
-		return ctrl.Result{}, fmt.Errorf("failed to parse api server host: %w", err)
+		return errors.Wrap(err, "failed to parse api server host")
 	}
 
 	port, err := strconv.Atoi(controlPlaneEndpointURL.Port())
 	if err != nil {
-		return ctrl.Result{}, fmt.Errorf("failed to parse api server port: %w", err)
+		return errors.Wrap(err, "failed to parse api server port")
 	}
 
-	staticCluster.Spec.ControlPlaneEndpoint = clusterv1.APIEndpoint{
+	clusterScope.StaticCluster.Spec.ControlPlaneEndpoint = clusterv1.APIEndpoint{
 		Host: controlPlaneEndpointURL.Hostname(),
 		Port: int32(port),
 	}
-	staticCluster.Status.Initialization.Provisioned = ptr.To(true)
 
-	return ctrl.Result{}, nil
+	clusterReady := true
+	clusterScope.StaticCluster.Status.Initialization.Provisioned = &clusterReady
+
+	err = clusterScope.Patch(ctx)
+	if err != nil {
+		return errors.Wrap(err, "failed to patch StaticCluster")
+	}
+
+	return nil
 }
 
 // SetupWithManager sets up the controller with the Manager.

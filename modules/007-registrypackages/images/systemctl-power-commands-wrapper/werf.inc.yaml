@@ -18,13 +18,14 @@ git:
   - '**/*.sum'
   - 'Makefile'
   stageDependencies:
-    setup:
+    install:
     - 'go.mod'
     - 'go.sum'
+    setup:
     - '**/*.go'
     - 'Makefile'
 shell:
-  setup:
+  install:
   - cd /src/wrapper
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact-{{ $image_version }}

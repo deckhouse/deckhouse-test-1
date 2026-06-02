@@ -74,17 +74,15 @@ var _ = Describe("Istio hooks :: discovery istiod health ::", func() {
   {"internal":
     { "versionMap":
      {
-        "1.13": {
-          "revision": "v1x13",
+        "1.33": {
+          "revision": "v1x33",
           "fullVersion": "1.13.55",
-          "supportsAmbient": false,
-          "supportsOperator": true
+          "supportsAmbient": false
        },
        "1.88": {
           "revision": "v1x88",
           "fullVersion": "1.88.55",
-          "supportsAmbient": true,
-          "supportsOperator": false
+          "supportsAmbient": true
         }
       }
     }
@@ -141,7 +139,7 @@ var _ = Describe("Istio hooks :: discovery istiod health ::", func() {
 			Expect(f).To(ExecuteSuccessfully())
 			Expect(f.ValuesGet(isGlobalVersionIstiodReadyPath).Exists()).To(BeTrue())
 			Expect(f.ValuesGet(isGlobalVersionIstiodReadyPath).Bool()).To(BeFalse())
-			Expect(f.ValuesGet(versionMapPath).String()).To(MatchJSON(`{"1.13":{"fullVersion":"1.13.55","revision":"v1x13","imageSuffix":"","isReady":false,"supportsAmbient":false,"supportsOperator":true},"1.88":{"fullVersion":"1.88.55","revision":"v1x88","imageSuffix":"","isReady":false,"supportsAmbient":true,"supportsOperator":false}}`))
+			Expect(f.ValuesGet(versionMapPath).String()).To(MatchJSON(`{"1.33":{"fullVersion":"1.13.55","revision":"v1x33","imageSuffix":"","isReady":false,"supportsAmbient":false},"1.88":{"fullVersion":"1.88.55","revision":"v1x88","imageSuffix":"","isReady":false,"supportsAmbient":true}}`))
 		})
 	})
 
@@ -159,16 +157,16 @@ var _ = Describe("Istio hooks :: discovery istiod health ::", func() {
 			Expect(f.ValuesGet(isGlobalVersionIstiodReadyPath).Exists()).To(BeTrue())
 			Expect(f.ValuesGet(isGlobalVersionIstiodReadyPath).Bool()).To(BeTrue())
 			versionMap := f.ValuesGet(versionMapPath).Map()
-			Expect(versionMap["1.13"]).To(MatchJSON(`{"fullVersion": "1.13.55","revision": "v1x13","imageSuffix": "","isReady": false,"supportsAmbient":false,"supportsOperator":true}`))
-			Expect(versionMap["1.88"]).To(MatchJSON(`{"fullVersion": "1.88.55","revision": "v1x88","imageSuffix": "","isReady": true,"supportsAmbient":true,"supportsOperator":false}`))
+			Expect(versionMap["1.33"]).To(MatchJSON(`{"fullVersion": "1.13.55","revision": "v1x33","imageSuffix": "","isReady": false,"supportsAmbient":false}`))
+			Expect(versionMap["1.88"]).To(MatchJSON(`{"fullVersion": "1.88.55","revision": "v1x88","imageSuffix": "","isReady": true,"supportsAmbient":true}`))
 		})
 	})
 
 	Context("Istiod pods in `Running` phase and injector webhook with old full version", func() {
 		BeforeEach(func() {
-			f.ValuesSet("istio.internal.globalVersion", "1.13")
+			f.ValuesSet("istio.internal.globalVersion", "1.33")
 			f.BindingContexts.Set(f.KubeStateSet(podIstiodYaml(PodIstiodTemplateParams{
-				Revision: "v1x13",
+				Revision: "v1x33",
 				Phase:    "Running",
 			}) + "---" + istioSidecarInjectorGlobalWebhook))
 			f.RunHook()
@@ -178,8 +176,8 @@ var _ = Describe("Istio hooks :: discovery istiod health ::", func() {
 			Expect(f.ValuesGet(isGlobalVersionIstiodReadyPath).Exists()).To(BeTrue())
 			Expect(f.ValuesGet(isGlobalVersionIstiodReadyPath).Bool()).To(BeTrue())
 			versionMap := f.ValuesGet(versionMapPath).Map()
-			Expect(versionMap["1.13"]).To(MatchJSON(`{"fullVersion": "1.13.55","revision": "v1x13","imageSuffix": "","isReady": false,"supportsAmbient":false,"supportsOperator":true}`))
-			Expect(versionMap["1.88"]).To(MatchJSON(`{"fullVersion": "1.88.55","revision": "v1x88","imageSuffix": "","isReady": false,"supportsAmbient":true,"supportsOperator":false}`))
+			Expect(versionMap["1.33"]).To(MatchJSON(`{"fullVersion": "1.13.55","revision": "v1x33","imageSuffix": "","isReady": false,"supportsAmbient":false}`))
+			Expect(versionMap["1.88"]).To(MatchJSON(`{"fullVersion": "1.88.55","revision": "v1x88","imageSuffix": "","isReady": false,"supportsAmbient":true}`))
 		})
 	})
 
@@ -192,7 +190,7 @@ var _ = Describe("Istio hooks :: discovery istiod health ::", func() {
 					Phase:    "Running",
 				}) + "---" +
 					podIstiodYaml(PodIstiodTemplateParams{
-						Revision: "v1x13",
+						Revision: "v1x33",
 						Phase:    "Running",
 					})))
 			f.RunHook()
@@ -202,8 +200,8 @@ var _ = Describe("Istio hooks :: discovery istiod health ::", func() {
 			Expect(f.ValuesGet(isGlobalVersionIstiodReadyPath).Exists()).To(BeTrue())
 			Expect(f.ValuesGet(isGlobalVersionIstiodReadyPath).Bool()).To(BeTrue())
 			versionMap := f.ValuesGet(versionMapPath).Map()
-			Expect(versionMap["1.13"]).To(MatchJSON(`{"fullVersion": "1.13.55","revision": "v1x13","imageSuffix": "","isReady": true,"supportsAmbient":false,"supportsOperator":true}`))
-			Expect(versionMap["1.88"]).To(MatchJSON(`{"fullVersion": "1.88.55","revision": "v1x88","imageSuffix": "","isReady": false,"supportsAmbient":true,"supportsOperator":false}`))
+			Expect(versionMap["1.33"]).To(MatchJSON(`{"fullVersion": "1.13.55","revision": "v1x33","imageSuffix": "","isReady": true,"supportsAmbient":false}`))
+			Expect(versionMap["1.88"]).To(MatchJSON(`{"fullVersion": "1.88.55","revision": "v1x88","imageSuffix": "","isReady": false,"supportsAmbient":true}`))
 		})
 	})
 
@@ -226,7 +224,7 @@ var _ = Describe("Istio hooks :: discovery istiod health ::", func() {
 
 	Context("Istiod pods with `Running` phase but with different revision", func() {
 		BeforeEach(func() {
-			f.ValuesSet("istio.internal.globalVersion", "1.13")
+			f.ValuesSet("istio.internal.globalVersion", "1.33")
 			f.BindingContexts.Set(f.KubeStateSet(podIstiodYaml(PodIstiodTemplateParams{
 				Revision: "v1x88",
 				Phase:    "Running",

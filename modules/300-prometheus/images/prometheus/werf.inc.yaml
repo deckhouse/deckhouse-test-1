@@ -28,6 +28,7 @@ import:
   before: install
   includePaths:
   - '**/*'
+git:
 {{- include "image mount points" . }}
 imageSpec:
   config:

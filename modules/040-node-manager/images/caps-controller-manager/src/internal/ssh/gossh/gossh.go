@@ -25,28 +25,27 @@ import (
 
 	"golang.org/x/crypto/ssh"
 
-	deckhousev1 "caps-controller-manager/api/deckhouse.io/v1alpha2"
+	"caps-controller-manager/internal/scope"
 )
 
 type SSH struct {
 	sshClient *ssh.Client
-	pass      string
 }
 
-func CreateSSHClient(host string, credentials deckhousev1.SSHCredentialsSpec) (*SSH, error) {
+func CreateSSHClient(instanceScope *scope.InstanceScope) (*SSH, error) {
 	var signer ssh.Signer
 	var err error
 	var pass string
-	if len(credentials.SudoPasswordEncoded) > 0 {
-		passBytes, err := base64.StdEncoding.DecodeString(credentials.SudoPasswordEncoded)
+	if len(instanceScope.Credentials.Spec.SudoPasswordEncoded) > 0 {
+		passBytes, err := base64.StdEncoding.DecodeString(instanceScope.Credentials.Spec.SudoPasswordEncoded)
 		if err != nil {
 			return nil, err
 		}
 		pass = string(passBytes)
 	}
 	AuthMethods := make([]ssh.AuthMethod, 0, 2)
-	if len(credentials.PrivateSSHKey) > 0 {
-		privateSSHKey, err := base64.StdEncoding.DecodeString(credentials.PrivateSSHKey)
+	if len(instanceScope.Credentials.Spec.PrivateSSHKey) > 0 {
+		privateSSHKey, err := base64.StdEncoding.DecodeString(instanceScope.Credentials.Spec.PrivateSSHKey)
 		if err != nil {
 			return nil, fmt.Errorf("privateSSHKey must be a valid base64 encoded string")
 		}
@@ -63,23 +62,32 @@ func CreateSSHClient(host string, credentials deckhousev1.SSHCredentialsSpec) (*
 	}
 
 	config := &ssh.ClientConfig{
-		User:            credentials.User,
+		User:            instanceScope.Credentials.Spec.User,
 		Auth:            AuthMethods,
 		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
 	}
 
-	addr := fmt.Sprintf("%s:%d", host, credentials.SSHPort)
+	addr := fmt.Sprintf("%s:%d", instanceScope.Instance.Spec.Address, instanceScope.Credentials.Spec.SSHPort)
 
 	sshClient, err := ssh.Dial("tcp", addr, config)
 	if err != nil {
 		return nil, fmt.Errorf("cannot connect to SSH host %s : %w", addr, err)
 	}
 
-	return &SSH{sshClient: sshClient, pass: pass}, nil
+	return &SSH{sshClient: sshClient}, nil
 }
 
 // ExecSSHCommand executes a command on the StaticInstance.
-func (s *SSH) ExecSSHCommand(command string, stdout io.Writer, stderr io.Writer) error {
+func (s *SSH) ExecSSHCommand(instanceScope *scope.InstanceScope, command string, stdout io.Writer, stderr io.Writer) error {
+	var pass string
+	if len(instanceScope.Credentials.Spec.SudoPasswordEncoded) > 0 {
+		passBytes, err := base64.StdEncoding.DecodeString(instanceScope.Credentials.Spec.SudoPasswordEncoded)
+		if err != nil {
+			return err
+		}
+		pass = string(passBytes)
+	}
+
 	if s.sshClient == nil {
 		return fmt.Errorf("ssh client in nil")
 	}
@@ -125,7 +133,7 @@ func (s *SSH) ExecSSHCommand(command string, stdout io.Writer, stderr io.Writer)
 			if strings.Contains(line, "SudoPassword") {
 				if !passwordSent {
 					passwordSent = true
-					if _, err := stdin.Write([]byte(s.pass + "\n")); err != nil {
+					if _, err := stdin.Write([]byte(pass + "\n")); err != nil {
 						return fmt.Errorf("failed to write password to stdin: %w", err)
 					}
 				}
@@ -141,10 +149,10 @@ func (s *SSH) ExecSSHCommand(command string, stdout io.Writer, stderr io.Writer)
 }
 
 // ExecSSHCommandToString executes a command on the StaticInstance and returns the output as a string.
-func (s *SSH) ExecSSHCommandToString(command string) (string, error) {
+func (s *SSH) ExecSSHCommandToString(instanceScope *scope.InstanceScope, command string) (string, error) {
 	stdout := bytes.Buffer{}
 	stderr := bytes.Buffer{}
-	err := s.ExecSSHCommand(command, &stdout, &stderr)
+	err := s.ExecSSHCommand(instanceScope, command, &stdout, &stderr)
 	if err != nil {
 		return stderr.String(), err
 	}

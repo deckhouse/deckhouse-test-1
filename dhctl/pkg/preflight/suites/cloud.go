@@ -27,7 +27,6 @@ type CloudDeps struct {
 
 func NewCloudSuite(deps CloudDeps) preflight.Suite {
 	return preflight.NewSuite(
-		checks.CloudDiskNameLength(deps.MetaConfig),
 		checks.CloudSystemRequirements(deps.InstallConfig),
 		checks.InstanceClassProvider(deps.MetaConfig),
 	)

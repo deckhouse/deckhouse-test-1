@@ -17,13 +17,12 @@ package config
 import (
 	"testing"
 
-	"github.com/deckhouse/deckhouse/dhctl/pkg/app/options"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestVersionBackwardCompatibility(t *testing.T) {
-	newStore := newSchemaStore(&options.New().Global, []string{"/tmp"})
+	newStore := newSchemaStore(nil, []string{"/tmp"})
 
 	schema := []byte(`
 kind: ClusterConfiguration
@@ -65,7 +64,7 @@ clusterType: Cloud
 }
 
 func TestSchemaPattern(t *testing.T) {
-	newStore := newSchemaStore(&options.New().Global, []string{"/tmp"})
+	newStore := newSchemaStore(nil, []string{"/tmp"})
 
 	schema := []byte(`
 kind: ClusterConfiguration
@@ -119,7 +118,7 @@ jsonObject: " {}"
 }
 
 func TestSchemaStore(t *testing.T) {
-	newStore := newSchemaStore(&options.New().Global, []string{"/tmp"})
+	newStore := newSchemaStore(nil, []string{"/tmp"})
 
 	err := newStore.upload([]byte(`
 kind: TestKind

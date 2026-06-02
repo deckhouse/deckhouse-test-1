@@ -229,7 +229,6 @@ func (t *taskProviderForCluster) Static(ctx context.Context, metaConfig *config.
 		},
 	}, nil
 }
-
 func (t *taskProviderForCluster) Incorrect(_ context.Context, metaConfig *config.MetaConfig) (*actions.ManifestTask, error) {
 	if metaConfig.ClusterType == "" {
 		return nil, fmt.Errorf("Cannot converge deckhouse manifest because commander does not support managed installations")

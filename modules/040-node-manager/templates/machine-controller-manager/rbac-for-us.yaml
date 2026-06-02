@@ -23,7 +23,6 @@ rules:
    - azuremachineclasses
    - gcpmachineclasses
    - openstackmachineclasses
-   # Not used by Deckhouse, required because MCM lists these resources.
    - alicloudmachineclasses
    - packetmachineclasses
    - vspheremachineclasses
@@ -35,7 +34,6 @@ rules:
    - azuremachineclasses/status
    - gcpmachineclasses/status
    - openstackmachineclasses/status
-   # Not used by Deckhouse, required because MCM accesses these status resources.
    - alicloudmachineclasses/status
    - packetmachineclasses/status
    - vspheremachineclasses/status

@@ -15,6 +15,7 @@ import:
   before: setup
   includePaths:
     - ssh
+git:
 {{- include "image mount points" . }}
 ---
 image: {{ .ModuleName }}/{{ $.ImageName }}-src-artifact
@@ -32,9 +33,6 @@ git:
     - go.mod
     - go.sum
     - "**/*.go"
-shell:
-  install:
-  - cd /src
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}-artifact
 from: {{ index $.Images "builder/golang" }}

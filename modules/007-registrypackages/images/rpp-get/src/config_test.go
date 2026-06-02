@@ -21,11 +21,11 @@ import (
 	"testing"
 )
 
-func TestParseConfig(t *testing.T) {
+func TestParseArgs(t *testing.T) {
 	t.Run("valid install mode", func(t *testing.T) {
-		cli, err := parseConfig([]string{"install", "pkg:sha256:abc"})
+		cli, err := parseArgs([]string{"install", "pkg:sha256:abc"})
 		if err != nil {
-			t.Fatalf("parseConfig() error = %v", err)
+			t.Fatalf("parseArgs() error = %v", err)
 		}
 		if cli.mode != modeInstall {
 			t.Errorf("mode = %q, want %q", cli.mode, modeInstall)
@@ -36,9 +36,9 @@ func TestParseConfig(t *testing.T) {
 	})
 
 	t.Run("valid fetch mode", func(t *testing.T) {
-		cli, err := parseConfig([]string{"fetch"})
+		cli, err := parseArgs([]string{"fetch"})
 		if err != nil {
-			t.Fatalf("parseConfig() error = %v", err)
+			t.Fatalf("parseArgs() error = %v", err)
 		}
 		if cli.mode != modeFetch {
 			t.Errorf("mode = %q, want %q", cli.mode, modeFetch)
@@ -46,9 +46,9 @@ func TestParseConfig(t *testing.T) {
 	})
 
 	t.Run("valid uninstall mode", func(t *testing.T) {
-		cli, err := parseConfig([]string{"uninstall", "mypkg"})
+		cli, err := parseArgs([]string{"uninstall", "mypkg"})
 		if err != nil {
-			t.Fatalf("parseConfig() error = %v", err)
+			t.Fatalf("parseArgs() error = %v", err)
 		}
 		if cli.mode != modeUninstall {
 			t.Errorf("mode = %q, want %q", cli.mode, modeUninstall)
@@ -56,23 +56,23 @@ func TestParseConfig(t *testing.T) {
 	})
 
 	t.Run("unknown mode", func(t *testing.T) {
-		_, err := parseConfig([]string{"deploy", "pkg:sha256:abc"})
+		_, err := parseArgs([]string{"deploy", "pkg:sha256:abc"})
 		if err == nil {
-			t.Fatal("parseConfig() error = nil, want error for unknown mode")
+			t.Fatal("parseArgs() error = nil, want error for unknown mode")
 		}
 	})
 
 	t.Run("no args", func(t *testing.T) {
-		_, err := parseConfig(nil)
+		_, err := parseArgs(nil)
 		if err == nil {
-			t.Fatal("parseConfig() error = nil, want error for empty args")
+			t.Fatal("parseArgs() error = nil, want error for empty args")
 		}
 	})
 
 	t.Run("force flag default is false", func(t *testing.T) {
-		cli, err := parseConfig([]string{"install"})
+		cli, err := parseArgs([]string{"install"})
 		if err != nil {
-			t.Fatalf("parseConfig() error = %v", err)
+			t.Fatalf("parseArgs() error = %v", err)
 		}
 		if cli.force {
 			t.Error("force = true, want false by default")
@@ -80,9 +80,9 @@ func TestParseConfig(t *testing.T) {
 	})
 
 	t.Run("force flag enabled", func(t *testing.T) {
-		cli, err := parseConfig([]string{"install", "--force"})
+		cli, err := parseArgs([]string{"install", "--force"})
 		if err != nil {
-			t.Fatalf("parseConfig() error = %v", err)
+			t.Fatalf("parseArgs() error = %v", err)
 		}
 		if !cli.force {
 			t.Error("force = false, want true when --force passed")

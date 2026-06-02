@@ -52,11 +52,7 @@ import (
 	"github.com/deckhouse/deckhouse/pkg/log"
 )
 
-const (
-	controllerName = "module-documentation"
-
-	defaultDocumentationCheckInterval = 10 * time.Second
-)
+const defaultDocumentationCheckInterval = 10 * time.Second
 
 type reconciler struct {
 	client               client.Client
@@ -77,8 +73,17 @@ func RegisterController(mgr manager.Manager, dc dependency.Container, logger *lo
 		logger:               logger,
 	}
 
-	err := ctrl.NewControllerManagedBy(mgr).
-		Named(controllerName).
+	ctr, err := controller.New("module-documentation", mgr, controller.Options{
+		MaxConcurrentReconciles: 1, // don't use concurrent reconciles here, because docs-builder doesn't support multiply requests at once
+		CacheSyncTimeout:        15 * time.Minute,
+		NeedLeaderElection:      ptr.To(false),
+		Reconciler:              r,
+	})
+	if err != nil {
+		return fmt.Errorf("new: %w", err)
+	}
+
+	err = ctrl.NewControllerManagedBy(mgr).
 		For(&v1alpha1.ModuleDocumentation{}).
 		Watches(&coordv1.Lease{}, handler.EnqueueRequestsFromMapFunc(r.enqueueLeaseMapFunc), builder.WithPredicates(predicate.Funcs{
 			CreateFunc: func(event event.CreateEvent) bool {
@@ -99,13 +104,7 @@ func RegisterController(mgr manager.Manager, dc dependency.Container, logger *lo
 			},
 		})).
 		WithEventFilter(predicate.GenerationChangedPredicate{}).
-		WithOptions(controller.Options{
-			// don't use concurrent reconciles here, because docs-builder doesn't support multiply requests at once
-			MaxConcurrentReconciles: 1,
-			CacheSyncTimeout:        15 * time.Minute,
-			NeedLeaderElection:      ptr.To(false),
-		}).
-		Complete(r)
+		Complete(ctr)
 	if err != nil {
 		return fmt.Errorf("complete: %w", err)
 	}

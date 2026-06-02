@@ -101,12 +101,18 @@ func RegisterController(
 	r.status = status.NewService(r.client, packageRuntime.Status().GetStatus, r.logger)
 	r.status.Start(context.Background(), packageRuntime.Status().GetCh())
 
+	applicationController, err := controller.New(controllerName, runtimeManager, controller.Options{
+		MaxConcurrentReconciles: maxConcurrentReconciles,
+		Reconciler:              r,
+	})
+	if err != nil {
+		return fmt.Errorf("create controller: %w", err)
+	}
+
 	return ctrl.NewControllerManagedBy(runtimeManager).
-		Named(controllerName).
 		For(&v1alpha1.Application{}).
 		WithEventFilter(predicate.Or(predicate.GenerationChangedPredicate{}, predicate.AnnotationChangedPredicate{})).
-		WithOptions(controller.Options{MaxConcurrentReconciles: maxConcurrentReconciles}).
-		Complete(r)
+		Complete(applicationController)
 }
 
 func (r *reconciler) preflight(ctx context.Context) error {

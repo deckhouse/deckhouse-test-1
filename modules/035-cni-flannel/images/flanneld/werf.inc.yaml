@@ -76,7 +76,8 @@ import:
   add: /entrypoint
   to: /entrypoint
   before: setup
-{{- include "image mount points" . }}
+git:
+{{- include "image mount points" $ }}
 imageSpec:
   config:
     entrypoint: ["/entrypoint"]

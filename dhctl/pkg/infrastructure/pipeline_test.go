@@ -23,7 +23,6 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/deckhouse/deckhouse/dhctl/pkg/app/options"
 	"github.com/deckhouse/deckhouse/dhctl/pkg/infrastructure/exec"
 	"github.com/deckhouse/deckhouse/dhctl/pkg/infrastructure/plan"
 	"github.com/deckhouse/deckhouse/dhctl/pkg/tests"
@@ -87,7 +86,7 @@ func TestGetMasterNodeResult(t *testing.T) {
 				WithName("test").
 				WithStatePath("./mocks/pipeline/empty_state.json")
 
-			res, err := GetMasterNodeResult(context.Background(), runner, &options.New().Global)
+			res, err := GetMasterNodeResult(context.Background(), runner)
 			if tc.expectedErr != nil {
 				require.EqualError(t, err, tc.expectedErr.Error())
 			} else {
@@ -152,7 +151,7 @@ func TestCheckBaseInfrastructurePipeline(t *testing.T) {
 				WithName("test").
 				WithStatePath("./mocks/pipeline/empty_state.json")
 
-			res, pl, _, err := CheckBaseInfrastructurePipeline(context.Background(), runner, "test", nil)
+			res, pl, _, err := CheckBaseInfrastructurePipeline(context.Background(), runner, "test")
 			if tc.expectedErr != nil {
 				require.EqualError(t, err, tc.expectedErr.Error())
 			} else {

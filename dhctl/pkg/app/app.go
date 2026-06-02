@@ -15,12 +15,9 @@
 package app
 
 import (
-	"os"
-
 	"gopkg.in/alecthomas/kingpin.v2"
 
 	"github.com/deckhouse/deckhouse/dhctl/pkg/app/options"
-	"github.com/deckhouse/deckhouse/dhctl/pkg/global"
 )
 
 const (
@@ -66,17 +63,6 @@ func GlobalFlags(cmd *kingpin.Application, o *options.GlobalOptions) {
 		Default("false").
 		Short('v').
 		BoolVar(&o.ShowProgress)
-
-	rootPath, err := os.Getwd()
-	if err != nil {
-		rootPath = "/"
-	}
-	if !options.CheckDirs() {
-		rootPath = o.DownloadDir
-		o.NeedDownload = true
-	}
-
-	options.SetPaths(rootPath, o)
 }
 
 // DefineConfigFlags registers --config (required).
@@ -98,5 +84,5 @@ func DefineSanityFlags(cmd *kingpin.CmdClause, o *options.GlobalOptions) {
 }
 
 func configEnvName(name string) string {
-	return global.SSHEnvsPrefix + name
+	return "DHCTL_CLI_" + name
 }

@@ -26,7 +26,6 @@ import (
 	"github.com/name212/govalue"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 
-	"github.com/deckhouse/deckhouse/dhctl/pkg/app/options"
 	"github.com/deckhouse/deckhouse/dhctl/pkg/config"
 	"github.com/deckhouse/deckhouse/dhctl/pkg/global"
 	"github.com/deckhouse/deckhouse/dhctl/pkg/infrastructure"
@@ -50,16 +49,13 @@ type NodeGroupController struct {
 	cloudConfig     string
 	desiredReplicas int
 	layoutStep      infrastructure.Step
-
-	globalOptions *options.GlobalOptions
 }
 
-func NewNodeGroupController(name string, state state.NodeGroupInfrastructureState, excludeNodes map[string]bool, globalOptions *options.GlobalOptions) *NodeGroupController {
+func NewNodeGroupController(name string, state state.NodeGroupInfrastructureState, excludeNodes map[string]bool) *NodeGroupController {
 	controller := &NodeGroupController{
 		excludedNodes: excludeNodes,
 		name:          name,
 		state:         state,
-		globalOptions: globalOptions,
 	}
 
 	return controller
@@ -262,7 +258,7 @@ func (c *NodeGroupController) deleteRedundantNodes(
 	return allErrs.ErrorOrNil()
 }
 
-func getNodeTemplateDiff(fromNG, fromConfig map[string]any) string {
+func getNodeTemplateDiff(fromNG map[string]any, fromConfig map[string]any) string {
 	// prevent compare nil and empty map
 	// this case generates diff for gcmp.Diff
 	if len(fromNG) == 0 && len(fromConfig) == 0 {

@@ -19,7 +19,6 @@ package provider
 import (
 	"context"
 	"crypto/tls"
-	"fmt"
 	"net"
 	"net/http"
 	"time"
@@ -29,16 +28,6 @@ import (
 	"golang.org/x/oauth2"
 )
 
-// OIDCConfig groups NewOIDC parameters.
-type OIDCConfig struct {
-	URL                  string
-	ClientID             string
-	ClientSecret         string
-	Scopes               []string
-	GetUserInfo          bool
-	BasicAuthUnsupported bool
-}
-
 type OpenIDConnect struct {
 	httpClient  *http.Client
 	oidc        *oidc.Provider
@@ -47,7 +36,7 @@ type OpenIDConnect struct {
 	getUserInfo bool
 }
 
-func NewOIDC(ctx context.Context, cfg OIDCConfig) (Provider, error) {
+func NewOIDC(oidcURL, clientID, clientSecret string, getUserInfo, basicAuthUnsupported bool, scopes []string) Provider {
 	httpClient := &http.Client{
 		Timeout: 30 * time.Second,
 		Transport: &http.Transport{
@@ -60,61 +49,57 @@ func NewOIDC(ctx context.Context, cfg OIDCConfig) (Provider, error) {
 			IdleConnTimeout:       30 * time.Second,
 			TLSHandshakeTimeout:   10 * time.Second,
 			ExpectContinueTimeout: 1 * time.Second,
-			TLSClientConfig: &tls.Config{
-				InsecureSkipVerify: true,
-			},
+			TLSClientConfig:       &tls.Config{InsecureSkipVerify: true},
 		},
 	}
 
-	oidcProvider, err := oidc.NewProvider(oidc.ClientContext(ctx, httpClient), cfg.URL)
+	provider, err := oidc.NewProvider(oidc.ClientContext(context.Background(), httpClient), oidcURL)
 	if err != nil {
-		return nil, fmt.Errorf("create OIDC provider %q: %w", cfg.URL, err)
+		panic(err) // TODO: handle error
 	}
 
-	oauthCfg := oauth2.Config{
-		ClientID:     cfg.ClientID,
-		ClientSecret: cfg.ClientSecret,
-		Endpoint:     oidcProvider.Endpoint(),
-		Scopes:       cfg.Scopes,
+	config := oauth2.Config{
+		ClientID:     clientID,
+		ClientSecret: clientSecret,
+		Endpoint:     provider.Endpoint(),
+		Scopes:       scopes,
 	}
-	if cfg.BasicAuthUnsupported {
-		oauthCfg.Endpoint.AuthStyle = oauth2.AuthStyleInParams
+
+	if basicAuthUnsupported {
+		config.Endpoint.AuthStyle = oauth2.AuthStyleInParams
 	}
 
 	return &OpenIDConnect{
 		logger:      capnslog.NewPackageLogger("basic-auth-proxy", "oidc provider"),
 		httpClient:  httpClient,
-		oidc:        oidcProvider,
-		oauth2:      &oauthCfg,
-		getUserInfo: cfg.GetUserInfo,
-	}, nil
+		oidc:        provider,
+		oauth2:      &config,
+		getUserInfo: getUserInfo,
+	}
 }
 
-func (p *OpenIDConnect) ValidateCredentials(ctx context.Context, login, password string) ([]string, error) {
+func (p *OpenIDConnect) ValidateCredentials(login, password string) ([]string, error) {
 	p.logger.Info("validate credentials")
-	token, err := p.oauth2.PasswordCredentialsToken(oidc.ClientContext(ctx, p.httpClient), login, password)
+	token, err := p.oauth2.PasswordCredentialsToken(oidc.ClientContext(context.Background(), p.httpClient), login, password)
 	if err != nil {
 		return nil, err
 	}
 	p.logger.Info("validate credentials successful")
-
-	if !p.getUserInfo {
-		return nil, nil
+	if p.getUserInfo {
+		p.logger.Info("get user info")
+		info, err := p.oidc.UserInfo(oidc.ClientContext(context.Background(), p.httpClient), oauth2.StaticTokenSource(token))
+		if err != nil {
+			return nil, err
+		}
+		p.logger.Info("get user info successful")
+		// TODO: get the groups claim from the claimMappings settings of the provider
+		claims := struct {
+			Groups []string `json:"groups"`
+		}{}
+		if err = info.Claims(&claims); err != nil {
+			return nil, err
+		}
+		return claims.Groups, nil
 	}
-
-	p.logger.Info("get user info")
-	info, err := p.oidc.UserInfo(oidc.ClientContext(ctx, p.httpClient), oauth2.StaticTokenSource(token))
-	if err != nil {
-		return nil, err
-	}
-	p.logger.Info("get user info successful")
-
-	// TODO: get the groups claim from the claimMappings settings of the provider
-	claims := struct {
-		Groups []string `json:"groups"`
-	}{}
-	if err = info.Claims(&claims); err != nil {
-		return nil, err
-	}
-	return claims.Groups, nil
+	return nil, nil
 }

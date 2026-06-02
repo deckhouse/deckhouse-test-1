@@ -28,7 +28,6 @@ import (
 	"github.com/deckhouse/deckhouse/dhctl/pkg/app"
 	"github.com/deckhouse/deckhouse/dhctl/pkg/app/options"
 	"github.com/deckhouse/deckhouse/dhctl/pkg/kpcontext"
-	"github.com/deckhouse/deckhouse/dhctl/pkg/log"
 	"github.com/deckhouse/deckhouse/dhctl/pkg/system/providerinitializer"
 )
 
@@ -44,7 +43,6 @@ func DefineSessionCommand(cmd *kingpin.CmdClause, opts *options.Options) *kingpi
 
 	return cmd.Action(func(c *kingpin.ParseContext) error {
 		ctx := kpcontext.ExtractContext(c)
-		logger := log.GetDefaultLogger()
 
 		params, err := app.DefaultProviderParams(&opts.Global)
 		if err != nil {
@@ -58,8 +56,7 @@ func DefineSessionCommand(cmd *kingpin.CmdClause, opts *options.Options) *kingpi
 		if sshProviderInitializer == nil {
 			return fmt.Errorf("Not enough flags were provided to perform the operation.\nUse dhctl session --help to get available flags.")
 		}
-
-		defer providerinitializer.CleanupSSHProvider(ctx, logger, sshProviderInitializer)
+		defer sshProviderInitializer.Cleanup(ctx)
 
 		sshProvider, err := sshProviderInitializer.GetSSHProvider(ctx)
 		if err != nil {
@@ -98,7 +95,7 @@ func localKubeConfig(apiServerURL string) error {
 	}
 
 	kubeconfigPath := filepath.Join(kubeconfigDir, ".kube", "config")
-	if err := os.MkdirAll(filepath.Dir(kubeconfigPath), 0o755); err != nil {
+	if err := os.MkdirAll(filepath.Dir(kubeconfigPath), 0755); err != nil {
 		return fmt.Errorf("failed to create .kube directory: %w", err)
 	}
 

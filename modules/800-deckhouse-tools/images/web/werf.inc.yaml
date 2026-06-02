@@ -11,9 +11,6 @@ import:
     add: /app
     to: /app
     before: setup
-shell:
-  setup:
-  - set -e
 imageSpec:
   config:
     entrypoint: [ "/opt/nginx-static/sbin/nginx", "-g", "daemon off;" ]
@@ -36,7 +33,7 @@ secrets:
 - id: SOURCE_REPO
   value: {{ .SOURCE_REPO }}
 shell:
-  setup:
+  install:
   - git clone --depth 1 --branch {{ .CandiVersionMap.d8.d8CliVersion }} $(cat /run/secrets/SOURCE_REPO)/deckhouse/deckhouse-cli.git /src/deckhouse-cli
   - cd /src/deckhouse-cli
   - git describe --tags > VERSION

@@ -72,8 +72,6 @@ editor:
       name: cluster-write-all
 `
 
-	// Mirrors the config.json rendered by webhook/configmap.yaml: CARs in
-	// "crds", ARs in "ars".
 	testCLusterRoleCRDsWithCRDsKey = `---
 crds:
   - name: testenev
@@ -90,15 +88,6 @@ crds:
       - apiGroup: rbac.authorization.k8s.io
         kind: ClusterRole
         name: cluster-write-all
-ars:
-  - name: testenev-namespaced
-    namespace: testenv
-    spec:
-      accessLevel: Editor
-      allowScale: true
-      subjects:
-      - kind: User
-        name: Namespace Testenev
 `
 
 	testRoleCRDs = `---

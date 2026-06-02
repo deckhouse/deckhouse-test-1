@@ -106,11 +106,6 @@ spec:
             secretKeyRef:
               name: cloud-data-discoverer
               key: region
-        - name: ZONES
-          valueFrom:
-            secretKeyRef:
-              name: cloud-data-discoverer
-              key: zones
         - name: REGION_TAG_CATEGORY
           valueFrom:
             secretKeyRef:

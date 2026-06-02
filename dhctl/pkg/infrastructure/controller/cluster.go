@@ -19,8 +19,8 @@ import (
 
 	"github.com/name212/govalue"
 
-	"github.com/deckhouse/deckhouse/dhctl/pkg/app/options"
 	"github.com/deckhouse/deckhouse/dhctl/pkg/config"
+	"github.com/deckhouse/deckhouse/dhctl/pkg/config/directoryconfig"
 	"github.com/deckhouse/deckhouse/dhctl/pkg/infrastructure"
 	"github.com/deckhouse/deckhouse/dhctl/pkg/infrastructureprovider"
 	"github.com/deckhouse/deckhouse/dhctl/pkg/infrastructureprovider/cloud"
@@ -30,7 +30,7 @@ import (
 )
 
 type StateLoader interface {
-	PopulateMetaConfig(ctx context.Context, globalOptions *options.GlobalOptions) (*config.MetaConfig, error)
+	PopulateMetaConfig(ctx context.Context, dc *directoryconfig.DirectoryConfig) (*config.MetaConfig, error)
 	PopulateClusterState(ctx context.Context) ([]byte, map[string]state.NodeGroupInfrastructureState, error)
 }
 
@@ -47,10 +47,11 @@ type ClusterInfra struct {
 	cache                 state.Cache
 	infrastructureContext *infrastructure.Context
 
-	tmpDir        string
-	isDebug       bool
-	logger        log.Logger
-	globalOptions *options.GlobalOptions
+	tmpDir      string
+	downloadDir string
+	isDebug     bool
+	logger      log.Logger
+	dc          *directoryconfig.DirectoryConfig
 
 	PhasedExecutionContext phases.DefaultPhasedExecutionContext
 }
@@ -58,9 +59,10 @@ type ClusterInfra struct {
 type ClusterInfraOptions struct {
 	PhasedExecutionContext phases.DefaultPhasedExecutionContext
 	TmpDir                 string
+	DownloadDir            string
 	IsDebug                bool
 	Logger                 log.Logger
-	GlobalOptions          *options.GlobalOptions
+	DirectoryConfig        *directoryconfig.DirectoryConfig
 }
 
 func NewClusterInfraWithOptions(terraState StateLoader, cache state.Cache, infrastructureContext *infrastructure.Context, opts ClusterInfraOptions) *ClusterInfra {
@@ -76,29 +78,26 @@ func NewClusterInfraWithOptions(terraState StateLoader, cache state.Cache, infra
 
 		PhasedExecutionContext: opts.PhasedExecutionContext,
 		tmpDir:                 opts.TmpDir,
+		downloadDir:            opts.DownloadDir,
 		isDebug:                opts.IsDebug,
 		logger:                 logger,
-		globalOptions:          opts.GlobalOptions,
+		dc:                     opts.DirectoryConfig,
 	}
 }
 
 func (r *ClusterInfra) DestroyCluster(ctx context.Context, autoApprove bool) error {
-	metaConfig, err := r.stateLoader.PopulateMetaConfig(ctx, r.globalOptions)
+	metaConfig, err := r.stateLoader.PopulateMetaConfig(ctx, r.dc)
 	if err != nil {
 		return err
-	}
-
-	if r.globalOptions == nil {
-		log.WarnLn("GlobalOption in nil!")
 	}
 
 	if r.infrastructureContext == nil {
 		providerGetter := infrastructureprovider.CloudProviderGetter(infrastructureprovider.CloudProviderGetterParams{
 			TmpDir:           r.tmpDir,
+			DownloadDir:      r.downloadDir,
 			AdditionalParams: cloud.ProviderAdditionalParams{},
 			Logger:           r.logger,
 			IsDebug:          r.isDebug,
-			GlobalOptions:    r.globalOptions,
 		})
 
 		r.infrastructureContext = infrastructure.NewContextWithProvider(providerGetter, r.logger)

@@ -70,6 +70,7 @@ import:
   add: /d8-curl
   to: /usr/bin/curl
   before: setup
+git:
 {{- include "image mount points" . }}
 imageSpec:
   config:

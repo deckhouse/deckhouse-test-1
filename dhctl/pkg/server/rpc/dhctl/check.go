@@ -170,7 +170,7 @@ func (s *Service) check(ctx context.Context, p *checkParams) *pb.CheckResult {
 			infrastructureprovider.MetaConfigPreparatorProvider(
 				infrastructureprovider.NewPreparatorProviderParams(loggerFor),
 			),
-			s.params.GlobalOptions,
+			s.params.DownloadDirConfig,
 			config.ValidateOptionCommanderMode(p.request.Options.CommanderMode),
 			config.ValidateOptionStrictUnmarshal(p.request.Options.CommanderMode),
 			config.ValidateOptionValidateExtensions(p.request.Options.CommanderMode),
@@ -221,7 +221,7 @@ func (s *Service) check(ctx context.Context, p *checkParams) *pb.CheckResult {
 
 	providerGetter := infrastructureprovider.CloudProviderGetter(infrastructureprovider.CloudProviderGetterParams{
 		TmpDir:           s.params.TmpDir,
-		GlobalOptions:    s.params.GlobalOptions,
+		DownloadDir:      s.params.DownloadDirConfig.DownloadDir,
 		AdditionalParams: cloud.ProviderAdditionalParams{},
 		Logger:           loggerFor,
 		IsDebug:          s.params.IsDebug,

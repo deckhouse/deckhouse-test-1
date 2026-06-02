@@ -31,8 +31,7 @@ type DirectoryEntry struct {
 	// If there is no LimitNamespaces nor NamespaceSelectors options, the user has access to all namespaces except system namespaces.
 	// If LimitNamespaces is present, we do not need to mind about allowed access to system namespaces.
 	// Thus presence of LimitNamespaces matters when we summarise rules from all CRs to get the allowed namespaces.
-	NamespaceFiltersAbsent  bool
-	AllowedSystemNamespaces map[string]struct{}
+	NamespaceFiltersAbsent bool
 }
 
 // NamespaceSelector defines a selector for namespaces
@@ -41,14 +40,7 @@ type NamespaceSelector struct {
 	MatchAny      bool                  `json:"matchAny"`
 }
 
-// UserAuthzConfig is a config composed from ClusterAuthorizationRules and
-// AuthorizationRules collected from a Kubernetes cluster.
-//
-// CRDs holds cluster-scoped ClusterAuthorizationRules with full multi-tenancy
-// options (limitNamespaces, namespaceSelector, allowAccessToSystemNamespaces).
-//
-// ARs holds namespaced AuthorizationRules. An AR implicitly grants its subjects
-// access to the AR's own namespace; it has no multi-tenancy options.
+// UserAuthzConfig is a config composed from ClusterAuthorizationRules collected from Kubernetes cluster
 type UserAuthzConfig struct {
 	CRDs []struct {
 		Name string `json:"name"`
@@ -71,19 +63,4 @@ type UserAuthzConfig struct {
 			} `json:"subjects"`
 		} `json:"spec,omitempty"`
 	} `json:"crds"`
-
-	ARs []authorizationRule `json:"ars"`
-}
-
-// authorizationRule captures only the AR fields the engine needs.
-type authorizationRule struct {
-	Name      string `json:"name"`
-	Namespace string `json:"namespace"`
-	Spec      struct {
-		Subjects []struct {
-			Kind      string `json:"kind"`
-			Name      string `json:"name"`
-			Namespace string `json:"namespace"`
-		} `json:"subjects"`
-	} `json:"spec,omitempty"`
 }

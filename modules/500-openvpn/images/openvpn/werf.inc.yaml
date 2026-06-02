@@ -15,6 +15,7 @@ import:
   add: /relocate
   to: /
   before: setup
+git:
 {{- include "image mount points" . }}
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}-src-artifact

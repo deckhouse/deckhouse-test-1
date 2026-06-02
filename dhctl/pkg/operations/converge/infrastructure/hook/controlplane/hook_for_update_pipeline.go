@@ -181,7 +181,7 @@ func (h *HookForUpdatePipeline) AfterAction(ctx context.Context, runner infrastr
 		return nil
 	}
 
-	outputs, err := infrastructure.GetMasterNodeResult(ctx, runner, nil)
+	outputs, err := infrastructure.GetMasterNodeResult(ctx, runner)
 	if err != nil {
 		return fmt.Errorf("failed to get master node pipeline outputs: %w", err)
 	}

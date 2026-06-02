@@ -54,7 +54,7 @@ shell:
   - cp ./ethtool /ethtool
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}-artifact
-from: {{ index $.Images "builder/golang" }}
+from: {{ index $.Images "builder/golang-alpine" }}
 final: false
 mount:
 {{ include "mount points for golang builds" . }}

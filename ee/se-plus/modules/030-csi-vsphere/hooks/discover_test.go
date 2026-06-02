@@ -154,12 +154,6 @@ csiVsphere:
 		  "ZONE-TEST"
 		]
 	  }
-  ],
-  "storagePolicies": [
-    {
-      "name": "Gold Policy",
-      "id": "policy-gold"
-    }
   ]
 }
 `
@@ -199,16 +193,6 @@ data:
 	]
   },
   {
-	"datastoreType": "DatastoreCluster",
-	"datastoreURL": "",
-	"name": "test-1-k8s-3cf5ce84-gold-policy",
-	"path": "/DCTEST/datastore/test_1_k8s",
-	"storagePolicyName": "Gold Policy",
-	"zones": [
-	  "ZONE-TEST"
-	]
-  },
-  {
 	"datastoreType": "Datastore",
     "datastoreURL":"ds:///vmfs/volumes/503a9af1-291d17b0-52e0-1d01842f428c/",
 	"name": "test-1-lun101-b39d82fa",
@@ -219,29 +203,9 @@ data:
   },
   {
 	"datastoreType": "Datastore",
-    "datastoreURL":"ds:///vmfs/volumes/503a9af1-291d17b0-52e0-1d01842f428c/",
-	"name": "test-1-lun101-b39d82fa-gold-policy",
-	"path": "/DCTEST/datastore/test_1_Lun101",
-	"storagePolicyName": "Gold Policy",
-	"zones": [
-	  "ZONE-TEST"
-	]
-  },
-  {
-	"datastoreType": "Datastore",
     "datastoreURL":"ds:///vmfs/volumes/55832249-30a68048-496f-33f77fed3c5c/",
 	"name": "test-1-lun102-0403073a",
 	"path": "/DCTEST/datastore/test_1_Lun102",
-	"zones": [
-	  "ZONE-TEST"
-	]
-  },
-  {
-	"datastoreType": "Datastore",
-    "datastoreURL":"ds:///vmfs/volumes/55832249-30a68048-496f-33f77fed3c5c/",
-	"name": "test-1-lun102-0403073a-gold-policy",
-	"path": "/DCTEST/datastore/test_1_Lun102",
-	"storagePolicyName": "Gold Policy",
 	"zones": [
 	  "ZONE-TEST"
 	]
@@ -269,16 +233,6 @@ data:
 	"datastoreURL": "",
 	"name": "test-1-k8s-3cf5ce84",
 	"path": "/DCTEST/datastore/test_1_k8s",
-	"zones": [
-	  "ZONE-TEST"
-	]
-  },
-  {
-	"datastoreType": "DatastoreCluster",
-	"datastoreURL": "",
-	"name": "test-1-k8s-3cf5ce84-gold-policy",
-	"path": "/DCTEST/datastore/test_1_k8s",
-	"storagePolicyName": "Gold Policy",
 	"zones": [
 	  "ZONE-TEST"
 	]

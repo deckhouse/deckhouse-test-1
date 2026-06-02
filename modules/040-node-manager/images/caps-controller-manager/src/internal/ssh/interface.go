@@ -18,9 +18,11 @@ package ssh
 
 import (
 	"io"
+
+	"caps-controller-manager/internal/scope"
 )
 
 type SSH interface {
-	ExecSSHCommand(command string, stdout io.Writer, stderr io.Writer) error
-	ExecSSHCommandToString(command string) (string, error)
+	ExecSSHCommand(instanceScope *scope.InstanceScope, command string, stdout io.Writer, stderr io.Writer) error
+	ExecSSHCommandToString(instanceScope *scope.InstanceScope, command string) (string, error)
 }

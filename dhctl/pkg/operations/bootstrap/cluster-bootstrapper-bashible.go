@@ -47,7 +47,7 @@ func (b *ClusterBootstrapper) ExecuteBashible(ctx context.Context) error {
 		infrastructureprovider.MetaConfigPreparatorProvider(
 			infrastructureprovider.NewPreparatorProviderParams(b.logger),
 		),
-		&b.Options.Global,
+		b.DirectoryConfig,
 	)
 	if err != nil {
 		return err
@@ -67,7 +67,12 @@ func (b *ClusterBootstrapper) ExecuteBashible(ctx context.Context) error {
 			return err
 		}
 
-		defer progressbar.FinishDefaultProgressBar()
+		onComplete := func() {
+			pb := progressbar.GetDefaultPb()
+			pb.ProgressBarPrinter.Add(100 - pb.ProgressBarPrinter.Current)
+			pb.MultiPrinter.Stop()
+		}
+		defer onComplete()
 	}
 
 	sshProvider, err := b.SSHProviderInitializer.GetSSHProvider(ctx)
@@ -94,7 +99,7 @@ func (b *ClusterBootstrapper) ExecuteBashible(ctx context.Context) error {
 		MetaConfig:     metaConfig,
 		CommanderMode:  b.CommanderMode,
 		IsDebug:        b.IsDebug,
-		GlobalOpts:     &b.Options.Global,
+		DirsConfig:     b.DirectoryConfig,
 		LoggerProvider: b.loggerProvider,
 	})
 

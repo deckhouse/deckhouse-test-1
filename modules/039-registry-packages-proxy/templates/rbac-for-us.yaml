@@ -17,7 +17,6 @@ rules:
       - "deckhouse.io"
     resources:
       - modulesources
-      - packagerepositories
     verbs:
       - get
       - list

@@ -66,6 +66,7 @@ import:
   add: /src/server/public
   to: /app
   before: install
+git:
 {{- include "image mount points" . }}
 imageSpec:
   config:
@@ -78,6 +79,7 @@ import:
   add: /src/hubble-ui/backend/backend
   to: /usr/local/bin/hubble-ui-backend
   before: install
+git:
 {{- include "image mount points" . }}
 imageSpec:
   config:

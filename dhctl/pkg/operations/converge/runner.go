@@ -102,6 +102,7 @@ func (r *runner) RunConverge(ctx *context.Context) error {
 		err := r.lockRunner.Run(ctx.Ctx(), func() error {
 			return r.converge(ctx)
 		})
+
 		if err != nil {
 			return fmt.Errorf("failed to start lock runner: %w", err)
 		}
@@ -117,6 +118,7 @@ func (r *runner) RunConvergeMigration(ctx *context.Context, checkHasTerraformSta
 		err := r.lockRunner.Run(ctx.Ctx(), func() error {
 			return r.convergeMigration(ctx, checkHasTerraformStateBeforeMigration)
 		})
+
 		if err != nil {
 			return fmt.Errorf("failed to start lock runner: %w", err)
 		}
@@ -163,6 +165,7 @@ func populateNodesState(ctx *context.Context) (map[string]state.NodeGroupInfrast
 		nodesState, err = loadNodesState(ctx)
 		return err
 	})
+
 	if err != nil {
 		return nil, err
 	}
@@ -199,7 +202,7 @@ func (r *runner) migrateTerraNodes(ctx *context.Context, metaConfig *config.Meta
 
 		log.DebugF("NodeGroup for converge %v\n", nodeGroupName)
 
-		rr := controller.NewNodeGroupControllerRunner(nodeGroupName, ngState, r.excludedNodes, true, r.switcher.GetGlobalOptions())
+		rr := controller.NewNodeGroupControllerRunner(nodeGroupName, ngState, r.excludedNodes, true)
 		err := rr.Run(ctx)
 		if err != nil {
 			return err
@@ -263,7 +266,6 @@ func (r *runner) convergeTerraNodes(ctx *context.Context, metaConfig *config.Met
 		metaConfig,
 		nodeGroupsWithoutStateInCluster,
 		ctx.InfrastructureContext(metaConfig),
-		r.switcher.GetGlobalOptions(),
 	); err != nil {
 		return err
 	}
@@ -273,7 +275,7 @@ func (r *runner) convergeTerraNodes(ctx *context.Context, metaConfig *config.Met
 
 		log.DebugF("NodeGroup for converge %v", nodeGroupName)
 
-		rr := controller.NewNodeGroupControllerRunner(nodeGroupName, ngState, r.excludedNodes, false, r.switcher.GetGlobalOptions())
+		rr := controller.NewNodeGroupControllerRunner(nodeGroupName, ngState, r.excludedNodes, false)
 		err := rr.Run(ctx)
 		if err != nil {
 			return err
@@ -342,8 +344,8 @@ func (r *runner) convergeMigration(ctx *context.Context, checkHasTerraformStateB
 			StateCache:    ctx.StateCache(),
 		},
 			false,
-			r.switcher.GetGlobalOptions(),
 		)
+
 		if err != nil {
 			return err
 		}
@@ -511,11 +513,12 @@ func (r *runner) updateClusterState(ctx *context.Context, metaConfig *config.Met
 			ClusterState:                     clusterState,
 			AdditionalStateSaverDestinations: []infrastructure.SaverDestination{infrastructurestate.NewClusterStateSaver(ctx)},
 		}, ctx.ChangesSettings().AutomaticSettings)
+
 		if err != nil {
 			return err
 		}
 
-		outputs, err := infrastructure.ApplyPipeline(ctx.Ctx(), baseRunner, "Kubernetes cluster", r.switcher.GetGlobalOptions(), infrastructure.GetBaseInfraResult)
+		outputs, err := infrastructure.ApplyPipeline(ctx.Ctx(), baseRunner, "Kubernetes cluster", infrastructure.GetBaseInfraResult)
 		if err != nil {
 			return err
 		}

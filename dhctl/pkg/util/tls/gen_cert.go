@@ -37,10 +37,7 @@ func GenerateCertificate(serviceName, clusterDomain string, keyType CertKeyType,
 	now := time.Now()
 
 	subjectKeyId := make([]byte, 10)
-	_, readErr := rand.Read(subjectKeyId)
-	if readErr != nil {
-		return nil, readErr
-	}
+	rand.Read(subjectKeyId)
 
 	commonName := fmt.Sprintf("%s.%s", serviceName, clusterDomain)
 	certTemplate := &x509.Certificate{

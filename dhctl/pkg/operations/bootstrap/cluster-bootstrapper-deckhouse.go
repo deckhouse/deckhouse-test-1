@@ -48,7 +48,7 @@ func (b *ClusterBootstrapper) InstallDeckhouse(ctx context.Context) error {
 		infrastructureprovider.MetaConfigPreparatorProvider(
 			infrastructureprovider.NewPreparatorProviderParams(b.logger),
 		),
-		&b.Options.Global,
+		b.DirectoryConfig,
 	)
 	if err != nil {
 		return err
@@ -68,14 +68,19 @@ func (b *ClusterBootstrapper) InstallDeckhouse(ctx context.Context) error {
 			return err
 		}
 
-		defer progressbar.FinishDefaultProgressBar()
+		onComplete := func() {
+			pb := progressbar.GetDefaultPb()
+			pb.ProgressBarPrinter.Add(100 - pb.ProgressBarPrinter.Current)
+			pb.MultiPrinter.Stop()
+		}
+		defer onComplete()
 	}
 
 	if err := metaConfig.LoadInstallerVersion(); err != nil {
 		return err
 	}
 
-	installConfig, err := config.PrepareDeckhouseInstallConfig(ctx, metaConfig, &b.Options.Global)
+	installConfig, err := config.PrepareDeckhouseInstallConfig(ctx, metaConfig)
 	if err != nil {
 		return err
 	}

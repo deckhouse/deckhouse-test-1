@@ -30,12 +30,14 @@ const (
 	ModuleConfigVersion  = "v1alpha1"
 )
 
-// ModuleConfigGVR GroupVersionResource
-var ModuleConfigGVR = schema.GroupVersionResource{
-	Group:    ModuleConfigGroup,
-	Version:  ModuleConfigVersion,
-	Resource: ModuleConfigResource,
-}
+var (
+	// ModuleConfigGVR GroupVersionResource
+	ModuleConfigGVR = schema.GroupVersionResource{
+		Group:    ModuleConfigGroup,
+		Version:  ModuleConfigVersion,
+		Resource: ModuleConfigResource,
+	}
+)
 
 // ModuleConfig is a configuration for module or for global config values.
 type ModuleConfig struct {

@@ -70,7 +70,7 @@ kind: ModuleConfig
 metadata:
   name: control-plane-manager
 spec:
-  version: 3
+  version: 1
   enabled: true
   settings:
     apiserver:
@@ -78,7 +78,7 @@ spec:
       certSANs:
       - bakery.infra
       - devs.infra
-      publishAPI: {}
+      loadBalancer: {}
 ```
 
 ### Проверка состояния и очередей DKP
@@ -210,7 +210,7 @@ kind: ModuleConfig
 metadata:
   name: control-plane-manager
 spec:
-  version: 3
+  version: 1
   settings:
     nodeMonitorGracePeriodSeconds: 10
     failedNodePodEvictionTimeoutSeconds: 50

@@ -1,7 +1,3 @@
-# WARNING!
-# Please evaluate to add changes to candi/openapi/cluster_configuration.yaml
-# After change this file!
-
 kind: ClusterConfiguration
 apiVersions:
 - apiVersion: deckhouse.io/v1

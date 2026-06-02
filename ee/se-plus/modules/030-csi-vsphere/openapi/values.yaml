@@ -27,8 +27,6 @@ properties:
               type: string
             path:
               type: string
-            storagePolicyName:
-              type: string
             zones:
               type: array
               items:
@@ -152,16 +150,3 @@ properties:
                 datastoreURL:
                   type: string
             description: List of datastores
-          storagePolicies:
-            type: array
-            items:
-              type: object
-              required: [name, id]
-              properties:
-                name:
-                  type: string
-                  minLength: 1
-                id:
-                  type: string
-                  minLength: 1
-            description: List of storage policies

@@ -285,6 +285,7 @@ func (d *Destroyer) processStaticHost(ctx context.Context, sshClient libcon.SSHC
 		c.WithStdoutHandler(stdOutErrHandler)
 		c.WithStderrHandler(stdOutErrHandler)
 		err := c.Run(ctx)
+
 		if err != nil {
 			var ee *exec.ExitError
 			if errors.As(err, &ee) {
@@ -299,6 +300,7 @@ func (d *Destroyer) processStaticHost(ctx context.Context, sshClient libcon.SSHC
 
 		return err
 	})
+
 	if err != nil {
 		return err
 	}

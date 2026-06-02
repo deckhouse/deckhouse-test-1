@@ -27,7 +27,9 @@ import (
 	"github.com/deckhouse/deckhouse/dhctl/pkg/util/retry"
 )
 
-var ErrNotReady = fmt.Errorf("Not ready.")
+var (
+	ErrNotReady = fmt.Errorf("Not ready.")
+)
 
 type NodeChecker interface {
 	IsReady(ctx context.Context, nodeName string) (bool, error)
@@ -52,6 +54,7 @@ func IsNodeReady(ctx context.Context, checkers []NodeChecker, nodeName, sourceCo
 
 				return err
 			})
+
 			if err != nil {
 				lastErr = err
 				return err
@@ -60,6 +63,7 @@ func IsNodeReady(ctx context.Context, checkers []NodeChecker, nodeName, sourceCo
 
 		return nil
 	})
+
 	if err != nil {
 		return false, fmt.Errorf("Node %s is not ready. last error: %v/%v", nodeName, err, lastErr)
 	}

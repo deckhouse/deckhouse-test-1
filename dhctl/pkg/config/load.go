@@ -34,7 +34,7 @@ import (
 
 	"github.com/deckhouse/deckhouse/go_lib/configtools/conversion"
 
-	"github.com/deckhouse/deckhouse/dhctl/pkg/app/options"
+	"github.com/deckhouse/deckhouse/dhctl/pkg/config/directoryconfig"
 	transformer "github.com/deckhouse/deckhouse/dhctl/pkg/config/schema"
 	"github.com/deckhouse/deckhouse/dhctl/pkg/log"
 )
@@ -93,13 +93,13 @@ func ValidateOptionRequiredSSHHost(v bool) ValidateOption {
 	}
 }
 
-func NewSchemaStore(globalOptions *options.GlobalOptions, paths ...string) *SchemaStore {
-	// fallback to default value
-	candiDir := options.DefaultCandiDir
-	if globalOptions != nil && globalOptions.CandiDir != "" {
-		candiDir = globalOptions.CandiDir
-	}
+func NewSchemaStore(dc *directoryconfig.DirectoryConfig, paths ...string) *SchemaStore {
 	paths = append([]string{candiDir}, paths...)
+	if _, err := os.Stat(candiDir); err != nil {
+		if dc != nil {
+			paths = append(paths, filepath.Join(dc.DownloadDir, "deckhouse", "candi"))
+		}
+	}
 
 	pathsStr := strings.TrimSpace(os.Getenv("DHCTL_CLI_ADDITIONAL_SCHEMAS_PATHS"))
 	if pathsStr != "" {
@@ -109,15 +109,22 @@ func NewSchemaStore(globalOptions *options.GlobalOptions, paths ...string) *Sche
 		}
 	}
 
-	return newOnceSchemaStore(globalOptions, paths)
+	return newOnceSchemaStore(dc, paths)
 }
 
-func newSchemaStore(globalOptions *options.GlobalOptions, schemasDir []string) *SchemaStore {
+func newSchemaStore(dc *directoryconfig.DirectoryConfig, schemasDir []string) *SchemaStore {
 	st := &SchemaStore{
 		cache:              make(map[SchemaIndex]*spec.Schema),
 		moduleConfigsCache: make(map[string]*spec.Schema),
 		modulesCache:       make(map[string]struct{}),
 	}
+	if _, err := os.Stat(deckhouseDir); err != nil {
+		if dc != nil {
+			deckhouseDir = filepath.Join(dc.DownloadDir, "deckhouse")
+			modulesDir = filepath.Join(deckhouseDir, "modules")
+		}
+	}
+	log.DebugF("deckhouse dir: %s, modulesDir: %s\n", deckhouseDir, modulesDir)
 
 	st.conversionsStore = conversion.NewConversionsStore()
 
@@ -150,14 +157,6 @@ func newSchemaStore(globalOptions *options.GlobalOptions, schemasDir []string) *
 		}
 	}
 
-	// fallback to default
-	modulesDir := options.DefaultModulesDir
-	globalHookModule := options.DefaultGlobalHooksModule
-	if globalOptions != nil && globalOptions.ModulesDir != "" {
-		modulesDir = globalOptions.ModulesDir
-		globalHookModule = globalOptions.GlobalHooksModule
-	}
-
 	entries, err := os.ReadDir(modulesDir)
 	if err != nil {
 		// autoconverger and state exporter do not contains module dir
@@ -165,7 +164,7 @@ func newSchemaStore(globalOptions *options.GlobalOptions, schemasDir []string) *
 		return st
 	}
 
-	loadConversions := func(path, moduleName string) error {
+	loadConversions := func(path string, moduleName string) error {
 		conversionPath := filepath.Join(filepath.Dir(path), "conversions")
 		stat, err := os.Stat(conversionPath)
 		if err == nil && stat.IsDir() {
@@ -177,7 +176,7 @@ func newSchemaStore(globalOptions *options.GlobalOptions, schemasDir []string) *
 		return nil
 	}
 
-	loadConfigValuesSchema := func(path, moduleName string) error {
+	loadConfigValuesSchema := func(path string, moduleName string) error {
 		content, err := os.ReadFile(path)
 		var schema *spec.Schema
 
@@ -226,7 +225,7 @@ func newSchemaStore(globalOptions *options.GlobalOptions, schemasDir []string) *
 		}
 	}
 
-	err = loadConfigValuesSchema(path.Join(globalHookModule, "openapi", "config-values.yaml"), "global")
+	err = loadConfigValuesSchema(path.Join(globalHooksModule, "openapi", "config-values.yaml"), "global")
 	if err != nil {
 		// We don't expect panic here our logger does not support log.Fatal
 		panic(err)
@@ -235,9 +234,9 @@ func newSchemaStore(globalOptions *options.GlobalOptions, schemasDir []string) *
 	return st
 }
 
-func newOnceSchemaStore(globalOptions *options.GlobalOptions, schemasDir []string) *SchemaStore {
+func newOnceSchemaStore(dc *directoryconfig.DirectoryConfig, schemasDir []string) *SchemaStore {
 	once.Do(func() {
-		store = newSchemaStore(globalOptions, schemasDir)
+		store = newSchemaStore(dc, schemasDir)
 	})
 	return store
 }
@@ -249,15 +248,6 @@ func (s *SchemaStore) Get(index *SchemaIndex) *spec.Schema {
 func (s *SchemaStore) HasSchemaForModuleConfig(name string) bool {
 	_, ok := s.moduleConfigsCache[name]
 	return ok
-}
-
-func (s *SchemaStore) GetModuleConfigSchema(name string) (*spec.Schema, error) {
-	res, ok := s.moduleConfigsCache[name]
-	if !ok {
-		return nil, fmt.Errorf("schema for %s not found", name)
-	}
-
-	return res, nil
 }
 
 func (s *SchemaStore) GetModuleConfigVersion(name string) int {
@@ -460,8 +450,8 @@ func openAPIValidate(dataObj *[]byte, schema *spec.Schema, options validateOptio
 	return true, nil
 }
 
-func ValidateDiscoveryData(config *[]byte, paths []string, globalOptions *options.GlobalOptions, opts ...ValidateOption) (bool, error) {
-	schemaStore := NewSchemaStore(globalOptions, paths...)
+func ValidateDiscoveryData(config *[]byte, paths []string, opts ...ValidateOption) (bool, error) {
+	schemaStore := NewSchemaStore(nil, paths...)
 
 	_, err := schemaStore.Validate(config, opts...)
 	if err != nil {

@@ -15,8 +15,9 @@
 # Image documentation/web (for website)
 image: {{ .ModuleName }}/{{ .ImageName }}
 fromImage: common/nginx-static
-import:
+git:
 {{- include "image mount points" . }}
+import:
 - image: {{ .ModuleName }}/{{ .ImageName }}/static
   add: /app/_site/documentation
   to: /app/docs-dkp

@@ -50,7 +50,7 @@ func (b *ClusterBootstrapper) BaseInfrastructure(ctx context.Context) error {
 		ctx,
 		b.Options.Global.ConfigPaths,
 		infrastructureprovider.MetaConfigPreparatorProvider(preparatorParams),
-		&b.Options.Global,
+		b.DirectoryConfig,
 	)
 	if err != nil {
 		return err
@@ -58,7 +58,7 @@ func (b *ClusterBootstrapper) BaseInfrastructure(ctx context.Context) error {
 
 	providerGetter := infrastructureprovider.CloudProviderGetter(infrastructureprovider.CloudProviderGetterParams{
 		TmpDir:           b.TmpDir,
-		GlobalOptions:    &b.Options.Global,
+		DownloadDir:      b.Options.Global.DownloadDir,
 		AdditionalParams: cloud.ProviderAdditionalParams{},
 		Logger:           b.logger,
 		IsDebug:          b.IsDebug,
@@ -112,7 +112,12 @@ func (b *ClusterBootstrapper) BaseInfrastructure(ctx context.Context) error {
 			return err
 		}
 
-		defer progressbar.FinishDefaultProgressBar()
+		onComplete := func() {
+			pb := progressbar.GetDefaultPb()
+			pb.ProgressBarPrinter.Add(100 - pb.ProgressBarPrinter.Current)
+			pb.MultiPrinter.Stop()
+		}
+		defer onComplete()
 	}
 
 	return log.ProcessCtx(ctx, "bootstrap", "Cloud infrastructure", func(ctx context.Context) error {
@@ -121,7 +126,7 @@ func (b *ClusterBootstrapper) BaseInfrastructure(ctx context.Context) error {
 			return err
 		}
 
-		_, err = infrastructure.ApplyPipeline(ctx, baseRunner, "Kubernetes cluster", &b.Options.Global, infrastructure.GetBaseInfraResult)
+		_, err = infrastructure.ApplyPipeline(ctx, baseRunner, "Kubernetes cluster", infrastructure.GetBaseInfraResult)
 		return err
 	})
 }

@@ -139,12 +139,8 @@ func (s *Service) computeAndApplyConditions(ev string, app *v1alpha1.Application
 		}
 	}
 
-	// Skip writing tracking if there's nothing to report — preserves the previous
-	// tracking field on the CR through trailing empty progress events from nelm.
-	if len(packageStatus.Tracking.Report.Operations) > 0 {
-		raw, _ := json.Marshal(packageStatus.Tracking)
-		app.Status.Tracking = runtime.RawExtension{Raw: raw}
-	}
+	raw, _ := json.Marshal(packageStatus.Tracking)
+	app.Status.Tracking = runtime.RawExtension{Raw: raw}
 }
 
 // buildMapperStatus creates mapper input from Application and internal conditions.

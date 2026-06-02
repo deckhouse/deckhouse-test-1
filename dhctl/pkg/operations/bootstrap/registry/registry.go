@@ -19,10 +19,11 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/deckhouse/lib-dhctl/pkg/log"
+
 	"github.com/deckhouse/deckhouse/go_lib/registry-bundle/pkg/bundle"
 	"github.com/deckhouse/deckhouse/go_lib/registry-bundle/pkg/serve"
 	constant "github.com/deckhouse/deckhouse/go_lib/registry/const"
-	"github.com/deckhouse/lib-dhctl/pkg/log"
 
 	"github.com/deckhouse/deckhouse/dhctl/pkg/config"
 )

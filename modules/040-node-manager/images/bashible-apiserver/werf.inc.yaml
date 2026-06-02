@@ -25,9 +25,6 @@ git:
     - '**/*.go'
     - 'go.mod'
     - 'go.sum'
-shell:
-  install:
-  - cd /src
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}-artifact
 from: {{ index $.Images "builder/golang" }}
@@ -61,7 +58,6 @@ import:
   add: /src/bashible-apiserver
   to: /bashible-apiserver
   before: setup
-{{- include "image mount points" . }}
 git:
 {{ .Files.Get (printf "tools/build_includes/candi-%s.yaml" .Env) }}
 {{ .Files.Get (printf "tools/build_includes/candi-cloud-providers-%s.yaml" .Env) }}
@@ -82,11 +78,7 @@ git:
   {{- end }}
   excludePaths:
   - "**/cluster-bootstrap"
-shell:
-  install:
-  - set -e
-  beforeSetup:
-  - set -e
+{{- include "image mount points" . }}
 imageSpec:
   config:
     entrypoint: ["/bashible-apiserver", "--tls-cipher-suites", "TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256,TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256,TLS_RSA_WITH_AES_128_CBC_SHA,TLS_RSA_WITH_AES_256_CBC_SHA,TLS_RSA_WITH_AES_128_GCM_SHA256,TLS_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA,TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA,TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA,TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA"]

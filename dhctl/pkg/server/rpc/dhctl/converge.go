@@ -201,7 +201,7 @@ func (s *Service) converge(ctx context.Context, p *convergeParams) *pb.ConvergeR
 			infrastructureprovider.MetaConfigPreparatorProvider(
 				infrastructureprovider.NewPreparatorProviderParams(loggerFor),
 			),
-			s.params.GlobalOptions,
+			s.params.DownloadDirConfig,
 			config.ValidateOptionCommanderMode(p.request.Options.CommanderMode),
 			config.ValidateOptionStrictUnmarshal(p.request.Options.CommanderMode),
 			config.ValidateOptionValidateExtensions(p.request.Options.CommanderMode),
@@ -242,7 +242,7 @@ func (s *Service) converge(ctx context.Context, p *convergeParams) *pb.ConvergeR
 
 	providerGetter := infrastructureprovider.CloudProviderGetter(infrastructureprovider.CloudProviderGetterParams{
 		TmpDir:           tmpDir,
-		GlobalOptions:    s.params.GlobalOptions,
+		DownloadDir:      s.params.DownloadDirConfig.DownloadDir,
 		AdditionalParams: cloud.ProviderAdditionalParams{},
 		Logger:           loggerFor,
 		IsDebug:          s.params.IsDebug,

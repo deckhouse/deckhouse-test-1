@@ -22,7 +22,6 @@ package dhctl
 
 import (
 	context "context"
-
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -296,32 +295,27 @@ type DHCTLServer interface {
 }
 
 // UnimplementedDHCTLServer must be embedded to have forward compatible implementations.
-type UnimplementedDHCTLServer struct{}
+type UnimplementedDHCTLServer struct {
+}
 
 func (UnimplementedDHCTLServer) Check(DHCTL_CheckServer) error {
 	return status.Errorf(codes.Unimplemented, "method Check not implemented")
 }
-
 func (UnimplementedDHCTLServer) Bootstrap(DHCTL_BootstrapServer) error {
 	return status.Errorf(codes.Unimplemented, "method Bootstrap not implemented")
 }
-
 func (UnimplementedDHCTLServer) Destroy(DHCTL_DestroyServer) error {
 	return status.Errorf(codes.Unimplemented, "method Destroy not implemented")
 }
-
 func (UnimplementedDHCTLServer) Abort(DHCTL_AbortServer) error {
 	return status.Errorf(codes.Unimplemented, "method Abort not implemented")
 }
-
 func (UnimplementedDHCTLServer) Converge(DHCTL_ConvergeServer) error {
 	return status.Errorf(codes.Unimplemented, "method Converge not implemented")
 }
-
 func (UnimplementedDHCTLServer) CommanderAttach(DHCTL_CommanderAttachServer) error {
 	return status.Errorf(codes.Unimplemented, "method CommanderAttach not implemented")
 }
-
 func (UnimplementedDHCTLServer) CommanderDetach(DHCTL_CommanderDetachServer) error {
 	return status.Errorf(codes.Unimplemented, "method CommanderDetach not implemented")
 }
@@ -683,32 +677,27 @@ type ValidationServer interface {
 }
 
 // UnimplementedValidationServer must be embedded to have forward compatible implementations.
-type UnimplementedValidationServer struct{}
+type UnimplementedValidationServer struct {
+}
 
 func (UnimplementedValidationServer) ValidateResources(context.Context, *ValidateResourcesRequest) (*ValidateResourcesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ValidateResources not implemented")
 }
-
 func (UnimplementedValidationServer) ValidateInitConfig(context.Context, *ValidateInitConfigRequest) (*ValidateInitConfigResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ValidateInitConfig not implemented")
 }
-
 func (UnimplementedValidationServer) ValidateClusterConfig(context.Context, *ValidateClusterConfigRequest) (*ValidateClusterConfigResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ValidateClusterConfig not implemented")
 }
-
 func (UnimplementedValidationServer) ValidateStaticClusterConfig(context.Context, *ValidateStaticClusterConfigRequest) (*ValidateStaticClusterConfigResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ValidateStaticClusterConfig not implemented")
 }
-
 func (UnimplementedValidationServer) ValidateProviderSpecificClusterConfig(context.Context, *ValidateProviderSpecificClusterConfigRequest) (*ValidateProviderSpecificClusterConfigResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ValidateProviderSpecificClusterConfig not implemented")
 }
-
 func (UnimplementedValidationServer) ValidateChanges(context.Context, *ValidateChangesRequest) (*ValidateChangesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ValidateChanges not implemented")
 }
-
 func (UnimplementedValidationServer) ParseConnectionConfig(context.Context, *ParseConnectionConfigRequest) (*ParseConnectionConfigResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ParseConnectionConfig not implemented")
 }
@@ -928,7 +917,8 @@ type StatusServer interface {
 }
 
 // UnimplementedStatusServer must be embedded to have forward compatible implementations.
-type UnimplementedStatusServer struct{}
+type UnimplementedStatusServer struct {
+}
 
 func (UnimplementedStatusServer) GetStatus(context.Context, *GetStatusRequest) (*GetStatusResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetStatus not implemented")

@@ -38,6 +38,7 @@ import:
   add: /src/dist
   to: /opt/nginx-static/html
   before: setup
+git:  
 {{- include "image mount points" . }}  
 imageSpec:
   config:

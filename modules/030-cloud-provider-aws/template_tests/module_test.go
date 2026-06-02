@@ -59,7 +59,7 @@ const globalValues = `
     clusterType: Cloud
     defaultCRI: Containerd
     kind: ClusterConfiguration
-    kubernetesVersion: "1.31"
+    kubernetesVersion: "1.32"
     podSubnetCIDR: 10.111.0.0/16
     podSubnetNodeCIDRPrefix: "24"
     serviceSubnetCIDR: 10.222.0.0/16
@@ -71,7 +71,7 @@ const globalValues = `
       master:
         __ConstantChoices__: "3"
     podSubnet: 10.0.1.0/16
-    kubernetesVersion: 1.31.0
+    kubernetesVersion: 1.32.0
 `
 
 const moduleValues = `
@@ -185,26 +185,6 @@ var _ = Describe("Module :: cloud-provider-aws :: helm template ::", func() {
 			Expect(registrySecret.Exists()).To(BeTrue())
 			Expect(userAuthzUser.Exists()).To(BeTrue())
 			Expect(userAuthzClusterAdmin.Exists()).To(BeTrue())
-			Expect(userAuthzUser.Field("rules").String()).To(MatchYAML(`
-- apiGroups:
-  - deckhouse.io
-  resources:
-  - awsinstanceclasses
-  verbs:
-  - get
-  - list
-  - watch`))
-			Expect(userAuthzClusterAdmin.Field("rules").String()).To(MatchYAML(`
-- apiGroups:
-  - deckhouse.io
-  resources:
-  - awsinstanceclasses
-  verbs:
-  - create
-  - delete
-  - deletecollection
-  - patch
-  - update`))
 
 			// user story #1
 			providerRegistrationSecret := f.KubernetesResource("Secret", "kube-system", "d8-node-manager-cloud-provider")

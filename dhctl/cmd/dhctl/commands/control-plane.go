@@ -47,17 +47,16 @@ func DefineTestControlPlaneManagerReadyCommand(cmd *kingpin.CmdClause, opts *opt
 			ctx,
 			params,
 			providerinitializer.WithKubeFlagsDefined(opts.Kube.IsDefined()),
-			providerinitializer.WithKubeConfig(opts.Kube.Config, opts.Kube.ConfigContext, opts.Kube.InCluster),
 			providerinitializer.WithRequiredKubeProvider(),
 		)
 		if err != nil {
 			return err
 		}
-
-		defer providerinitializer.CleanupSSHProvider(ctx, logger, sshProviderInitializer)
-
 		if kubeProvider == nil {
 			return fmt.Errorf("kubernetes provider is not initialized")
+		}
+		if sshProviderInitializer != nil {
+			defer sshProviderInitializer.Cleanup(ctx)
 		}
 
 		kube, err := kubeProvider.Client(ctx)
@@ -99,17 +98,16 @@ func DefineTestControlPlaneNodeReadyCommand(cmd *kingpin.CmdClause, opts *option
 			ctx,
 			params,
 			providerinitializer.WithKubeFlagsDefined(opts.Kube.IsDefined()),
-			providerinitializer.WithKubeConfig(opts.Kube.Config, opts.Kube.ConfigContext, opts.Kube.InCluster),
 			providerinitializer.WithRequiredKubeProvider(),
 		)
 		if err != nil {
 			return err
 		}
-
-		defer providerinitializer.CleanupSSHProvider(ctx, logger, sshProviderInitializer)
-
 		if kubeProvider == nil {
 			return fmt.Errorf("kubernetes provider is not initialized")
+		}
+		if sshProviderInitializer != nil {
+			defer sshProviderInitializer.Cleanup(ctx)
 		}
 
 		kube, err := kubeProvider.Client(ctx)

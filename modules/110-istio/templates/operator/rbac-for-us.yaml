@@ -1,6 +1,5 @@
 {{- range $version := .Values.istio.internal.operatorVersionsToInstall }}
   {{- $versionInfo := get $.Values.istio.internal.versionMap $version }}
-  {{- if get $versionInfo "supportsOperator" }}
   {{- $revision := get $versionInfo "revision" }}
   {{- $fullVersion := get $versionInfo "fullVersion" }}
 ---
@@ -537,5 +536,4 @@ roleRef:
   kind: ClusterRole
   name: d8:istio:operator-{{ $revision }}
   apiGroup: rbac.authorization.k8s.io
-  {{- end }}
 {{- end }}

@@ -41,6 +41,7 @@ import:
   add: /out/linux/amd64/bin/gops
   to: /bin/gops
   before: install
+git:
 {{- include "image mount points" . }}
 imageSpec:
   config:

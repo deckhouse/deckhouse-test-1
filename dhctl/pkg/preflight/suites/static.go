@@ -17,8 +17,8 @@ package suites
 import (
 	"context"
 
-	"github.com/deckhouse/deckhouse/dhctl/pkg/app/options"
 	"github.com/deckhouse/deckhouse/dhctl/pkg/config"
+	"github.com/deckhouse/deckhouse/dhctl/pkg/config/directoryconfig"
 	preflight "github.com/deckhouse/deckhouse/dhctl/pkg/preflight"
 	"github.com/deckhouse/deckhouse/dhctl/pkg/preflight/checks"
 	"github.com/deckhouse/deckhouse/dhctl/pkg/system/helper"
@@ -31,25 +31,28 @@ type StaticDeps struct {
 	// LegacyMode reflects whether the SSH client uses the legacy clissh
 	// backend. Threaded into RegistryProxy for the SSH tunnel direction.
 	LegacyMode bool
-	GlobalOpts *options.GlobalOptions
 }
 
 func NewStaticSuite(deps StaticDeps, ctx context.Context) (preflight.Suite, error) {
 	nodeInterface, err := helper.GetNodeInterface(ctx, deps.SSHProviderInitializer, deps.SSHProviderInitializer.GetSettings())
+	dc := &directoryconfig.DirectoryConfig{
+		DownloadDir:      deps.MetaConfig.DownloadRootDir,
+		DownloadCacheDir: deps.MetaConfig.DownloadCacheDir,
+	}
 
 	return preflight.NewSuite(
 		checks.CidrIntersectionStatic(deps.MetaConfig),
 		checks.StaticInstancesIPDuplication(deps.MetaConfig),
 		checks.SingleSSHHost(deps.SSHProviderInitializer),
 		checks.SSHCredential(deps.SSHProviderInitializer),
-		checks.SSHTunnel(deps.SSHProviderInitializer, deps.GlobalOpts),
+		checks.SSHTunnel(deps.SSHProviderInitializer, dc),
 		checks.StaticInstancesSSHCredentials(deps.MetaConfig, deps.SSHProviderInitializer),
-		checks.DeckhouseUser(nodeInterface, deps.GlobalOpts),
+		checks.DeckhouseUser(nodeInterface, dc),
 		checks.StaticSystemRequirements(deps.SSHProviderInitializer),
 		checks.Python(nodeInterface),
 		checks.RegistryProxy(deps.MetaConfig, deps.SSHProviderInitializer, deps.LegacyMode),
-		checks.Ports(deps.SSHProviderInitializer, deps.GlobalOpts),
-		checks.LocalhostDomain(nodeInterface, deps.GlobalOpts),
+		checks.Ports(deps.SSHProviderInitializer, dc),
+		checks.LocalhostDomain(nodeInterface, dc),
 		checks.SudoAllowed(nodeInterface),
 		checks.TimeDrift(nodeInterface),
 	), err

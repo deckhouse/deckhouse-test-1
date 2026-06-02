@@ -289,6 +289,7 @@ func (s *Service) bootstrap(ctx context.Context, p *bootstrapParams) *pb.Bootstr
 		IsDebug:                    s.params.IsDebug,
 		SSHProviderInitializer:     sshProviderInitializer,
 		KubeProvider:               kubeProvider,
+		DirectoryConfig:            s.params.DownloadDirConfig,
 		Options:                    opts,
 	})
 

@@ -64,18 +64,14 @@ func StartCommand(c *kingpin.ParseContext) error {
 
 func EndCommand(err error, errorCode int) {
 	commandMu.Lock()
-
 	if commandSpan != nil {
-		switch {
-		case err != nil:
-
+		if err != nil {
 			commandSpan.SetStatus(codes.Error, err.Error())
-		case errorCode != 0:
+		} else if errorCode != 0 {
 			commandSpan.SetStatus(codes.Error, fmt.Sprintf("exit code %d", errorCode))
-		default:
+		} else {
 			commandSpan.SetStatus(codes.Ok, "")
 		}
-
 		commandSpan.End()
 
 		log.DebugF("TraceID: %s\n", commandSpan.SpanContext().TraceID().String())

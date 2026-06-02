@@ -17,14 +17,15 @@ package context
 import (
 	"context"
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/name212/govalue"
 
 	libcon "github.com/deckhouse/lib-connection/pkg"
 
-	"github.com/deckhouse/deckhouse/dhctl/pkg/app/options"
 	"github.com/deckhouse/deckhouse/dhctl/pkg/config"
+	"github.com/deckhouse/deckhouse/dhctl/pkg/config/directoryconfig"
 	"github.com/deckhouse/deckhouse/dhctl/pkg/infrastructure"
 	"github.com/deckhouse/deckhouse/dhctl/pkg/kubernetes"
 	"github.com/deckhouse/deckhouse/dhctl/pkg/kubernetes/actions/entity"
@@ -44,6 +45,7 @@ type MultiMasterClientSwitcher interface {
 }
 
 type Context struct {
+	kubeClientMu           sync.RWMutex
 	kubeProvider           libcon.KubeProvider
 	SSHProviderInitializer *providerinitializer.SSHProviderInitializer
 
@@ -61,8 +63,8 @@ type Context struct {
 
 	providerGetter infrastructure.CloudProviderGetter
 
-	logger log.Logger
-	opts   *options.GlobalOptions
+	logger          log.Logger
+	directoryConfig *directoryconfig.DirectoryConfig
 }
 
 type Params struct {
@@ -73,7 +75,7 @@ type Params struct {
 	ProviderGetter         infrastructure.CloudProviderGetter
 	Logger                 log.Logger
 	ClientSwitcher         MultiMasterClientSwitcher
-	Opts                   *options.GlobalOptions
+	DirectoryConfig        *directoryconfig.DirectoryConfig
 }
 
 func newContext(ctx context.Context, params Params) *Context {
@@ -92,7 +94,7 @@ func newContext(ctx context.Context, params Params) *Context {
 		ctx:                    ctx,
 		logger:                 logger,
 		clientSwitcher:         params.ClientSwitcher,
-		opts:                   params.Opts,
+		directoryConfig:        params.DirectoryConfig,
 
 		stateStore: newInSecretStateStore(),
 	}
@@ -211,7 +213,7 @@ func (c *Context) MetaConfig() (*config.MetaConfig, error) {
 		return nil, fmt.Errorf("Could not get kube client: %w", err)
 	}
 
-	metaConfig, err := entity.GetMetaConfig(c.ctx, kubeClient, c.logger, c.opts)
+	metaConfig, err := entity.GetMetaConfig(c.ctx, kubeClient, c.logger, c.directoryConfig)
 	if err != nil {
 		return nil, err
 	}

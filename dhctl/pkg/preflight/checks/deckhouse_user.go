@@ -23,20 +23,20 @@ import (
 
 	libcon "github.com/deckhouse/lib-connection/pkg"
 
-	"github.com/deckhouse/deckhouse/dhctl/pkg/app/options"
+	"github.com/deckhouse/deckhouse/dhctl/pkg/config/directoryconfig"
 	preflight "github.com/deckhouse/deckhouse/dhctl/pkg/preflight"
 	"github.com/deckhouse/deckhouse/dhctl/pkg/template"
 )
 
 type DeckhouseUserCheck struct {
 	NodeInterface libcon.Interface
-	globalOptions *options.GlobalOptions
+	dc            *directoryconfig.DirectoryConfig
 }
 
 const DeckhouseUserCheckName preflight.CheckName = "deckhouse-user"
 
 func (DeckhouseUserCheck) Description() string {
-	return "no conflicting deckhouse user or group on the node"
+	return "deckhouse user and group aren't present on node"
 }
 
 func (DeckhouseUserCheck) Phase() preflight.Phase {
@@ -48,7 +48,7 @@ func (DeckhouseUserCheck) RetryPolicy() preflight.RetryPolicy {
 }
 
 func (c DeckhouseUserCheck) Run(ctx context.Context) error {
-	file, err := template.RenderAndSavePreflightCheckDeckhouseUserScript(c.globalOptions)
+	file, err := template.RenderAndSavePreflightCheckDeckhouseUserScript(c.dc)
 	if err != nil {
 		return err
 	}
@@ -56,22 +56,19 @@ func (c DeckhouseUserCheck) Run(ctx context.Context) error {
 	cmd := c.NodeInterface.UploadScript(file)
 	out, err := cmd.Execute(ctx)
 	if err != nil {
-		outMsg := strings.TrimSpace(string(out))
-		if outMsg != "" {
-			return fmt.Errorf("Deckhouse user check failed: %s", outMsg)
-		}
 		var ee *exec.ExitError
 		if errors.As(err, &ee) {
-			return fmt.Errorf("Deckhouse user check failed: %w, %s", err, string(ee.Stderr))
+			return fmt.Errorf("Deckhouse user existence check failed: %w, %s", err, string(ee.Stderr))
 		}
 		return fmt.Errorf("Could not execute a script to check deckhouse user and group aren't present on the node: %w", err)
 	}
 
+	_ = strings.TrimSpace(string(out))
 	return nil
 }
 
-func DeckhouseUser(nodeInterface libcon.Interface, globalOptions *options.GlobalOptions) preflight.Check {
-	check := DeckhouseUserCheck{NodeInterface: nodeInterface, globalOptions: globalOptions}
+func DeckhouseUser(nodeInterface libcon.Interface, dc *directoryconfig.DirectoryConfig) preflight.Check {
+	check := DeckhouseUserCheck{NodeInterface: nodeInterface, dc: dc}
 	return preflight.Check{
 		Name:        DeckhouseUserCheckName,
 		Description: check.Description(),

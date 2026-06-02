@@ -1,8 +1,9 @@
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}
 fromImage: common/distroless
-import:
+git:
 {{- include "image mount points" . }}
+import:
 - image: {{ .ModuleName }}/{{ .ImageName }}-artifact
   add: /src/oom-kills-exporter
   to: /bin/oom-kills-exporter

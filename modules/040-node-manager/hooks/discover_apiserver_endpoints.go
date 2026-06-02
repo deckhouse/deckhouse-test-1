@@ -44,12 +44,6 @@ const (
 
 var _ = sdk.RegisterFunc(&go_hook.HookConfig{
 	Queue: "/modules/node-manager",
-	Schedule: []go_hook.ScheduleConfig{
-		{
-			Name:    "discover_apiserver_endpoints",
-			Crontab: "*/5 * * * *",
-		},
-	},
 	Kubernetes: []go_hook.KubernetesConfig{
 		{
 			Name:       "kube_apiserver",

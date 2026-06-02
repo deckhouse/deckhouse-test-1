@@ -12,8 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# bashible: parallel-group=light-prep
-
 _reload_systemd() {
   systemctl daemon-reload
 {{- if or ( eq .cri "Containerd") ( eq .cri "ContainerdV2") }}

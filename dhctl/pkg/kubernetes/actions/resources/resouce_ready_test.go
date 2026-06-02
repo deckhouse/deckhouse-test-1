@@ -994,6 +994,7 @@ status:
 		}
 		assertResourceReadyAfterAttempts(t, checker, ngCoolDownAttempts, false)
 	})
+
 }
 
 func assertResourceReadyAfterAttempts(t *testing.T, checker *resourceReadinessChecker, cooldownAttempts int, ready bool) {

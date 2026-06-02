@@ -1,4 +1,4 @@
-{{- $baseFeatureGates := list "TopologyAwareHints=true" "RotateKubeletServerCertificate=true" "CRDSensitiveData=true" -}}
+{{- $baseFeatureGates := list "TopologyAwareHints=true" "RotateKubeletServerCertificate=true" -}}
 {{- if semverCompare ">=1.32 <1.34" .clusterConfiguration.kubernetesVersion }}
   {{- $baseFeatureGates = append $baseFeatureGates "DynamicResourceAllocation=true" -}}
 {{- end }}
@@ -15,9 +15,6 @@
 {{- end }}
 {{- if semverCompare "<=1.32" .clusterConfiguration.kubernetesVersion }}
   {{- $baseFeatureGates = append $baseFeatureGates "InPlacePodVerticalScaling=true" -}}
-{{- end }}
-{{- if semverCompare "<=1.31" .clusterConfiguration.kubernetesVersion }}
-  {{- $baseFeatureGates = append $baseFeatureGates "AnonymousAuthConfigurableEndpoints=true" -}}
 {{- end }}
 {{- $apiserverFeatureGates := $baseFeatureGates -}}
 {{- if hasKey . "allowedFeatureGates" -}}
@@ -90,14 +87,6 @@ spec:
   dnsPolicy: ClusterFirstWithHostNet
   priority: 2000001000
   priorityClassName: system-node-critical
-{{- if eq .runType "ClusterBootstrap" }}
-  # Bootstrap-only: cpm rewrites this manifest once during initial install and
-  # the default 30s grace would burn most of a minute waiting for the old
-  # kube-apiserver to drain (no real in-flight work on a fresh master anyway).
-  # Runtime restarts keep the static-pod default 30s so production drains
-  # in-flight requests gracefully.
-  terminationGracePeriodSeconds: 1
-{{- end }}
   securityContext:
     seccompProfile:
       type: RuntimeDefault
@@ -229,7 +218,7 @@ spec:
 {{- if .apiserver.auditWebhookURL }}
     - --audit-webhook-config-file=/etc/kubernetes/deckhouse/extra-files/audit-webhook-config.yaml
 {{- end }}
-{{- if or (.apiserver.secretEncryptionKey) (.apiserver.signature) }}
+{{- if .apiserver.secretEncryptionKey }}
     - --encryption-provider-config=/etc/kubernetes/deckhouse/extra-files/secret-encryption-config.yaml
     - --encryption-provider-config-automatic-reload=true
 {{- end }}
@@ -326,16 +315,6 @@ spec:
         path: /livez
         port: 6443
         scheme: HTTPS
-{{- if eq .runType "ClusterBootstrap" }}
-      # Bootstrap-only: poke /livez aggressively so kubelet flips the pod to
-      # "started" as soon as apiserver responds (sub-second on fresh master).
-      # Cluster-runtime keeps the conservative 10s+24 settings — restarts in
-      # prod tolerate slower probes safely.
-      initialDelaySeconds: 1
-      periodSeconds: 1
-      timeoutSeconds: 5
-{{- else }}
       initialDelaySeconds: 10
       periodSeconds: 10
       timeoutSeconds: 15
-{{- end }}

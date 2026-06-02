@@ -32,6 +32,7 @@ import (
 
 	"github.com/deckhouse/deckhouse/dhctl/pkg/app/options"
 	"github.com/deckhouse/deckhouse/dhctl/pkg/config"
+	"github.com/deckhouse/deckhouse/dhctl/pkg/config/directoryconfig"
 	"github.com/deckhouse/deckhouse/dhctl/pkg/infrastructure"
 	"github.com/deckhouse/deckhouse/dhctl/pkg/infrastructureprovider"
 	"github.com/deckhouse/deckhouse/dhctl/pkg/infrastructureprovider/cloud"
@@ -113,6 +114,8 @@ type Params struct {
 
 	// Options is the per-operation parsed configuration. Required.
 	Options *options.Options
+
+	DirectoryConfig *directoryconfig.DirectoryConfig
 
 	*client.KubernetesInitParams
 }
@@ -209,7 +212,7 @@ func (b *ClusterBootstrapper) Bootstrap(ctx context.Context) error {
 		ctx,
 		b.Options.Global.ConfigPaths,
 		infrastructureprovider.MetaConfigPreparatorProvider(preparatorParams),
-		&b.Options.Global,
+		b.DirectoryConfig,
 		config.ValidateOptionValidateExtensions(true),
 	)
 	if err != nil {
@@ -235,7 +238,7 @@ func (b *ClusterBootstrapper) Bootstrap(ctx context.Context) error {
 
 	providerGetter := infrastructureprovider.CloudProviderGetter(infrastructureprovider.CloudProviderGetterParams{
 		TmpDir:           b.TmpDir,
-		GlobalOptions:    &b.Options.Global,
+		DownloadDir:      b.Options.Global.DownloadDir,
 		AdditionalParams: cloud.ProviderAdditionalParams{},
 		Logger:           b.logger,
 		IsDebug:          b.IsDebug,
@@ -295,7 +298,7 @@ func (b *ClusterBootstrapper) Bootstrap(ctx context.Context) error {
 
 	metaConfig.ResourceManagementTimeout = b.Options.Cache.ResourceManagementTimeout
 
-	deckhouseInstallConfig, err := config.PrepareDeckhouseInstallConfig(ctx, metaConfig, &b.Options.Global)
+	deckhouseInstallConfig, err := config.PrepareDeckhouseInstallConfig(ctx, metaConfig)
 	if err != nil {
 		return err
 	}
@@ -381,7 +384,7 @@ func (b *ClusterBootstrapper) Bootstrap(ctx context.Context) error {
 				return err
 			}
 
-			baseOutputs, err := infrastructure.ApplyPipeline(ctx, baseRunner, "Kubernetes cluster", &b.Options.Global, infrastructure.GetBaseInfraResult)
+			baseOutputs, err := infrastructure.ApplyPipeline(ctx, baseRunner, "Kubernetes cluster", infrastructure.GetBaseInfraResult)
 			if err != nil {
 				return err
 			}
@@ -411,7 +414,7 @@ func (b *ClusterBootstrapper) Bootstrap(ctx context.Context) error {
 				return err
 			}
 
-			masterOutputs, err := infrastructure.ApplyPipeline(ctx, masterRunner, masterNodeName, &b.Options.Global, infrastructure.GetMasterNodeResult)
+			masterOutputs, err := infrastructure.ApplyPipeline(ctx, masterRunner, masterNodeName, infrastructure.GetMasterNodeResult)
 			if err != nil {
 				return err
 			}
@@ -432,13 +435,9 @@ func (b *ClusterBootstrapper) Bootstrap(ctx context.Context) error {
 
 			connectionConfig.Hosts = append(connectionConfig.Hosts, sshconfig.Host{Host: masterOutputs.MasterIPForSSH})
 
-			b.SSHProviderInitializer.Reinitialize(
-				ctx,
-				b.logger,
-				baseSettings,
-				connectionConfig,
-			)
-			b.KubeProvider = b.SSHProviderInitializer.GetKubeProvider(ctx)
+			sshProviderInitializer := providerinitializer.NewSSHProviderInitializer(baseSettings, connectionConfig)
+			b.SSHProviderInitializer = sshProviderInitializer
+			b.KubeProvider = sshProviderInitializer.GetKubeProvider(ctx)
 
 			nodeIP = masterOutputs.NodeInternalIP
 			devicePath = masterOutputs.KubeDataDevicePath
@@ -465,7 +464,6 @@ func (b *ClusterBootstrapper) Bootstrap(ctx context.Context) error {
 			SSHProviderInitializer: b.SSHProviderInitializer,
 			MetaConfig:             metaConfig,
 			LegacyMode:             b.SSHProviderInitializer.IsLegacyMode(),
-			GlobalOpts:             &b.Options.Global,
 		}, ctx)
 		if err != nil {
 			return err
@@ -569,7 +567,7 @@ func (b *ClusterBootstrapper) Bootstrap(ctx context.Context) error {
 		DevicePath:     devicePath,
 		MetaConfig:     metaConfig,
 		CommanderMode:  b.CommanderMode,
-		GlobalOpts:     &b.Options.Global,
+		DirsConfig:     b.DirectoryConfig,
 		LoggerProvider: b.loggerProvider,
 	})
 
@@ -656,7 +654,6 @@ func (b *ClusterBootstrapper) Bootstrap(ctx context.Context) error {
 				metaConfig,
 				masterAddressesForSSH,
 				b.InfrastructureContext,
-				&b.Options.Global,
 			)
 		})
 		if err != nil {
@@ -767,10 +764,7 @@ func (b *ClusterBootstrapper) Bootstrap(ctx context.Context) error {
 			// MultiPrinter must render InfoF before exit and ProgressBar must be completed
 			if interactive {
 				progressbar.GetDefaultPb().ProgressBarPrinter.Add(100 - progressbar.GetDefaultPb().ProgressBarPrinter.Current)
-				_, err := progressbar.GetDefaultPb().MultiPrinter.Stop()
-				if err != nil {
-					return err
-				}
+				progressbar.GetDefaultPb().MultiPrinter.Stop()
 			}
 
 			return nil
@@ -833,12 +827,11 @@ func bootstrapAdditionalNodesForCloudCluster(
 	metaConfig *config.MetaConfig,
 	masterAddressesForSSH map[string]string,
 	infrastructureContext *infrastructure.Context,
-	globalOptions *options.GlobalOptions,
 ) error {
 	ctx, span := telemetry.StartSpan(ctx, "ClusterBootstrapper.Bootstrap.AdditionalNodesForCloudCluster")
 	defer span.End()
 
-	if err := BootstrapAdditionalMasterNodes(ctx, kubeCl, metaConfig, masterAddressesForSSH, infrastructureContext, cache.Global(), globalOptions); err != nil {
+	if err := BootstrapAdditionalMasterNodes(ctx, kubeCl, metaConfig, masterAddressesForSSH, infrastructureContext, cache.Global()); err != nil {
 		return err
 	}
 
@@ -848,7 +841,7 @@ func bootstrapAdditionalNodesForCloudCluster(
 		bootstrapAdditionalTerraNodeGroups = operations.BootstrapSequentialTerraNodes
 	}
 
-	if err := bootstrapAdditionalTerraNodeGroups(ctx, kubeCl, metaConfig, terraNodeGroups, infrastructureContext, globalOptions); err != nil {
+	if err := bootstrapAdditionalTerraNodeGroups(ctx, kubeCl, metaConfig, terraNodeGroups, infrastructureContext); err != nil {
 		return err
 	}
 

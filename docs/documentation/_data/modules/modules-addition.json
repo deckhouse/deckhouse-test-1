@@ -610,7 +610,7 @@
     "external": "true",
     "path": "/modules/storage-volume-data-manager/stable/"
   },
-  "stronghold": {
+  "stronghold (CE)": {
     "editions": [
       "ce",
       "be",
@@ -620,8 +620,19 @@
       "cse-lite",
       "cse-pro"
     ],
+    "external": "true",
+    "path": "/products/stronghold/documentation/about/editions.html"
+  },
+  "stronghold (EE)": {
+    "editions": [
+      "be",
+      "se",
+      "se-plus",
+      "ee",
+      "cse-lite",
+      "cse-pro"
+    ],
     "editionsWithRestrictions": [
-      "ce",
       "be",
       "se",
       "se-plus",
@@ -631,12 +642,20 @@
     ],
     "editionsWithRestrictionsComments": {
       "all": {
-        "en": "Some features are available depending on the selected Deckhouse Stronghold license. For more details, see the <a href='/products/stronghold/documentation/about/editions/'>&quot;Editions&quot;</a> section of the Deckhouse Stronghold documentation.",
-        "ru": "Некоторые функции доступны в зависимости от выбранной лицензии Deckhouse Stronghold. Подробнее можно ознакомиться в разделе <a href='/products/stronghold/documentation/about/editions/'>«Редакции»</a> документации Deckhouse Stronghold."
+        "en": "A separate license is required",
+        "ru": "Требуется отдельная лицензия"
+      },
+      "cse-lite": {
+        "en": "A separate license is required for Deckhouse Stronghold CSE. There are functionality limitations",
+        "ru": "Требуется отдельная лицензия на Deckhouse Stronghold CSE. Есть ограничения функциональности"
+      },
+      "cse-pro": {
+        "en": "A separate license is required for Deckhouse Stronghold CSE. There are functionality limitations",
+        "ru": "Требуется отдельная лицензия на Deckhouse Stronghold CSE. Есть ограничения функциональности"
       }
     },
     "external": "true",
-    "path": "/modules/stronghold/"
+    "path": "/products/stronghold/documentation/about/editions.html"
   },
   "user-authz": {
     "editionFullyAvailable": [

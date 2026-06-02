@@ -10,7 +10,6 @@ memory: 100Mi
 
 {{- range $version := .Values.istio.internal.operatorVersionsToInstall }}
   {{- $versionInfo := get $.Values.istio.internal.versionMap $version }}
-  {{- if get $versionInfo "supportsOperator" }}
   {{- $fullVersion := get $versionInfo "fullVersion" }}
   {{ $imageSuffix := get $versionInfo "imageSuffix" }}
   {{- $revision := get $versionInfo "revision" }}
@@ -143,5 +142,4 @@ spec:
               path: config.properties
           name: operator-config
       {{- end }}
-  {{- end }}
 {{- end }}

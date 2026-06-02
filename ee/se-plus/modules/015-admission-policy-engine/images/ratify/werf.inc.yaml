@@ -3,10 +3,11 @@
 image: {{ .ModuleName }}/{{ .ImageName }}
 fromImage: common/distroless
 import:
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact
-  add: /ratify
-  to: /ratify
-  before: setup
+  - image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact
+    add: /ratify
+    to: /ratify
+    before: setup
+git:
 {{- include "image mount points" . }}
 imageSpec:
   config:

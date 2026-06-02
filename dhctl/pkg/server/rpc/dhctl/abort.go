@@ -264,6 +264,7 @@ func (s *Service) abort(ctx context.Context, p *abortParams) *pb.AbortResult {
 		TmpDir:                 s.params.TmpDir,
 		SSHProviderInitializer: sshProviderInitializer,
 		KubeProvider:           kubeProvider,
+		DirectoryConfig:        s.params.DownloadDirConfig,
 		Options:                opts,
 	})
 

@@ -19,7 +19,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/deckhouse/deckhouse/dhctl/pkg/app/options"
 	"github.com/stretchr/testify/require"
 	"k8s.io/utils/ptr"
 )
@@ -27,7 +26,7 @@ import (
 func TestLoadDHCTLConfigSchema(t *testing.T) {
 	const schemasDir = "./../../../candi/openapi/dhctl"
 
-	newStore := newSchemaStore(&options.New().Global, []string{schemasDir})
+	newStore := newSchemaStore(nil, []string{schemasDir})
 
 	require.NotEmpty(t, newStore.Get(&SchemaIndex{
 		Kind:    "SSHConfig",
@@ -41,7 +40,7 @@ func TestLoadDHCTLConfigSchema(t *testing.T) {
 
 func TestParseConnectionConfig(t *testing.T) {
 	const schemasDir = "./../../../candi/openapi/dhctl"
-	newStore := newSchemaStore(&options.New().Global, []string{schemasDir})
+	newStore := newSchemaStore(nil, []string{schemasDir})
 
 	configFunc := func(config, keyPath1, keyPath2 string) string {
 		return fmt.Sprintf(

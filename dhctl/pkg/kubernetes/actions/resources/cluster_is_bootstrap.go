@@ -54,6 +54,7 @@ func (n *kubeNgGetter) NodeGroups(ctx context.Context) ([]*v1.NodeGroup, error) 
 		ngs, err = entity.GetNodeGroups(ctx, kubeCl)
 		return err
 	})
+
 	if err != nil {
 		return nil, err
 	}
@@ -93,6 +94,7 @@ func (n *kubeNgGetter) MachineFailedEvents(ctx context.Context) ([]eventsv1.Even
 
 		return err
 	})
+
 	if err != nil {
 		return nil, err
 	}

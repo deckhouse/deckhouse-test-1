@@ -8,9 +8,6 @@ git:
     stageDependencies:
       install:
       - '**/*'
-shell:
-  install:
-  - set -e
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}
 from: {{ index $.Images "base/distroless" }}

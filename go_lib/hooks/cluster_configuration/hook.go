@@ -106,7 +106,7 @@ func clusterConfiguration(ctx context.Context, input *go_hook.HookInput, handler
 			if err != nil {
 				return fmt.Errorf("cannot unmarshal cloud-provider-discovery-data.json key: %v", err)
 			}
-			_, err = config.ValidateDiscoveryData(&discoveryDataJSON, additionalOpenAPISchemasPaths, nil)
+			_, err = config.ValidateDiscoveryData(&discoveryDataJSON, additionalOpenAPISchemasPaths)
 			if err != nil {
 				return fmt.Errorf("validate cloud-provider-discovery-data.json: %v", err)
 			}

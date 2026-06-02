@@ -104,8 +104,6 @@ check_requirements() {
     exit 1
   fi
 
-  REPO_ROOT="$(cd "$REPO_ROOT" && pwd)"
-
   OSS_FILE="${REPO_ROOT}/${MODULE}/oss.yaml"
   GLOBAL_TF_YAML_FILE="${REPO_ROOT}/${TF_YAML_FILE}"
   MODULE_TF_YAML_FILE="${REPO_ROOT}/${MODULE}/${TF_YAML_FILE}"
@@ -141,13 +139,14 @@ update_yaml_version() {
       del(.${PROVIDER_ID}.versions)
     " "$yaml_file"
   elif [[ "$VERSIONS_COUNT" != "0" ]]; then
-    local tmp
-    tmp="$(mktemp)"
-    yq ea "
-      (select(fileIndex == 1) | .[] | select(.id == \"$FULL_ID\") | [.versions[].version]) as \$v |
-      select(fileIndex == 0) | .${PROVIDER_ID}.versions = \$v | del(.${PROVIDER_ID}.version)
-    " "$yaml_file" "$OSS_FILE" > "$tmp"
-    mv "$tmp" "$yaml_file"
+    yq e -i "
+      .${PROVIDER_ID}.versions = (
+        load(\"$OSS_FILE\")[] |
+        select(.id == \"$FULL_ID\") |
+        [.versions[].version]
+      ) |
+      del(.${PROVIDER_ID}.version)
+    " "$yaml_file"
   else
     log_error "neither version nor versions found for $FULL_ID in $OSS_FILE"
     exit 1

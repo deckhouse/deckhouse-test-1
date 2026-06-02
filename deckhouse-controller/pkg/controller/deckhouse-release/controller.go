@@ -164,18 +164,22 @@ func NewDeckhouseReleaseController(ctx context.Context, mgr manager.Manager, dc 
 		go r.cleanupDeckhouseReleaseLoop(ctx)
 	}()
 
+	ctr, err := controller.New("deckhouse-release", mgr, controller.Options{
+		MaxConcurrentReconciles: 1,
+		CacheSyncTimeout:        3 * time.Minute,
+		NeedLeaderElection:      ptr.To(false),
+		Reconciler:              r,
+	})
+	if err != nil {
+		return fmt.Errorf("new: %w", err)
+	}
+
 	r.logger.Info("Controller started")
 
 	if err := ctrl.NewControllerManagedBy(mgr).
-		Named(controllerName).
 		For(&v1alpha1.DeckhouseRelease{}).
 		WithEventFilter(logWrapper{r.logger, newEventFilter()}).
-		WithOptions(controller.Options{
-			MaxConcurrentReconciles: 1,
-			CacheSyncTimeout:        3 * time.Minute,
-			NeedLeaderElection:      ptr.To(false),
-		}).
-		Complete(r); err != nil {
+		Complete(ctr); err != nil {
 		return fmt.Errorf("complete: %w", err)
 	}
 	return nil

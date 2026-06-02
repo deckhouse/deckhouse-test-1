@@ -21,7 +21,7 @@ search: DNS, domain, домен, clusterdomain
    metadata:
      name: control-plane-manager
    spec:
-     version: 3
+     version: 1
      enabled: true
      settings:
        apiserver:

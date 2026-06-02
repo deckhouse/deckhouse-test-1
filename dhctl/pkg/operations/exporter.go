@@ -24,7 +24,6 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
-	"github.com/deckhouse/deckhouse/dhctl/pkg/app/options"
 	"github.com/deckhouse/deckhouse/dhctl/pkg/config"
 	"github.com/deckhouse/deckhouse/dhctl/pkg/infrastructure"
 	"github.com/deckhouse/deckhouse/dhctl/pkg/infrastructureprovider"
@@ -67,10 +66,10 @@ type ConvergeExporter struct {
 	GaugeMetrics    map[string]*prometheus.GaugeVec
 	CounterMetrics  map[string]*prometheus.CounterVec
 
-	tmpDir        string
-	globalOptions *options.GlobalOptions
-	logger        log.Logger
-	isDebug       bool
+	tmpDir      string
+	downloadDir string
+	logger      log.Logger
+	isDebug     bool
 }
 
 var (
@@ -96,13 +95,13 @@ var (
 )
 
 type ExporterParams struct {
-	Address       string
-	Path          string
-	Interval      time.Duration
-	TmpDir        string
-	GlogalOptions *options.GlobalOptions
-	Logger        log.Logger
-	IsDebug       bool
+	Address     string
+	Path        string
+	Interval    time.Duration
+	TmpDir      string
+	DownloadDir string
+	Logger      log.Logger
+	IsDebug     bool
 
 	// KubeCl is the in-cluster API client. The caller builds it via
 	// providerinitializer.GetProviders / kubeProvider.Client(ctx) just like
@@ -128,7 +127,7 @@ func NewConvergeExporter(params ExporterParams) *ConvergeExporter {
 		GaugeMetrics:          make(map[string]*prometheus.GaugeVec),
 		CounterMetrics:        make(map[string]*prometheus.CounterVec),
 		tmpDir:                params.TmpDir,
-		globalOptions:         params.GlogalOptions,
+		downloadDir:           params.DownloadDir,
 		logger:                logger,
 		isDebug:               params.IsDebug,
 	}
@@ -294,7 +293,7 @@ func (c *ConvergeExporter) getStatistic(ctx context.Context, tmpCleaner cache.Tm
 
 	providerGetter := infrastructureprovider.CloudProviderGetter(infrastructureprovider.CloudProviderGetterParams{
 		TmpDir:           c.tmpDir,
-		GlobalOptions:    c.globalOptions,
+		DownloadDir:      c.downloadDir,
 		AdditionalParams: cloud.ProviderAdditionalParams{},
 		Logger:           c.logger,
 		IsDebug:          c.isDebug,
@@ -319,7 +318,7 @@ func (c *ConvergeExporter) getStatistic(ctx context.Context, tmpCleaner cache.Tm
 
 	c.infrastructureContext.SetCloudProviderGetter(providerGetter)
 
-	statistic, hasTerraformState, err := check.CheckState(ctx, c.kubeCl, metaConfig, c.infrastructureContext, check.CheckStateOptions{}, true, c.globalOptions)
+	statistic, hasTerraformState, err := check.CheckState(ctx, c.kubeCl, metaConfig, c.infrastructureContext, check.CheckStateOptions{}, true)
 	if err != nil {
 		log.ErrorLn(err)
 		c.CounterMetrics["errors"].WithLabelValues().Inc()

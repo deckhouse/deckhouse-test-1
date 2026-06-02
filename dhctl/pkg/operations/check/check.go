@@ -25,7 +25,6 @@ import (
 	"github.com/mitchellh/copystructure"
 	"sigs.k8s.io/yaml"
 
-	"github.com/deckhouse/deckhouse/dhctl/pkg/app/options"
 	"github.com/deckhouse/deckhouse/dhctl/pkg/config"
 	"github.com/deckhouse/deckhouse/dhctl/pkg/global"
 	"github.com/deckhouse/deckhouse/dhctl/pkg/infrastructure"
@@ -122,14 +121,7 @@ type ClusterStateCheckResult struct {
 	IsTerraformState   bool
 }
 
-func checkClusterState(
-	ctx context.Context,
-	kubeCl *client.KubernetesClient,
-	metaConfig *config.MetaConfig,
-	infrastructureContext *infrastructure.Context,
-	opts CheckStateOptions,
-	globalOptions *options.GlobalOptions,
-) (*ClusterStateCheckResult, error) {
+func checkClusterState(ctx context.Context, kubeCl *client.KubernetesClient, metaConfig *config.MetaConfig, infrastructureContext *infrastructure.Context, opts CheckStateOptions) (*ClusterStateCheckResult, error) {
 	var clusterState []byte
 	var err error
 	// NOTE: Cluster state loaded from target kubernetes cluster in default dhctl-converge.
@@ -160,7 +152,7 @@ func checkClusterState(
 		return nil, err
 	}
 
-	change, pl, destructiveChanges, err := infrastructure.CheckBaseInfrastructurePipeline(ctx, baseRunner, "Kubernetes cluster", globalOptions)
+	change, pl, destructiveChanges, err := infrastructure.CheckBaseInfrastructurePipeline(ctx, baseRunner, "Kubernetes cluster")
 	if err != nil {
 		return nil, err
 	}
@@ -305,15 +297,7 @@ type CheckStateOptions struct {
 	StateCache    dhctlstate.Cache
 }
 
-func CheckState(
-	ctx context.Context,
-	kubeCl *client.KubernetesClient,
-	metaConfig *config.MetaConfig,
-	infrastructureContext *infrastructure.Context,
-	opts CheckStateOptions,
-	noout bool,
-	globalOptions *options.GlobalOptions,
-) (*Statistics, bool, error) {
+func CheckState(ctx context.Context, kubeCl *client.KubernetesClient, metaConfig *config.MetaConfig, infrastructureContext *infrastructure.Context, opts CheckStateOptions, noout bool) (*Statistics, bool, error) {
 	statistics := Statistics{
 		Node:          make([]NodeCheckResult, 0),
 		NodeTemplates: make([]NodeGroupCheckResult, 0),
@@ -323,7 +307,7 @@ func CheckState(
 	var allErrs *multierror.Error
 
 	// clusterChanged, plan, destructiveChanges,
-	baseRes, err := checkClusterState(ctx, kubeCl, metaConfig, infrastructureContext, opts, globalOptions)
+	baseRes, err := checkClusterState(ctx, kubeCl, metaConfig, infrastructureContext, opts)
 	switch {
 	case err != nil:
 		statistics.Cluster.Status = ErrorStatus

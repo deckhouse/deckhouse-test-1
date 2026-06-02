@@ -43,10 +43,11 @@ shell:
 image: {{ $.ModuleName }}/{{ $.ImageName }}
 fromImage: common/distroless
 import:
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact
-  add: /src/adapter
-  to: /adapter
-  before: setup  
+  - image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact
+    add: /src/adapter
+    to: /adapter
+    before: setup
+git:    
 {{- include "image mount points" . }}    
 imageSpec:
   config:

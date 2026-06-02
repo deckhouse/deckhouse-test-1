@@ -558,6 +558,7 @@ import:
   add: /relocate
   to: /
   before: install
+git:
 {{- include "image mount points" . }}
 imageSpec:
   config:

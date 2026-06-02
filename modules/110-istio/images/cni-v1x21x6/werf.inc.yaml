@@ -35,6 +35,7 @@ import:
   add: /iptables-wrapper
   to: /sbin/iptables-wrapper
   before: setup
+git:
 {{- include "image mount points" . }}
 imageSpec:
   config:

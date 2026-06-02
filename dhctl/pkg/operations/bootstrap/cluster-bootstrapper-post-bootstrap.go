@@ -63,7 +63,12 @@ func (b *ClusterBootstrapper) ExecPostBootstrap(ctx context.Context) error {
 			return err
 		}
 
-		defer progressbar.FinishDefaultProgressBar()
+		onComplete := func() {
+			pb := progressbar.GetDefaultPb()
+			pb.ProgressBarPrinter.Add(100 - pb.ProgressBarPrinter.Current)
+			pb.MultiPrinter.Stop()
+		}
+		defer onComplete()
 	}
 
 	postScriptExecutor := NewPostBootstrapScriptExecutor(b.SSHProviderInitializer, b.Options.Bootstrap.PostBootstrapScriptPath, bootstrapState).

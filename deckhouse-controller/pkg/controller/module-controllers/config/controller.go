@@ -93,8 +93,16 @@ func RegisterController(
 		return fmt.Errorf("add preflight: %w", err)
 	}
 
+	configController, err := controller.New(controllerName, runtimeManager, controller.Options{
+		MaxConcurrentReconciles: maxConcurrentReconciles,
+		NeedLeaderElection:      ptr.To(false),
+		Reconciler:              r,
+	})
+	if err != nil {
+		return fmt.Errorf("create controller: %w", err)
+	}
+
 	if err := ctrl.NewControllerManagedBy(runtimeManager).
-		Named(controllerName).
 		For(&v1alpha1.ModuleConfig{}).
 		WithEventFilter(predicate.Or(predicate.GenerationChangedPredicate{}, predicate.AnnotationChangedPredicate{})).
 		Watches(&v1alpha1.Module{}, ctrlhandler.EnqueueRequestsFromMapFunc(func(_ context.Context, obj client.Object) []reconcile.Request {
@@ -111,11 +119,7 @@ func RegisterController(
 				return false
 			},
 		})).
-		WithOptions(controller.Options{
-			MaxConcurrentReconciles: maxConcurrentReconciles,
-			NeedLeaderElection:      ptr.To(false),
-		}).
-		Complete(r); err != nil {
+		Complete(configController); err != nil {
 		return fmt.Errorf("complete: %w", err)
 	}
 	return nil

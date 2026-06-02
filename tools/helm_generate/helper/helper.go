@@ -40,13 +40,12 @@ func DeckhouseRoot() (path string, err error) {
 	return filepath.Dir(cwd), err
 }
 
-// RenderDir is a temporary directory laid out like a helm chart for in-process rendering.
-type RenderDir struct {
+type renderDir struct {
 	val string
 }
 
-// NewRenderDir creates a new temporary directory following the default helm templates layout.
-func NewRenderDir(chartName string) (*RenderDir, error) {
+// NewRenderDir create a new temporary directory following the default helm templates
+func NewRenderDir(chartName string) (path *renderDir, err error) {
 	renderdir, err := os.MkdirTemp("", "renderdir")
 	if err != nil {
 		return nil, err
@@ -75,21 +74,21 @@ func NewRenderDir(chartName string) (*RenderDir, error) {
 		return nil, err
 	}
 
-	return &RenderDir{renderdir}, nil
+	return &renderDir{renderdir}, nil
 }
 
-// Remove removes the render directory.
-func (r *RenderDir) Remove() {
+// Remove remove render dirrectory
+func (r *renderDir) Remove() {
 	os.RemoveAll(r.val)
 }
 
-// Path returns the path of the render directory.
-func (r *RenderDir) Path() string {
+// Path return path of render dirrectory
+func (r *renderDir) Path() string {
 	return r.val
 }
 
-// AddTemplate symlinks a template into the render directory.
-func (r *RenderDir) AddTemplate(templateName, templateFullPath string) error {
+// AddTemplate symlink template to render dirrecttory
+func (r *renderDir) AddTemplate(templateName, templateFullPath string) error {
 	if err := os.Symlink(templateFullPath, filepath.Join(r.val, "/templates", templateName)); err != nil {
 		return err
 	}
@@ -97,8 +96,8 @@ func (r *RenderDir) AddTemplate(templateName, templateFullPath string) error {
 	return nil
 }
 
-// AddHelper symlinks helper files (those starting with "_") into the render directory.
-func (r *RenderDir) AddHelper(helpersFullPath string) {
+// AddHelper symlink helper to render dirrecttory
+func (r *renderDir) AddHelper(helpersFullPath string) {
 	files, err := os.ReadDir(helpersFullPath)
 	if err != nil {
 		return

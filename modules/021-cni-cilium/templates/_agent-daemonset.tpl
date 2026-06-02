@@ -82,19 +82,9 @@ spec:
             httpHeaders:
             - name: "brief"
               value: "true"
-          # Match startupProbe granularity (2s). Default 30s adds a 30s lag
-          # between cilium /healthz first returning ok and kubelet flipping
-          # the pod to Ready — on the cluster-bootstrap critical path this
-          # gates `Wait Node Ready` and `Control-plane readiness` for nothing.
-          periodSeconds: 2
+          periodSeconds: 30
           successThreshold: 1
-          # /healthz brief flips back to fail every time cilium kicks off a
-          # full datapath regenerate (datapath-ipcache, CiliumNode update,
-          # network-status blip from cpm restarting apiserver, ...). At 2s
-          # probe + threshold 3 = 6s, the pod yo-yos NotReady through every
-          # regenerate. 15 (~30s) covers a typical regenerate batch so the
-          # pod stays Ready while cilium internally re-syncs BPF.
-          failureThreshold: 15
+          failureThreshold: 3
           timeoutSeconds: 5
         env:
         - name: K8S_NODE_NAME
@@ -112,8 +102,6 @@ spec:
             resourceFieldRef:
               resource: limits.memory
               divisor: '1'
-        - name: GOMAXPROCS
-          value: "8"
         - name: KUBERNETES_SERVICE_HOST
           value: "127.0.0.1"
         - name: KUBERNETES_SERVICE_PORT
@@ -360,7 +348,7 @@ spec:
         command:
         - cilium-dbg
         - build-config
-        - --allow-config-keys=debug,single-cluster-route,mtu,bpf-map-dynamic-size-ratio,monitor-aggregation,monitor-aggregation-flags,monitor-aggregation-interval,bpf-events-trace-enabled
+        - --allow-config-keys=debug,single-cluster-route,mtu,bpf-map-dynamic-size-ratio,monitor-aggregation,monitor-aggregation-flags,monitor-aggregation-interval
         env:
         - name: K8S_NODE_NAME
           valueFrom:

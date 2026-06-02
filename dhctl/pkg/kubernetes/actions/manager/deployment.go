@@ -52,6 +52,7 @@ func checkAndRestartDeployment(ctx context.Context, kubeClProvider kubernetes.Ku
 			hasDeployment = true
 			return nil
 		})
+
 	if err != nil {
 		return err
 	}

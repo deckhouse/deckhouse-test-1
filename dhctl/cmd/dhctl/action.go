@@ -330,10 +330,7 @@ func (i *actionIniter) initLogger(c *kingpin.ParseContext, tmpDir string) (onShu
 	log.SetDebugEnabled(i.params.isDebug)
 	interactive := input.IsTerminal() && !i.opts.Global.ShowProgress
 
-	err := log.InitLogger(i.params.loggerType, interactive)
-	if err != nil {
-		return nil, err
-	}
+	log.InitLogger(i.params.loggerType, interactive)
 	if i.params.doNotWriteDebugFile {
 		return doNothingOnShutdownFunc, nil
 	}
@@ -362,7 +359,7 @@ func (i *actionIniter) initLogger(c *kingpin.ParseContext, tmpDir string) (onShu
 		return nil, err
 	}
 
-	log.InteractiveInfoF("Debug log file: %s\n", logPath)
+	log.InfoF("Debug log file: %s\n", logPath)
 
 	i.logFileMutex.Lock()
 	defer i.logFileMutex.Unlock()
@@ -407,14 +404,9 @@ func (i *actionIniter) cleanupProgressbar() onShutdownFunc {
 	return func() {
 		pb := progressbar.GetDefaultPb()
 		if pb != nil {
-			_, err := pb.ProgressBarPrinter.Stop()
-			if err != nil {
-				log.WarnF("failed to stop progress bar printer: %v", err)
-			}
-			_, err = pb.MultiPrinter.Stop()
-			if err != nil {
-				log.WarnF("failed to stop multi printer: %v", err)
-			}
+			pb.ProgressBarPrinter.Stop()
+			pb.MultiPrinter.Stop()
 		}
 	}
+
 }

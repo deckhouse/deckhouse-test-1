@@ -1,13 +1,11 @@
 ---
 title: "Модуль cni-cilium: примеры"
-description: Примеры настройки Egress Gateway, экспорта данных Hubble и точечного включения BPF-трейсов для модуля cni-cilium.
+description: Примеры настройки Egress Gateway и экспорта данных Hubble для модуля cni-cilium.
 ---
 
 ## Egress Gateway
 
-{% alert level="warning" %}
-Доступно в следующих редакциях: SE+, EE, CSE Lite (1.73), CSE Pro (1.73).
-{% endalert %}
+{% alert level="warning" %}Доступно в следующих редакциях: SE+, EE, CSE Lite (1.73), CSE Pro (1.73).{% endalert %}
 
 ### Принцип работы
 
@@ -50,10 +48,7 @@ description: Примеры настройки Egress Gateway, экспорта 
     d8 k label node <node-name> <egress-label>=<value>
     ```
 
-{% alert level="info" %}
-Повторное добавление лейбла может привести к тому, что узел снова будет выбран активным egress-шлюзом (если он первый в алфавитном порядке среди доступных кандидатов).
-{% endalert %}
-
+> Важно: повторное добавление лейбла может привести к тому, что узел снова будет выбран активным egress-шлюзом (если он первый в алфавитном порядке среди доступных кандидатов).
 Чтобы избежать немедленного возврата узла в активное состояние, временно уменьшите количество реплик в EgressGateway или настройте приоритет выбора через дополнительные лейблы.
 
 ### Сравнение с CiliumEgressGatewayPolicy
@@ -131,7 +126,7 @@ spec:
 #### Включение расширенных метрик и экспорта flow logs (с фильтрами и маской полей)
 
 {% alert level="warning" %}
-Ресурс [HubbleMonitoringConfig](cr.html#hubblemonitoringconfig) должен иметь имя `hubble-monitoring-config`.
+Ресурс [HubbleMonitoringConfig](cr.html#hubblemonitoringconfig) **должен иметь имя** `hubble-monitoring-config`.
 {% endalert %}
 
 Пример включения метрик и экспорта:
@@ -187,78 +182,3 @@ spec:
     include:
       - /var/log/cilium/hubble/flow.log
 ```
-
-## Включение BPF-трейсов по требованию
-
-Отслеживание событий BPF (`bpf-events-trace-enabled`) отключено во всём кластере по
-умолчанию. На нагруженных узлах с высокой плотностью подов они являются основным
-источником потребления CPU и памяти `cilium-agent`: каждый пересланный пакет
-(с учётом `monitor-aggregation`) генерирует запись в буфер событий BPF, которую агент должен распарсить, добавить лейблы и передать в Hubble. События `drop` и
-`policy verdict` не зависят от этой опции и остаются доступными в Hubble.
-
-Если требуется увидеть forwarded-flow (например, для диагностики проблемы со
-связностью) — включите трейсы через ресурс
-[CiliumNodeConfig](https://docs.cilium.io/en/stable/configuration/per-node-config/).
-Один и тот же ресурс может покрывать один узел, группу узлов или весь кластер
-— в зависимости от `spec.nodeSelector`.
-
-### Включение трейсов на одном узле
-
-Для включения трейсов на определенном узле укажите его имя в параметре `spec.nodeSelector.matchLabels`:
-
-```yaml
-apiVersion: cilium.io/v2
-kind: CiliumNodeConfig
-metadata:
-  name: trace-debug-node-1
-  namespace: d8-cni-cilium
-spec:
-  nodeSelector:
-    matchLabels:
-      kubernetes.io/hostname: <node-name>
-  defaults:
-    bpf-events-trace-enabled: "true"
-    # Уровень агрегации "none" отключает логику агрегации событий пакетов одной сессии:
-    # для каждого пакета создаётся отдельное событие трассировки.
-    # Если строку не добавлять, на узле останется кластерная настройка "medium".
-    monitor-aggregation: "none"
-```
-
-### Включение трейсов на всех узлах кластера
-
-Пустой `matchLabels` выбирает все узлы:
-
-```yaml
-apiVersion: cilium.io/v2
-kind: CiliumNodeConfig
-metadata:
-  name: trace-debug-all-nodes
-  namespace: d8-cni-cilium
-spec:
-  nodeSelector:
-    matchLabels: {}
-  defaults:
-    bpf-events-trace-enabled: "true"
-```
-
-### Применение изменений
-
-Aгент Cilium при старте читает итоговую конфигурацию, поэтому после
-создания или изменения CiliumNodeConfig нужно перезапустить соответствующие
-поды `cilium-agent` (Deckhouse не делает это автоматически):
-
-- на одном узле:
-
-  ```bash
-  d8 k -n d8-cni-cilium delete pod \
-  -l app=agent --field-selector spec.nodeName=<node-name>
-  ```
-
-- на всех узлах кластера (rolling restart):
-
-  ```bash
-  d8 k -n d8-cni-cilium rollout restart daemonset/agent
-  ```
-
-Чтобы откатить изменения (выключить трейсы), удалите ресурс CiliumNodeConfig и перезапустите те же
-поды.

@@ -14,12 +14,27 @@ Deploy a cluster with Deckhouse at the target Kubernetes version and ensure `kub
 
 ## 2. Adjust RBAC and admission (required for a clean run)
 
+Conformance runs hit node subresources (for example `/metrics` on kubelet via the apiserver). Without an explicit binding, checks that rely on that path can fail with **403** for identity `kube-apiserver-kubelet-client`.
+
 Pod Security Standards can also block workloads that the e2e suite expects. For the run, relax **Admission Policy Engine** defaults so workloads are not constrained below what the suite needs.
 
 Apply once (review before production clusters):
 
 ```bash
 kubectl apply -f - <<'EOF'
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: system:kubelet-api-admin
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: system:kubelet-api-admin
+subjects:
+  - apiGroup: rbac.authorization.k8s.io
+    kind: User
+    name: kube-apiserver-kubelet-client
+---
 apiVersion: deckhouse.io/v1alpha1
 kind: ModuleConfig
 metadata:
@@ -53,12 +68,10 @@ chmod +x sonobuoy
 ## 4. Run conformance
 
 ```bash
-./sonobuoy run --mode=certified-conformance --kubeconfig=/etc/kubernetes/super-admin.conf
+./sonobuoy run --mode=certified-conformance
 ```
 
-Wait until `./sonobuoy status` reports the run as **completed**. To see progress, check that namespaces are being created and deleted (tests run in isolated namespaces).
-
-The run typically takes **2 hours**.
+Wait until `./sonobuoy status` reports the run as **completed**.
 
 ---
 

@@ -104,7 +104,9 @@ const (
 	CommanderDetachDetachPhase OperationPhase = "Detach"
 )
 
-var ErrStopOperationCondition = errors.New("StopOperationCondition")
+var (
+	ErrStopOperationCondition = errors.New("StopOperationCondition")
+)
 
 // bootstrap sub phases
 const (
@@ -196,8 +198,8 @@ type phasesOpts struct {
 	clusterConfig ClusterConfig
 }
 
-func operationPhases(operation Operation, opts phasesOpts) []PhaseWithSubPhases {
-	p := map[Operation][]PhaseWithSubPhases{
+func operationPhases(operation Operation, opts phasesOpts) ([]PhaseWithSubPhases, bool) {
+	p, ok := map[Operation][]PhaseWithSubPhases{
 		OperationBootstrap:       BootstrapPhases(),
 		OperationConverge:        ConvergePhases(),
 		OperationCheck:           CheckPhases(),
@@ -213,7 +215,7 @@ func operationPhases(operation Operation, opts phasesOpts) []PhaseWithSubPhases 
 		}
 	}
 
-	return phases
+	return phases, ok
 }
 
 func ifNotStatic(opts phasesOpts) bool {

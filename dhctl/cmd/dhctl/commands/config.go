@@ -33,6 +33,10 @@ import (
 	"github.com/deckhouse/deckhouse/dhctl/pkg/template"
 )
 
+var (
+	deckhouseDir = "/deckhouse"
+)
+
 func DefineRenderBashibleBundle(cmd *kingpin.CmdClause, opts *options.Options) *kingpin.CmdClause {
 	app.DefineConfigFlags(cmd, &opts.Global)
 	app.DefineRenderConfigFlags(cmd, &opts.Render)
@@ -60,7 +64,7 @@ func DefineRenderBashibleBundle(cmd *kingpin.CmdClause, opts *options.Options) *
 			infrastructureprovider.MetaConfigPreparatorProvider(
 				infrastructureprovider.NewPreparatorProviderParams(logger),
 			),
-			&opts.Global,
+			opts.DirConfig(),
 		)
 		if err != nil {
 			return err
@@ -80,7 +84,7 @@ func DefineRenderBashibleBundle(cmd *kingpin.CmdClause, opts *options.Options) *
 			templateData,
 			metaConfig.ProviderName,
 			"",
-			&opts.Global,
+			opts.DirConfig(),
 		)
 	}
 
@@ -118,7 +122,7 @@ func DefineRenderMasterBootstrap(cmd *kingpin.CmdClause, opts *options.Options) 
 			infrastructureprovider.MetaConfigPreparatorProvider(
 				infrastructureprovider.NewPreparatorProviderParams(logger),
 			),
-			&opts.Global,
+			opts.DirConfig(),
 		)
 		if err != nil {
 			return err
@@ -127,7 +131,7 @@ func DefineRenderMasterBootstrap(cmd *kingpin.CmdClause, opts *options.Options) 
 		templateController := template.NewTemplateController(opts.Render.BashibleBundleDir)
 		log.InteractiveInfoF("Bundle Dir: %q\n\n", templateController.TmpDir)
 
-		return template.PrepareBootstrap(ctx, templateController, "127.0.0.1", metaConfig, &opts.Global)
+		return template.PrepareBootstrap(ctx, templateController, "127.0.0.1", metaConfig, opts.DirConfig())
 	}
 
 	return cmd.Action(func(c *kingpin.ParseContext) error {
@@ -164,7 +168,7 @@ func DefineRenderControlPlaneAndPKI(cmd *kingpin.CmdClause, opts *options.Option
 			infrastructureprovider.MetaConfigPreparatorProvider(
 				infrastructureprovider.NewPreparatorProviderParams(logger),
 			),
-			&opts.Global,
+			opts.DirConfig(),
 		)
 		if err != nil {
 			return err
@@ -178,7 +182,7 @@ func DefineRenderControlPlaneAndPKI(cmd *kingpin.CmdClause, opts *options.Option
 		templateController := template.NewTemplateController(opts.Render.BashibleBundleDir)
 		log.InteractiveInfoF("Bundle Dir: %q\n\n", templateController.TmpDir)
 
-		if err := template.PrepareControlPlaneManifests(templateController, controlPlaneConfig, &opts.Global); err != nil {
+		if err := template.PrepareControlPlaneManifests(templateController, controlPlaneConfig, opts.DirConfig()); err != nil {
 			return err
 		}
 		// "localhost"/"127.0.0.1" are placeholders for the render-only command;
@@ -221,14 +225,14 @@ func DefineCommandParseClusterConfiguration(cmd *kingpin.CmdClause, opts *option
 				ctx,
 				string(data),
 				preparatorProvider,
-				&opts.Global,
+				opts.DirConfig(),
 				config.ValidateOptionStrictUnmarshal(true),
 			)
 			if err != nil {
 				return err
 			}
 		} else {
-			metaConfig, err = config.ParseConfig(ctx, []string{opts.Render.ParseInputFile}, preparatorProvider, &opts.Global)
+			metaConfig, err = config.ParseConfig(ctx, []string{opts.Render.ParseInputFile}, preparatorProvider, opts.DirConfig())
 			if err != nil {
 				return err
 			}
@@ -269,7 +273,7 @@ func DefineCommandParseCloudDiscoveryData(cmd *kingpin.CmdClause, opts *options.
 			}
 		}
 
-		schemaStore := config.NewSchemaStore(&opts.Global)
+		schemaStore := config.NewSchemaStore(opts.DirConfig())
 		_, err = schemaStore.Validate(&data)
 		if err != nil {
 			return fmt.Errorf("validate cloud_discovery_data: %v", err)
@@ -288,4 +292,8 @@ func DefineCommandParseCloudDiscoveryData(cmd *kingpin.CmdClause, opts *options.
 		fmt.Print(string(output))
 		return nil
 	})
+}
+
+func InitGlobalVars(pwd string) {
+	deckhouseDir = pwd + "/deckhouse"
 }

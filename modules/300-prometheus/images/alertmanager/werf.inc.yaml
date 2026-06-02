@@ -4,10 +4,11 @@
 image: {{ $.ModuleName }}/{{ $.ImageName }}
 fromImage: common/distroless
 import:
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact
-  add: /src/alertmanager
-  to: /bin/alertmanager
-  before: setup
+  - image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact
+    add: /src/alertmanager
+    to: /bin/alertmanager
+    before: setup
+git:
 {{- include "image mount points" . }}
 imageSpec:
   config:

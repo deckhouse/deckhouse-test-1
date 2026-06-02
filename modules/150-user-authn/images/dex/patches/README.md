@@ -91,7 +91,6 @@ This patch fixes:
 - CVE-2026-33487 
 - CVE-2026-34986
 - CVE-2026-33186
-- CVE-2026-29181
 
 ### 015-ratelimit-lock-unlock-users.patch
 

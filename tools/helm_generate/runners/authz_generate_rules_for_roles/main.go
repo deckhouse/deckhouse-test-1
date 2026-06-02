@@ -41,5 +41,7 @@ func (ag *AuthzGenerate) Init(args []string) error {
 }
 
 func (ag *AuthzGenerate) Run() error {
-	return run()
+	run()
+
+	return nil
 }

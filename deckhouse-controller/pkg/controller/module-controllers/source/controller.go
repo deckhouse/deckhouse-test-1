@@ -103,8 +103,17 @@ func RegisterController(
 		return fmt.Errorf("add preflight: %w", err)
 	}
 
+	sourceController, err := controller.New(controllerName, runtimeManager, controller.Options{
+		MaxConcurrentReconciles: maxConcurrentReconciles,
+		CacheSyncTimeout:        cacheSyncTimeout,
+		NeedLeaderElection:      ptr.To(false),
+		Reconciler:              r,
+	})
+	if err != nil {
+		return fmt.Errorf("create controller: %w", err)
+	}
+
 	if err := ctrl.NewControllerManagedBy(runtimeManager).
-		Named(controllerName).
 		For(&v1alpha1.ModuleSource{}).
 		Watches(&v1alpha1.Module{}, handler.EnqueueRequestsFromMapFunc(func(_ context.Context, obj client.Object) []reconcile.Request {
 			return []reconcile.Request{{NamespacedName: client.ObjectKey{Name: obj.(*v1alpha1.Module).Properties.Source}}}
@@ -140,12 +149,7 @@ func RegisterController(
 			},
 		})).
 		WithEventFilter(predicate.GenerationChangedPredicate{}).
-		WithOptions(controller.Options{
-			MaxConcurrentReconciles: maxConcurrentReconciles,
-			CacheSyncTimeout:        cacheSyncTimeout,
-			NeedLeaderElection:      ptr.To(false),
-		}).
-		Complete(r); err != nil {
+		Complete(sourceController); err != nil {
 		return fmt.Errorf("complete: %w", err)
 	}
 	return nil

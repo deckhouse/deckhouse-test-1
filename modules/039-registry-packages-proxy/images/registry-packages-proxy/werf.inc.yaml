@@ -4,7 +4,8 @@ from: {{ index $.Images "base/distroless" }}
 import:
 - image: {{ .ModuleName }}/{{ .ImageName }}-artifact
   add: /registry-packages-proxy
-  before: setup 
+  before: setup
+git:  
 {{- include "image mount points" . }}  
 imageSpec:
   config:
@@ -36,9 +37,6 @@ git:
     - '**/*.go'
     - 'go.mod'
     - 'go.sum'
-shell:
-  install:
-  - cd /src
 ---
 {{ $rppSignCheck := ternary "true" "false" (eq .Env "CSE") -}}
 image: {{ .ModuleName }}/{{ .ImageName }}-artifact

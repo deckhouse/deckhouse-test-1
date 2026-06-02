@@ -23,7 +23,8 @@ import (
 	"github.com/deckhouse/deckhouse/dhctl/pkg/log"
 )
 
-type ProviderAdditionalParams struct { // empty
+type ProviderAdditionalParams struct {
+	// empty
 	// reserve for future usage
 }
 

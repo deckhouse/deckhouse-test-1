@@ -99,6 +99,7 @@ spec:
   ldap:
     host: ldap-service.openldap-demo:389
     insecureNoSSL: true
+    insecureSkipVerify: true
     bindDN: cn=admin,dc=example,dc=org
     bindPW: admin
     usernamePrompt: Email Address

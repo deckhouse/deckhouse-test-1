@@ -41,7 +41,7 @@ const globalValues = `
     clusterType: Cloud
     defaultCRI: Containerd
     kind: ClusterConfiguration
-    kubernetesVersion: "1.31"
+    kubernetesVersion: "1.32"
     podSubnetCIDR: 10.111.0.0/16
     podSubnetNodeCIDRPrefix: "24"
     serviceSubnetCIDR: 10.222.0.0/16
@@ -52,7 +52,7 @@ const globalValues = `
       worker: 1
       master: 3
     podSubnet: 10.0.1.0/16
-    kubernetesVersion: 1.31.0
+    kubernetesVersion: 1.32.0
     clusterUUID: cluster
 `
 
@@ -351,51 +351,6 @@ var _ = Describe("Module :: cloud-provider-huaweicloud :: helm template ::", fun
 			Expect(cddDeployment.Field("spec.template.metadata.annotations.kubectl\\.kubernetes\\.io/default-exec-container").String()).To(Equal("cloud-data-discoverer"))
 			Expect(cddDeployment.Field("spec.template.metadata.annotations.kubectl\\.kubernetes\\.io/default-logs-container").String()).To(Equal("cloud-data-discoverer"))
 			Expect(cddDeployment.Field("spec.template.metadata.annotations.checksum/config").String()).NotTo(BeEmpty())
-
-			userAuthzUser := f.KubernetesGlobalResource("ClusterRole", "d8:user-authz:cloud-provider-huaweicloud:user")
-			Expect(userAuthzUser.Exists()).To(BeTrue())
-			Expect(userAuthzUser.Field("rules").String()).To(MatchYAML(`
-- apiGroups:
-  - deckhouse.io
-  resources:
-  - huaweicloudinstanceclasses
-  verbs:
-  - get
-  - list
-  - watch
-- apiGroups:
-  - infrastructure.cluster.x-k8s.io
-  resources:
-  - huaweicloudclusters
-  - huaweicloudmachines
-  - huaweicloudmachinetemplates
-  verbs:
-  - get
-  - list
-  - watch`))
-
-			userAuthzClusterAdmin := f.KubernetesGlobalResource("ClusterRole", "d8:user-authz:cloud-provider-huaweicloud:cluster-admin")
-			Expect(userAuthzClusterAdmin.Exists()).To(BeTrue())
-			Expect(userAuthzClusterAdmin.Field("rules").String()).To(MatchYAML(`
-- apiGroups:
-  - deckhouse.io
-  resources:
-  - huaweicloudinstanceclasses
-  verbs:
-  - create
-  - delete
-  - deletecollection
-  - patch
-  - update
-- apiGroups:
-  - infrastructure.cluster.x-k8s.io
-  resources:
-  - huaweicloudclusters
-  - huaweicloudmachines
-  - huaweicloudmachinetemplates
-  verbs:
-  - patch
-  - update`))
 
 			cddVPA := f.KubernetesResource("VerticalPodAutoscaler", "d8-cloud-provider-huaweicloud", "cloud-data-discoverer")
 			Expect(cddVPA.Exists()).To(BeTrue())

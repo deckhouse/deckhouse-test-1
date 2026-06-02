@@ -84,6 +84,7 @@ func (a *PhaseActionWithStateCache[OperationPhaseDataT]) Run(ctx context.Context
 	}
 
 	completeData, err := action()
+
 	if err != nil {
 		return err
 	}
@@ -157,7 +158,6 @@ type PipelineOpts struct {
 	LoggerProvider log.LoggerProvider
 	PipelineName   string
 }
-
 type PipelineWithStateCache[OperationPhaseDataT any] struct {
 	mu       sync.Mutex
 	started  bool
