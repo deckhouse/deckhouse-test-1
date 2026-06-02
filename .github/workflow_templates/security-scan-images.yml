@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-{!{- $pullRequestContext := coll.Dict "pullRequestRefField" "needs.pull_request_info.outputs.ref" "withDispatch" true -}!}
+{!{- $pullRequestContext := coll.Dict "pullRequestRefField" "needs.pull_request_info.outputs.ref" "withDispatch" true "withChangedImages" true -}!}
 {!{- $ctx := coll.Merge $pullRequestContext . }!}
 
 name: Security Scan Images
@@ -220,9 +220,9 @@ jobs:
           echo "PR tag to scan: $TAG"
           echo "tags=$(printf '%s' "$TAG" | jq -R -s -c 'split("\n") | map(select(length > 0))')" >> $GITHUB_OUTPUT
 
-{!{ tmpl.Exec "drweb_scan_job" . | strings.Indent 2 }!}
+{!{ tmpl.Exec "drweb_scan_job" $ctx | strings.Indent 2 }!}
 
-{!{ tmpl.Exec "kaspersky_scan_job" . | strings.Indent 2 }!}
+{!{ tmpl.Exec "kaspersky_scan_job" $ctx | strings.Indent 2 }!}
 
 {!{ tmpl.Exec "set_security_antivirus_requirement_status" . | strings.Indent 2 }!}
 

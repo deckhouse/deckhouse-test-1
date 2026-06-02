@@ -99,16 +99,23 @@
 {!{ end }!}
 
 {!{ define "drweb_scan_job" }!}
+{!{ $ctx := . -}!}
+{!{ $withChangedImages := false -}!}
+{!{ if coll.Has $ctx "withChangedImages" -}!}
+{!{   $withChangedImages = (index $ctx "withChangedImages") -}!}
+{!{ end -}!}
 # <template: drweb_scan_job>
 drweb-scan:
   name: Dr.Web Scan ${{ matrix.branch }}
   runs-on: [self-hosted, antivirus]
   if: github.repository == 'deckhouse/deckhouse'
-  # `changed_images` is intentionally a soft dependency: when the workflow is
-  # invoked outside of a PR context (release/main/manual) the job is skipped
-  # and its outputs come through as empty — the scanner falls back to the
-  # legacy "scan everything" mode (see av_scan_step).
+{!{- if $withChangedImages }!}
+  # PR mode: filter scanned images by the changed_images diff (delta-only scan).
   needs: [get-tags, changed_images]
+{!{- else }!}
+  # Weekly/release mode: no changed_images upstream; full-scan every matrix entry.
+  needs: [get-tags]
+{!{- end }!}
   strategy:
     matrix:
       branch: ${{ fromJson(needs.get-tags.outputs.tags) }}
@@ -126,8 +133,15 @@ drweb-scan:
     {!{- $args := dict
         "container_name"      "drweb"
         "scan_path"           "drweb"
+        "image_filter_expr"   ""
+    -}!}
+{!{- if $withChangedImages -}!}
+    {!{- $args = dict
+        "container_name"      "drweb"
+        "scan_path"           "drweb"
         "image_filter_expr"   "${{ needs.changed_images.outputs.changed_compact }}"
     -}!}
+{!{- end }!}
     {!{ tmpl.Exec "av_scan_step" $args | strings.Indent 4 }!}
 # </template: drweb_scan_job>
 {!{ end }!}

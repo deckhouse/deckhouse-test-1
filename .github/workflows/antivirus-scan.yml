@@ -120,11 +120,8 @@ jobs:
     name: Dr.Web Scan ${{ matrix.branch }}
     runs-on: [self-hosted, antivirus]
     if: github.repository == 'deckhouse/deckhouse'
-    # `changed_images` is intentionally a soft dependency: when the workflow is
-    # invoked outside of a PR context (release/main/manual) the job is skipped
-    # and its outputs come through as empty — the scanner falls back to the
-    # legacy "scan everything" mode (see av_scan_step).
-    needs: [get-tags, changed_images]
+    # Weekly/release mode: no changed_images upstream; full-scan every matrix entry.
+    needs: [get-tags]
     strategy:
       matrix:
         branch: ${{ fromJson(needs.get-tags.outputs.tags) }}
@@ -159,12 +156,9 @@ jobs:
             projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/github/registry_host DECKHOUSE_REGISTRY_STAGE_HOST | DECKHOUSE_STAGE_REGISTRY_HOST ;
 
       # </template: import_secrets>
+
       - name: Run drweb scan
         id: scan
-        env:
-          # Comes from the `changed_images` job. Wired here only for drweb-scan; the
-          # kaspersky-scan job stays on the legacy "scan everything" code path.
-          IMAGE_FILTER: ${{ needs.changed_images.outputs.changed_compact }}
         run: |
           registry_image_path=/sys/deckhouse-oss
           ref=$(echo "${{ matrix.branch }}" | awk -F':' '{ print $2 }' | tr -d '\n')
@@ -191,19 +185,7 @@ jobs:
           SCAN_ID+="-$CONTAINER_NAME"
           echo "scan_id=${SCAN_ID}" >> $GITHUB_OUTPUT
           echo $CONTAINER_NAME
-          # IMAGE_FILTER comes from needs.changed_images.outputs.changed_compact.
-          # If the PR did not change any images, the upstream job emits "[]" (or empty);
-          # in that case we fall back to the legacy "scan everything" call so we never
-          # accidentally pass an empty 4th argument to the scanner (it would reject it).
-          if [ -n "${IMAGE_FILTER}" ] && [ "${IMAGE_FILTER}" != "[]" ]; then
-            echo "📜 Forwarding image filter (${#IMAGE_FILTER} chars) to the drweb scanner."
-            docker exec -e IMAGE_FILTER="${IMAGE_FILTER}" ${CONTAINER_NAME} \
-              bash -c 'scanner "$1" "$2" "$3" "$IMAGE_FILTER"' bash \
-              "${ref}" "${registry_host}${registry_image_path}" "${SCAN_ID}"
-          else
-            echo "📜 No image filter provided (changed_images is empty); falling back to full scan."
-            docker exec ${CONTAINER_NAME} scanner ${ref} ${registry_host}${registry_image_path} ${SCAN_ID}
-          fi
+          docker exec ${CONTAINER_NAME} scanner ${ref} ${registry_host}${registry_image_path} ${SCAN_ID}
 
           mkdir -p scans/${SCAN_ID}
           docker cp ${CONTAINER_NAME}:/drweb/scans/${SCAN_ID}/scan_results_clean.md ./scans/${SCAN_ID}/scan_results_clean.md
