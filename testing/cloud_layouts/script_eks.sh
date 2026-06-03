@@ -96,20 +96,11 @@ function prepare_environment() {
   fi
 
   decode_dockercfg=$(base64 -d <<< "${DECKHOUSE_DOCKERCFG}")
-<<<<<<< HEAD
-=======
-
->>>>>>> 9b9af7598e (test eks)
   if [[ "$DEV_BRANCH" =~ ^release-[0-9]+\.[0-9]+ ]] || [[ "$DEV_BRANCH" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
     IMAGES_REPO=$(jq -r '.auths | keys[]'  <<< "$decode_dockercfg")/deckhouse/${EDITION}
   else
     IMAGES_REPO=$(jq -r '.auths | keys[]'  <<< "$decode_dockercfg")/sys/deckhouse-oss
   fi
-<<<<<<< HEAD
-
-
-=======
->>>>>>> 9b9af7598e (test eks)
 
   if [[ -n "$INITIAL_IMAGE_TAG" && "${INITIAL_IMAGE_TAG}" != "${DECKHOUSE_IMAGE_TAG}" ]]; then
     # Use initial image tag as devBranch setting in InitConfiguration.
