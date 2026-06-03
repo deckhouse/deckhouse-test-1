@@ -675,21 +675,45 @@ jobs:
     runs-on: ubuntu-slim
     permissions:
       actions: write
+      # Required to post pending commit status so the image scan is visible
+      # as a check on the PR before the dispatched workflow finishes.
+      statuses: write
     steps:
+      - name: Post pending commit status on PR head SHA
+        # workflow_dispatch runs are not auto-linked to PRs by GitHub. We
+        # explicitly post a commit status with a stable context so the scan
+        # appears in the PR's "Checks" list and can be required by branch
+        # protection. Posted BEFORE dispatch so the check is visible even if
+        # the dispatch itself fails (e.g. in test repos without the workflow
+        # file on main).
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          TARGET_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          gh api -X POST "/repos/${REPO}/statuses/${HEAD_SHA}" \
+            -f state=pending \
+            -f context="Security scan images required" \
+            -f description="Image scans queued by Build." \
+            -f target_url="${TARGET_URL}"
       - name: Dispatch Security Scan Images workflow
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
           BUILD_RUN_ID: ${{ github.run_id }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
           set -euo pipefail
           gh workflow run security-scan-images.yml \
             --repo "${REPO}" \
             --ref  "main" \
             -f issue_number="${PR_NUMBER}" \
-            -f build_run_id="${BUILD_RUN_ID}"
-          echo "Dispatched Security Scan Images for PR #${PR_NUMBER} with build_run_id ${BUILD_RUN_ID}"
+            -f build_run_id="${BUILD_RUN_ID}" \
+            -f head_sha="${HEAD_SHA}"
+          echo "Dispatched Security Scan Images for PR #${PR_NUMBER} (head_sha=${HEAD_SHA}, build_run_id=${BUILD_RUN_ID})"
 
   build_tests:
     if: ${{ needs.pull_request_info.outputs.changes_not_markdown == 'true' }}

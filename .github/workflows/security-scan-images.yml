@@ -41,6 +41,9 @@ on:
       build_run_id:
         description: "GitHub Actions run ID of the Build workflow that produced build_report_FE for this PR."
         required: true
+      head_sha:
+        description: "PR head commit SHA — target for commit status posting (so the scan appears as a check on the PR)."
+        required: true
 
 # Cancel in-progress image scans for the same PR.
 concurrency:
@@ -1189,8 +1192,13 @@ jobs:
       - security_scan_images
       - drweb-scan
       - kaspersky-scan
+    permissions:
+      # Required to post the final commit status (success/failure) on PR head
+      # SHA so the dispatched workflow is reflected as a check on the PR.
+      statuses: write
     steps:
       - name: Aggregate scan results
+        id: aggregate
         run: |
           declare -A results=(
             [changed_images]="${{ needs.changed_images.result }}"
@@ -1225,3 +1233,30 @@ jobs:
             failed=1
           done
           exit $failed
+
+      - name: Post final commit status on PR head SHA
+        # Always runs to reflect aggregator outcome on the PR (success/failure).
+        # Pairs with the pending status posted by the build's
+        # `trigger_security_scan_images` job — same `context` updates the same
+        # check entry in the PR's Checks list.
+        if: ${{ always() }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          HEAD_SHA: ${{ github.event.inputs.head_sha }}
+          STEP_OUTCOME: ${{ steps.aggregate.outcome }}
+          TARGET_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          if [[ "${STEP_OUTCOME}" == "success" ]]; then
+            STATE=success
+            DESC="All image scans passed."
+          else
+            STATE=failure
+            DESC="One or more image scans failed (see workflow logs)."
+          fi
+          gh api -X POST "/repos/${REPO}/statuses/${HEAD_SHA}" \
+            -f state="${STATE}" \
+            -f context="Security scan images required" \
+            -f description="${DESC}" \
+            -f target_url="${TARGET_URL}"
