@@ -50,66 +50,32 @@ jobs:
       SVACE_ENABLED: ${{ contains(github.event.pull_request.labels.*.name, 'analyze/svace') && true || false }}
 {!{ tmpl.Exec "build_template" (slice $ctx "dev" "FE") | strings.Indent 4 }!}
 
-  # Trigger the image-based security scans (CVE / rootless / antivirus) right
-  # after Build FE has produced the deckhouse-oss image and the build_report_FE
-  # artifact. The dispatched workflow is independent and idempotent: every
-  # build re-run yields a fresh Security Scan Images run, with the previous
-  # one cancelled by the workflow's own concurrency group.
-  trigger_security_scan_images:
-    name: Trigger Security Scan Images
+  # Run the image-based security scans (CVE / rootless / antivirus) as a
+  # reusable workflow right after Build FE has produced the deckhouse-oss
+  # image and the build_report_FE artifact. The called workflow runs as part
+  # of THIS workflow's run, so its jobs (including
+  # `security_scan_images_required`) appear natively on the PR's "Checks" tab
+  # and can be required by branch protection — no commit-status plumbing
+  # needed.
+  #
+  # Re-run: re-running this build workflow re-executes the image scans with
+  # a fresh `github.run_id`. There is no independent re-run entry point for
+  # the called workflow (and that is intentional — the scan results are
+  # bound to the artifacts of this specific Build run).
+  security_scan_images:
+    name: Security scan images
     needs:
       - pull_request_info
       - build_fe
-    # Runs in any repository: image scans are still gated to deckhouse/deckhouse
-    # inside `security-scan-images.yml` (per-job `github.repository` guards). In
-    # test repositories the dispatch is expected to fail with a visible
-    # "workflow not found" error until `security-scan-images.yml` is mirrored
-    # onto the test repository's main — that is a deliberate signal, not silent
-    # skip. We intentionally keep `--ref main` to preserve the "trusted workflow
-    # file from main" security model (do not switch to head.ref).
     if: ${{ success() }}
-    runs-on: ubuntu-slim
+    # The called workflow declares its own `permissions:` at workflow level;
+    # the caller job must be at least as permissive.
     permissions:
-      actions: write
-      # Required to post pending commit status so the image scan is visible
-      # as a check on the PR before the dispatched workflow finishes.
-      statuses: write
-    steps:
-      - name: Post pending commit status on PR head SHA
-        # workflow_dispatch runs are not auto-linked to PRs by GitHub. We
-        # explicitly post a commit status with a stable context so the scan
-        # appears in the PR's "Checks" list and can be required by branch
-        # protection. Posted BEFORE dispatch so the check is visible even if
-        # the dispatch itself fails (e.g. in test repos without the workflow
-        # file on main).
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          REPO: ${{ github.repository }}
-          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-          TARGET_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-        run: |
-          set -euo pipefail
-          gh api -X POST "/repos/${REPO}/statuses/${HEAD_SHA}" \
-            -f state=pending \
-            -f context="Security scan images required" \
-            -f description="Image scans queued by Build." \
-            -f target_url="${TARGET_URL}"
-      - name: Dispatch Security Scan Images workflow
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          REPO: ${{ github.repository }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
-          BUILD_RUN_ID: ${{ github.run_id }}
-          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-        run: |
-          set -euo pipefail
-          gh workflow run security-scan-images.yml \
-            --repo "${REPO}" \
-            --ref  "main" \
-            -f issue_number="${PR_NUMBER}" \
-            -f build_run_id="${BUILD_RUN_ID}" \
-            -f head_sha="${HEAD_SHA}"
-          echo "Dispatched Security Scan Images for PR #${PR_NUMBER} (head_sha=${HEAD_SHA}, build_run_id=${BUILD_RUN_ID})"
+      contents: read
+      id-token: write
+      pull-requests: write
+    uses: ./.github/workflows/security-scan-images.yml
+    secrets: inherit
 
   build_tests:
     if: ${{ needs.pull_request_info.outputs.changes_not_markdown == 'true' }}

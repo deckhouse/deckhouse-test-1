@@ -12,41 +12,32 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-{!{- $pullRequestContext := coll.Dict "pullRequestRefField" "needs.pull_request_info.outputs.ref" "withDispatch" true "withChangedImages" true -}!}
+{!{- $pullRequestContext := coll.Dict "pullRequestRefField" "needs.pull_request_info.outputs.ref" "withChangedImages" true -}!}
 {!{- $ctx := coll.Merge $pullRequestContext . }!}
 
 name: Security Scan Images
 
-# Image-based scans (CVE / rootless / antivirus). Triggered exclusively by the
-# Build workflow once `Build FE` succeeds (see `trigger_security_scan_images`
-# job in build-and-test_dev). Every build re-run automatically yields a fresh
-# images-scan run.
+# Image-based scans (CVE / rootless / antivirus). Invoked as a reusable
+# workflow from the Build workflow once `Build FE` succeeds — see the
+# `security_scan_images` job in build-and-test_dev. Because this workflow is
+# called via `uses:`, its jobs run as part of the parent's workflow run and
+# automatically appear on the PR's "Checks" tab (no commit-status plumbing
+# needed). The pull-request event context (head SHA, PR number, run_id) is
+# inherited from the calling workflow, so we read it straight from
+# `github.event.pull_request.*` / `github.run_id`.
 #
-# Re-run semantics:
-#   * Re-running this workflow ("Re-run all jobs" on the Security Scan Images
-#     run itself) preserves `inputs.build_run_id`, so it will pull artifacts
-#     from the SAME original Build run that dispatched this scan. That is
-#     intentional: SHA-consistent re-execution of the same scan.
-#   * To scan against a freshly rebuilt artifact set, re-run the BUILD
-#     workflow ("Build and test for dev branches"). Build will re-dispatch
-#     this workflow with its new `github.run_id`, and the previous Security
-#     Scan Images run gets cancelled by this workflow's concurrency group.
+# Re-run semantics: there is no "Re-run all jobs" entry-point on this workflow
+# alone — it is part of the parent. To re-execute the image scans, re-run the
+# Build workflow ("Build and test for dev branches"). The previous in-flight
+# scan is cancelled by the parent's concurrency group, and this workflow's own
+# concurrency block additionally guards against orphan scans for the same PR.
 on:
-  workflow_dispatch:
-    inputs:
-      issue_number:
-        description: "Pull request number to scan."
-        required: true
-      build_run_id:
-        description: "GitHub Actions run ID of the Build workflow that produced build_report_FE for this PR."
-        required: true
-      head_sha:
-        description: "PR head commit SHA — target for commit status posting (so the scan appears as a check on the PR)."
-        required: true
+  workflow_call:
 
-# Cancel in-progress image scans for the same PR.
+# Cancel in-progress image scans for the same PR. Acts as a safety-net on top
+# of the parent workflow's concurrency.
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.inputs.issue_number }}
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 
 permissions:
@@ -60,13 +51,12 @@ jobs:
   # ============================================================================
   # Compute the set of module images that actually changed in this PR.
   # The job downloads the FE build report (images_tags_werf.json) directly
-  # by `inputs.build_run_id` (passed in from the Build workflow that
-  # dispatched this scan), keeps only Rebuilt=false entries (werf cache hits
-  # == identical to main) as digests_old_main.json, then pulls
-  # images_digests.json out of the assembled dev:prN image and diffs them
-  # by content digest. The resulting changed_images.json plus outputs
-  # (changed_count / matrix / changed_compact) drive subsequent
-  # CVE / rootless / antivirus scans.
+  # by `github.run_id` (the parent Build run, inherited via workflow_call),
+  # keeps only Rebuilt=false entries (werf cache hits == identical to main)
+  # as digests_old_main.json, then pulls images_digests.json out of the
+  # assembled dev:prN image and diffs them by content digest. The resulting
+  # changed_images.json plus outputs (changed_count / matrix / changed_compact)
+  # drive subsequent CVE / rootless / antivirus scans.
   # ============================================================================
   changed_images:
     name: Compute changed images
@@ -87,7 +77,7 @@ jobs:
       - name: Set PR tag
         id: tag
         env:
-          PR_NUMBER: ${{ github.event.inputs.issue_number }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
           REPO_SUFFIX=${GITHUB_REPOSITORY#deckhouse/deckhouse-}
           if [[ ${REPO_SUFFIX} == ${GITHUB_REPOSITORY} ]] ; then
@@ -107,7 +97,7 @@ jobs:
         uses: dawidd6/action-download-artifact@v21
         with:
           github_token: ${{ secrets.BOATSWAIN_GITHUB_TOKEN }}
-          run_id: ${{ github.event.inputs.build_run_id }}
+          run_id: ${{ github.run_id }}
           name: build_report_FE
           path: ./build_report
           if_no_artifact_found: fail
@@ -146,7 +136,7 @@ jobs:
         if: ${{ always() && steps.diff.outcome != 'skipped' }}
         uses: {!{ index (ds "actions") "actions/upload-artifact" }!}
         with:
-          name: changed-images-pr${{ github.event.inputs.issue_number }}
+          name: changed-images-pr${{ github.event.pull_request.number }}
           path: |
             digests_old_main.json
             changed_images.json
@@ -212,7 +202,7 @@ jobs:
       - name: Set PR tag
         id: set-pr-tag
         env:
-          PR_NUMBER: ${{ github.event.inputs.issue_number }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
           REPO_SUFFIX=${GITHUB_REPOSITORY#deckhouse/deckhouse-}
           if [[ ${REPO_SUFFIX} == ${GITHUB_REPOSITORY} ]] ; then
@@ -235,6 +225,9 @@ jobs:
   # Aggregator — single required check for branch protection.
   # Fails if any image scan did not finish with success
   # (covers blocker failure, scan failure, and skipped due to upstream issues).
+  # Because this workflow is invoked via `uses:` from the build workflow, this
+  # job appears on the PR's Checks tab natively — no extra commit-status
+  # plumbing is required for it to be require-able by branch protection.
   # ============================================================================
   security_scan_images_required:
     name: Security scan images required
@@ -247,13 +240,8 @@ jobs:
       - security_scan_images
       - drweb-scan
       - kaspersky-scan
-    permissions:
-      # Required to post the final commit status (success/failure) on PR head
-      # SHA so the dispatched workflow is reflected as a check on the PR.
-      statuses: write
     steps:
       - name: Aggregate scan results
-        id: aggregate
         run: |
           declare -A results=(
             [changed_images]="${{ needs.changed_images.result }}"
@@ -288,30 +276,3 @@ jobs:
             failed=1
           done
           exit $failed
-
-      - name: Post final commit status on PR head SHA
-        # Always runs to reflect aggregator outcome on the PR (success/failure).
-        # Pairs with the pending status posted by the build's
-        # `trigger_security_scan_images` job — same `context` updates the same
-        # check entry in the PR's Checks list.
-        if: ${{ always() }}
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          REPO: ${{ github.repository }}
-          HEAD_SHA: ${{ github.event.inputs.head_sha }}
-          STEP_OUTCOME: ${{ steps.aggregate.outcome }}
-          TARGET_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-        run: |
-          set -euo pipefail
-          if [[ "${STEP_OUTCOME}" == "success" ]]; then
-            STATE=success
-            DESC="All image scans passed."
-          else
-            STATE=failure
-            DESC="One or more image scans failed (see workflow logs)."
-          fi
-          gh api -X POST "/repos/${REPO}/statuses/${HEAD_SHA}" \
-            -f state="${STATE}" \
-            -f context="Security scan images required" \
-            -f description="${DESC}" \
-            -f target_url="${TARGET_URL}"

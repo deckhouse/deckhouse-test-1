@@ -193,7 +193,7 @@ set_security_antivirus_requirement_status:
       run: echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
     - name: Set PR Label
       env:
-        PR_NUMBER: ${{ github.event.inputs.issue_number }}
+        PR_NUMBER: ${{ github.event.pull_request.number }}
         GH_REPO: ${{ github.repository }}
         DRWEB: ${{ needs.drweb-scan.result }}
         KASPERSKY: ${{ needs.kaspersky-scan.result }}
@@ -245,7 +245,7 @@ notify-failure:
         MESSAGE="🛑 Github Antivirus Scan Failed!\n\n"
         MESSAGE+="**Failed jobs:**\n"
         MESSAGE+="${{ steps.check-failures.outputs.failed_jobs }}\n"
-        PR_NUMBER="${{ github.event.inputs.issue_number }}"
+        PR_NUMBER="${{ github.event.pull_request.number }}"
         if [ -n "$PR_NUMBER" ]; then
           pr_url="https://github.com/${{ github.repository }}/pull/${PR_NUMBER}"
           MESSAGE+="**PR:** [#${PR_NUMBER}]($pr_url)\n"

@@ -21,7 +21,7 @@ steps:
   - name: Set PR scan tag
     id: scan_tag
     run: |
-      PR_NUMBER="${{ github.event.inputs.issue_number }}"
+      PR_NUMBER="${{ github.event.pull_request.number }}"
       REPO_SUFFIX=${GITHUB_REPOSITORY#deckhouse/deckhouse-}
       if [[ ${REPO_SUFFIX} == ${GITHUB_REPOSITORY} ]] ; then
         TAG="pr${PR_NUMBER}"
@@ -68,7 +68,7 @@ set_security_rootless_requirement_status:
       run: echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
     - name: Set PR Label
       env:
-        PR_NUMBER: ${{ github.event.inputs.issue_number }}
+        PR_NUMBER: ${{ github.event.pull_request.number }}
         GH_REPO: ${{ github.repository }}
         RESULT: ${{ needs.security_scan_images.result }}
       run: |

@@ -175,10 +175,6 @@ block-until-image-is-not-ready:
 # - detect if PR is 'external': checkout the head commit and fail if changes are not safe
 {!{ define "pull_request_info_job" }!}
 {!{ $ctx := . -}!}
-{!{ $withDispatch := false -}!}
-{!{ if coll.Has $ctx "withDispatch" -}!}
-{!{   $withDispatch = (index $ctx "withDispatch") -}!}
-{!{ end -}!}
 # <template: pull_request_info>
 pull_request_info:
   name: Get pull request reference
@@ -276,52 +272,11 @@ pull_request_info:
             core.endGroup()
           }
 
-{!{- if $withDispatch }!}
-    - name: Get PR info for workflow_dispatch trigger
-      id: dispatch_info
-      if: ${{ github.event_name == 'workflow_dispatch' }}
-      uses: {!{ index (ds "actions") "actions/github-script" }!}
-      with:
-        script: |
-          // Support for 'workflow_dispatch' trigger:
-          // expect 'issue_number' input (PR number) and fetch PR info by it.
-          const prNumber = parseInt(context.payload.inputs.issue_number, 10);
-          if (Number.isNaN(prNumber)) {
-            return core.setFailed(`workflow_dispatch input 'issue_number' is not a valid number: '${context.payload.inputs.issue_number}'`);
-          }
-          const owner = context.repo.owner;
-          const repo = context.repo.repo;
-          core.startGroup(`Fetching info for PR#${prNumber} ...`);
-          try {
-            const response = await github.rest.pulls.get({owner, repo, pull_number: prNumber})
-            if (response.status != 200 || !response.data) {
-              return core.setFailed(`Bad response on getting PR#${prNumber} : ${JSON.stringify(response)}`);
-            }
-            let pr = response.data;
-            core.info(`Current labels: ${JSON.stringify(pr.labels)}`);
-            // Reduce size to fit output limits.
-            pr = {
-              url:      pr.url,
-              diff_url: pr.diff_url,
-              number:   pr.number,
-              labels:   pr.labels,
-              head:     pr.head,
-              title:    pr.title,
-              body:     pr.body,
-            }
-            core.setOutput('pr_info', JSON.stringify(pr));
-          } catch (error) {
-            return core.setFailed(`Fetch PR#${prNumber} error: ${error}`)
-          } finally {
-            core.endGroup()
-          }
-{!{- end }!}
-
     - name: Check PR properties
       id: pr_props
       uses: {!{ index (ds "actions") "actions/github-script" }!}
       env:
-        PR_INFO: ${{ steps.push_info.outputs.pr_info || steps.pr_info.outputs.pr_info{!{ if $withDispatch }!} || steps.dispatch_info.outputs.pr_info{!{ end }!} }}
+        PR_INFO: ${{ steps.push_info.outputs.pr_info || steps.pr_info.outputs.pr_info }}
       with:
         script: |
           if (process.env.PR_INFO == '') {
