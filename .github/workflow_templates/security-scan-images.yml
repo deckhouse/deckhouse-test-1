@@ -28,17 +28,16 @@ name: Security Scan Images
 #
 # Re-run semantics: there is no "Re-run all jobs" entry-point on this workflow
 # alone — it is part of the parent. To re-execute the image scans, re-run the
-# Build workflow ("Build and test for dev branches"). The previous in-flight
-# scan is cancelled by the parent's concurrency group, and this workflow's own
-# concurrency block additionally guards against orphan scans for the same PR.
+# Build workflow ("Build and test for dev branches"). The parent's
+# `concurrency.cancel-in-progress` automatically cancels any in-flight nested
+# scan when a new build for the same PR starts, so this workflow intentionally
+# does NOT declare its own `concurrency:` block: under workflow_call,
+# `github.workflow` is inherited from the parent, which would resolve into the
+# same group as the parent and produce a self-deadlock (GitHub then cancels
+# both runs with: "deadlock was detected for concurrency group … between a top
+# level workflow and 'Security scan images'").
 on:
   workflow_call:
-
-# Cancel in-progress image scans for the same PR. Acts as a safety-net on top
-# of the parent workflow's concurrency.
-concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
-  cancel-in-progress: true
 
 permissions:
   contents: read
