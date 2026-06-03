@@ -664,7 +664,14 @@ jobs:
     needs:
       - pull_request_info
       - build_fe
-    if: ${{ success() && github.repository == 'deckhouse/deckhouse' }}
+    # Runs in any repository: image scans are still gated to deckhouse/deckhouse
+    # inside `security-scan-images.yml` (per-job `github.repository` guards). In
+    # test repositories the dispatch is expected to fail with a visible
+    # "workflow not found" error until `security-scan-images.yml` is mirrored
+    # onto the test repository's main — that is a deliberate signal, not silent
+    # skip. We intentionally keep `--ref main` to preserve the "trusted workflow
+    # file from main" security model (do not switch to head.ref).
+    if: ${{ success() }}
     runs-on: ubuntu-slim
     permissions:
       actions: write
