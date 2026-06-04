@@ -290,7 +290,10 @@ jobs:
     runs-on: [self-hosted, regular]
     needs:
       - pull_request_info
-    if: github.repository == 'deckhouse/deckhouse'
+    # Runs in main repo and test mirrors (deckhouse/deckhouse-*). All required
+    # secrets (dev-registry creds) are the same ones Build FE already uses, so
+    # any repo where Build FE works can run this job too.
+    if: startsWith(github.repository, 'deckhouse/deckhouse')
     permissions:
       contents: read
       id-token: write
@@ -753,7 +756,8 @@ jobs:
     runs-on: ubuntu-slim
     needs:
       - pull_request_info
-    if: github.repository == 'deckhouse/deckhouse'
+    # No secrets needed, just composes the PR tag — runs in main and test mirrors.
+    if: startsWith(github.repository, 'deckhouse/deckhouse')
     outputs:
       tags: ${{ steps.set-pr-tag.outputs.tags }}
     steps:
@@ -1156,7 +1160,10 @@ jobs:
             [drweb]="${{ needs.drweb-scan.result }}"
             [kaspersky]="${{ needs.kaspersky-scan.result }}"
           )
-          # Antivirus jobs intentionally skip in test repositories (self-hosted antivirus runners are only in main repo).
+          # Antivirus jobs intentionally skip in test repositories
+          # (self-hosted antivirus runners are only in the main repo). All
+          # other image scans (changed_images, rootless) are expected to run
+          # in both main and test repos.
           IS_MAIN_REPO=false
           if [[ "${{ github.repository }}" == "deckhouse/deckhouse" ]]; then
             IS_MAIN_REPO=true
