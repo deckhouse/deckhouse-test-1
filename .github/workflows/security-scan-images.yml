@@ -277,13 +277,39 @@ jobs:
 
   # ============================================================================
   # Compute the set of module images that actually changed in this PR.
-  # The job downloads the FE build report (images_tags_werf.json) directly
-  # by `github.run_id` (the parent Build run, inherited via workflow_call),
-  # keeps only Rebuilt=false entries (werf cache hits == identical to main)
-  # as digests_old_main.json, then pulls images_digests.json out of the
-  # assembled dev:prN image and diffs them by content digest. The resulting
-  # changed_images.json plus outputs (changed_count / matrix / changed_compact)
-  # drive subsequent CVE / rootless / antivirus scans.
+  #
+  # Baseline source: the FIRST `Build and test for dev branches` run of THIS
+  # PR whose `Build FE` job finished with conclusion=success — discovered via
+  # GitHub API, see the "Find baseline ..." step below. On the very first PR
+  # build werf's cache could only contain main-published layers, so
+  # `Rebuilt: false` in that report reliably means "identical to main". On
+  # any *later* build `Rebuilt: false` can also mean "identical to a layer
+  # this PR itself built earlier", which would silently mask images already
+  # modified by the PR. Anchoring the baseline to the first successful Build
+  # FE run sidesteps that.
+  #
+  # First PR build is naturally covered: the "first successful Build FE" is
+  # the current run itself, so digests_old_main is derived from this run's
+  # report. Images with `Rebuilt: true` are absent from digests_old_main and
+  # therefore correctly surface as "changed" in the diff against the current
+  # PR image.
+  #
+  # If the baseline run's `build_report_FE` artifact is no longer available
+  # (retention window elapsed), the download step stays soft and
+  # changed_images.py emits an empty filter (`changed_compact=[]`); downstream
+  # CVE / rootless / antivirus scans then fall back to full-scan mode (every
+  # image scanned), with an explicit log line stating the reason.
+  #
+  # Flow:
+  #   1. Resolve baseline run_id (first PR run with Build FE success).
+  #   2. Download `build_report_FE` from that run (soft; missing = full-scan).
+  #   3. Keep only Final=true && Rebuilt=false entries -> digests_old_main.json
+  #      (.github/scripts/python/changed_images.py).
+  #   4. Extract images_digests.json from the current PR image and diff its
+  #      digests against digests_old_main by content (digest), not by name.
+  #
+  # Outputs (changed_count / matrix / changed_compact) drive subsequent
+  # CVE / rootless / antivirus scans.
   # ============================================================================
   changed_images:
     name: Compute changed images
@@ -297,10 +323,12 @@ jobs:
     permissions:
       contents: read
       id-token: write
+      actions: read
     outputs:
-      changed_count:   ${{ steps.diff.outputs.changed_count }}
-      matrix:          ${{ steps.diff.outputs.matrix }}
-      changed_compact: ${{ steps.diff.outputs.changed_compact }}
+      changed_count:    ${{ steps.diff.outputs.changed_count }}
+      matrix:           ${{ steps.diff.outputs.matrix }}
+      changed_compact:  ${{ steps.diff.outputs.changed_compact }}
+      baseline_run_id:  ${{ steps.baseline.outputs.run_id }}
     steps:
 
       # <template: checkout_full_step>
@@ -351,14 +379,80 @@ jobs:
 
       # </template: import_secrets>
 
-      - name: Download build_report_FE artifact from Build run
+      # Resolve the baseline: the first build-and-test_dev run of this PR
+      # whose `Build FE` job finished with conclusion=success. No
+      # retention/artifact filtering here on purpose — if the chosen run's
+      # build_report_FE has expired by now, the download step below stays
+      # soft and changed_images.py degrades to full-scan with an explicit
+      # log line. The very first PR build is naturally the current run
+      # itself (Build FE just succeeded, otherwise we would not be here).
+      - name: Find baseline Build FE run for this PR
+        id: baseline
+        uses: actions/github-script@v6.4.1
+        with:
+          github-token: ${{ secrets.BOATSWAIN_GITHUB_TOKEN }}
+          script: |
+            const prNumber = context.payload.pull_request.number;
+            core.info(`Looking for the first successful Build FE run of PR #${prNumber}`);
+
+            const runs = await github.paginate(
+              github.rest.actions.listWorkflowRuns,
+              {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                workflow_id: 'build-and-test_dev.yml',
+                per_page: 100,
+              },
+            );
+
+            const candidates = runs
+              .filter(r => (r.pull_requests || []).some(p => p.number === prNumber))
+              .sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+            core.info(`Found ${candidates.length} build-and-test_dev run(s) for PR #${prNumber}`);
+
+            let chosen = null;
+            for (const run of candidates) {
+              const jobs = await github.paginate(
+                github.rest.actions.listJobsForWorkflowRun,
+                {
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  run_id: run.id,
+                  per_page: 100,
+                },
+              );
+              const buildFe = jobs.find(j => j.name === 'Build FE');
+              const conclusion = buildFe ? buildFe.conclusion : 'absent';
+              core.info(`  run=${run.id} created_at=${run.created_at} Build FE=${conclusion}`);
+              if (buildFe && buildFe.conclusion === 'success') {
+                chosen = run.id;
+                break;
+              }
+            }
+
+            if (!chosen) {
+              core.setFailed(
+                `No PR run with a successful Build FE job found for PR #${prNumber}. ` +
+                `This should be unreachable: changed_images runs as part of a Build ` +
+                `FE success chain, so at minimum the current run itself qualifies.`,
+              );
+              return;
+            }
+
+            core.info(`Baseline Build FE run: ${chosen}`);
+            core.setOutput('run_id', chosen);
+
+      - name: Download build_report_FE from baseline run
         uses: dawidd6/action-download-artifact@v21
         with:
           github_token: ${{ secrets.BOATSWAIN_GITHUB_TOKEN }}
-          run_id: ${{ github.run_id }}
+          run_id: ${{ steps.baseline.outputs.run_id }}
           name: build_report_FE
           path: ./build_report
-          if_no_artifact_found: fail
+          # Soft on missing/expired: changed_images.py detects the absent
+          # report and falls back to full-scan (empty filter) with a clear
+          # log line, instead of failing the whole image-scan workflow.
+          if_no_artifact_found: warn
 
       - name: Login to dev registry
         uses: docker/login-action@v2.1.0
@@ -383,11 +477,15 @@ jobs:
       - name: Compute changed images
         id: diff
         env:
+          # Baseline (first successful PR build) for digests_old_main:
           BUILD_REPORT_PATH:   ./build_report/images_tags_werf.json
+          # Current PR image (this run):
           IMAGES_DIGESTS_PATH: ./images_digests.json
           OUTPUT_OLD_DIGESTS:  ./digests_old_main.json
           OUTPUT_CHANGED:      ./changed_images.json
+          BASELINE_RUN_ID:     ${{ steps.baseline.outputs.run_id }}
         run: |
+          echo "Baseline build_report_FE source: run_id=${BASELINE_RUN_ID}"
           python3 .github/scripts/python/changed_images.py
 
       - name: Upload diff artifacts
@@ -463,7 +561,6 @@ jobs:
           echo "TAG=${TAG}" >> $GITHUB_OUTPUT
           echo "SCAN_SEVERAL_LATEST_RELEASES=False" >> $GITHUB_OUTPUT
           echo "LATEST_RELEASES_AMOUNT=0" >> $GITHUB_OUTPUT
-
       # <template: cve_scan_deckhouse_images>
       # <template: import_secrets>
       - name: Split repository name
@@ -500,8 +597,32 @@ jobs:
         with:
           cosign-release: "v3.0.4"
 
+      # PR-mode CVE: announce the changed-images filter that we forward to cve_scan.sh.
+      # `changed_compact` is the same JSON allow-list used by rootless / drweb scans;
+      # an empty "[]" (no PR-vs-main delta, or baseline build_report_FE missing) is
+      # treated by cve_scan.sh as "scan every image" — matching the script's legacy
+      # behaviour and our policy of preferring over-scan to under-scan.
+      - name: Announce CVE delta-scan filter
+        env:
+          ONLY_IMAGES: ${{ needs.changed_images.outputs.changed_compact }}
+        run: |
+          if [[ -n "${ONLY_IMAGES:-}" ]] && [[ "${ONLY_IMAGES}" != "[]" ]]; then
+            keys_count=$(jq -r 'length' <<< "${ONLY_IMAGES}")
+            echo "🎯 CVE delta-scan: forwarding ONLY_IMAGES (${keys_count} key(s)) to cve_scan.sh"
+            jq -r '.[] | "    • " + .' <<< "${ONLY_IMAGES}"
+          else
+            echo "📋 CVE full-scan: ONLY_IMAGES is empty (no delta or baseline missing)"
+          fi
+
       - name: Run Deckhouse images CVE tests on "${{ steps.scan_type.outputs.tag }}"
         uses: deckhouse/modules-actions/cve_scan@main
+        env:
+          # Forward the changed-images allow-list to cve_scan.sh. GitHub Actions
+          # propagates step-level env into the composite action's inner steps, so
+          # `cve_scan.sh` reads ${ONLY_IMAGES} directly from the environment (see
+          # the ONLY_IMAGES_SET block in /home/nikmor/Flant/GitLab/SSDLC-tools/cve-scan/cve_scan.sh).
+          # Empty "[]" makes the script fall back to full scan — no extra glue.
+          ONLY_IMAGES: ${{ needs.changed_images.outputs.changed_compact }}
         with:
           prod_registry: ${{ secrets.DECKHOUSE_REGISTRY_READ_HOST }}
           prod_registry_user: ${{ secrets.DECKHOUSE_REGISTRY_READ_USER }}
