@@ -185,7 +185,8 @@ jobs:
           SCAN_ID+="-$CONTAINER_NAME"
           echo "scan_id=${SCAN_ID}" >> $GITHUB_OUTPUT
           echo $CONTAINER_NAME
-          docker exec ${CONTAINER_NAME} scanner ${ref} ${registry_host}${registry_image_path} ${SCAN_ID}
+          docker exec -e ONLY_IMAGES="${ONLY_IMAGES:-}" ${CONTAINER_NAME} \
+            scanner "${ref}" "${registry_host}${registry_image_path}" "${SCAN_ID}"
 
           mkdir -p scans/${SCAN_ID}
           docker cp ${CONTAINER_NAME}:/drweb/scans/${SCAN_ID}/scan_results_clean.md ./scans/${SCAN_ID}/scan_results_clean.md
@@ -303,7 +304,8 @@ jobs:
           SCAN_ID+="-$CONTAINER_NAME"
           echo "scan_id=${SCAN_ID}" >> $GITHUB_OUTPUT
           echo $CONTAINER_NAME
-          docker exec ${CONTAINER_NAME} scanner ${ref} ${registry_host}${registry_image_path} ${SCAN_ID}
+          docker exec -e ONLY_IMAGES="${ONLY_IMAGES:-}" ${CONTAINER_NAME} \
+            scanner "${ref}" "${registry_host}${registry_image_path}" "${SCAN_ID}"
 
           mkdir -p scans/${SCAN_ID}
           docker cp ${CONTAINER_NAME}:/antivirus/scans/${SCAN_ID}/scan_results_clean.md ./scans/${SCAN_ID}/scan_results_clean.md
