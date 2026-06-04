@@ -673,11 +673,18 @@ jobs:
       - build_fe
     if: ${{ success() }}
     # The called workflow declares its own `permissions:` at workflow level;
-    # the caller job must be at least as permissive.
+    # the caller job must be at least as permissive (calling-job permissions
+    # are the UPPER BOUND for any nested job's permissions). In particular,
+    # the nested `changed_images` job requests `actions: read` to list the
+    # PR's earlier build-and-test_dev runs via the API (baseline lookup) —
+    # omitting it here makes GitHub reject the whole workflow with:
+    #   "nested job '<name>' is requesting 'actions: read', but is only
+    #    allowed 'actions: none'".
     permissions:
       contents: read
       id-token: write
       pull-requests: write
+      actions: read
     uses: ./.github/workflows/security-scan-images.yml
     secrets: inherit
 
