@@ -3,6 +3,9 @@
 {!{- $scanType := index . 1 -}!}
 {!{- $withFailReport := false -}!}
 {!{- if gt (len .) 2 -}!}{!{- $withFailReport = (eq (index . 2) "with_fail_report") -}!}{!{- end -}!}
+{!{- /* PR mode: forward the changed-images filter to check-non-root.sh via ONLY_IMAGES. */ -}!}
+{!{- $withChangedImages := false -}!}
+{!{- if coll.Has $ctx "withChangedImages" -}!}{!{- $withChangedImages = (index $ctx "withChangedImages") -}!}{!{- end -}!}
 # <template: security_scan_template>
 steps:
   {!{ tmpl.Exec "checkout_full_step" $ctx | strings.Indent 2 }!}
@@ -39,6 +42,12 @@ steps:
 {!{- end }!}
       IMAGE: "${{ steps.secrets.outputs.DECKHOUSE_DEV_REGISTRY_HOST }}/sys/deckhouse-oss"
       DECKHOUSE_PRIVATE_REPO: ${{ steps.secrets.outputs.DECKHOUSE_PRIVATE_REPO }}
+{!{- if $withChangedImages }!}
+      # PR mode: restrict scanning to the images that actually changed in this
+      # PR (computed by the `changed_images` job upstream). Empty list ("[]")
+      # makes check-non-root.sh fall back to the full scan (see the script).
+      ONLY_IMAGES: ${{ needs.changed_images.outputs.changed_compact }}
+{!{- end }!}
     run: |
       echo "⚓️ 🏎 Running default user validation on ${TAG}..."
       make cve-base-images-check-default-user

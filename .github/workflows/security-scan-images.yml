@@ -689,6 +689,10 @@ jobs:
           TAG: ${{ steps.scan_tag.outputs.TAG }}
           IMAGE: "${{ steps.secrets.outputs.DECKHOUSE_DEV_REGISTRY_HOST }}/sys/deckhouse-oss"
           DECKHOUSE_PRIVATE_REPO: ${{ steps.secrets.outputs.DECKHOUSE_PRIVATE_REPO }}
+          # PR mode: restrict scanning to the images that actually changed in this
+          # PR (computed by the `changed_images` job upstream). Empty list ("[]")
+          # makes check-non-root.sh fall back to the full scan (see the script).
+          ONLY_IMAGES: ${{ needs.changed_images.outputs.changed_compact }}
         run: |
           echo "⚓️ 🏎 Running default user validation on ${TAG}..."
           make cve-base-images-check-default-user
