@@ -241,7 +241,8 @@ jobs:
     name: Kaspersky Scan ${{ matrix.branch }}
     runs-on: [self-hosted, antivirus]
     if: github.repository == 'deckhouse/deckhouse'
-    needs: get-tags
+    # Weekly/release mode: no changed_images upstream; full-scan every matrix entry.
+    needs: [get-tags]
     strategy:
       matrix:
         branch: ${{ fromJson(needs.get-tags.outputs.tags) }}
@@ -276,6 +277,7 @@ jobs:
             projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/github/registry_host DECKHOUSE_REGISTRY_STAGE_HOST | DECKHOUSE_STAGE_REGISTRY_HOST ;
 
       # </template: import_secrets>
+
       - name: Run kaspersky scan
         id: scan
         run: |

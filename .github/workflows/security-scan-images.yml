@@ -958,8 +958,11 @@ jobs:
         id: scan
         env:
           # `ONLY_IMAGES` comes from needs.changed_images.outputs.changed_compact
-          # (JSON array of "<module>.<image>" keys). Wired here only for drweb-scan;
-          # kaspersky-scan stays on the legacy "scan everything" code path.
+          # (JSON array of "<module>.<image>" keys). Wired here for PR runs of both
+          # drweb-scan and kaspersky-scan when their templates are called with
+          # `withChangedImages: true` (see security-scan-images.yml). In weekly /
+          # release runs the templates pass empty `only_images_expr`, so this env
+          # block is omitted and the Go scanner falls back to full-scan.
           # Empty value / "[]" is treated by the Go scanner as full-scan, so the
           # bash side does not need to branch on it.
           ONLY_IMAGES: ${{ needs.changed_images.outputs.changed_compact }}
@@ -1054,7 +1057,8 @@ jobs:
     name: Kaspersky Scan ${{ matrix.branch }}
     runs-on: [self-hosted, antivirus]
     if: github.repository == 'deckhouse/deckhouse'
-    needs: get-tags
+    # PR mode: filter scanned images by the changed_images diff (delta-only scan).
+    needs: [get-tags, changed_images]
     strategy:
       matrix:
         branch: ${{ fromJson(needs.get-tags.outputs.tags) }}
@@ -1089,8 +1093,19 @@ jobs:
             projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/github/registry_host DECKHOUSE_REGISTRY_STAGE_HOST | DECKHOUSE_STAGE_REGISTRY_HOST ;
 
       # </template: import_secrets>
+
       - name: Run kaspersky scan
         id: scan
+        env:
+          # `ONLY_IMAGES` comes from needs.changed_images.outputs.changed_compact
+          # (JSON array of "<module>.<image>" keys). Wired here for PR runs of both
+          # drweb-scan and kaspersky-scan when their templates are called with
+          # `withChangedImages: true` (see security-scan-images.yml). In weekly /
+          # release runs the templates pass empty `only_images_expr`, so this env
+          # block is omitted and the Go scanner falls back to full-scan.
+          # Empty value / "[]" is treated by the Go scanner as full-scan, so the
+          # bash side does not need to branch on it.
+          ONLY_IMAGES: ${{ needs.changed_images.outputs.changed_compact }}
         run: |
           registry_image_path=/sys/deckhouse-oss
           ref=$(echo "${{ matrix.branch }}" | awk -F':' '{ print $2 }' | tr -d '\n')
@@ -1117,6 +1132,15 @@ jobs:
           SCAN_ID+="-$CONTAINER_NAME"
           echo "scan_id=${SCAN_ID}" >> $GITHUB_OUTPUT
           echo $CONTAINER_NAME
+          echo "----------------------------------------------"
+          if [[ -n "${ONLY_IMAGES:-}" ]] && [[ "${ONLY_IMAGES}" != "[]" ]]; then
+            keys_count=$(jq -r 'length' <<< "${ONLY_IMAGES}")
+            echo "🎯 Delta-scan: forwarding ONLY_IMAGES (${keys_count} key(s)) to the kaspersky scanner."
+            jq -r '.[] | "    • " + .' <<< "${ONLY_IMAGES}"
+          else
+            echo "📋 Full-scan: ONLY_IMAGES is empty (no delta in this PR)."
+          fi
+          echo "----------------------------------------------"
           docker exec -e ONLY_IMAGES="${ONLY_IMAGES:-}" ${CONTAINER_NAME} \
             scanner "${ref}" "${registry_host}${registry_image_path}" "${SCAN_ID}"
 

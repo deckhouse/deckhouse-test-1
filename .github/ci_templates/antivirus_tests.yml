@@ -6,8 +6,11 @@
   {!{- if .only_images_expr }!}
   env:
     # `ONLY_IMAGES` comes from needs.changed_images.outputs.changed_compact
-    # (JSON array of "<module>.<image>" keys). Wired here only for drweb-scan;
-    # kaspersky-scan stays on the legacy "scan everything" code path.
+    # (JSON array of "<module>.<image>" keys). Wired here for PR runs of both
+    # drweb-scan and kaspersky-scan when their templates are called with
+    # `withChangedImages: true` (see security-scan-images.yml). In weekly /
+    # release runs the templates pass empty `only_images_expr`, so this env
+    # block is omitted and the Go scanner falls back to full-scan.
     # Empty value / "[]" is treated by the Go scanner as full-scan, so the
     # bash side does not need to branch on it.
     ONLY_IMAGES: {!{ .only_images_expr }!}
@@ -146,12 +149,23 @@ drweb-scan:
 {!{ end }!}
 
 {!{ define "kaspersky_scan_job" }!}
+{!{ $ctx := . -}!}
+{!{ $withChangedImages := false -}!}
+{!{ if coll.Has $ctx "withChangedImages" -}!}
+{!{   $withChangedImages = (index $ctx "withChangedImages") -}!}
+{!{ end -}!}
 # <template: kaspersky_scan_job>
 kaspersky-scan:
   name: Kaspersky Scan ${{ matrix.branch }}
   runs-on: [self-hosted, antivirus]
   if: github.repository == 'deckhouse/deckhouse'
-  needs: get-tags
+{!{- if $withChangedImages }!}
+  # PR mode: filter scanned images by the changed_images diff (delta-only scan).
+  needs: [get-tags, changed_images]
+{!{- else }!}
+  # Weekly/release mode: no changed_images upstream; full-scan every matrix entry.
+  needs: [get-tags]
+{!{- end }!}
   strategy:
     matrix:
       branch: ${{ fromJson(needs.get-tags.outputs.tags) }}
@@ -171,6 +185,13 @@ kaspersky-scan:
         "scan_path"         "antivirus"
         "only_images_expr"  ""
     -}!}
+{!{- if $withChangedImages -}!}
+    {!{- $args = dict
+        "container_name"    "kaspersky"
+        "scan_path"         "antivirus"
+        "only_images_expr"  "${{ needs.changed_images.outputs.changed_compact }}"
+    -}!}
+{!{- end }!}
     {!{ tmpl.Exec "av_scan_step" $args | strings.Indent 4 }!}
 # </template: kaspersky_scan_job>
 {!{ end }!}
