@@ -50,6 +50,19 @@ steps:
 {!{- end }!}
     run: |
       echo "⚓️ 🏎 Running default user validation on ${TAG}..."
+{!{- if $withChangedImages }!}
+      echo "----------------------------------------------"
+      if [[ -n "${ONLY_IMAGES:-}" ]] && [[ "${ONLY_IMAGES}" != "[]" ]]; then
+        keys_count=$(jq -r 'length' <<< "${ONLY_IMAGES}")
+        echo "🎯 Delta-scan mode: ONLY_IMAGES filter active (${keys_count} image key(s))."
+        jq -r '.[] | "    • " + .' <<< "${ONLY_IMAGES}"
+        echo "    ⚠️  If check-non-root.sh below still iterates every image, the"
+        echo "        script is an outdated revision without ONLY_IMAGES support."
+      else
+        echo "📋 Full-scan mode: ONLY_IMAGES is unset or empty."
+      fi
+      echo "----------------------------------------------"
+{!{- end }!}
       make cve-base-images-check-default-user
   {!{ tmpl.Exec "unlink_bin_step"                   | strings.Indent 2 }!}
   {!{- if $withFailReport }!}

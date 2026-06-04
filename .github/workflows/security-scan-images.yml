@@ -695,6 +695,17 @@ jobs:
           ONLY_IMAGES: ${{ needs.changed_images.outputs.changed_compact }}
         run: |
           echo "⚓️ 🏎 Running default user validation on ${TAG}..."
+          echo "----------------------------------------------"
+          if [[ -n "${ONLY_IMAGES:-}" ]] && [[ "${ONLY_IMAGES}" != "[]" ]]; then
+            keys_count=$(jq -r 'length' <<< "${ONLY_IMAGES}")
+            echo "🎯 Delta-scan mode: ONLY_IMAGES filter active (${keys_count} image key(s))."
+            jq -r '.[] | "    • " + .' <<< "${ONLY_IMAGES}"
+            echo "    ⚠️  If check-non-root.sh below still iterates every image, the"
+            echo "        script is an outdated revision without ONLY_IMAGES support."
+          else
+            echo "📋 Full-scan mode: ONLY_IMAGES is unset or empty."
+          fi
+          echo "----------------------------------------------"
           make cve-base-images-check-default-user
 
       # <template: unlink_bin_step>
