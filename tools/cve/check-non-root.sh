@@ -51,7 +51,14 @@ declare -A skip_components_images=(
 #   ONLY_IMAGES='["common.distroless","nodeManager.bashibleApiserver"]'
 # When ONLY_IMAGES is unset, empty, or "[]", the script behaves as before
 # (scans every image in images_digests.json).
+#
+# ONLY_IMAGES_SET   — full "module.image" keys (used by the inner image loop).
+# ONLY_MODULES_SET  — distinct module names derived from ONLY_IMAGES_SET; lets
+#                     the outer loop skip whole modules whose images did not
+#                     change, avoiding noisy "Module: X" log lines and any
+#                     `crane config` calls inside such modules.
 declare -A ONLY_IMAGES_SET=()
+declare -A ONLY_MODULES_SET=()
 ONLY_IMAGES_ENABLED=0
 
 # Function to get skip components
@@ -110,13 +117,16 @@ function __main__() {
   echo ""
 
   # Convert the CI-supplied list (JSON array of "<module>.<image>" strings)
-  # into the internal lookup set used by the inner loop.
+  # into the internal lookup sets used by the outer (module) and inner (image)
+  # loops.
   if [[ -n "${ONLY_IMAGES:-}" ]] && [[ "${ONLY_IMAGES}" != "[]" ]]; then
     while IFS= read -r key; do
-      [[ -n "$key" ]] && ONLY_IMAGES_SET["$key"]=1
+      [[ -z "$key" ]] && continue
+      ONLY_IMAGES_SET["$key"]=1
+      ONLY_MODULES_SET["${key%%.*}"]=1
     done < <(jq -r '.[]' <<< "${ONLY_IMAGES}")
     ONLY_IMAGES_ENABLED=1
-    echo "ONLY_IMAGES filter active: ${#ONLY_IMAGES_SET[@]} entries will be scanned"
+    echo "ONLY_IMAGES filter active: ${#ONLY_IMAGES_SET[@]} image(s) across ${#ONLY_MODULES_SET[@]} module(s) will be scanned"
   else
     echo "ONLY_IMAGES not set; scanning every image in images_digests.json"
   fi
@@ -130,6 +140,13 @@ function __main__() {
 
   for module in $(jq -rc 'to_entries[]' <<< "$digests"); do
     MODULE_NAME=$(jq -rc '.key' <<< "$module")
+    # Module-level fast path for delta-scan: when ONLY_IMAGES is set, skip
+    # entire modules that have no matching images in the allow-list. This
+    # avoids descending into the inner loop just to `continue` on every image.
+    if [[ ${ONLY_IMAGES_ENABLED} -eq 1 ]] && [[ -z "${ONLY_MODULES_SET[$MODULE_NAME]:-}" ]]; then
+      continue
+    fi
+
     if [[ $(get_skip_components "$MODULE_NAME") == "skip" ]]; then
           echo "=============================================="
           echo "🛰 Module: $MODULE_NAME skipped due to validation exclude"
@@ -140,6 +157,15 @@ function __main__() {
 
     for module_image in $(jq -rc '.value | to_entries[]' <<<"$module"); do
       IMAGE_NAME=$(jq -rc '.key' <<< "$module_image")
+      # ONLY_IMAGES allow-list (applied on top of the local skip lists): inside
+      # an allowed module, still scan only the images that actually changed.
+      if [[ ${ONLY_IMAGES_ENABLED} -eq 1 ]] && [[ -z "${ONLY_IMAGES_SET["${MODULE_NAME}.${IMAGE_NAME}"]:-}" ]]; then
+        continue
+      fi
+      echo "----------------------------------------------"
+      echo "👾 Image: $IMAGE_NAME"
+      echo ""
+
       if [[ "$IMAGE_NAME" == "trivy" ]]; then
         continue
       fi
@@ -148,13 +174,6 @@ function __main__() {
             echo "🛰 Image: $IMAGE_NAME skipped due to validation exclude"
             continue
       fi
-      # ONLY_IMAGES allow-list (applied on top of the local skip lists).
-      if [[ ${ONLY_IMAGES_ENABLED} -eq 1 ]] && [[ -z "${ONLY_IMAGES_SET["${MODULE_NAME}.${IMAGE_NAME}"]:-}" ]]; then
-        continue
-      fi
-      echo "----------------------------------------------"
-      echo "👾 Image: $IMAGE_NAME"
-      echo ""
 
       IMAGE_HASH="$(jq -rc '.value' <<< "$module_image")"
       IMAGE_REPORT_NAME="$MODULE_NAME $IMAGE_NAME"
