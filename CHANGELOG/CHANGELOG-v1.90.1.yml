@@ -1,0 +1,5 @@
+cloud-provider-dvp:
+  fixes:
+    - summary: fix CVEs in cloud-provider-dvp
+      pull_request: https://github.com/deckhouse/deckhouse-test-1/pull/725
+
