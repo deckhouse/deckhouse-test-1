@@ -552,8 +552,14 @@ jobs:
           if [[ -n ${INITIAL_REF_SLUG} ]] ; then
             INSTALL_IMAGE_NAME=${BRANCH_REGISTRY_PATH}/install:${INITIAL_IMAGE_TAG}
             TERRAFORM_IMAGE_NAME=${BRANCH_REGISTRY_PATH}/e2e-opentofu-eks:${INITIAL_IMAGE_TAG}
-            git fetch origin ${INITIAL_REF_SLUG}
-            git checkout origin/${INITIAL_REF_SLUG} -- testing/cloud_layouts
+            if [[ ${INITIAL_REF_SLUG} =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] ; then
+              # Release e2e now uses semver tags (vX.Y.Z) instead of release branches (release-X.Y).
+              git fetch origin tag ${INITIAL_REF_SLUG}
+              git checkout ${INITIAL_REF_SLUG} -- testing/cloud_layouts
+            else
+              git fetch origin ${INITIAL_REF_SLUG}
+              git checkout origin/${INITIAL_REF_SLUG} -- testing/cloud_layouts
+            fi
           fi
           SAFE_IMAGE_NAME=$(echo ${INSTALL_IMAGE_NAME} | tr '[:lower:]' '[:upper:]')
           echo "Deckhouse Deployment will use install image ${SAFE_IMAGE_NAME} to test Git ref ${REF_FULL}"
