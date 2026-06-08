@@ -502,12 +502,7 @@ jobs:
 
           ## Source: ci_templates/build.yml
 
-          # Extract REPO_SUFFIX from repository name: trim prefix 'deckhouse/deckhouse-'.
-          REPO_SUFFIX=${GITHUB_REPOSITORY#deckhouse/deckhouse-}
-          if [[ $REPO_SUFFIX == $GITHUB_REPOSITORY ]] ; then
-            # REPO_SUFFIX should be empty for main repo 'deckhouse/deckhouse'.
-            REPO_SUFFIX=
-          fi
+          REPO_SUFFIX=""
 
           # Use rw-registry for Git tags.
           SEMVER_REGISTRY_PATH="${DECKHOUSE_REGISTRY_STAGE_HOST}/deckhouse"
