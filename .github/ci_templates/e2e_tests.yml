@@ -622,9 +622,6 @@ check_e2e_labels:
           REPO_SUFFIX=
         fi
 
-        # Use rw-registry for Git tags.
-        SEMVER_REGISTRY_PATH="${DECKHOUSE_REGISTRY_STAGE_HOST}/deckhouse"
-
         # workflow_dispatch may pass prXXX slug while ci_commit_branch holds the real release ref.
         IMAGE_TAG_REF="${CI_COMMIT_REF_SLUG}"
         if [[ -n "${CI_COMMIT_TAG}" ]]; then
@@ -633,17 +630,15 @@ check_e2e_labels:
           IMAGE_TAG_REF="${CI_COMMIT_BRANCH}"
         fi
 
-        if [[ "$IMAGE_TAG_REF" =~ ^release-[0-9]+\.[0-9]+ ]] || [[ "$IMAGE_TAG_REF" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-          # Use stage-registry for release branches and semver tags.
-          BRANCH_REGISTRY_PATH="${DECKHOUSE_REGISTRY_STAGE_HOST}/${REGISTRY_PATH}"
-        else
-          # Use dev-registry for Git branches.
-          BRANCH_REGISTRY_PATH="${DECKHOUSE_DEV_REGISTRY_HOST}/${REGISTRY_PATH}"
-        fi
+        # Branches (main, pr*, release-X.Y) use dev-registry.
+        BRANCH_REGISTRY_PATH="${DECKHOUSE_DEV_REGISTRY_HOST}/${REGISTRY_PATH}"
+
+        # Semver tags (vX.Y.Z) use stage-registry/deckhouse/{fe|ee|ce} — see install block below.
+        SEMVER_REGISTRY_PATH="${DECKHOUSE_REGISTRY_STAGE_HOST}/deckhouse"
 
         if [[ -z ${DECKHOUSE_REGISTRY_HOST:-} ]] ; then
           # DECKHOUSE_REGISTRY_HOST is empty, so this repo is not the main repo.
-          # Use dev-regisry for branches and Github Container Registry for semver tags.
+          # Use dev-registry for branches and Github Container Registry for semver tags.
           SEMVER_REGISTRY_PATH="${GHA_TEST_REGISTRY_PATH}"
         fi
 
@@ -1018,11 +1013,6 @@ check_e2e_labels:
           mkdir -p "${TMP_DIR_PATH}"
         fi
 
-        if [[ "$INSTALL_IMAGE_PATH" =~ release-[0-9]+\.[0-9]+ ]]; then
-          # Use stage-registry for release branches.
-          DECKHOUSE_REGISTRY_HOST=${DECKHOUSE_REGISTRY_STAGE_HOST}
-        fi
-
         INSTALL_IMAGE_NAME="${DECKHOUSE_REGISTRY_HOST:-}${INSTALL_IMAGE_PATH}"
 
         SAFE_IMAGE_NAME=$(echo ${INSTALL_IMAGE_NAME} | tr '[:lower:]' '[:upper:]')
@@ -1036,11 +1026,7 @@ check_e2e_labels:
         DECKHOUSE_IMAGE_TAG="${arrPath[1]}"
 {!{- if eq $provider "eks" }!}
         IMAGE_TAG=${CI_COMMIT_REF_SLUG}${REPO_SUFFIX:+-${REPO_SUFFIX}}
-        if [[ "$INSTALL_IMAGE_PATH" =~ release-[0-9]+\.[0-9]+ ]]; then
-          BRANCH_REGISTRY_PATH="${DECKHOUSE_REGISTRY_STAGE_HOST}/${REGISTRY_PATH}"
-        else
-          BRANCH_REGISTRY_PATH="${DECKHOUSE_DEV_REGISTRY_HOST}/${REGISTRY_PATH}"
-        fi
+        BRANCH_REGISTRY_PATH="${DECKHOUSE_DEV_REGISTRY_HOST}/${REGISTRY_PATH}"
         TERRAFORM_IMAGE_NAME="${BRANCH_REGISTRY_PATH}/e2e-opentofu-eks:${DECKHOUSE_IMAGE_TAG}"
 {!{- end }!}
 

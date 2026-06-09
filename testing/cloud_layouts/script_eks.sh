@@ -89,22 +89,6 @@ function prepare_environment() {
     DEV_BRANCH="${CI_COMMIT_TAG}"
   fi
 
-  if [[ "$DEV_BRANCH" =~ ^release-[0-9]+\.[0-9]+ ]] || [[ "$DEV_BRANCH" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] \
-      || { [[ -n "$INITIAL_IMAGE_TAG" ]] && { [[ "$INITIAL_IMAGE_TAG" =~ ^release-[0-9]+\.[0-9]+ ]] || [[ "$INITIAL_IMAGE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; }; }; then
-    echo "DEV_BRANCH = $DEV_BRANCH: detected release branch or semver tag"
-    export DECKHOUSE_DOCKERCFG=$STAGE_DECKHOUSE_DOCKERCFG
-  else
-    echo "DEV_BRANCH = $DEV_BRANCH: detected dev branch"
-  fi
-
-  decode_dockercfg=$(base64 -d <<< "${DECKHOUSE_DOCKERCFG}")
-  if [[ "$DEV_BRANCH" =~ ^release-[0-9]+\.[0-9]+ ]] || [[ "$DEV_BRANCH" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] \
-      || { [[ -n "$INITIAL_IMAGE_TAG" ]] && { [[ "$INITIAL_IMAGE_TAG" =~ ^release-[0-9]+\.[0-9]+ ]] || [[ "$INITIAL_IMAGE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; }; }; then
-    IMAGES_REPO=$(jq -r '.auths | keys[]'  <<< "$decode_dockercfg")/deckhouse/${EDITION}
-  else
-    IMAGES_REPO=$(jq -r '.auths | keys[]'  <<< "$decode_dockercfg")/sys/deckhouse-oss
-  fi
-
   if [[ -n "$INITIAL_IMAGE_TAG" && "${INITIAL_IMAGE_TAG}" != "${DECKHOUSE_IMAGE_TAG}" ]]; then
     # Use initial image tag as devBranch setting in InitConfiguration.
     # Then update cluster to DECKHOUSE_IMAGE_TAG.
@@ -124,6 +108,21 @@ function prepare_environment() {
     else
       echo "'${DECKHOUSE_IMAGE_TAG}' doesn't look like a release ref. Update command politely ignored."
     fi
+  fi
+
+  # Semver tags (vX.Y.Z) use stage-registry; release branches and dev branches use dev-registry.
+  if [[ "$DEV_BRANCH" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+    echo "DEV_BRANCH = $DEV_BRANCH: detected semver tag, use stage registry"
+    export DECKHOUSE_DOCKERCFG=$STAGE_DECKHOUSE_DOCKERCFG
+  else
+    echo "DEV_BRANCH = $DEV_BRANCH: detected branch ref, use dev registry"
+  fi
+
+  decode_dockercfg=$(base64 -d <<< "${DECKHOUSE_DOCKERCFG}")
+  if [[ "$DEV_BRANCH" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+    IMAGES_REPO=$(jq -r '.auths | keys[]'  <<< "$decode_dockercfg")/deckhouse/${EDITION}
+  else
+    IMAGES_REPO=$(jq -r '.auths | keys[]'  <<< "$decode_dockercfg")/sys/deckhouse-oss
   fi
 
   # shellcheck disable=SC2016
