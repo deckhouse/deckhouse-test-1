@@ -97,9 +97,9 @@ function prepare_environment() {
       SWITCH_TO_IMAGE_TAG="v${BASH_REMATCH[1]}.0"
       update_release_channel "$(echo -n "${STAGE_DECKHOUSE_DOCKERCFG}" | base64 -d | awk -F'\"' '{print $4}')/${REGISTRY_PATH}" "${SWITCH_TO_IMAGE_TAG}"
       echo "Will install '${DEV_BRANCH}' first and then update to '${DECKHOUSE_IMAGE_TAG}' as '${SWITCH_TO_IMAGE_TAG}'"
-    elif [[ "${DEV_BRANCH}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+    elif [[ "${DEV_BRANCH}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+ ]]; then
       SWITCH_TO_IMAGE_TAG="${DEV_BRANCH}"
-      if [[ "${DECKHOUSE_IMAGE_TAG}" =~ ^(v[0-9]+\.[0-9]+\.[0-9]+)$ ]]; then
+      if [[ "${DECKHOUSE_IMAGE_TAG}" =~ ^(v[0-9]+\.[0-9]+\.[0-9]+) ]]; then
         SWITCH_TO_IMAGE_TAG="${BASH_REMATCH[1]}"
       fi
       DEV_BRANCH="${INITIAL_IMAGE_TAG}"
@@ -110,8 +110,7 @@ function prepare_environment() {
     fi
   fi
 
-  # Semver tags (vX.Y.Z) use stage-registry; release branches and dev branches use dev-registry.
-  if [[ "$DEV_BRANCH" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+  if [[ "$DEV_BRANCH" =~ ^v[0-9]+\.[0-9]+\.[0-9]+ ]]; then
     echo "DEV_BRANCH = $DEV_BRANCH: detected semver tag, use stage registry"
     export DECKHOUSE_DOCKERCFG=$STAGE_DECKHOUSE_DOCKERCFG
   else
@@ -119,7 +118,7 @@ function prepare_environment() {
   fi
 
   decode_dockercfg=$(base64 -d <<< "${DECKHOUSE_DOCKERCFG}")
-  if [[ "$DEV_BRANCH" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+  if [[ "$DEV_BRANCH" =~ ^v[0-9]+\.[0-9]+\.[0-9]+ ]]; then
     IMAGES_REPO=$(jq -r '.auths | keys[]'  <<< "$decode_dockercfg")/deckhouse/${EDITION}
   else
     IMAGES_REPO=$(jq -r '.auths | keys[]'  <<< "$decode_dockercfg")/sys/deckhouse-oss
