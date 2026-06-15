@@ -53,7 +53,7 @@ jobs:
 
       # </template: import_secrets>
       - name: Run Gitleaks full scan
-        uses: deckhouse/modules-actions/gitleaks@main
+        uses: deckhouse/modules-actions/gitleaks@v15
         with:
           scan_mode: full
           gitleaks_version: v8.28.0
