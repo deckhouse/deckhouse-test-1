@@ -475,7 +475,7 @@ jobs:
     needs:
       - discover
       - pull_request_info
-    if: ${{ needs.discover.outputs.run_doc_changes == 'true' && github.repository == 'deckhouse/deckhouse' }}
+    if: ${{ needs.discover.outputs.run_doc_changes == 'true' && startsWith(github.repository, 'deckhouse/deckhouse') }}
     runs-on: [self-hosted, regular]
     permissions:
       contents: read
