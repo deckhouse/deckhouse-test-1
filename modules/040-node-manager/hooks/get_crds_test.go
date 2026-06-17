@@ -395,7 +395,6 @@ metadata:
 					"cri": {
                       "type": "Containerd"
                     },
-                    "engine": "None",
 				    "name": "proper1",
                     "updateEpoch": "` + calculateEpoch("proper1", f.ValuesGet("global.discovery.clusterUUID").String()) + `"
 				  },
@@ -425,7 +424,6 @@ metadata:
 					"cri": {
                       "type": "Containerd"
                     },
-                    "engine": "None",
                     "serializedLabels": "node-role.kubernetes.io/proper2=,node.deckhouse.io/group=proper2,node.deckhouse.io/type=CloudEphemeral",
                     "serializedTaints": "",
 				    "name": "proper2",
@@ -471,7 +469,6 @@ metadata:
 					"cri": {
                       "type": "Containerd"
                     },
-                    "engine": "None",
 					"manualRolloutID": "",
                     "kubelet": {
                       "containerLogMaxSize": "50Mi",
@@ -516,7 +513,6 @@ metadata:
 					"cri": {
                       "type": "Containerd"
                     },
-                    "engine": "None",
 				    "name": "proper1",
                     "updateEpoch": "` + calculateEpoch("proper1", f.ValuesGet("global.discovery.clusterUUID").String()) + `"
 				  },
@@ -548,7 +544,6 @@ metadata:
 					"cri": {
                       "type": "Containerd"
                     },
-                    "engine": "None",
 				    "name": "proper2",
                     "updateEpoch": "` + calculateEpoch("proper2", f.ValuesGet("global.discovery.clusterUUID").String()) + `"
 				  },
@@ -557,7 +552,6 @@ metadata:
 					"cri": {
                       "type": "Containerd"
                     },
-                    "engine": "None",
                     "manualRolloutID": "",
 		            "kubelet": {
 			          "containerLogMaxSize": "50Mi",
@@ -606,7 +600,6 @@ metadata:
 					"cri": {
                       "type": "Containerd"
                     },
-                    "engine": "None",
 		            "kubelet": {
 			          "containerLogMaxSize": "50Mi",
 			          "containerLogMaxFiles": 4,
@@ -651,7 +644,6 @@ metadata:
 					"cri": {
                       "type": "Containerd"
                     },
-                    "engine": "None",
 				    "name": "proper1",
                     "updateEpoch": "` + calculateEpoch("proper1", f.ValuesGet("global.discovery.clusterUUID").String()) + `"
 				  },
@@ -683,7 +675,6 @@ metadata:
 					"cri": {
                       "type": "Containerd"
                     },
-                    "engine": "None",
 				    "name": "proper2",
                     "updateEpoch": "` + calculateEpoch("proper2", f.ValuesGet("global.discovery.clusterUUID").String()) + `"
 				  },
@@ -692,7 +683,6 @@ metadata:
 					"cri": {
                       "type": "Containerd"
                     },
-                    "engine": "None",
 		           "kubelet": {
                      "containerLogMaxSize": "50Mi",
 			         "containerLogMaxFiles": 4,
@@ -763,7 +753,6 @@ metadata:
 					"cri": {
                       "type": "Containerd"
                     },
-                    "engine": "None",
 				    "name": "proper1",
                     "updateEpoch": "` + calculateEpoch("proper1", f.ValuesGet("global.discovery.clusterUUID").String()) + `"
 				  },
@@ -795,7 +784,6 @@ metadata:
 					"cri": {
                       "type": "Containerd"
                     },
-                    "engine": "None",
 				    "name": "proper2",
                     "updateEpoch": "` + calculateEpoch("proper2", f.ValuesGet("global.discovery.clusterUUID").String()) + `"
 				  }
@@ -871,7 +859,6 @@ metadata:
 					"cri": {
                       "type": "Containerd"
                     },
-                    "engine": "None",
 				    "instanceClass": null,
 				    "kubelet": {
 					  "containerLogMaxSize": "50Mi",
@@ -903,7 +890,6 @@ metadata:
 					"cri": {
                       "type": "Containerd"
                     },
-                    "engine": "None",
 				    "instanceClass": null,
 				    "kubelet": {
 					  "containerLogMaxSize": "50Mi",
@@ -1007,7 +993,6 @@ metadata:
 					"cri": {
                       "type": "Containerd"
                     },
-                    "engine": "None",
 				    "instanceClass": null,
 				    "kubelet": {
 					  "containerLogMaxSize": "50Mi",
@@ -1039,7 +1024,6 @@ metadata:
 					"cri": {
                       "type": "Containerd"
                     },
-                    "engine": "None",
 				    "instanceClass": null,
 				    "kubelet": {
 					  "containerLogMaxSize": "50Mi",

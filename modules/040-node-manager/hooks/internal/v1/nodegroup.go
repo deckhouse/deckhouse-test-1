@@ -43,14 +43,6 @@ const (
 	NodeTypeCloudStatic    NodeType = "CloudStatic"
 )
 
-type NodeGroupEngine string
-
-const (
-	NodeGroupEngineNone NodeGroupEngine = "None"
-	NodeGroupEngineMCM  NodeGroupEngine = "MCM"
-	NodeGroupEngineCAPI NodeGroupEngine = "CAPI"
-)
-
 func (nt NodeType) String() string {
 	return string(nt)
 }
@@ -526,9 +518,6 @@ func (c *NodeGroupCondition) ToMap() map[string]interface{} {
 }
 
 type NodeGroupStatus struct {
-	// Engine is machinery used to control nodes in this group.
-	Engine NodeGroupEngine `json:"engine,omitempty"`
-
 	// Number of ready Kubernetes nodes in the group.
 	Ready int32 `json:"ready,omitempty"`
 

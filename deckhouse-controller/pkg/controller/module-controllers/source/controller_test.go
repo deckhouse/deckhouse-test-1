@@ -112,7 +112,6 @@ func (suite *ControllerTestSuite) buildReconciler(options ...reconcilerOption) {
 				DisruptionApprovalMode string                            `json:"disruptionApprovalMode"`
 				Windows                update.Windows                    `json:"windows"`
 				NotificationConfig     releaseUpdater.NotificationConfig `json:"notification"`
-				BlockOnAlerts          releaseUpdater.BlockOnAlerts      `json:"blockOnAlerts"`
 			}{},
 			ReleaseChannel:           "",
 			AllowExperimentalModules: true,

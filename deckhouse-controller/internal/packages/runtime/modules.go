@@ -75,7 +75,7 @@ func (r *Runtime) UpdateModule(repo registry.Remote, module Module) {
 		return
 	}
 
-	r.status.NewStatus(name)
+	r.status.ClearStatus(name)
 
 	tasks := []queue.Task{
 		taskdeploy.NewModuleTask(name, version, repo, r.moduleDeployer, r.status, r.logger),

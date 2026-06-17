@@ -143,7 +143,6 @@ var DefaultImagesDigests = map[string]interface{}{
 		"vsphereCsiPluginLegacy":    "imageHash-cloudProviderVsphere-vsphereCsiPluginLegacy",
 	},
 	"cloudProviderYandex": map[string]interface{}{
-		"capyControllerManager":  "imageHash-cloudProviderYandex-capyControllerManager",
 		"cloudControllerManager": "imageHash-cloudProviderYandex-cloudControllerManager",
 		"cloudDataDiscoverer":    "imageHash-cloudProviderYandex-cloudDataDiscoverer",
 		"cloudMetricsExporter":   "imageHash-cloudProviderYandex-cloudMetricsExporter",

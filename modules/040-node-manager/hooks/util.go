@@ -98,8 +98,3 @@ func setNodeGroupStatus(patcher go_hook.PatchCollector, nodeGroupName string, st
 	}
 	patchNodeGroupStatus(patcher, nodeGroupName, statusPatch)
 }
-
-func valueExistsAndNotEmpty(input *go_hook.HookInput, path string) bool {
-	value := input.Values.Get(path)
-	return value.Exists() && value.String() != ""
-}

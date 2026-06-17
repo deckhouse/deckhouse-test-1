@@ -1,31 +1,21 @@
-{{- define "cluster_autoscaler_rbac" }}
-  {{- $ctx := index . 0 }}
-  {{- $name := index . 1 }}
-  {{- $serviceAccountName := index . 2 }}
-  {{- $createServiceAccount := index . 3 }}
-  {{- if not $serviceAccountName }}
-    {{- $serviceAccountName = $name }}
-  {{- end }}
-  {{- if eq $createServiceAccount nil }}
-    {{- $createServiceAccount = true }}
-  {{- end }}
-  {{- if $createServiceAccount }}
+{{- if include "cluster_autoscaler_enabled" . }}
+  {{- if hasKey $.Values.nodeManager.internal "cloudProvider" }}
+    {{- if include "cluster_autoscaler_nodes" . }}
 ---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: {{ $serviceAccountName }}
+  name: cluster-autoscaler
   namespace: d8-cloud-instance-manager
-  {{- include "helm_lib_module_labels" (list $ctx (dict "app" $name)) | nindent 2 }}
+  {{- include "helm_lib_module_labels" (list . (dict "app" "cluster-autoscaler")) | nindent 2 }}
 automountServiceAccountToken: false
-  {{- end }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  name: {{ $name }}
+  name: cluster-autoscaler
   namespace: d8-cloud-instance-manager
-  {{- include "helm_lib_module_labels" (list $ctx (dict "app" $name)) | nindent 2 }}
+  {{- include "helm_lib_module_labels" (list . (dict "app" "cluster-autoscaler")) | nindent 2 }}
 rules:
 - apiGroups:
   - machine.sapcloud.io
@@ -43,6 +33,7 @@ rules:
   - get
   - list
   - watch
+# cluster api
 - apiGroups:
   - infrastructure.cluster.x-k8s.io
   verbs:
@@ -55,7 +46,6 @@ rules:
   - dynamixmachinetemplates
   - zvirtmachinetemplates
   - deckhousemachinetemplates
-  - yandexmachinetemplates
 - apiGroups:
   - cluster.x-k8s.io
   resources:
@@ -68,19 +58,20 @@ rules:
   - get
   - list
   - watch
+# leader election
 - apiGroups: [""]
   resources: ["endpoints"]
   verbs: ["create"]
 - apiGroups: [""]
   resources: ["endpoints"]
-  resourceNames: [{{ $name | quote }}]
+  resourceNames: ["cluster-autoscaler"]
   verbs: ["get", "update", "patch", "delete"]
 - apiGroups: ["coordination.k8s.io"]
   resources: ["leases"]
   verbs: ["create"]
 - apiGroups: ["coordination.k8s.io"]
   resources: ["leases"]
-  resourceNames: [{{ $name | quote }}]
+  resourceNames: ["cluster-autoscaler"]
   verbs: ["get", "update", "patch", "delete"]
 - apiGroups:
   - machine.sapcloud.io
@@ -91,6 +82,7 @@ rules:
   verbs:
   - patch
   - update
+# cluster api
 - apiGroups:
   - cluster.x-k8s.io
   resources:
@@ -100,6 +92,7 @@ rules:
   verbs:
   - patch
   - update
+# expander cm
 - apiGroups:
   - ""
   resources:
@@ -122,24 +115,25 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: {{ $name }}
+  name: cluster-autoscaler
   namespace: d8-cloud-instance-manager
-  {{- include "helm_lib_module_labels" (list $ctx (dict "app" $name)) | nindent 2 }}
+  {{- include "helm_lib_module_labels" (list . (dict "app" "cluster-autoscaler")) | nindent 2 }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
-  name: {{ $name }}
+  name: cluster-autoscaler
 subjects:
 - kind: ServiceAccount
-  name: {{ $serviceAccountName }}
+  name: cluster-autoscaler
   namespace: d8-cloud-instance-manager
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: d8:node-manager:{{ $name }}
-  {{- include "helm_lib_module_labels" (list $ctx (dict "app" $name)) | nindent 2 }}
+  name: d8:node-manager:cluster-autoscaler
+  {{- include "helm_lib_module_labels" (list . (dict "app" "cluster-autoscaler")) | nindent 2 }}
 rules:
+# accessing & modifying cluster state (nodes & pods)
 - apiGroups: [""]
   resources: ["nodes"]
   verbs: ["get", "list", "watch", "update", "patch"]
@@ -149,6 +143,7 @@ rules:
 - apiGroups: [""]
   resources: ["pods/eviction"]
   verbs: ["create"]
+# read-only access to cluster state
 - apiGroups: [""]
   resources: ["services", "replicationcontrollers", "persistentvolumes", "persistentvolumeclaims", "namespaces"]
   verbs: ["get", "list", "watch"]
@@ -156,7 +151,10 @@ rules:
   resources: ["daemonsets", "replicasets"]
   verbs: ["get", "list", "watch"]
 - apiGroups: ["apps"]
-  resources: ["statefulsets", "deployments"]
+  resources: ["statefulsets"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["apps"]
+  resources: ["deployments"]
   verbs: ["get", "list", "watch"]
 - apiGroups: ["batch"]
   resources: ["jobs"]
@@ -167,9 +165,11 @@ rules:
 - apiGroups: ["storage.k8s.io"]
   resources: ["storageclasses", "csinodes", "csistoragecapacities", "csidrivers", "volumeattachments"]
   verbs: ["get", "list", "watch"]
+# misc access
 - apiGroups: [""]
   resources: ["events"]
   verbs: ["create", "update", "patch"]
+# cluster api
 - apiGroups:
   - infrastructure.cluster.x-k8s.io
   verbs:
@@ -182,7 +182,6 @@ rules:
   - dynamixmachinetemplates
   - zvirtmachinetemplates
   - deckhousemachinetemplates
-  - yandexmachinetemplates
 - apiGroups: ["cluster.x-k8s.io"]
   resources:
   - machinedeployments
@@ -195,39 +194,30 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: d8:node-manager:{{ $name }}
-  {{- include "helm_lib_module_labels" (list $ctx (dict "app" $name)) | nindent 2 }}
+  name: d8:node-manager:cluster-autoscaler
+  {{- include "helm_lib_module_labels" (list . (dict "app" "cluster-autoscaler")) | nindent 2 }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: d8:node-manager:{{ $name }}
+  name: d8:node-manager:cluster-autoscaler
 subjects:
 - kind: ServiceAccount
-  name: {{ $serviceAccountName }}
+  name: cluster-autoscaler
   namespace: d8-cloud-instance-manager
+    {{- end }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: d8:node-manager:{{ $name }}:rbac-proxy
-  {{- include "helm_lib_module_labels" (list $ctx (dict "app" $name)) | nindent 2 }}
+  name: d8:node-manager:cluster-autoscaler:rbac-proxy
+  {{- include "helm_lib_module_labels" (list . (dict "app" "cluster-autoscaler")) | nindent 2 }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
   name: d8:rbac-proxy
 subjects:
 - kind: ServiceAccount
-  name: {{ $serviceAccountName }}
+  name: cluster-autoscaler
   namespace: d8-cloud-instance-manager
-{{- end }}
-
-{{- if include "cluster_autoscaler_enabled" . }}
-  {{- if not (include "cluster_autoscaler_split_mode" .) }}
-{{ include "cluster_autoscaler_rbac" (list . "cluster-autoscaler" "cluster-autoscaler" true) }}
-  {{- else if include "cluster_autoscaler_mcm_enabled" . }}
-{{ include "cluster_autoscaler_rbac" (list . "cluster-autoscaler-mcm" "cluster-autoscaler" (not (include "cluster_autoscaler_capi_enabled" .))) }}
-  {{- end }}
-  {{- if and (include "cluster_autoscaler_split_mode" .) (include "cluster_autoscaler_capi_enabled" .) }}
-{{ include "cluster_autoscaler_rbac" (list . "cluster-autoscaler" "cluster-autoscaler" true) }}
   {{- end }}
 {{- end }}
