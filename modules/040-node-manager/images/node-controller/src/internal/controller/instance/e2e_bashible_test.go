@@ -68,7 +68,7 @@ var _ = Describe("Bashible status aggregation (real SSA field ownership)", func(
 	})
 
 	It("maps WaitingApproval=True with reason UpdateApprovalTimeout to bashibleStatus WaitingApproval", func() {
-		name := uniqueName("bashible-approval123")
+		name := uniqueName("bashible-approval")
 		newNodeBackedInstance(name)
 		applyBashibleCondition(name, bashibleReadyManager,
 			bashibleReady(metav1.ConditionTrue, "StepsCompleted", "converge cycle finished", time.Now()))
