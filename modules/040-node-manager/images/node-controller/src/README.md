@@ -566,3 +566,5 @@ The controller is deployed as part of the `040-node-manager` module:
 ## License
 
 Apache License 2.0
+
+<!-- ci trigger: back to green -->
