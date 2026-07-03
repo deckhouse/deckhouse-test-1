@@ -114,7 +114,6 @@ jobs:
             echo "tags=[\"main\"]" >> $GITHUB_OUTPUT
           fi
 
-
   # <template: drweb_scan_job>
   drweb-scan:
     name: Dr.Web Scan
@@ -245,7 +244,6 @@ jobs:
           fi
 
   # </template: drweb_scan_job>
-
 
 
   # <template: kaspersky_scan_job>

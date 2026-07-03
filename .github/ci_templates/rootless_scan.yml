@@ -70,37 +70,3 @@ steps:
   {!{- end }!}
 # </template: security_scan_template>
 {!{ end }!}
-
-{!{ define "set_security_rootless_requirement_status" }!}
-# <template: set_security_rootless_requirement_status>
-set_security_rootless_requirement_status:
-  name: Set commit status after security rootless scan run
-  runs-on: "self-slim"
-  needs:
-    - pull_request_info
-    - security_scan_images
-  if: ${{ always() }}
-  permissions:
-    contents: read
-    pull-requests: write
-  steps:
-    - name: Install GitHub CLI
-      uses: deckhouse/modules-actions/gh@v15
-    - name: Auth with GitHub CLI
-      run: echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
-    - name: Set PR Label
-      env:
-        PR_NUMBER: ${{ github.event.pull_request.number }}
-        GH_REPO: ${{ github.repository }}
-        RESULT: ${{ needs.security_scan_images.result }}
-      run: |
-        echo "PR Number: $PR_NUMBER | Result: $RESULT"
-        if [ "$RESULT" == "success" ]; then
-          gh pr edit "$PR_NUMBER" --add-label "security/rootless/success" --remove-label "security/rootless/failed"
-        elif [ "$RESULT" == "skipped" ]; then
-          gh pr edit "$PR_NUMBER" --remove-label "security/rootless/success" --remove-label "security/rootless/failed"
-        else
-          gh pr edit "$PR_NUMBER" --add-label "security/rootless/failed" --remove-label "security/rootless/success"
-        fi
-# </template: set_security_rootless_requirement_status>
-{!{- end -}!}
