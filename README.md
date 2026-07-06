@@ -62,3 +62,4 @@ In addition to common GitHub features, here are some other online resources rela
 * [Deckhouse Kubernetes Platform blog](https://blog.deckhouse.io/) to read the latest articles about Deckhouse Kubernetes Platform.
 
 AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO
