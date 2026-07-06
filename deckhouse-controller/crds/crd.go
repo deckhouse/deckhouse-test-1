@@ -21,10 +21,10 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/deckhouse/deckhouse/go_lib/project"
+
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	"sigs.k8s.io/yaml"
-
-	"github.com/deckhouse/deckhouse/go_lib/project"
 )
 
 func List() ([]apiextensionsv1.CustomResourceDefinition, error) {
