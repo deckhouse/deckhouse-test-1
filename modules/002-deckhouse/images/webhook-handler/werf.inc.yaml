@@ -1,6 +1,7 @@
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}
 fromImage: common/shell-operator
+fromCacheVersion: "666"
 import:
 - image: tools/yq
   add: /usr/bin/yq
