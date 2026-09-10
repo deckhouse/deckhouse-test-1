@@ -41,7 +41,6 @@ env:
   WERF_FINAL_IMAGES_ONLY: true
   WERF_LOG_TERMINAL_WIDTH: "200"
   WERF_LOG_TIME: true
-  WERF_DEBUG: true
   WERF_GIT_WORK_TREE_POOL_LIMIT: "10"
   GOPROXY: "${{vars.GOPROXY}}"
   # </template: werf_envs>
@@ -464,6 +463,7 @@ jobs:
             --parallel=true --parallel-tasks-limit=5 \
             --save-build-report=true \
             --build-report-operations=true \
+            --log-debug=true \
             --build-report-path images_tags_werf.json
 
           # Publish images for Git branch.
