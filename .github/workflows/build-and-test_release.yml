@@ -594,11 +594,17 @@ jobs:
           fi
 
           # Statisctics added since werf 2.78.1
+          werf_major="$(werf version | cut -d. -f1)"
           werf_minor="$(werf version | cut -d. -f2)"
           werf_build_report_operations_arg=""
-          if (( werf_minor >= 78 )); then
-            echo "Using build-report-operations"
+          if (( werf_major >= 3 )); then
+            echo "Using build-report-operations, werf version >=3.0"
             werf_build_report_operations_arg="--build-report-operations=true"
+          else
+            if (( werf_minor >= 78 )); then
+              echo "Using build-report-operations, werf version >=2.78"
+              werf_build_report_operations_arg="--build-report-operations=true"
+            fi
           fi
 
           type werf && source $(werf ci-env github --verbose --as-file)
@@ -1044,11 +1050,17 @@ jobs:
           fi
 
           # Statisctics added since werf 2.78.1
+          werf_major="$(werf version | cut -d. -f1)"
           werf_minor="$(werf version | cut -d. -f2)"
           werf_build_report_operations_arg=""
-          if (( werf_minor >= 78 )); then
-            echo "Using build-report-operations"
+          if (( werf_major >= 3 )); then
+            echo "Using build-report-operations, werf version >=3.0"
             werf_build_report_operations_arg="--build-report-operations=true"
+          else
+            if (( werf_minor >= 78 )); then
+              echo "Using build-report-operations, werf version >=2.78"
+              werf_build_report_operations_arg="--build-report-operations=true"
+            fi
           fi
 
           type werf && source $(werf ci-env github --verbose --as-file)
@@ -1495,11 +1507,17 @@ jobs:
           fi
 
           # Statisctics added since werf 2.78.1
+          werf_major="$(werf version | cut -d. -f1)"
           werf_minor="$(werf version | cut -d. -f2)"
           werf_build_report_operations_arg=""
-          if (( werf_minor >= 78 )); then
-            echo "Using build-report-operations"
+          if (( werf_major >= 3 )); then
+            echo "Using build-report-operations, werf version >=3.0"
             werf_build_report_operations_arg="--build-report-operations=true"
+          else
+            if (( werf_minor >= 78 )); then
+              echo "Using build-report-operations, werf version >=2.78"
+              werf_build_report_operations_arg="--build-report-operations=true"
+            fi
           fi
 
           type werf && source $(werf ci-env github --verbose --as-file)
@@ -1946,11 +1964,17 @@ jobs:
           fi
 
           # Statisctics added since werf 2.78.1
+          werf_major="$(werf version | cut -d. -f1)"
           werf_minor="$(werf version | cut -d. -f2)"
           werf_build_report_operations_arg=""
-          if (( werf_minor >= 78 )); then
-            echo "Using build-report-operations"
+          if (( werf_major >= 3 )); then
+            echo "Using build-report-operations, werf version >=3.0"
             werf_build_report_operations_arg="--build-report-operations=true"
+          else
+            if (( werf_minor >= 78 )); then
+              echo "Using build-report-operations, werf version >=2.78"
+              werf_build_report_operations_arg="--build-report-operations=true"
+            fi
           fi
 
           type werf && source $(werf ci-env github --verbose --as-file)
@@ -2397,11 +2421,17 @@ jobs:
           fi
 
           # Statisctics added since werf 2.78.1
+          werf_major="$(werf version | cut -d. -f1)"
           werf_minor="$(werf version | cut -d. -f2)"
           werf_build_report_operations_arg=""
-          if (( werf_minor >= 78 )); then
-            echo "Using build-report-operations"
+          if (( werf_major >= 3 )); then
+            echo "Using build-report-operations, werf version >=3.0"
             werf_build_report_operations_arg="--build-report-operations=true"
+          else
+            if (( werf_minor >= 78 )); then
+              echo "Using build-report-operations, werf version >=2.78"
+              werf_build_report_operations_arg="--build-report-operations=true"
+            fi
           fi
 
           type werf && source $(werf ci-env github --verbose --as-file)
@@ -2848,11 +2878,17 @@ jobs:
           fi
 
           # Statisctics added since werf 2.78.1
+          werf_major="$(werf version | cut -d. -f1)"
           werf_minor="$(werf version | cut -d. -f2)"
           werf_build_report_operations_arg=""
-          if (( werf_minor >= 78 )); then
-            echo "Using build-report-operations"
+          if (( werf_major >= 3 )); then
+            echo "Using build-report-operations, werf version >=3.0"
             werf_build_report_operations_arg="--build-report-operations=true"
+          else
+            if (( werf_minor >= 78 )); then
+              echo "Using build-report-operations, werf version >=2.78"
+              werf_build_report_operations_arg="--build-report-operations=true"
+            fi
           fi
 
           type werf && source $(werf ci-env github --verbose --as-file)
