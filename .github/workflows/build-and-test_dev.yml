@@ -5198,7 +5198,7 @@ jobs:
 
       - name: Run Deckhouse images CVE tests on "${{ steps.scan_type.outputs.tag }}"
         id: scan
-        uses: deckhouse/modules-actions/cve_scan@main
+        uses: deckhouse/modules-actions/cve_scan@only_images
         with:
           prod_registry: ${{ secrets.DECKHOUSE_REGISTRY_READ_HOST }}
           prod_registry_user: ${{ secrets.DECKHOUSE_REGISTRY_READ_USER }}
