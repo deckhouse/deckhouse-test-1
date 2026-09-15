@@ -4994,7 +4994,7 @@ jobs:
             echo "has_credentials=true" >> $GITHUB_OUTPUT
             echo "web_registry_path=${{steps.secrets.outputs.DECKHOUSE_DEV_REGISTRY_HOST }}/deckhouse/site" >> $GITHUB_OUTPUT
           fi
-      - name: Login to dev registry
+      - name: Login to dev registry123  
         uses: docker/login-action@v2.1.0
         if: ${{ steps.check_dev_registry.outputs.has_credentials == 'true' }}
         with:
