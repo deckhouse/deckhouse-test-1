@@ -4994,7 +4994,7 @@ jobs:
             echo "has_credentials=true" >> $GITHUB_OUTPUT
             echo "web_registry_path=${{steps.secrets.outputs.DECKHOUSE_DEV_REGISTRY_HOST }}/deckhouse/site" >> $GITHUB_OUTPUT
           fi
-      - name: Login to dev registry
+      - name: Login to dev registry123  
         uses: docker/login-action@v2.1.0
         if: ${{ steps.check_dev_registry.outputs.has_credentials == 'true' }}
         with:
@@ -5200,9 +5200,9 @@ jobs:
         id: scan
         uses: deckhouse/modules-actions/cve_scan@30280e04abf5e0d4e5867b29c2cc9f240930309b
         with:
-          prod_registry: ${{ secrets.DECKHOUSE_REGISTRY_READ_HOST }}
-          prod_registry_user: ${{ secrets.DECKHOUSE_REGISTRY_READ_USER }}
-          prod_registry_password: ${{ secrets.DECKHOUSE_REGISTRY_READ_PASSWORD }}
+          prod_registry: ${{ steps.secrets.outputs.PROD_READ_REGISTRY }}
+          prod_registry_user: ${{ steps.secrets.outputs.PROD_READ_REGISTRY_USER }}
+          prod_registry_password: ${{ steps.secrets.outputs.PROD_READ_REGISTRY_PASSWORD }}
           dev_registry: ${{ steps.secrets.outputs.DECKHOUSE_DEV_REGISTRY_HOST }}
           dev_registry_user: "${{ steps.secrets.outputs.DECKHOUSE_DEV_REGISTRY_USER}}"
           dev_registry_password: "${{ steps.secrets.outputs.DECKHOUSE_DEV_REGISTRY_PASSWORD }}"
