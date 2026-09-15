@@ -5200,9 +5200,9 @@ jobs:
         id: scan
         uses: deckhouse/modules-actions/cve_scan@30280e04abf5e0d4e5867b29c2cc9f240930309b
         with:
-          prod_registry: ${{ secrets.DECKHOUSE_REGISTRY_READ_HOST }}
-          prod_registry_user: ${{ secrets.DECKHOUSE_REGISTRY_READ_USER }}
-          prod_registry_password: ${{ secrets.DECKHOUSE_REGISTRY_READ_PASSWORD }}
+          prod_registry: ${{ steps.secrets.outputs.PROD_READ_REGISTRY }}
+          prod_registry_user: ${{ steps.secrets.outputs.PROD_READ_REGISTRY_USER }}
+          prod_registry_password: ${{ steps.secrets.outputs.PROD_READ_REGISTRY_PASSWORD }}
           dev_registry: ${{ steps.secrets.outputs.DECKHOUSE_DEV_REGISTRY_HOST }}
           dev_registry_user: "${{ steps.secrets.outputs.DECKHOUSE_DEV_REGISTRY_USER}}"
           dev_registry_password: "${{ steps.secrets.outputs.DECKHOUSE_DEV_REGISTRY_PASSWORD }}"
