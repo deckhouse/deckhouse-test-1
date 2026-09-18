@@ -4,27 +4,25 @@
 {{- end }}
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}-artifact
-from: {{ index $.Images "builder/alt" }}
+from: {{ index $.Images "builder/distroless" }}
 final: false
+packages:
+- type: os-pm
+  spec: [bash, coreutils, git, ssh-static]
 shell:
-  beforeInstall:
-  {{- include "alt archive repos" . | nindent 2 }}
-  {{- include "alt packages proxy" . | nindent 2 }}
-  {{- include "alt dist upgrade" . | nindent 2 }}
+  install:
+  - mkdir -p /root/.ssh
   # ssh auth to 3p repos
   - echo "StrictHostKeyChecking accept-new" > ~/.ssh/config
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}
-from: {{ index $.Images "builder/alt" }}
+from: {{ index $.Images "base/distroless" }}
 final: false
-shell:
-  beforeInstall:
-  {{- include "alt archive repos" . | nindent 2 }}
-  - cp /etc/apt/sources.list.d/alt.list /etc/apt/sources.list.d/alt.list.orig
-  {{- include "alt packages proxy" . | nindent 2 }}
-  {{- include "alt dist upgrade" . | nindent 2 }}
-  # return original repos
-  - mv /etc/apt/sources.list.d/alt.list.orig /etc/apt/sources.list.d/alt.list
+import:
+- from: common/distroless-artifact
+  add: /relocate
+  to: /
+  before: setup
 imageSpec:
   config:
     user: "64535:64535"

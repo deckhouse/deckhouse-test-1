@@ -1,19 +1,37 @@
 {{- $version := include "get_oss_version_by_id" (list "cert-manager" $ )  -}} # see in oss.yaml
 image: {{ $.ModuleName }}/{{ $.ImageName }}
-fromImage: common/distroless
+{{- $vexPath := printf "%smodules/%s-%s/images/%s/known_vulnerabilities.vex" $.ModulePath $.ModulePriority $.ModuleName $.ImageName }}
+{{- if eq (len ($.Files.Glob $vexPath)) 1 }}
+vex: {{ $vexPath }}
+{{- end }}
+from: {{ index $.Images "base/distroless" }}
 import:
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact
+- from: common/distroless-artifact
+  add: /relocate
+  to: /
+  before: install
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-artifact
   add: /controller-linux-amd64
-  to: /bin/cert-manager-controller
+  to: /usr/bin/cert-manager-controller
   before: setup
 imageSpec:
   config:
+    user: "64535:64535"
     entrypoint: ["/bin/cert-manager-controller"]
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact-{{ $version | replace "." "-" }}
-fromImage: common/src-artifact
+from: {{ index $.Images "builder/distroless" }}
 final: false
+packages:
+- type: os-pm
+  spec: [git, coreutils]
 git:
+- url: {{ .SOURCE_REPO }}/jetstack/cert-manager.git
+  tag: v{{ $version }}
+  add: /
+  to: /src
+  stageDependencies:
+    install: ['**/*']
 - add: /{{ $.ModulePath }}modules/101-{{ $.ModuleName }}/images/{{ $.ImageName }}/patches
   to: /patches
   stageDependencies:
@@ -21,36 +39,30 @@ git:
     - '**/*'
 - add: /{{ $.ModulePath }}modules/101-{{ $.ModuleName }}/crds
   to: /module_crds    
-secrets:
-- id: SOURCE_REPO
-  value: {{ .SOURCE_REPO }}
 shell:
   install:
-  - git clone -b "v{{ $version }}" --single-branch --depth=1 $(cat /run/secrets/SOURCE_REPO)/jetstack/cert-manager.git /src
   - cd /src
   - git apply /patches/*.patch --verbose --allow-empty
-  - git describe --tags --always --match='v*' --abbrev=14 --dirty > VERSION
-  - git describe --tags --always --match='v*' --abbrev=0 | grep -q '-' && echo true || echo false > IS_PRERELEASE
-  - git rev-parse HEAD > GITCOMMIT
-  - git show -s --format=%ct HEAD > GITEPOCH
-  - rm -rf /src/.git
+  - echo 'v{{ $version }}' > VERSION
+  - echo '{{ contains "-" $version }}' > IS_PRERELEASE
+  - echo 'v{{ $version }}' > GITCOMMIT
+  - echo '0' > GITEPOCH
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-ci-validator
-fromImage: common/src-artifact
+from: {{ index $.Images "builder/distroless" }}
 final: false
+packages:
+- type: os-pm
+  spec: [bash, coreutils, diffutils, grep, sed, yq]
 git:
 - add: /{{ $.ModulePath }}modules/101-{{ $.ModuleName }}/crds
   to: /module_crds
 - add: /{{ $.ModulePath }}modules/101-{{ $.ModuleName }}/docs
   to: /docs  
 import:
-- image: {{ .ModuleName }}/{{ .ImageName }}-src-artifact-{{ $version | replace "." "-" }}
+- from: {{ .ModuleName }}/{{ .ImageName }}-src-artifact-{{ $version | replace "." "-" }}
   add: /src/deploy/crds
   to: /src/deploy/crds
-  before: install
-- from: {{ index $.Images "tools/yq" }}
-  add: /usr/bin/yq
-  to: /usr/bin/yq
   before: install
 shell:
   install:
@@ -71,16 +83,19 @@ shell:
     cat /docs/README_RU.md | grep {{ $version }} || ( echo "ERROR: version v{{ $version }} not found in /docs/README_RU.md" && exit 1 )
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact
-from: {{ index $.Images ( eq $.SVACE_ENABLED "false" | ternary "builder/golang-bookworm" "builder/golang-bookworm-svace" ) }}
+from: {{ index $.Images "builder/distroless" }}
 final: false
+packages:
+- type: os-pm
+  spec: [golang==1.26.8, bash, git, coreutils, make, jq, grep, sed, findutils, svace, ssh-static, rsync]
+- type: go-mod
+  workdir: /src
+  env:
+    GOPROXY: "%secret:GOPROXY%"
 import:
-- image: {{ .ModuleName }}/{{ .ImageName }}-src-artifact-{{ $version | replace "." "-" }}
+- from: {{ .ModuleName }}/{{ .ImageName }}-src-artifact-{{ $version | replace "." "-" }}
   add: /src
   to: /src
-  before: install
-- from: {{ index $.Images "tools/jq" }}
-  add: /usr/bin/jq
-  to: /usr/bin/jq
   before: install
 mount:
 {{ include "mount points for golang builds" . }}
@@ -88,13 +103,8 @@ secrets:
 - id: GOPROXY
   value: {{ .GOPROXY }}
 shell:
-  beforeInstall:
-{{- if eq $.SVACE_ENABLED "false" }}
-  {{- include "debian packages proxy" . | nindent 2 }}
-{{- end }}
-  - apt-get install -y rsync
   install:
-  - export GOPROXY=$(cat /run/secrets/GOPROXY) GOOS=linux GOARCH=amd64 CGO_ENABLED=0
+  - export GOPROXY=off GOOS=linux GOARCH=amd64 CGO_ENABLED=0
   - cd /src
   - export RELEASE_VERSION="v{{ $version }}-flant"
   - export VERSION="$(cat VERSION)" IS_PRERELEASE="$(cat IS_PRERELEASE)" GITCOMMIT="$(cat GITCOMMIT)" GITEPOCH="$(cat GITEPOCH)" CTR=jq
@@ -106,4 +116,3 @@ shell:
 
 
 ---
-{{- include "vex mitigation" (list $ (printf "%s/%s" $.ModuleName $.ImageName)) }}

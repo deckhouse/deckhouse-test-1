@@ -1,12 +1,20 @@
 image: {{ $.ModuleName }}/{{ $.ImageName }}
-fromImage: common/distroless
+{{- $vexPath := printf "%smodules/%s-%s/images/%s/known_vulnerabilities.vex" $.ModulePath $.ModulePriority $.ModuleName $.ImageName }}
+{{- if eq (len ($.Files.Glob $vexPath)) 1 }}
+vex: {{ $vexPath }}
+{{- end }}
+from: {{ index $.Images "base/distroless" }}
 import:
-- image: {{ $.ModuleName }}/cert-manager-controller-artifact
+- from: common/distroless-artifact
+  add: /relocate
+  to: /
+  before: install
+- from: {{ $.ModuleName }}/cert-manager-controller-artifact
   add: /cainjector-linux-amd64
-  to: /bin/cainjector
+  to: /usr/bin/cainjector
   before: setup
 imageSpec:
   config:
+    user: "64535:64535"
     entrypoint: ["/bin/cainjector"]
 ---
-{{- include "vex mitigation" (list $ (printf "%s/%s" $.ModuleName $.ImageName)) }}

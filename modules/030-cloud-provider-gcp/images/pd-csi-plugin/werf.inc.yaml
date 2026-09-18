@@ -10,31 +10,29 @@
     {{- end }}
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-{{ $image_version }}
-fromImage: common/distroless
+{{- $vexPath := printf "%smodules/%s-%s/images/%s/known_vulnerabilities.vex" $.ModulePath $.ModulePriority $.ModuleName $.ImageName }}
+{{- if eq (len ($.Files.Glob $vexPath)) 1 }}
+vex: {{ $vexPath }}
+{{- end }}
+from: {{ index $.Images "base/distroless" }}
 import:
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact-{{ $image_version }}
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-artifact-{{ $image_version }}
   add: /src/bin/gce-pd-csi-driver
   to: /gce-pd-csi-driver
   before: setup
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-binaries-artifact
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-binaries-artifact
   add: /relocate
   to: /
   before: install
   includePaths:
   - '**/*'
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-binaries-artifact
-  add: /lib64
-  to: /lib64
-  before: install
-  includePaths:
-  - 'libresolv*'
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-binaries-artifact
-  add: /lib/udev/scsi_id
-  to: /lib/udev_containerized/scsi_id
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-binaries-artifact
+  add: /relocate/usr/lib/udev/scsi_id
+  to: /usr/lib/udev_containerized/scsi_id
   before: setup
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact-{{ $image_version }}
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-artifact-{{ $image_version }}
   add: /src/deploy/kubernetes/udev/google_nvme_id
-  to: /lib/udev_containerized/google_nvme_id
+  to: /usr/lib/udev_containerized/google_nvme_id
   before: setup
 imageSpec:
   config:
@@ -42,21 +40,26 @@ imageSpec:
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact-{{ $image_version }}
 final: false
-fromImage: common/src-artifact
-{{- if $patch }}
+from: {{ index $.Images "builder/distroless" }}
+packages:
+- type: os-pm
+  spec: [git, coreutils]
 git:
+  - url: {{ $.SOURCE_REPO }}/kubernetes-sigs/gcp-compute-persistent-disk-csi-driver.git
+    tag: {{ $version }}
+    add: /
+    to: /src
+    stageDependencies:
+      install: ['**/*']
+{{- if $patch }}
   - add: {{ $patches }}/patches/{{ $version }}
     to: /patches
     stageDependencies:
       install:
         - '**/*'
 {{- end }}
-secrets:
-- id: SOURCE_REPO
-  value: {{ $.SOURCE_REPO }}
 shell:
   install:
-  - git clone --depth 1 --branch {{ $version }} $(cat /run/secrets/SOURCE_REPO)/kubernetes-sigs/gcp-compute-persistent-disk-csi-driver.git /src
   - cd /src
   {{- if $patch}}
   - git apply /patches/*.patch --verbose
@@ -65,9 +68,16 @@ shell:
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact-{{ $image_version }}
 final: false
-from: {{ index $.Images "builder/golang" }}
+from: {{ index $.Images "builder/distroless" }}
+packages:
+- type: os-pm
+  spec: [golang, git, coreutils]
+- type: go-mod
+  workdir: /src
+  env:
+    GOPROXY: "%secret:GOPROXY%"
 import:
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact-{{ $image_version }}
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact-{{ $image_version }}
   add: /src
   to: /src
   before: install
@@ -77,25 +87,26 @@ secrets:
 - id: GOPROXY
   value: {{ $.GOPROXY }}
 shell:
-  install:
-  - cd /src
-  - GOPROXY=$(cat /run/secrets/GOPROXY) go mod download
   setup:
   - cd /src
   - mkdir -p bin
   - CGO_ENABLED=0 go build -ldflags "-extldflags=static -X main.version={{ $version }}" -o bin/gce-pd-csi-driver ./cmd/gce-pd-csi-driver/
 ---
-{{- include "vex mitigation" (list $ (printf "%s/%s-%s" $.ModuleName $.ImageName $image_version )) }}
 {{- end }}
 {{- end }}
 ---
-{{- $csiBinaries := "/bin/chmod /bin/mount /bin/mkdir /bin/rmdir /bin/umount /bin/findmnt /bin/lsblk /sbin/badblocks /sbin/blockdev /sbin/blk* /sbin/btrfs* /sbin/dumpe2fs /sbin/e2* /sbin/findfs /sbin/fsck* /sbin/fsfreeze /sbin/fstrim /sbin/mke2fs /sbin/mkfs* /sbin/resize2fs /sbin/xfs_repair /usr/sbin/nvme /usr/sbin/parted /usr/sbin/xfs*" }}
+{{- $csiBinaries := "/usr/bin/chmod /usr/bin/mount /usr/bin/mkdir /usr/bin/rmdir /usr/bin/umount /usr/bin/findmnt /usr/bin/lsblk /usr/bin/badblocks /usr/bin/blockdev /usr/bin/blk* /usr/bin/btrfs* /usr/bin/dumpe2fs /usr/bin/e2* /usr/bin/findfs /usr/bin/fsck* /usr/bin/fsfreeze /usr/bin/fstrim /usr/bin/mke2fs /usr/bin/mkfs* /usr/bin/resize2fs /usr/bin/xfs_repair /usr/bin/nvme /usr/bin/parted /usr/bin/xfs* /usr/lib/udev/scsi_id /usr/lib/libresolv*" }}
 image: {{ $.ModuleName }}/{{ $.ImageName }}-binaries-artifact
 final: false
-fromImage: common/relocate-artifact
+from: {{ index $.Images "builder/distroless" }}
+git:
+- add: /modules/030-cloud-provider-aws/images/ebs-csi-plugin/relocate.sh
+  to: /relocate.sh
+  stageDependencies:
+    install: ['**/*']
+packages:
+- type: os-pm
+  spec: [bash, coreutils, gawk, ldd, util-linux, e2fsprogs, xfsprogs, parted, btrfs-progs, nvme-cli, udev, gnu-glibc]
 shell:
-  beforeInstall:
-  - apt-get update -y
-  - apt-get install -y e2fsprogs xfsprogs parted btrfs-progs nvme udev
   install:
-  - /binary_replace.sh -i "{{ $csiBinaries }}" -o /relocate
+  - bash /relocate.sh /relocate {{ $csiBinaries }}

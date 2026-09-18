@@ -2,9 +2,9 @@
 {{- $image_version := $version | replace "." "-" }}
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-{{ $image_version }}
-from: {{ index $.Images "builder/scratch" }}
+from: scratch
 import:
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact-{{ $image_version }}
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-artifact-{{ $image_version }}
   add: /out
   to: /
   before: setup
@@ -20,6 +20,9 @@ imageSpec:
 image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact-{{ $image_version }}
 final: false
 from: {{ index $.Images "builder/distroless" }}
+packages:
+- type: os-pm
+  spec: [bash, coreutils, "xfsprogs=={{ $version }}"]
 git:
 - add: /{{ $.ModulePath }}/modules/007-{{ $.ModuleName }}/images/{{ $.ImageName }}/scripts
   to: /scripts
@@ -28,6 +31,5 @@ git:
     - '**/*'
 shell:
   install:
-  - pm install coreutils xfsprogs
   - for script in /scripts/*; do install -D -m 0755 $script /out/$(basename "$script"); done
   - cp /usr/sbin/{mkfs.xfs,xfs_growfs,xfs_info,xfs_mdrestore,xfs_quota,xfs_repair,xfs_spaceman} /out

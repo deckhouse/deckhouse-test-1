@@ -11,13 +11,13 @@
     {{- end }}
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-{{ $image_version }}
-fromImage: common/distroless
+from: {{ index $.Images "base/distroless" }}
 import:
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact-{{ $image_version }}
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-artifact-{{ $image_version }}
   add: /src/vsphere-csi
-  to: /bin/vsphere-csi
+  to: /usr/bin/vsphere-csi
   before: setup
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-binaries-artifact
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-binaries-artifact
   add: /relocate
   to: /
   before: install
@@ -28,35 +28,44 @@ imageSpec:
     entrypoint: ["/bin/vsphere-csi"]
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact-{{ $image_version }}
-fromImage: common/src-artifact
+from: {{ index $.Images "builder/distroless" }}
 final: false
-{{- if $patch }}
 git:
+- url: {{ $.SOURCE_REPO }}/kubernetes-sigs/vsphere-csi-driver.git
+  tag: {{ $version }}
+  to: /src
+  stageDependencies:
+    install: ['**/*']
+- url: {{ $.SOURCE_REPO }}/gofsutil.git
+  tag: {{ $gofsutil_version }}
+  to: /src/gofsutil
+  stageDependencies:
+    install: ['**/*']
+{{- if $patch }}
 - add: {{ $patches }}/patches/{{ $version }}
   to: /patches
   stageDependencies:
     install:
       - '**/*'
 {{- end }}
-secrets:
-- id: SOURCE_REPO
-  value: {{ $.SOURCE_REPO }}
+packages:
+- type: os-pm
+  spec: [golang, git, sed]
 shell:
   install:
-  - git clone --depth 1 --branch {{ $version }} $(cat /run/secrets/SOURCE_REPO)/kubernetes-sigs/vsphere-csi-driver.git /src
-  - git clone --depth 1 --branch {{ $gofsutil_version }} $(cat /run/secrets/SOURCE_REPO)/gofsutil.git /src/gofsutil
   - cd /src
   {{- if $patch}}
   - git apply /patches/*.patch --verbose
   {{- end}}
   - sed -i -e 's# ../gofsutil# /src/gofsutil#g' go.mod
-  - rm -rf .git
+  - cd /src/gofsutil
+  - go mod init deckhouse/3p/gofsutil
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact-{{ $image_version }}
 final: false
-from: {{ index $.Images "builder/golang" }}
+from: {{ index $.Images "builder/distroless" }}
 import:
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact-{{ $image_version }}
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact-{{ $image_version }}
   add: /src
   to: /src
   before: install
@@ -65,12 +74,14 @@ mount:
 secrets:
 - id: GOPROXY
   value: {{ $.GOPROXY }}
+packages:
+- type: os-pm
+  spec: [golang, git]
+- type: go-mod
+  workdir: /src
+  env:
+    GOPROXY: "%secret:GOPROXY%"
 shell:
-  install:
-  - cd /src/gofsutil
-  - go mod init deckhouse/3p/gofsutil
-  - cd /src
-  - GOPROXY=$(cat /run/secrets/GOPROXY) go mod download
   setup:
   - cd /src
   - GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags="-s -w" -o vsphere-csi cmd/vsphere-csi/main.go
@@ -80,10 +91,16 @@ shell:
 {{- $csiBinaries := "/bin/chmod /bin/mount /bin/mkdir /bin/rmdir /bin/umount /bin/findmnt /bin/lsblk /sbin/badblocks /sbin/blockdev /sbin/blk* /sbin/btrfs* /sbin/dumpe2fs /sbin/e2* /sbin/findfs /sbin/fsck* /sbin/fsfreeze /sbin/fstrim /sbin/mke2fs /sbin/mkfs* /sbin/resize2fs /usr/sbin/parted /usr/sbin/xfs* /sbin/mount.nfs* /sbin/umount.nfs*" }}
 image: {{ $.ModuleName }}/{{ $.ImageName }}-binaries-artifact
 final: false
-fromImage: common/relocate-artifact
+from: {{ index $.Images "builder/distroless" }}
+git:
+- add: /modules/000-common/images/relocate/binary_replace.sh
+  to: /binary_replace.sh
+  stageDependencies:
+    install: ['**/*']
+packages:
+- type: os-pm
+  spec: [bash, coreutils, gawk, ldd, util-linux, e2fsprogs, xfsprogs, btrfs-progs, nfs-utils, parted, nvme-cli, udev]
 shell:
-  beforeInstall:
-  - apt-get update -y
-  - apt-get install -y e2fsprogs xfsprogs btrfs-progs nfs-utils parted nvme udev
   install:
-  - /binary_replace.sh -i "{{ $csiBinaries }}" -o /relocate
+  - ln -sf /usr/bin/gawk /usr/bin/awk
+  - bash /binary_replace.sh -i "{{ $csiBinaries }}" -o /relocate

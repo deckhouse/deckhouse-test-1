@@ -2,30 +2,41 @@
 {{- $version = printf "v%s" $version }}
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}-src-artifact
-fromImage: common/src-artifact
+from: {{ index $.Images "builder/distroless" }}
 final: false
+packages:
+- type: os-pm
+  spec: [git, coreutils]
 git:
+- url: {{ .SOURCE_REPO }}/kubernetes-sigs/descheduler.git
+  tag: {{ $version }}
+  add: /
+  to: /src
+  stageDependencies:
+    install: ['**/*']
 - add: /{{ $.ModulePath }}modules/400-{{ $.ModuleName }}/images/{{ $.ImageName }}/patches
   to: /patches
   stageDependencies:
     install:
     - '**/*'
-secrets:
-- id: SOURCE_REPO
-  value: {{ .SOURCE_REPO }}
 shell:
   install:
-  - git clone $(cat /run/secrets/SOURCE_REPO)/kubernetes-sigs/descheduler.git /src
   - cd /src
-  - git checkout {{ $version }}
   - git apply /patches/*.patch --verbose
   - rm -rf .git
 ---
 image: {{ .ModuleName }}/build-artifact
 final: false
-from: {{ index $.Images "builder/golang" }}
+from: {{ index $.Images "builder/distroless" }}
+packages:
+- type: os-pm
+  spec: [golang==1.26.8, git, coreutils]
+- type: go-mod
+  workdir: /src
+  env:
+    GOPROXY: "%secret:GOPROXY%"
 import:
-- image: {{ .ModuleName }}/{{ .ImageName }}-src-artifact
+- from: {{ .ModuleName }}/{{ .ImageName }}-src-artifact
   add: /src
   to: /src
   before: install
@@ -38,15 +49,19 @@ shell:
   install:
   - export CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GOEXPERIMENT=nojsonv2
   - cd /src
-  - GOPROXY=$(cat /run/secrets/GOPROXY) go mod vendor
+  - GOPROXY=off go mod vendor
   - go build -ldflags "-s -w -X sigs.k8s.io/descheduler/pkg/version.version={{ $version }}" -o /descheduler sigs.k8s.io/descheduler/cmd/descheduler
   - chown 64535:64535 /descheduler
   - chmod 0700 /descheduler
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}
+{{- $vexPath := printf "%smodules/%s-%s/images/%s/known_vulnerabilities.vex" $.ModulePath $.ModulePriority $.ModuleName $.ImageName }}
+{{- if eq (len ($.Files.Glob $vexPath)) 1 }}
+vex: {{ $vexPath }}
+{{- end }}
 from: {{ index $.Images "base/distroless" }}
 import:
-- image: {{ .ModuleName }}/build-artifact
+- from: {{ .ModuleName }}/build-artifact
   add: /descheduler
   to: /descheduler
   before: setup
@@ -55,4 +70,3 @@ imageSpec:
   config:
     entrypoint: ["/descheduler"]
 ---
-{{- include "vex mitigation" (list $ (printf "%s/%s" $.ModuleName $.ImageName)) }}

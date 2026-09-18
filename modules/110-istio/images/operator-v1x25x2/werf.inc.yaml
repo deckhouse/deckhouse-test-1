@@ -4,33 +4,49 @@
 ---
 # Based on https://github.com/istio/istio/blob/1.25.2/operator/docker/Dockerfile.operator
 image: {{ .ModuleName }}/{{ .ImageName }}
-fromImage: common/distroless
+{{- $vexPath := printf "%smodules/%s-%s/images/%s/known_vulnerabilities.vex" $.ModulePath $.ModulePriority $.ModuleName $.ImageName }}
+{{- if eq (len ($.Files.Glob $vexPath)) 1 }}
+vex: {{ $vexPath }}
+{{- end }}
+from: {{ index $.Images "base/distroless" }}
 import:
-- image: {{ .ModuleName }}/{{ .ImageName }}-build-artifact
+- from: common/distroless-artifact
+  add: /relocate
+  to: /
+  before: install
+- from: {{ .ModuleName }}/{{ .ImageName }}-build-artifact
   add: /src/operator/out/operator
   to: /usr/local/bin/operator
   owner: 64535
   group: 64535
   after: setup
-- image: {{ .ModuleName }}/common-{{ $istioImageVersion }}-src-artifact
+- from: {{ .ModuleName }}/common-{{ $istioImageVersion }}-src-artifact
   add: /src/istio/manifests
   to: /var/lib/istio/manifests
   after: setup
-- image: {{ .ModuleName }}/{{ .ImageName }}-src-artifact
+- from: {{ .ModuleName }}/{{ .ImageName }}-src-artifact
   add: /src/operator/resources
   to: /var/lib/sail-operator/resources
   after: setup
 {{- include "image mount points" . }}
 imageSpec:
   config:
+    user: "64535:64535"
     workingDir: "/"
     entrypoint: ["/usr/local/bin/operator"]
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}-build-artifact
 final: false
-from: {{ index $.Images "builder/golang" }}
+from: {{ index $.Images "builder/distroless" }}
+packages:
+- type: os-pm
+  spec: [golang==1.26.8, git, binutils, bash, coreutils, sed, grep, findutils]
+- type: go-mod
+  workdir: /src/operator
+  env:
+    GOPROXY: "%secret:GOPROXY%"
 import:
-- image: {{ .ModuleName }}/{{ .ImageName }}-src-artifact
+- from: {{ .ModuleName }}/{{ .ImageName }}-src-artifact
   add: /src/operator
   to: /src/operator
   before: install
@@ -40,14 +56,11 @@ secrets:
 - id: GOPROXY
   value: {{ .GOPROXY }}
 shell:
-  beforeInstall:
-  - pm install git binutils
   install:
   - cd /src/operator/
   - echo {{ $istioVersion }} > version
-  - export GOPROXY=$(cat /run/secrets/GOPROXY) GOOS=linux GOARCH=amd64
+  - export GOPROXY=off GOOS=linux GOARCH=amd64 CGO_ENABLED=0
   - export LDFLAGS='-extldflags -static -s -w'
-  - go mod download
   - common/scripts/gobuild.sh /src/operator/out/ /src/operator/cmd/main.go
   - strip /src/operator/out/main
   - mv /src/operator/out/main /src/operator/out/operator
@@ -56,8 +69,11 @@ shell:
 #=====================================================================================================
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}-src-artifact
-fromImage: common/src-artifact
+from: {{ index $.Images "builder/distroless" }}
 final: false
+packages:
+- type: os-pm
+  spec: [git]
 git:
 - add: /{{ .ModulePath }}modules/{{ .ModulePriority }}-{{ .ModuleName }}/images/{{ .ImageName }}/patches
   to: /patches
@@ -77,4 +93,3 @@ shell:
   - cd /src/operator && git apply --verbose /patches/002-istio-operato-cni_status_restrict.patch
   - cd /src/operator && git apply --verbose /patches/003-istio-init-readonly-rootfs.patch
 ---
-{{- include "vex mitigation" (list $ (printf "%s/%s" $.ModuleName $.ImageName)) }}

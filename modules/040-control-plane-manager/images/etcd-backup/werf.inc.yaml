@@ -1,30 +1,22 @@
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}
-from: {{ index $.Images "base/distroless-fin" }}
+{{- $vexPath := printf "%smodules/%s-%s/images/%s/known_vulnerabilities.vex" $.ModulePath $.ModulePriority $.ModuleName $.ImageName }}
+{{- if eq (len ($.Files.Glob $vexPath)) 1 }}
+vex: {{ $vexPath }}
+{{- end }}
+from: {{ index $.Images "base/distroless" }}
 git:
 - add: /{{ $.ModulePath }}/modules/040-{{ $.ModuleName }}/images/{{ $.ImageName }}/entrypoint.sh
   to: /entrypoint.sh
-  stageDependencies:
-    setup:
-    - '**/*'
 import:
 {{- include "image mount points" . }}
-- image: {{ .ModuleName }}/etcd-artifact
+- from: {{ .ModuleName }}/etcd-artifact
   add: /etcdctl
-  to: /bin/etcdctl
+  to: /usr/bin/etcdctl
   before: setup
-- image: {{ .ModuleName }}/{{ .ImageName }}-artifact
-  add: /out
+- from: {{ .ModuleName }}/{{ .ImageName }}-artifact
+  add: /relocate
   to: /
-  before: setup
-- image: {{ .ModuleName }}/{{ .ImageName }}-artifact
-  add: /coreutils
-  to: /
-  includePaths:
-  - usr/bin/chmod
-  - usr/bin/df
-  - usr/bin/mv
-  - usr/bin/tail
   before: setup
 imageSpec:
   config:
@@ -33,11 +25,16 @@ imageSpec:
 image: {{ .ModuleName }}/{{ .ImageName }}-artifact
 from: {{ index $.Images "builder/distroless" }}
 final: false
+packages:
+- type: os-pm
+  spec: [bash, gzip, tar, gawk, gnu-glibc, coreutils, ldd]
+git:
+- add: /modules/030-cloud-provider-aws/images/ebs-csi-plugin/relocate.sh
+  to: /relocate.sh
+  stageDependencies:
+    install: ['**/*']
 shell:
-  beforeInstall:
-  - pm install bash gzip tar gawk gnu-glibc -d /out
-  - pm install coreutils -d /coreutils
-  - mkdir -p /out/bin
-  - ln -sf /usr/bin/bash /out/bin/bash
-  - ln -sf /usr/bin/bash /out/bin/sh
-{{- include "vex mitigation" (list $ (printf "%s/%s" $.ModuleName $.ImageName)) }}
+  install:
+  - bash /relocate.sh /relocate /usr/bin/bash /usr/bin/gzip /usr/bin/tar /usr/bin/gawk /usr/bin/chmod /usr/bin/df /usr/bin/mv /usr/bin/tail
+  - ln -sf bash /relocate/usr/bin/sh
+  - ln -sf gawk /relocate/usr/bin/awk

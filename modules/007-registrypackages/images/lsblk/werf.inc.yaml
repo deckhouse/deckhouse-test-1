@@ -2,9 +2,9 @@
 {{- $image_version := $lsblk_version | replace "." "-" }}
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-{{ $image_version }}
-from: {{ index $.Images "builder/scratch" }}
+from: scratch
 import:
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact-{{ $image_version }}
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-artifact-{{ $image_version }}
   add: /
   to: /
   includePaths:
@@ -23,35 +23,29 @@ imageSpec:
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact-{{ $image_version }}
 final: false
-fromImage: common/src-artifact
+from: {{ index $.Images "builder/distroless" }}
 git:
+- url: {{ $.SOURCE_REPO }}/util-linux/util-linux.git
+  tag: v{{ $lsblk_version }}
+  add: /
+  to: /src/util-linux
 - add: /{{ $.ModulePath }}/modules/007-{{ $.ModuleName }}/images/{{ $.ImageName }}/scripts
   to: /src/scripts
-  stageDependencies:
-    install:
-    - '**/*'
-secrets:
-- id: SOURCE_REPO
-  value: {{ .SOURCE_REPO }}
-shell:
-  install:
-  - git clone -b v{{ $lsblk_version }} --depth 1 $(cat /run/secrets/SOURCE_REPO)/util-linux/util-linux.git  /src/util-linux
-  - rm -rf /src/util-linux/.git
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact-{{ $image_version }}
-from: {{ index $.Images "builder/golang-alpine" }}
+from: {{ index $.Images "builder/distroless" }}
 final: false
+packages:
+- type: os-pm
+  spec: [bash, coreutils, make, automake, gettext, autoconf, libtool, flex, bison, clang, binutils, gnu-gcc, gnu-glibc-devel, linux-headers, pkgconf, perl, python, sed, grep, gawk, findutils, diffutils, file, ldd]
 mount:
 {{ include "mount points for golang builds" . }}
 import:
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact-{{ $image_version }}
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact-{{ $image_version }}
   add: /src
   to: /src
   before: setup
 shell:
-  install:
-  {{- include "alpine packages proxy" . | nindent 2 }}
-  - apk add --no-cache make automake gettext-dev autoconf libtool flex bison clang binutils g++ linux-headers
   setup:
   - cd /src/util-linux
   - export LDFLAGS="-Wl,-z,now -Wl,-z,relro -static -s"

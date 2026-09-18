@@ -1,22 +1,22 @@
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}
-fromImage: common/distroless
+from: {{ index $.Images "base/distroless" }}
 imageSpec:
   config:
     entrypoint: ["/node-controller"]
 import:
-- image: {{ .ModuleName }}/{{ .ImageName }}-artifact
+- from: {{ .ModuleName }}/{{ .ImageName }}-artifact
   add: /node-controller
   to: /node-controller
   before: setup
-- image: {{ .ModuleName }}/{{ .ImageName }}-crds-artifact
+- from: {{ .ModuleName }}/{{ .ImageName }}-crds-artifact
   add: /crds
   to: /crds
   before: setup
 {{- include "image mount points" . }}
 ---
 image: {{ .ModuleName }}/{{ $.ImageName }}-src-artifact
-fromImage: common/src-artifact
+from: {{ index $.Images "builder/distroless" }}
 final: false
 git:
 - add: /{{ $.ModulePath }}modules/040-{{ .ModuleName }}/images/{{ .ImageName }}/src
@@ -25,35 +25,29 @@ git:
   - "**/*.md"
   - "**/*.yaml"
   - hack
-  stageDependencies:
-    install:
-    - go.mod
-    - go.sum
-    - "**/*.go"
 - add: /{{ $.ModulePath }}go_lib/dependency/k8s/drain
   to: /go_lib/dependency/k8s/drain
   includePaths:
   - '**/*.go'
   - '**/*.mod'
   - '**/*.sum'
-  stageDependencies:
-    install:
-    - '**/*.go'
-    - 'go.mod'
-    - 'go.sum'
-shell:
-  install:
-  - cd /src
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}-artifact
-from: {{ index $.Images "builder/golang" }}
+from: {{ index $.Images "builder/distroless" }}
 final: false
+packages:
+- type: os-pm
+  spec: [golang, git, coreutils]
+- type: go-mod
+  workdir: /src
+  env:
+    GOPROXY: "%secret:GOPROXY%"
 import:
-- image: {{ .ModuleName }}/{{ $.ImageName }}-src-artifact
+- from: {{ .ModuleName }}/{{ $.ImageName }}-src-artifact
   add: /src
   to: /src
   before: install
-- image: {{ .ModuleName }}/{{ $.ImageName }}-src-artifact
+- from: {{ .ModuleName }}/{{ $.ImageName }}-src-artifact
   add: /go_lib/dependency/k8s/drain
   to: /go_lib/dependency/k8s/drain
   before: install
@@ -65,19 +59,15 @@ secrets:
 shell:
   install:
   - cd /src
-  - GOPROXY=$(cat /run/secrets/GOPROXY) go mod download
-  - CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -o /node-controller cmd/main.go
+  - GOPROXY=off CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -o /node-controller cmd/main.go
   - chown 64535:64535 /node-controller
   - chmod 0700 /node-controller
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}-crds-artifact
-fromImage: common/src-artifact
+from: {{ index $.Images "builder/distroless" }}
 final: false
 git:
 - add: /{{ $.ModulePath }}modules/040-{{ .ModuleName }}/images/{{ .ImageName }}/crds
   to: /crds
   includePaths:
   - "*.yaml"
-  stageDependencies:
-    install:
-    - "*.yaml"

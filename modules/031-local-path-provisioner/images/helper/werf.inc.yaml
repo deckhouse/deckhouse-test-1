@@ -1,11 +1,18 @@
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact-dir-manager
 final: false
-from: {{ index $.Images "builder/golang" }}
+from: {{ index $.Images "builder/distroless" }}
+packages:
+- type: os-pm
+  spec: [golang, git, coreutils]
+- type: go-mod
+  workdir: /src
+  env:
+    GOPROXY: "%secret:GOPROXY%"
 mount:
 {{ include "mount points for golang builds" . }}
 import:
-- image: {{ .ModuleName }}/{{ .ImageName }}-src-artifact
+- from: {{ .ModuleName }}/{{ .ImageName }}-src-artifact
   add: /src
   to: /src
   before: install
@@ -15,13 +22,13 @@ secrets:
 shell:
   install:
   - cd /src
-  - GOPROXY=$(cat /run/secrets/GOPROXY) CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o /manager main.go
+  - GOPROXY=off CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o /manager main.go
   - chmod 0777 /manager
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}
-fromImage: common/distroless
+from: {{ index $.Images "base/distroless" }}
 import:
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact-dir-manager
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-artifact-dir-manager
   add: /manager
   to: /manager
   after: install
@@ -29,17 +36,10 @@ import:
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}-src-artifact
 final: false
-fromImage: common/src-artifact
+from: {{ index $.Images "builder/distroless" }}
 git:
 - add: /{{ .ModulePath }}modules/{{ .ModulePriority }}-{{ .ModuleName }}/images/{{ .ImageName }}/src
   to: /src
   includePaths:
   - '**/*.go'
   - '**/*.mod'
-  stageDependencies:
-    install:
-    - '**/*.go'
-    - 'go.mod'
-shell:
-  install:
-  - cd /src

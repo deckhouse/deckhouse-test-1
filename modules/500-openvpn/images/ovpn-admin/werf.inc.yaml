@@ -1,47 +1,55 @@
 {{- $gitCommit := "e5bf819db34227cc739963059d72582a73ea1613" }}
-{{- $binaries := "/bin/bash" }}
+{{- $binaries := "/usr/bin/bash" }}
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}
-fromImage: common/distroless
+from: {{ index $.Images "base/distroless" }}
 git:
 - add: /{{ .ModulePath }}/modules/{{ .ModulePriority }}-{{ .ModuleName }}/images/{{ .ImageName }}/templates
   to: /app/templates
-  stageDependencies:
-    install:
-      - '**/*'
 import:
+- from: common/distroless-artifact
+  add: /relocate
+  to: /
+  before: install
 {{- include "image mount points" . }}
-- image: {{ .ModuleName }}/{{ .ImageName }}-backend-artifact
+- from: {{ .ModuleName }}/{{ .ImageName }}-backend-artifact
   add: /src/ovpn-admin
   to: /app/ovpn-admin
   before: setup
-- image: {{ .ModuleName }}/{{ .ImageName }}-src-artifact
+- from: {{ .ModuleName }}/{{ .ImageName }}-src-artifact
   add: /src/version
   to: /app/version
   before: setup
-- image: {{ .ModuleName }}/openvpn-artifact
+- from: {{ .ModuleName }}/openvpn-artifact
   add: /src/openvpn/src/openvpn/openvpn
   to: /usr/sbin/openvpn
   before: setup
-- image: {{ .ModuleName }}/{{ .ImageName }}-frontend-artifact
+- from: {{ .ModuleName }}/{{ .ImageName }}-frontend-artifact
   add: /src/frontend/static
   to: /app/frontend/static
   before: setup
-- image: {{ .ModuleName }}/{{ .ImageName }}-binaries-artifact
+- from: {{ .ModuleName }}/{{ .ImageName }}-binaries-artifact
   add: /relocate
   to: /
   before: setup
-shell:
-  install:
-  - set -e
 imageSpec:
   config:
+    user: "64535:64535"
     workingDir: "/app"
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}-src-artifact
 final: false
-fromImage: common/src-artifact
+from: {{ index $.Images "builder/distroless" }}
+packages:
+- type: os-pm
+  spec: [git, coreutils]
 git:
+- url: {{ .SOURCE_REPO }}/palark/ovpn-admin.git
+  commit: {{ $gitCommit }}
+  add: /
+  to: /src
+  stageDependencies:
+    install: ['**/*']
 - add: /{{ .ModulePath }}modules/{{ .ModulePriority }}-{{ .ModuleName }}/images/{{ .ImageName }}/patches
   to: /patches
   includePaths:
@@ -49,23 +57,25 @@ git:
   stageDependencies:
     install:
     - '**/*.patch'
-secrets:
-- id: SOURCE_REPO
-  value: {{ .SOURCE_REPO }}
 shell:
   install:
   - cd /src
-  - git clone $(cat /run/secrets/SOURCE_REPO)/palark/ovpn-admin.git .
-  - git checkout {{ $gitCommit }}
   - git apply /patches/*.patch --verbose
   - rm -rf .git
   - echo {{ $gitCommit }} > version
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}-backend-artifact
 final: false
-from: {{ index $.Images "builder/golang" }}
+from: {{ index $.Images "builder/distroless" }}
+packages:
+- type: os-pm
+  spec: [golang==1.26.8, git, coreutils]
+- type: go-mod
+  workdir: /src
+  env:
+    GOPROXY: "%secret:GOPROXY%"
 import:
-- image: {{ .ModuleName }}/{{ .ImageName }}-src-artifact
+- from: {{ .ModuleName }}/{{ .ImageName }}-src-artifact
   add: /src
   to: /src
   before: install
@@ -78,7 +88,7 @@ shell:
   install:
   - cd /src
   - export CGO_ENABLED=0 GOOS=linux GOARCH=amd64
-  - GOPROXY=$(cat /run/secrets/GOPROXY) go mod download
+  - export GOPROXY=off
   - go build -ldflags="-s -w" .
   - chown -R 64535:64535 /src
   - chmod 0755 /src/ovpn-admin
@@ -87,7 +97,7 @@ image: {{ .ModuleName }}/{{ .ImageName }}-frontend-artifact
 final: false
 from: {{ .Images.BASE_NODE_16_ALPINE }}
 import:
-- image: {{ .ModuleName }}/{{ .ImageName }}-src-artifact
+- from: {{ .ModuleName }}/{{ .ImageName }}-src-artifact
   add: /src
   to: /src
   before: install
@@ -100,13 +110,21 @@ shell:
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}-binaries-artifact
 final: false
-fromImage: common/relocate-artifact
+from: {{ index $.Images "builder/distroless" }}
+packages:
+- type: os-pm
+  spec: [bash, coreutils, gawk, ldd]
+git:
+- add: /modules/002-deckhouse/images/init/relocate.sh
+  to: /relocate.sh
+  stageDependencies:
+    install: ['**/*']
 import:
-- image: {{ .ModuleName }}/openssl-artifact
+- from: {{ .ModuleName }}/openssl-artifact
   add: /openssl
   to: /openssl
   before: install
 shell:
   install:
-  - /binary_replace.sh -i "{{ $binaries }}" -o /relocate
-  - cp /openssl/usr/local/bin/* /relocate/bin/
+  - bash /relocate.sh /relocate {{ $binaries }}
+  - cp /openssl/usr/local/bin/* /relocate/usr/bin/

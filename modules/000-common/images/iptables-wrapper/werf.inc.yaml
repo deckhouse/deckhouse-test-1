@@ -1,31 +1,34 @@
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}
-fromImage: common/distroless
+from: {{ index $.Images "base/distroless" }}
 final: false
 import:
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact
+- from: common/distroless-artifact
+  add: /relocate
+  to: /
+  before: setup
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-artifact
   add: /src/iptables-wrapper
   to: /iptables-wrapper
   before: setup
+imageSpec:
+  config:
+    user: "64535:64535"
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
-fromImage: common/src-artifact
+from: common/src-artifact
 final: false
-secrets:
-- id: SOURCE_REPO
-  value: {{ .SOURCE_REPO }}
-shell:
-  install:
-  - git clone $(cat /run/secrets/SOURCE_REPO)/kubernetes-sigs/iptables-wrappers.git /src
-  - cd /src
-  - git reset --hard 680003b3c6e93b471a59ecc9ae87a8f9054b82f3
-  - rm -r .git
+git:
+- url: {{ .SOURCE_REPO }}/kubernetes-sigs/iptables-wrappers.git
+  commit: 680003b3c6e93b471a59ecc9ae87a8f9054b82f3
+  add: /
+  to: /src
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact
-from: {{ index $.Images "builder/golang" }}
+from: {{ index $.Images "builder/distroless" }}
 final: false
 import:
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
   add: /src
   to: /src
   before: install
@@ -34,9 +37,16 @@ mount:
 secrets:
 - id: GOPROXY
   value: {{ .GOPROXY }}
+packages:
+- type: os-pm
+  spec: [golang, git, bash, coreutils]
+- type: go-mod
+  workdir: /src
+  env:
+    GOPROXY: "%secret:GOPROXY%"
 shell:
   install:
   - cd /src
-  - GOPROXY=$(cat /run/secrets/GOPROXY) GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags="-s -w" -o iptables-wrapper main.go
+  - GOPROXY=off GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags="-s -w" -o iptables-wrapper main.go
   - chown 64535:64535 iptables-wrapper
   - chmod 0755 iptables-wrapper

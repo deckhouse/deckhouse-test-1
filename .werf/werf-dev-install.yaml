@@ -1,6 +1,9 @@
 ---
 image: dev/install
 from: {{ index $.Images "base/distroless" }}
+{{- if eq (len ($.Files.Glob "dhctl/known_vulnerabilities.vex")) 1 }}
+vex: dhctl/known_vulnerabilities.vex
+{{- end }}
 git:
 - add: /
   to: /deckhouse
@@ -19,6 +22,4 @@ import:
 {{ include "controller_and_install_image_labels" . }}
     user: "0:0"
     cmd: ["/bin/bash"]
----
-{{- include "vex mitigation" (list $ "dev/install") }}
 ---

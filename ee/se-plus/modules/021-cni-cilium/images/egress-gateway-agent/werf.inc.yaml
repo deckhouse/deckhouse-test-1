@@ -1,7 +1,7 @@
 image: {{ .ModuleName }}/{{ .ImageName }}
-fromImage: common/distroless
+from: {{ index $.Images "base/distroless" }}
 import:
-  - image: {{ .ModuleName }}/{{ .ImageName }}-artifact
+  - from: {{ .ModuleName }}/{{ .ImageName }}-artifact
     add: /egress-gateway-agent
     to: /egress-gateway-agent
     before: setup
@@ -10,24 +10,17 @@ imageSpec:
     entrypoint: ["/egress-gateway-agent"]
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}-src-artifact
-fromImage: common/src-artifact
+from: {{ index $.Images "builder/distroless" }}
 final: false
 git:
 - add: /{{ .ModulePath }}modules/{{ .ModulePriority }}-{{ .ModuleName }}/images/{{ .ImageName }}/src
   to:  /src
-  # Forces a rebuild when source files are modified.
-  stageDependencies:
-    install:
-    - '**/*'
-shell:
-  install:
-  - cd /src
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}-artifact
-from: {{ index $.Images "builder/golang" }}
+from: {{ index $.Images "builder/distroless" }}
 final: false
 import:
-- image: {{ .ModuleName }}/{{ .ImageName }}-src-artifact
+- from: {{ .ModuleName }}/{{ .ImageName }}-src-artifact
   add: /src
   to: /src
   before: install
@@ -36,11 +29,17 @@ mount:
 secrets:
 - id: GOPROXY
   value: {{ .GOPROXY }}
+packages:
+- type: os-pm
+  spec: [golang, bash, git, coreutils, svace, ssh-static, rsync]
+- type: go-mod
+  workdir: /src
+  env:
+    GOPROXY: "%secret:GOPROXY%"
 shell:
   install:
     - cd /src
-    - export GOOS=linux GOARCH=amd64 CGO_ENABLED=0 GOPROXY=$(cat /run/secrets/GOPROXY)
-    - go mod download
+    - export GOOS=linux GOARCH=amd64 CGO_ENABLED=0 GOPROXY=off
     - |
       {{- $buildContext := deepCopy $ -}}
       {{- $_ := set $buildContext "SvaceBuildOptions" "--enable-ptrace-all" -}}

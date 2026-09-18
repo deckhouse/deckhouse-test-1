@@ -1,15 +1,11 @@
 ---
 # base artifact to do relocate
 image: {{ .ModuleName }}/{{ .ImageName }}-artifact
-from: {{ index $.Images "builder/alt" }}
+from: {{ index $.Images "builder/distroless" }}
 final: false
+packages:
+- type: os-pm
+  spec: [bash, coreutils, gawk, ldd]
 git:
 - add: /{{ .ModulePath }}modules/{{ .ModulePriority }}-{{ .ModuleName }}/images/{{ .ImageName }}/binary_replace.sh
   to: /binary_replace.sh
-  stageDependencies:
-    install:
-    - '**/*'
-shell:
-  install:
-  {{- include "alt packages proxy" . | nindent 2 }}
-  - apt-get install -y glibc-utils

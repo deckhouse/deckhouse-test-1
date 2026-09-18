@@ -1,6 +1,6 @@
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}-src-artifact
-fromImage: common/src-artifact
+from: {{ index $.Images "builder/distroless" }}
 final: false
 git:
 - add: /{{ $.ModulePath }}modules/040-{{ $.ModuleName }}/images/{{ $.ImageName }}/src
@@ -9,35 +9,29 @@ git:
   - "**/*.md"
   - "**/*.yaml"
   - hack
-  stageDependencies:
-    install:
-    - go.mod
-    - go.sum
-    - "**/*.go"
 - add: /{{ $.ModulePath }}go_lib/registry
   to: /go_lib/registry
   includePaths:
   - '**/*.go'
   - '**/*.mod'
   - '**/*.sum'
-  stageDependencies:
-    install:
-    - '**/*.go'
-    - 'go.mod'
-    - 'go.sum'
-shell:
-  install:
-  - cd /src
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}-artifact
-from: {{ index $.Images "builder/golang" }}
+from: {{ index $.Images "builder/distroless" }}
 final: false
+packages:
+- type: os-pm
+  spec: [golang, git, coreutils]
+- type: go-mod
+  workdir: /src
+  env:
+    GOPROXY: "%secret:GOPROXY%"
 import:
-- image: {{ .ModuleName }}/{{ .ImageName }}-src-artifact
+- from: {{ .ModuleName }}/{{ .ImageName }}-src-artifact
   add: /src
   to: /src
   before: install
-- image: {{ .ModuleName }}/{{ .ImageName }}-src-artifact
+- from: {{ .ModuleName }}/{{ .ImageName }}-src-artifact
   add: /go_lib/registry
   to: /go_lib/registry
   before: install
@@ -49,27 +43,27 @@ secrets:
 shell:
   install:
   - cd /src
-  - GOPROXY=$(cat /run/secrets/GOPROXY) go mod download
-  - CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o bashible-apiserver .
+  - GOPROXY=off CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o bashible-apiserver .
   - chown 64535:64535 bashible-apiserver
   - chmod 0700 bashible-apiserver
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}
-fromImage: common/distroless
+from: {{ index $.Images "base/distroless" }}
 import:
-- image: {{ .ModuleName }}/{{ .ImageName }}-artifact
+- from: {{ .ModuleName }}/{{ .ImageName }}-artifact
   add: /src/bashible-apiserver
   to: /bashible-apiserver
   before: setup
 {{- include "image mount points" . }}
 git:
-{{ .Files.Get (printf "tools/build_includes/candi-%s.yaml" .Env) }}
-{{ .Files.Get (printf "tools/build_includes/candi-cloud-providers-%s.yaml" .Env) }}
+{{- range $path := list (printf "tools/build_includes/candi-%s.yaml" .Env) (printf "tools/build_includes/candi-cloud-providers-%s.yaml" .Env) }}
+{{- $manifest := printf "entries:\n%s" ($.Files.Get $path | indent 2) | fromYaml }}
+{{- range $entry := $manifest.entries }}
+{{ list (omit ($entry | toYaml | fromYaml) "stageDependencies") | toYaml }}
+{{- end }}
+{{- end }}
 - add: /{{ .ModulePath }}candi/bashible
   to: /deckhouse/candi/bashible
-  stageDependencies:
-    beforeSetup:
-    - "*"
   includePaths:
   - bundles
   - common-steps
@@ -83,11 +77,6 @@ git:
   {{- end }}
   excludePaths:
   - "**/cluster-bootstrap"
-shell:
-  install:
-  - set -e
-  beforeSetup:
-  - set -e
 imageSpec:
   config:
     entrypoint: ["/bashible-apiserver", "--tls-cipher-suites", "TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256,TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256,TLS_RSA_WITH_AES_128_CBC_SHA,TLS_RSA_WITH_AES_256_CBC_SHA,TLS_RSA_WITH_AES_128_GCM_SHA256,TLS_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA,TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA,TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA,TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA"]

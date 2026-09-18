@@ -4,9 +4,13 @@
   {{- $image_version := printf "%s.%s" $version $patch | replace "." "-" }}
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-{{ $image_version }}
-from: {{ index $.Images "builder/scratch" }}
+{{- $vexPath := printf "%smodules/%s-%s/images/%s/known_vulnerabilities.vex" $.ModulePath $.ModulePriority $.ModuleName $.ImageName }}
+{{- if eq (len ($.Files.Glob $vexPath)) 1 }}
+vex: {{ $vexPath }}
+{{- end }}
+from: scratch
 import:
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact-{{ $image_version }}
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-artifact-{{ $image_version }}
   add: /
   to: /
   includePaths:
@@ -26,7 +30,10 @@ imageSpec:
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact-{{ $image_version }}
 final: false
-from: {{ index $.Images "builder/scratch" }}
+from: {{ index $.Images "builder/distroless" }}
+packages:
+- type: os-pm
+  spec: [bash]
 git:
 - add: /{{ $.ModulePath }}modules/007-{{ $.ModuleName }}/images/{{ $.ImageName }}/scripts
   to: /
@@ -34,7 +41,7 @@ git:
     setup:
     - '**/*'
 import:
-- image: common/kubernetes-artifact-{{ $image_version }}
+- from: common/kubernetes-artifact-{{ $image_version }}
   add: /src/_output/bin/kubelet
   to: /kubelet
   before: setup
@@ -42,7 +49,6 @@ shell:
   setup:
   - /kubelet --version
 ---
-{{- include "vex mitigation" (list $ (printf "%s/%s-%s" $.ModuleName $.ImageName $image_version)) }}
 {{- end }}
 
 
@@ -56,9 +62,13 @@ shell:
   {{- $image_version := printf "%s.%s" $version $patch | replace "." "-" }}
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-sysext-{{ $image_version }}
-from: {{ index $.Images "builder/scratch" }}
+{{- $vexPath := printf "%smodules/%s-%s/images/%s/known_vulnerabilities.vex" $.ModulePath $.ModulePriority $.ModuleName $.ImageName }}
+{{- if eq (len ($.Files.Glob $vexPath)) 1 }}
+vex: {{ $vexPath }}
+{{- end }}
+from: scratch
 import:
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-sysext-artifact-{{ $image_version }}
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-sysext-artifact-{{ $image_version }}
   add: /out
   to: /
   includePaths:
@@ -77,7 +87,7 @@ image: {{ $.ModuleName }}/{{ $.ImageName }}-sysext-artifact-{{ $image_version }}
 final: false
 from: {{ index $.Images "builder/distroless" }}
 import:
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-{{ $image_version }}
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-{{ $image_version }}
   add: /kubelet
   to: /sysext/opt/deckhouse/bin/kubelet
   before: install
@@ -93,11 +103,12 @@ git:
     - extension-release.kubelet
     - sysext-kubelet.service
 {{- include "engine sysext sign secrets" . }}
+packages:
+- type: os-pm
+  spec: [bash, erofs-utils, coreutils, cryptsetup, systemd==260.4, openssl, curl, jq]
 shell:
-  beforeInstall:
-  - pm install erofs-utils coreutils cryptsetup systemd@260.4
-  - mkdir -p /out
   install:
+  - mkdir -p /out
   - mkdir -p /sysext/usr/lib/extension-release.d /sysext/usr/lib/systemd/system
   - cp -f /scripts/sysext-kubelet.service /sysext/usr/lib/systemd/system/kubelet.service
   - cp -f /scripts/extension-release.kubelet /sysext/usr/lib/extension-release.d/
@@ -108,6 +119,5 @@ shell:
   - veritysetup verify /out/kubelet.raw /out/kubelet.verity "$(cat /out/kubelet.roothash)"
 {{- include "engine sysext sign" "kubelet" }}
 ---
-{{- include "vex mitigation" (list $ (printf "%s/%s-sysext-%s" $.ModuleName $.ImageName $image_version)) }}
 {{- end }}
 {{- end }}

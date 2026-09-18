@@ -3,13 +3,10 @@
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact-{{ $image_version }}
 final: false
-fromImage: common/src-artifact
+from: {{ index $.Images "builder/distroless" }}
 git:
 - add: /{{ $.ModulePath }}/modules/007-{{ $.ModuleName }}/images/{{ $.ImageName }}/scripts
   to: /src/scripts
-  stageDependencies:
-    setup:
-    - '**/*'
 - add: /{{ $.ModulePath }}/modules/007-{{ $.ModuleName }}/images/{{ $.ImageName }}/src
   to: /src/wrapper
   includePaths:
@@ -17,23 +14,21 @@ git:
   - '**/*.mod'
   - '**/*.sum'
   - 'Makefile'
-  stageDependencies:
-    setup:
-    - 'go.mod'
-    - 'go.sum'
-    - '**/*.go'
-    - 'Makefile'
-shell:
-  setup:
-  - cd /src/wrapper
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact-{{ $image_version }}
 final: false
-from: {{ index $.Images "builder/golang" }}
+from: {{ index $.Images "builder/distroless" }}
+packages:
+- type: os-pm
+  spec: [bash, coreutils, golang, git]
+- type: go-mod
+  workdir: /src/wrapper
+  env:
+    GOPROXY: "%secret:GOPROXY%"
 mount:
 {{ include "mount points for golang builds" . }}
 import:
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact-{{ $image_version }}
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact-{{ $image_version }}
   add: /src
   to: /src
   before: install
@@ -43,16 +38,16 @@ secrets:
 shell:
   install:
   - cd /src/wrapper
-  - GOPROXY=$(cat /run/secrets/GOPROXY) go mod download
+  - export GOPROXY=off GOSUMDB=off
   - CGO_ENABLED=0 GOOS=linux go build -ldflags "-s -w" -o systemctl-power-commands-wrapper main.go
   - mv ./systemctl-power-commands-wrapper /
   - mv /src/scripts/* /
   - chmod +x /systemctl-power-commands-wrapper /install /uninstall
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-{{ $image_version }}
-from: {{ index $.Images "builder/scratch" }}
+from: scratch
 import:
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact-{{ $image_version }}
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-artifact-{{ $image_version }}
   add: /
   to: /
   includePaths:

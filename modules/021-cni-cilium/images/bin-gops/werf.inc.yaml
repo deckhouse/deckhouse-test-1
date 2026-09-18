@@ -5,29 +5,41 @@
 # #####################################################################
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}-src-artifact
-fromImage: common/src-artifact
+from: {{ index $.Images "builder/distroless" }}
+packages:
+- type: os-pm
+  spec: [git, coreutils]
 final: false
 git:
+- url: {{ .SOURCE_REPO }}/google/gops.git
+  tag: v{{ include "get_oss_version_by_id" (list "gops" $ ) }}
+  add: /
+  to: /src/gops
+  stageDependencies:
+    install: ['**/*']
 - add: /{{ .ModulePath }}modules/{{ .ModulePriority }}-{{ .ModuleName }}/images/{{ .ImageName }}/patches
   to: /patches
   stageDependencies:
     install:
     - '**/*'
-secrets:
-- id: SOURCE_REPO
-  value: {{ .SOURCE_REPO }}
 shell:
   install:
-  - git clone --depth 1 --branch v{{ include "get_oss_version_by_id" (list "gops" $ ) }} $(cat /run/secrets/SOURCE_REPO)/google/gops.git /src/gops
   - cd /src/gops
   - ls /patches/*.patch >/dev/null 2>&1 && git apply --verbose --allow-empty /patches/*.patch
   - rm -rf /src/gops/.git
 ---
 image: {{ .ModuleName }}/gops-artifact
-from: {{ index $.Images "builder/golang" }}
+from: {{ index $.Images "builder/distroless" }}
+packages:
+- type: os-pm
+  spec: [golang, git, coreutils, bash, binutils, svace, ssh-static, rsync]
+- type: go-mod
+  workdir: /src/gops
+  env:
+    GOPROXY: "%secret:GOPROXY%"
 final: false
 import:
-- image: {{ .ModuleName }}/{{ .ImageName }}-src-artifact
+- from: {{ .ModuleName }}/{{ .ImageName }}-src-artifact
   add: /src
   to: /src
   before: install
@@ -37,10 +49,8 @@ secrets:
 - id: GOPROXY
   value: {{ .GOPROXY }}
 shell:
-  beforeInstall:
-  - pm install bash git binutils
   install:
-  - export GO_VERSION=${GOLANG_VERSION} GOPROXY=$(cat /run/secrets/GOPROXY)
+  - export GO_VERSION=${GOLANG_VERSION} GOPROXY=off
   - export GOOS=linux GOARCH=amd64 CGO_ENABLED=0
   - cd /src/gops
   - mkdir -p "/out/linux/amd64/bin"

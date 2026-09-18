@@ -2,9 +2,18 @@
 {{- $image_version := $version | replace "." "-" }}
 ---
 image: "{{ $.ModuleName }}/{{ $.ImageName }}-src-artifact-{{ $image_version }}"
-fromImage: common/src-artifact
+from: {{ index $.Images "builder/distroless" }}
 final: false
+packages:
+  - type: os-pm
+    spec: [bash, coreutils, git]
 git:
+  - url: {{ $.SOURCE_REPO }}/cloudflare/cfssl.git
+    tag: v{{ $version }}
+    add: /
+    to: /src/cfssl
+    stageDependencies:
+      install: ['**/*']
   - add: /{{ $.ModulePath }}modules/{{ $.ModulePriority }}-{{ $.ModuleName }}/images/{{ $.ImageName }}/scripts
     to: /src/scripts
     stageDependencies:
@@ -15,23 +24,24 @@ git:
     stageDependencies:
       install:
         - '**/*'
-secrets:
-  - id: SOURCE_REPO
-    value: "{{ $.SOURCE_REPO }}"
 shell:
   install:
     - mkdir -m 1777 /src/tmp
     - chmod +x /src/scripts/*
-    - git config --global advice.detachedHead false
-    - git clone --depth 1 --single-branch --branch v{{ $version }} $(cat /run/secrets/SOURCE_REPO)/cloudflare/cfssl.git /src/cfssl
     - cd /src/cfssl && git apply /patches/*.patch --verbose
-    - rm -rf /src/cfssl/.git
 ---
 image: "{{ $.ModuleName }}/{{ $.ImageName }}-artifact-{{ $image_version }}"
-from: {{ index $.Images "builder/golang" }}
+from: {{ index $.Images "builder/distroless" }}
 final: false
+packages:
+  - type: os-pm
+    spec: [bash, coreutils, golang, make, git]
+  - type: go-mod
+    workdir: /src/cfssl
+    env:
+      GOPROXY: "%secret:GOPROXY%"
 import:
-  - image: "{{ $.ModuleName }}/{{ $.ImageName }}-src-artifact-{{ $image_version }}"
+  - from: "{{ $.ModuleName }}/{{ $.ImageName }}-src-artifact-{{ $image_version }}"
     add: /src/cfssl
     before: install
 mount:
@@ -41,7 +51,7 @@ secrets:
     value: "{{ $.GOPROXY }}"
 shell:
   install:
-    - export GOPROXY=$(cat /run/secrets/GOPROXY)
+    - export GOPROXY=off GOSUMDB=off
     - export GOOS=linux
     - export GOARCH=amd64
     - export CGO_ENABLED=0
@@ -52,16 +62,16 @@ shell:
     - mv ./bin/* /
 ---
 image: "{{ $.ModuleName }}/{{ $.ImageName }}-{{ $image_version }}"
-fromImage: common/distroless
+from: scratch
 import:
-  - image: "{{ $.ModuleName }}/{{ $.ImageName }}-src-artifact-{{ $image_version }}"
+  - from: "{{ $.ModuleName }}/{{ $.ImageName }}-src-artifact-{{ $image_version }}"
     add: /src/scripts
     to: /
     includePaths:
     - install
     - uninstall
     before: setup
-  - image: "{{ $.ModuleName }}/{{ $.ImageName }}-artifact-{{ $image_version }}"
+  - from: "{{ $.ModuleName }}/{{ $.ImageName }}-artifact-{{ $image_version }}"
     add: /
     to: /
     includePaths:

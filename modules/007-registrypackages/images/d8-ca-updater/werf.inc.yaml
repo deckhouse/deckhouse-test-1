@@ -2,9 +2,9 @@
 {{- $image_version := $version | replace "." "-" }}
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-{{ $image_version }}
-from: {{ index $.Images "builder/scratch" }}
+from: scratch
 import:
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact-{{ $image_version }}
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-artifact-{{ $image_version }}
   add: /
   to: /
   includePaths:
@@ -26,6 +26,9 @@ imageSpec:
 image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact-{{ $image_version }}
 final: false
 from: {{ index $.Images "builder/distroless" }}
+packages:
+- type: os-pm
+  spec: [bash, python==3.12, gnu-glibc, gnu-gcc-lib, gnu-glibc-locale, perl, python-wheel, coreutils, curl]
 git:
 - add: /{{ $.ModulePath }}modules/{{ $.ModulePriority }}-{{ $.ModuleName }}/images/{{ $.ImageName }}/scripts
   to: /
@@ -38,10 +41,8 @@ git:
     install:
     - '**/*'
 shell:
-  beforeInstall:
-  - pm install python@3.12 gnu-glibc gnu-gcc-lib gnu-glibc-locale perl python-wheel coreutils curl
-  - pip3 install -f file:///wheels --no-index cryptography==44.0.1
   install:
+  - pip3 install -f file:///wheels --no-index cryptography==44.0.1
   - mv /mk-ca-bundle.pl /ca-certificates/mozilla
   - cd /ca-certificates/mozilla
   - perl mk-ca-bundle.pl -n

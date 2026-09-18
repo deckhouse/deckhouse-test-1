@@ -1,16 +1,16 @@
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}
-fromImage: common/distroless
+from: {{ index $.Images "base/distroless" }}
 import:
-- image: common/check-kernel-version
+- from: common/check-kernel-version
   add: /check-kernel-version
   to: /check-kernel-version
   before: setup
-- image: {{ .ModuleName }}/{{ .ImageName }}-relocate-artifact
-  add: /relocate/bin/true
-  to: /bin/true
+- from: {{ .ModuleName }}/{{ .ImageName }}-relocate-artifact
+  add: /relocate
+  to: /
   before: setup
-- image: common/pause
+- from: common/pause
   add: /pause
   to: /pause
   before: install
@@ -18,11 +18,19 @@ imageSpec:
   config:
     entrypoint: [ "/check-kernel-version" ]
 ---
-{{- $binaries := "/bin/true" }}
+{{- $binaries := "/usr/bin/true" }}
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}-relocate-artifact
-fromImage: common/relocate-artifact
+from: {{ index $.Images "builder/distroless" }}
 final: false
+packages:
+- type: os-pm
+  spec: [bash, coreutils, gawk, ldd]
+git:
+- add: /modules/030-cloud-provider-aws/images/ebs-csi-plugin/relocate.sh
+  to: /relocate.sh
+  stageDependencies:
+    setup: ['**/*']
 shell:
  setup:
-   - /binary_replace.sh -i "{{ $binaries }}" -o /relocate
+   - bash /relocate.sh /relocate {{ $binaries }}

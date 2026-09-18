@@ -1,25 +1,23 @@
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
 final: false
-fromImage: common/src-artifact
+from: {{ index $.Images "builder/distroless" }}
 git:
+- url: {{ $.SOURCE_REPO }}/deckhouse/deckhouse-cli.git
+  tag: {{ .CandiVersionMap.d8.d8CliVersion }}
+  add: /
+  to: /src/deckhouse-cli
 - add: /{{ $.ModulePath }}/modules/007-{{ $.ModuleName }}/images/{{ $.ImageName }}/scripts
   to: /src/scripts
-  stageDependencies:
-    install:
-    - '**/*'
-secrets:
-- id: SOURCE_REPO
-  value: {{ .SOURCE_REPO }}
-shell:
-  install:
-  - git clone --depth 1 --branch {{ .CandiVersionMap.d8.d8CliVersion }} $(cat /run/secrets/SOURCE_REPO)/deckhouse/deckhouse-cli.git /src/deckhouse-cli
-#  - rm -rf /src/deckhouse-cli/.git # https://github.com/deckhouse/deckhouse-cli/blob/main/Taskfile.yml#L9
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}
-from: {{ index $.Images "builder/scratch" }}
+{{- $vexPath := printf "%smodules/%s-%s/images/%s/known_vulnerabilities.vex" $.ModulePath $.ModulePriority $.ModuleName $.ImageName }}
+{{- if eq (len ($.Files.Glob $vexPath)) 1 }}
+vex: {{ $vexPath }}
+{{- end }}
+from: scratch
 import:
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-artifact
   add: /
   to: /
   includePaths:
@@ -38,15 +36,27 @@ imageSpec:
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact
 final: false
-from: {{ index $.Images "builder/golang" }}
+from: {{ index $.Images "builder/distroless" }}
+packages:
+- type: os-pm
+  spec: [bash, golang, git, ssh-static, make, coreutils, findutils, file, jq, pkgconf, gnu-gcc, gnu-glibc-devel, elfutils-devel, openssl-devel, libuv-devel, zstd-devel, btrfs-progs-devel, binutils, sed, grep, gawk]
+- type: go-mod
+  workdir: /src/deckhouse-cli
+  env:
+    GOPROXY: "%secret:GOPROXY%"
+    GOPRIVATE: flant.internal
+    GIT_CONFIG_COUNT: "1"
+    GIT_CONFIG_KEY_0: "url.ssh://git@%secret:DECKHOUSE_PRIVATE_REPO%/.insteadOf"
+    GIT_CONFIG_VALUE_0: https://flant.internal/
+    GIT_SSH_COMMAND: ssh -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile=/tmp/d8-known-hosts
 mount:
 {{ include "mount points for golang builds" . }}
 import:
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
   add: /src
   to: /src
   before: install
-- image: common/task-artifact
+- from: common/task-artifact
   add: /task
   to: /usr/local/bin/task
   before: install
@@ -62,27 +72,15 @@ secrets:
 - id: DECKHOUSE_PRIVATE_REPO
   value: {{ .DECKHOUSE_PRIVATE_REPO }}
 shell:
-  beforeInstall:
-  - pm install git ssh-static make coreutils findutils file jq pkgconf gnu-glibc-devel elfutils-devel openssl-devel libuv-devel zstd-devel btrfs-progs-devel
+  install:
   # The d8 static build links libuv from /usr/local/lib/libuv.a; pm ships it under a
   # different name and path.
   - mkdir -p /usr/local/lib
   - ln -fs "$(find /usr/lib /usr/lib64 /usr/lib/x86_64-linux-gnu -name 'libuv*.a' 2>/dev/null | head -n1)" /usr/local/lib/libuv.a
-  install:
-  - export GOPROXY=$(cat /run/secrets/GOPROXY)
-  - export PRIVATE_REPO=$(cat /run/secrets/DECKHOUSE_PRIVATE_REPO)
-  - export GOPRIVATE="flant.internal"
-  - git config --global url."ssh://git@${PRIVATE_REPO}/".insteadOf "https://flant.internal/"
-  - git config --global --add safe.directory '*'
-  - mkdir -p ~/.ssh
-  - touch ~/.ssh/known_hosts
-  - ssh-keyscan -H ${PRIVATE_REPO} >> ~/.ssh/known_hosts
-
+  - export GOPROXY=off GOSUMDB=off
   - cd /src/deckhouse-cli
-  - task build:dist:linux:amd64
+  - task build:dist:linux:amd64 version={{ .CandiVersionMap.d8.d8CliVersion }}
   - mv ./dist/{{ .CandiVersionMap.d8.d8CliVersion }}/linux-amd64/bin/d8 /d8
   - mv /src/scripts/* /
   - chmod +x /d8 /install /uninstall
-  - rm ~/.gitconfig # Prevent PRIVATE_REPO_TOKEN from leaking into the image layer
 ---
-{{- include "vex mitigation" (list $ (printf "%s/%s" $.ModuleName $.ImageName)) }}

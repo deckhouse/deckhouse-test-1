@@ -1,9 +1,9 @@
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}
-from: {{ index $.Images "builder/scratch" }}
+from: {{ index $.Images "base/distroless" }}
 final: false
 import:
-  - image: {{ .ModuleName }}/{{ .ImageName }}-artifact
+  - from: {{ .ModuleName }}/{{ .ImageName }}-artifact
     add: /relocate
     to: /
     before: setup
@@ -12,20 +12,21 @@ imageSpec:
     user: "64535:64535"
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}-artifact
-from: {{ index $.Images "builder/alpine" }}
+from: {{ index $.Images "builder/distroless" }}
 final: false
+packages:
+- type: os-pm
+  spec: [ca-certificates, tzdata, coreutils, bash, grep]
 shell:
-  beforeInstall:
-  {{- include "alpine packages proxy" . | nindent 2 }}
-  - apk add --no-cache ca-certificates tzdata
   install:
-  - mkdir -p /relocate/bin /relocate/sbin /relocate/etc /relocate/etc/ssl /relocate/usr/bin /relocate/usr/sbin /relocate/usr/share
-  - cp -pr /tmp /relocate
-  - cp -pr /etc/passwd /etc/group /etc/hostname /etc/hosts /etc/shadow /etc/protocols /etc/services /etc/nsswitch.conf /relocate/etc
-  - cp -pr /usr/share/ca-certificates /relocate/usr/share
+  - mkdir -p /relocate/etc /relocate/usr/share /relocate/tmp
+  - chmod 1777 /relocate/tmp
+  - cp -p /etc/passwd /etc/group /relocate/etc
+  - if [ -f /etc/shadow ]; then cp -p /etc/shadow /relocate/etc; else touch /relocate/etc/shadow; chmod 0600 /relocate/etc/shadow; fi
   - cp -pr /usr/share/zoneinfo /relocate/usr/share
-  - cp -pr etc/ssl/cert.pem /relocate/etc/ssl
-  - cp -pr /etc/ssl/certs /relocate/etc/ssl
-  - echo "deckhouse:x:64535:64535:deckhouse:/:/sbin/nologin" >> /relocate/etc/passwd
-  - echo "deckhouse:x:64535:" >> /relocate/etc/group
-  - echo "deckhouse:!::0:::::" >> /relocate/etc/shadow
+  - cp -pr /etc/ssl /relocate/etc
+  - 'grep -q "^deckhouse:" /relocate/etc/passwd || echo "deckhouse:x:64535:64535:deckhouse:/:/sbin/nologin" >> /relocate/etc/passwd'
+  - 'grep -q "^deckhouse:" /relocate/etc/group || echo "deckhouse:x:64535:" >> /relocate/etc/group'
+  - 'grep -q "^deckhouse:" /relocate/etc/shadow || echo "deckhouse:!::0:::::" >> /relocate/etc/shadow'
+  - 'grep -q "^deckhouse:[^:]*:64535:64535:" /relocate/etc/passwd'
+  - 'grep -q "^deckhouse:[^:]*:64535:" /relocate/etc/group'
