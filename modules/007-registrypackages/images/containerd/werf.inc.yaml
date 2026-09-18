@@ -1,6 +1,8 @@
 {{- $containerd_v1_version := "1.7.35" }}
 {{- $containerd_v2_version := "2.2.8" }}
 {{- $runc_version := "1.3.6" }}
+{{- $containerd_commits := dict "1.7.35" "0fab6e1c57c38c945dd004bd1d560d1b0915822f" "2.2.8" "941d3ed89ad60ad91cac377a16ecde23e2143083" }}
+{{- $runc_commits := dict "1.3.6" "491b69bab9fa206b984fb26ba07d3110d62e671f" }}
 {{- $containerd_versions := list $containerd_v2_version }}
 {{- if ne $.Env "CSE" }}
   {{- $containerd_versions = list $containerd_v1_version $containerd_v2_version }}
@@ -35,6 +37,7 @@ INTEGRITY_NAMESPACES="{{ $namespaces }}"
 
 
 {{- range $runc_version := $runc_versions }}
+{{- $runc_commit := index $runc_commits $runc_version | required "Update the runc source commit for this version" }}
 {{- $runcPatchesPath := printf "/%smodules/007-%s/images/%s/patches/runc/%s" $.ModulePath $.ModuleName $.ImageName $runc_version }}
 {{- $runcHasPatch := false }}
 {{- range $path, $_ := $.Files.Glob (printf "%s/*.patch" $runcPatchesPath) }}
@@ -43,33 +46,44 @@ INTEGRITY_NAMESPACES="{{ $namespaces }}"
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-runc-src-artifact-{{ $runc_version }}
 final: false
-fromImage: common/src-artifact
-{{- if $runcHasPatch }}
+from: {{ index $.Images "builder/distroless" }}
+packages:
+- type: os-pm
+  spec: [bash, coreutils, git]
 git:
+- url: {{ $.SOURCE_REPO }}/opencontainers/runc
+  commit: {{ $runc_commit }}
+  add: /
+  to: /src
+  stageDependencies:
+    install: ['**/*']
+{{- if $runcHasPatch }}
 - add: /{{ $.ModulePath }}modules/007-{{ $.ModuleName }}/images/{{ $.ImageName }}/patches/runc
   to: /patches
   stageDependencies:
     install:
     - '**/*'
 {{- end }}
-secrets:
-- id: SOURCE_REPO
-  value: {{ $.SOURCE_REPO }}
 shell:
   install:
-  - git clone --depth=1 --branch v{{ $runc_version }} $(cat /run/secrets/SOURCE_REPO)/opencontainers/runc /src
   - cd /src
   {{- if $runcHasPatch }}
   - git apply /patches/{{ $runc_version }}/*.patch --verbose
   {{- end }}
-  - git describe --dirty --long --always > COMMIT
-  - rm -rf /src/.git
+  - printf '%s\n' '{{ $runc_commit }}' > COMMIT
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-runc-artifact-{{ $runc_version }}
-from: {{ index $.Images "builder/golang" }}
+from: {{ index $.Images "builder/distroless" }}
 final: false
+packages:
+- type: os-pm
+  spec: [bash, coreutils, golang, git, make, pkgconf, libseccomp-devel, gnu-gcc, gnu-glibc-devel, binutils, sed, grep, gawk, findutils, svace, ssh-static, rsync]
+- type: go-mod
+  workdir: /src
+  env:
+    GOPROXY: "%secret:GOPROXY%"
 import:
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-runc-src-artifact-{{ $runc_version }}
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-runc-src-artifact-{{ $runc_version }}
   add: /src
   to: /src
   before: install
@@ -79,12 +93,11 @@ secrets:
 - id: GOPROXY
   value: {{ $.GOPROXY }}
 shell:
-  beforeInstall:
-  - pm install libseccomp-devel git pkgconf
-  - mkdir -p /out
   install:
+  - mkdir -p /out /root
+  - export GOPROXY=off GOSUMDB=off
   - cd /src
-  - GOPROXY=$(cat /run/secrets/GOPROXY) go mod vendor
+  - go mod vendor
   - git config --global user.email "builder@deckhouse.io"
   - |
   {{- $buildContext := deepCopy $ -}}
@@ -99,15 +112,20 @@ shell:
 {{- end }}
 
 {{- range $containerd_version := $containerd_versions }}
+  {{- $containerd_commit := index $containerd_commits $containerd_version | required "Update the containerd source commit for this version" }}
   {{- $image_version := $containerd_version | replace "." "-" }}
   {{- $is_v2 := hasPrefix "2." $containerd_version }}
   {{- $major_version := index (splitList "-" $image_version) 0 }}
   {{- $runc_version := index $containerd2runc $containerd_version }}
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-{{ $image_version }}
-from: {{ index $.Images "builder/scratch" }}
+{{- $vexPath := printf "%smodules/%s-%s/images/%s/known_vulnerabilities.vex" $.ModulePath $.ModulePriority $.ModuleName $.ImageName }}
+{{- if eq (len ($.Files.Glob $vexPath)) 1 }}
+vex: {{ $vexPath }}
+{{- end }}
+from: scratch
 import:
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact-{{ $image_version }}
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-artifact-{{ $image_version }}
   add: /out
   to: /
   includePaths:
@@ -121,11 +139,11 @@ import:
   - containerd.service
   before: setup
 {{- if and (eq $.Env "CSE") $is_v2 }}
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-pidumount-artifact
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-pidumount-artifact
   add: /pidumount
   before: setup
 {{- end }}
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-runc-artifact-{{ $runc_version }}
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-runc-artifact-{{ $runc_version }}
   add: /out/runc
   to: /runc
   before: setup
@@ -140,8 +158,25 @@ imageSpec:
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact-{{ $image_version }}
 final: false
-fromImage: common/src-artifact
+from: {{ index $.Images "builder/distroless" }}
+packages:
+- type: os-pm
+  spec: [bash, coreutils, git]
 git:
+- url: {{ $.SOURCE_REPO }}/containerd/containerd.git
+  commit: {{ $containerd_commit }}
+  add: /
+  to: /src/containerd
+  stageDependencies:
+    install: ['**/*']
+{{- if and (eq $.Env "CSE") $is_v2 }}
+- url: git@{{ $.DECKHOUSE_PRIVATE_REPO }}:deckhouse/kubernetes/platform/containerd-integrity-patches.git
+  tag: v{{ $containerd_version }}-{{ $containerd_integrity_patches_version }}
+  add: /
+  to: /src/integrity-patches
+  stageDependencies:
+    install: ['**/*']
+{{- end }}
 - add: /{{ $.ModulePath }}modules/007-{{ $.ModuleName }}/images/{{ $.ImageName }}/scripts
   to: /src/scripts
   stageDependencies:
@@ -152,34 +187,34 @@ git:
   stageDependencies:
     install:
     - '**/*'
-secrets:
-- id: SOURCE_REPO
-  value: {{ $.SOURCE_REPO }}
-- id: DECKHOUSE_PRIVATE_REPO
-  value: {{ $.DECKHOUSE_PRIVATE_REPO }}
 shell:
   install:
 {{- if and (eq $.Env "CSE") $is_v2 }}
   - echo "Attention! Use integrity patches!"
-  - git clone --depth 1 --branch v{{ $containerd_version }}-{{ $containerd_integrity_patches_version }} git@$(cat /run/secrets/DECKHOUSE_PRIVATE_REPO):deckhouse/kubernetes/platform/containerd-integrity-patches.git /src/integrity-patches
   - alias cp='cp'
   - cp /src/integrity-patches/patches/*.patch /patches
   - rm -rf /src/integrity-patches
 {{- end }}
-  - git clone --depth=1 --branch v{{ $containerd_version }} $(cat /run/secrets/SOURCE_REPO)/containerd/containerd.git /src/containerd
   - cd /src/containerd
-  - git describe --match 'v[0-9]*' --dirty='.m' --always > VERSION
-  - git rev-parse HEAD > REVISION
+  - printf '%s\n' 'v{{ $containerd_version }}' > VERSION
+  - printf '%s\n' '{{ $containerd_commit }}' > REVISION
   - git apply /patches/*.patch --verbose
   - cd /src/scripts
   - cp install_v{{ $major_version }} install
   - rm -rf install_v1 install_v2
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact-{{ $image_version }}
-from: {{ index $.Images "builder/golang" }}
+from: {{ index $.Images "builder/distroless" }}
 final: false
+packages:
+- type: os-pm
+  spec: [bash, coreutils, golang, git, make, pkgconf, libseccomp-devel, gnu-gcc, gnu-glibc-devel, binutils, sed, grep, gawk, findutils, svace, ssh-static, rsync]
+- type: go-mod
+  workdir: /src/containerd
+  env:
+    GOPROXY: "%secret:GOPROXY%"
 import:
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact-{{ $image_version }}
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact-{{ $image_version }}
   add: /src
   to: /src
   before: install
@@ -189,13 +224,12 @@ secrets:
 - id: GOPROXY
   value: {{ $.GOPROXY }}
 shell:
-  beforeInstall:
-  - pm install libseccomp-devel git pkgconf
-  - mkdir -p /out
   install:
+  - mkdir -p /out /root
+  - export GOPROXY=off GOSUMDB=off
   - cd /src/containerd
   - git config --global user.email "builder@deckhouse.io"
-  - GOPROXY=$(cat /run/secrets/GOPROXY) go mod vendor
+  - go mod vendor
   {{- if and (eq $.Env "CSE") $is_v2 }}
   - GOOS=linux GOARCH=amd64 make STATIC=1 INTEGRITY_IMAGE_SIGN_CHECK="false" INTEGRITY_DEV_MAPPER_CHECK="false" INTEGRITY_PERIODICAL_CHECK="false" INTEGRITY_STOP_CONTAINER_IF_FAIL="false" bin/containerd
   - mv bin/containerd /out/.containerd_fallback
@@ -218,16 +252,23 @@ shell:
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-pidumount-src-artifact
 final: false
-fromImage: common/src-artifact
+from: {{ index $.Images "builder/distroless" }}
 git:
 - add: /{{ $.ModulePath }}modules/007-{{ $.ModuleName }}/images/{{ $.ImageName }}/pidumount/src
   to: /src
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-pidumount-artifact
-from: {{ index $.Images "builder/golang" }}
+from: {{ index $.Images "builder/distroless" }}
 final: false
+packages:
+- type: os-pm
+  spec: [bash, coreutils, golang, git, gnu-gcc, gnu-glibc-devel, binutils, svace, ssh-static, rsync]
+- type: go-mod
+  workdir: /src
+  env:
+    GOPROXY: "%secret:GOPROXY%"
 import:
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-pidumount-src-artifact
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-pidumount-src-artifact
   add: /src
   before: install
 secrets:
@@ -235,10 +276,9 @@ secrets:
   value: {{ $.GOPROXY }}
 shell:
   install:
-  - export GOPROXY=$(cat /run/secrets/GOPROXY)
+  - export GOPROXY=off GOSUMDB=off
   - export GOOS=linux GOARCH=amd64 CGO_ENABLED=1
   - cd /src
-  - go mod download
   - |
     {{- $buildContext := deepCopy $ -}}
     {{- $_ := set $buildContext "SvaceBuildOptions" "--enable-ptrace-all" -}}
@@ -247,7 +287,6 @@ shell:
   - strip /pidumount
   - chmod 0700 /pidumount
   {{- end }}
-{{- include "vex mitigation" (list $ (printf "%s/%s-%s" $.ModuleName $.ImageName $image_version)) }}
 {{- end }}
 
 {{- if ne $.Env "CSE" }}
@@ -259,7 +298,7 @@ image: {{ $.ModuleName }}/{{ $.ImageName }}-sysext-artifact-{{ $image_version }}
 from: {{ index $.Images "builder/distroless" }}
 final: false
 import:
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-{{ $image_version }}
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-{{ $image_version }}
   add: /
   to: /sysext/opt/deckhouse/bin
   includePaths:
@@ -281,11 +320,12 @@ git:
     - extension-release.containerd
     - sysext-containerd.service
 {{- include "engine sysext sign secrets" . }}
+packages:
+- type: os-pm
+  spec: [bash, erofs-utils, coreutils, cryptsetup, systemd==260.4, openssl, curl, jq]
 shell:
-  beforeInstall:
-  - pm install erofs-utils coreutils cryptsetup systemd@260.4
-  - mkdir -p /out
   install:
+  - mkdir -p /out
   - mkdir -p /sysext/usr/lib/extension-release.d /sysext/usr/lib/systemd/system
   - cp -f /scripts/sysext-containerd.service /sysext/usr/lib/systemd/system/containerd.service
   - cp -f /scripts/extension-release.containerd /sysext/usr/lib/extension-release.d/
@@ -297,9 +337,13 @@ shell:
 {{- include "engine sysext sign" "containerd" }}
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-sysext-{{ $image_version }}
-from: {{ index $.Images "builder/scratch" }}
+{{- $vexPath := printf "%smodules/%s-%s/images/%s/known_vulnerabilities.vex" $.ModulePath $.ModulePriority $.ModuleName $.ImageName }}
+{{- if eq (len ($.Files.Glob $vexPath)) 1 }}
+vex: {{ $vexPath }}
+{{- end }}
+from: scratch
 import:
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-sysext-artifact-{{ $image_version }}
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-sysext-artifact-{{ $image_version }}
   add: /out
   to: /
   includePaths:
@@ -313,5 +357,4 @@ imageSpec:
     clearCmd: true
     clearEntrypoint: true
     removeEnv: ["/.*/"]
-{{- include "vex mitigation" (list $ (printf "%s/%s-sysext-%s" $.ModuleName $.ImageName $image_version)) }}
 {{- end }}

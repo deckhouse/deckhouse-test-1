@@ -2,130 +2,94 @@
 {{- if ne $.Env "CSE" }}
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}-src-artifact
-fromImage: common/src-artifact
+from: common/src-artifact
 final: false
 git:
+- url: {{ .SOURCE_REPO }}/NVIDIA/dcgm-exporter.git
+  tag: {{ $version }}
+  add: /
+  to: /src
 - add: /{{ $.ModulePath }}modules/{{ $.ModulePriority }}-{{ $.ModuleName }}/images/{{ $.ImageName }}/patches
   to: /patches
   stageDependencies:
     install:
     - '**/*'
-secrets:
-- id: SOURCE_REPO
-  value: {{ .SOURCE_REPO }}
 shell:
   install:
-  - git clone --depth 1 --branch {{ $version}} $(cat /run/secrets/SOURCE_REPO)/NVIDIA/dcgm-exporter.git /src
   - cd /src
   - git apply /patches/*.patch --verbose
-  - echo $(git rev-parse --short HEAD) > .GIT_HASH
-  - rm -rf /src/.git
+  - rm -rf vendor
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}-build-artifact
 final: false
-fromImage: {{ .ModuleName }}/builder-cuda
+from: {{ index $.Images "builder/distroless" }}
 import:
-- image: {{ .ModuleName }}/{{ .ImageName }}-src-artifact
+- from: {{ .ModuleName }}/{{ .ImageName }}-src-artifact
   add: /src
   before: install
-- image: {{ .ModuleName }}/nvidia-dcgm-build-artifact
-  add: /out
-  to: /
-  includePaths:
-  - usr/*
-  before: setup
 mount:
 {{ include "mount points for golang builds" . }}
 secrets:
 - id: GOPROXY
   value: {{ .GOPROXY }}
+packages:
+- type: os-pm
+  spec: [golang, gnu-gcc, binutils, gnu-glibc-devel, make, git, bash, coreutils, sed]
+- type: go-mod
+  workdir: /src
+  env:
+    GOPROXY: "%secret:GOPROXY%"
 shell:
   install:
-  - export DEBIAN_FRONTEND=noninteractive
-  - apt-get update
-  - apt-get install --assume-yes --no-install-recommends libcap2-bin
-  - rm -rf /var/lib/apt/lists/*
-  - export GOPATH=/go
-  - export PATH=$GOPATH/bin:/usr/local/go/bin:$PATH
-  - export GIT_COMMIT=$(cat /src/.GIT_HASH)
   - cd /src
-  - export CLI_VERSION_PACKAGE=github.com/NVIDIA/k8s-device-plugin/internal/info
-  - export GOPROXY=$(cat /run/secrets/GOPROXY) GOOS=linux GOARCH=amd64
+  - export GOPROXY=off GOSUMDB=off CGO_ENABLED=1 GOOS=linux GOARCH=amd64 GOFLAGS=-mod=readonly
   - make PREFIX=/ binary
   - cp cmd/dcgm-exporter/dcgm-exporter /
   - cp docker/dcgm-exporter-entrypoint.sh /dcgm-exporter-entrypoint.sh
   - sed -i "s/env bash/bash/" /dcgm-exporter-entrypoint.sh
   - sed -E -i "s#DCGM_EXPORTER=.+#DCGM_EXPORTER=/usr/bin/dcgm-exporter#" /dcgm-exporter-entrypoint.sh
   - chmod 700 /dcgm-exporter /dcgm-exporter-entrypoint.sh
-  - |
-    mkdir -p /ldconf
-    echo "include /etc/ld.so.conf.d/*.conf" > /ldconf/ld.so.conf
-    mkdir -p /ldconf/ld.so.conf.d
-    echo "/usr/lib/x86_64-linux-gnu" > /ldconf/ld.so.conf.d/x86_64-linux-gnu.conf
-  - |
-    mkdir -p /out/lib/x86_64-linux-gnu
-    cp /lib/x86_64-linux-gnu/libcap.so.2* /out/lib/x86_64-linux-gnu/
-    cd /out/lib/x86_64-linux-gnu && for f in libcap.so.2.*; do ln -sf "$f" libcap.so.2; done
 ---
-image: {{ .ModuleName }}/{{ .ImageName }}
-fromImage: common/distroless
+image: {{ .ModuleName }}/{{ .ImageName }}-runtime-artifact
+from: common/relocate-artifact
+final: false
+packages:
+- type: os-pm
+  spec: [bash, coreutils, grep, libcap, gnu-glibc]
 import:
-- image: {{ .ModuleName }}/{{ .ImageName }}-build-artifact
-  add: /ldconf
-  to: /etc
-  includePaths:
-  - ld.so.conf
-  before: setup
-- image: {{ .ModuleName }}/{{ .ImageName }}-build-artifact
-  add: /ldconf/ld.so.conf.d
-  to: /etc/ld.so.conf.d
-  includePaths:
-  - x86_64-linux-gnu.conf
-  before: setup
-- image: {{ .ModuleName }}/{{ .ImageName }}-build-artifact
+- from: {{ .ModuleName }}/{{ .ImageName }}-build-artifact
   add: /
   to: /usr/bin
   includePaths:
   - dcgm-exporter
   - dcgm-exporter-entrypoint.sh
-  before: setup
-- image: {{ .ModuleName }}/{{ .ImageName }}-build-artifact
-  add: /sbin
-  to: /sbin
-  includePaths:
-  - getcap
-  - setcap
-  before: setup
-- image: {{ .ModuleName }}/{{ .ImageName }}-build-artifact
-  add: /out/lib/x86_64-linux-gnu
-  to: /usr/lib/x86_64-linux-gnu
-  includePaths:
-  - libcap.so.2*
-  before: setup
-- image: {{ .ModuleName }}/nvidia-dcgm-build-artifact
+  before: install
+shell:
+  install:
+  - for tool in getcap setcap ldconfig; do command -v "$tool" >/dev/null || exit 1; done
+  - /binary_replace.sh -i "/usr/bin/dcgm-exporter /usr/bin/bash /usr/bin/grep /usr/bin/sleep $(command -v getcap) $(command -v setcap) $(command -v ldconfig)" -o /relocate
+  - cp /usr/bin/dcgm-exporter-entrypoint.sh /relocate/usr/bin/
+  - ln -s bash /relocate/usr/bin/sh
+  - mkdir -p /relocate/etc/ld.so.conf.d
+  - echo "include /etc/ld.so.conf.d/*.conf" > /relocate/etc/ld.so.conf
+  - printf '/usr/lib\n/usr/lib/x86_64-linux-gnu\n/usr/lib64\n' > /relocate/etc/ld.so.conf.d/nvidia-dcgm.conf
+---
+image: {{ .ModuleName }}/{{ .ImageName }}
+from: {{ index $.Images "base/distroless" }}
+import:
+- from: {{ .ModuleName }}/nvidia-dcgm-build-artifact
   add: /out/
   to: /
   includePaths:
   - usr/*
   - lib
   before: setup
-- image: {{ .ModuleName }}/{{ .ImageName }}-src-artifact
+- from: {{ .ModuleName }}/{{ .ImageName }}-src-artifact
   add: /src/etc/*
   to: /etc/dcgm-exporter
   before: setup
-- image: {{ .ModuleName }}/{{ .ImageName }}-build-artifact
-  add: /
-  includePaths:
-    - lib64
-  before: setup
-- from: {{ index $.Images "libs/glibc" }}
-  add: /
+- from: {{ .ModuleName }}/{{ .ImageName }}-runtime-artifact
+  add: /relocate
   to: /
-  includePaths:
-  - sbin/*
-  before: setup
-- from: {{ index $.Images "tools/bash" }}
-  add: /usr/bin/bash
-  to: /usr/bin/bash
   before: setup
 {{- end }}

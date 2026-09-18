@@ -11,9 +11,13 @@
     {{- end }}
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-{{ $image_version }}
-fromImage: common/distroless
+{{- $vexPath := printf "%smodules/%s-%s/images/%s/known_vulnerabilities.vex" $.ModulePath $.ModulePriority $.ModuleName $.ImageName }}
+{{- if eq (len ($.Files.Glob $vexPath)) 1 }}
+vex: {{ $vexPath }}
+{{- end }}
+from: {{ index $.Images "base/distroless" }}
 import:
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact-{{ $image_version }}
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-artifact-{{ $image_version }}
   add: /src/openstack-cloud-controller-manager
   to: /bin/openstack-cloud-controller-manager
   before: setup
@@ -23,21 +27,25 @@ imageSpec:
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact-{{ $image_version }}
 final: false
-fromImage: common/src-artifact
-{{- if $patch }}
+from: {{ index $.Images "builder/distroless" }}
 git:
+- url: {{ $.SOURCE_REPO }}/kubernetes/cloud-provider-openstack.git
+  tag: {{ $version }}
+  to: /src
+  stageDependencies:
+    install: ['**/*']
+{{- if $patch }}
 - add: {{ $patches }}/patches/{{ $k8s_version }}
   to: /patches
   stageDependencies:
     install:
       - '**/*'
 {{- end }}
-secrets:
-- id: SOURCE_REPO
-  value: {{ $.SOURCE_REPO }}
+packages:
+- type: os-pm
+  spec: [git, coreutils]
 shell:
   install:
-  - git clone --depth 1 --branch {{ $version }}  $(cat /run/secrets/SOURCE_REPO)/kubernetes/cloud-provider-openstack.git /src
   - cd /src
   {{- if $patch }}
   - git apply /patches/*.patch --verbose
@@ -46,9 +54,9 @@ shell:
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact-{{ $image_version }}
 final: false
-from: {{ index $.Images "builder/golang" }}
+from: {{ index $.Images "builder/distroless" }}
 import:
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact-{{ $image_version }}
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact-{{ $image_version }}
   add: /src
   to: /src
   before: install
@@ -57,16 +65,22 @@ mount:
 secrets:
 - id: GOPROXY
   value: {{ $.GOPROXY }}
+packages:
+- type: os-pm
+  spec: [golang, bash, git, make, coreutils, sed, grep, findutils]
+- type: go-mod
+  workdir: /src
+  env:
+    GOPROXY: "%secret:GOPROXY%"
 shell:
   install:
   - cd /src
-  - export GOPROXY=$(cat /run/secrets/GOPROXY)
+  - export GOPROXY=off
   - export VERSION={{ $version }}
   - export GIT_VERSION={{ $version }}
   - make openstack-cloud-controller-manager
   - chown 64535:64535 /src/openstack-cloud-controller-manager
   - chmod 0755 /src/openstack-cloud-controller-manager
 ---
-{{- include "vex mitigation" (list $ (printf "%s/%s-%s" $.ModuleName $.ImageName $image_version )) }}
 {{- end }}
 {{- end }}

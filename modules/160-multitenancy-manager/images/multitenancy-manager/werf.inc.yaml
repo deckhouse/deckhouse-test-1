@@ -1,22 +1,31 @@
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}
-fromImage: common/distroless
+{{- $vexPath := printf "%smodules/%s-%s/images/%s/known_vulnerabilities.vex" $.ModulePath $.ModulePriority $.ModuleName $.ImageName }}
+{{- if eq (len ($.Files.Glob $vexPath)) 1 }}
+vex: {{ $vexPath }}
+{{- end }}
+from: {{ index $.Images "base/distroless" }}
 import:
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact
+- from: common/distroless-artifact
+  add: /relocate
+  to: /
+  before: install
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-artifact
   add: /src/multitenancy-manager
   to: /multitenancy-manager
   before: setup
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
   add: /src/templates
   to: /templates
   before: setup
 {{- include "image mount points" . }}
 imageSpec:
   config:
+    user: "64535:64535"
     entrypoint: [ "/multitenancy-manager" ]
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}-src-artifact
-fromImage: common/src-artifact
+from: {{ index $.Images "builder/distroless" }}
 final: false
 git:
   - add: /{{ $.ModulePath }}modules/{{ $.ModulePriority }}-{{ $.ModuleName }}/images/{{ $.ImageName }}/src
@@ -26,21 +35,19 @@ git:
       - '**/go.mod'
       - '**/go.sum'
       - '**/templates/*.yaml'
-    stageDependencies:
-      install:
-        - '**/*.go'
-        - '**/go.mod'
-        - '**/go.sum'
-        - '**/templates/*.yaml'
-shell:
-  install:
-  - cd /src
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}-artifact
-from: {{ index $.Images "builder/golang" }}
+from: {{ index $.Images "builder/distroless" }}
 final: false
+packages:
+- type: os-pm
+  spec: [golang==1.26.8, git, bash, coreutils, svace, ssh-static, rsync]
+- type: go-mod
+  workdir: /src
+  env:
+    GOPROXY: "%secret:GOPROXY%"
 import:
-  - image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
+  - from: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
     add: /src
     to: /src
     before: install
@@ -51,7 +58,7 @@ secrets:
   value: {{ .GOPROXY }}
 shell:
   install:
-    - export GOPROXY=$(cat /run/secrets/GOPROXY)
+    - export GOPROXY=off
     - cd /src
     - export CGO_ENABLED=0 GOOS=linux
     - |
@@ -62,4 +69,3 @@ shell:
     - chown 64535:64535 multitenancy-manager
     - chmod 0700 multitenancy-manager
 ---
-{{- include "vex mitigation" (list $ (printf "%s/%s" $.ModuleName $.ImageName)) }}

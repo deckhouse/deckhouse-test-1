@@ -6,34 +6,14 @@
 {{- $context := . -}}
 
 ---
-image: ssh-static-src-artifact
-final: false
-fromImage: common/src-artifact
-secrets:
-- id: SOURCE_REPO
-  value: {{ .SOURCE_REPO }}
-shell:
-  install:
-  - git clone -b V_9_9_P1 --single-branch --depth=1 $(cat /run/secrets/SOURCE_REPO)/openssh/openssh-portable /src
-  - rm -rf /src/.git
----
 image: ssh-static
 final: false
-from: {{ index $.Images "builder/alpine-3.21" }}
-import:
-- image: ssh-static-src-artifact
-  add: /src
-  to: /src
-  before: install
+from: {{ index $.Images "builder/distroless" }}
+packages:
+- type: os-pm
+  spec: [ssh-static, coreutils]
 shell:
-  beforeInstall:
-  {{- include "alpine packages proxy" $context | nindent 2 }}
-  - apk add --no-cache build-base make autoconf automake zlib-dev zlib-static openssl-dev openssl-libs-static
   install:
-  - cd /src
-  - autoreconf
-  - ./configure LDFLAGS="-static $(LDFLAGS)" --prefix=
-  - make --jobs=8
-  - make DESTDIR=/ssh install
-  - make clean
+  - mkdir -p /ssh/bin
+  - cp -L /usr/bin/ssh /usr/bin/ssh-add /usr/bin/ssh-agent /usr/bin/scp /ssh/bin/
 {{- end }}

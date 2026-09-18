@@ -1,40 +1,39 @@
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}
-fromImage: common/distroless
+from: {{ index $.Images "base/distroless" }}
 import:
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact
+- from: common/distroless-artifact
+  add: /relocate
+  to: /
+  before: setup
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-artifact
   add: /pause-linux-amd64
   to: /pause
   before: setup
 imageSpec:
   config:
+    user: "64535:64535"
     entrypoint: ["/pause"]
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
-fromImage: common/src-artifact
+from: common/src-artifact
 final: false
 git:
 - add: /{{ $.ModulePath }}modules/{{ .ModulePriority }}-{{ $.ModuleName }}/images/{{ $.ImageName }}/src
   to: /src
-  stageDependencies:
-    install:
-    - '**/*'
-shell:
-  install:
-  - cd /src
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact
-from: {{ index $.Images "builder/alpine" }}
+from: {{ index $.Images "builder/distroless" }}
 final: false
+packages:
+- type: os-pm
+  spec: [gnu-gcc, binutils, gnu-glibc-devel, libgcc-static, bash, coreutils]
 import:
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
   add: /src
   to: /src
   before: install
 shell:
-  beforeInstall:
-  {{- include "alpine packages proxy" . | nindent 2 }}
-  - apk add --no-cache build-base
   install:
   - cd /src
   - gcc -Os -Wall -Werror -static -o /pause-linux-amd64 pause.c

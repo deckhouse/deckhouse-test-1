@@ -2,18 +2,31 @@
 image: {{ .ModuleName }}/{{ .ImageName }}-artifact
 final: false
 from: {{ index $.Images "builder/distroless" }}
+git:
+- add: /modules/000-common/images/relocate/binary_replace.sh
+  to: /binary_replace.sh
+  stageDependencies:
+    install: ['**/*']
+packages:
+- type: os-pm
+  spec: [python==3.12.12, gnu-glibc, grep, sed, coreutils, bash, ldd, gawk, findutils]
 shell:
-  beforeInstall:
-  - pm install python@3.12 gnu-glibc grep sed coreutils bash -d /out
-  - rm -rf /out/usr/lib/python3*/site-packages/pip* /out/usr/bin/pip3*
+  install:
+  - ln -sf /usr/bin/gawk /usr/bin/awk
+  - bash /binary_replace.sh -i "/usr/bin/python3.12 /usr/bin/bash /usr/bin/grep /usr/bin/sed /usr/bin/unlink" -o /out
+  - cp -a /usr/lib/python3.12 /out/usr/lib/
+  - find /usr/lib/python3.12 -type f -name '*.so' -exec bash /binary_replace.sh -i '{}' -o /out \;
+  - ln -sf python3.12 /out/usr/bin/python3
+  - ln -sf bash /out/usr/bin/sh
+  - rm -rf /out/usr/lib/python3.12/site-packages/pip*
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}
-from: {{ index $.Images "base/distroless-fin" }}
+from: {{ index $.Images "base/distroless" }}
 git:
 - add: /{{ $.ModulePath }}modules/450-{{ $.ModuleName }}/images/{{ $.ImageName }}/src/iptables-loop.py
   to: /iptables-loop.py
 import:
-- image: {{ .ModuleName }}/{{ .ImageName }}-artifact
+- from: {{ .ModuleName }}/{{ .ImageName }}-artifact
   add: /out
   to: /
   before: setup

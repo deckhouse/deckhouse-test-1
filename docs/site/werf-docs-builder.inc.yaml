@@ -1,16 +1,16 @@
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}
 {{ if eq .ModuleName "documentation" }}
-fromImage: common/distroless
+from: common/distroless
 {{ else }}
-from: {{ index $.Images "builder/scratch" }}
+from: scratch
 {{ end }}
 import:
-- image: {{ .ModuleName }}/{{ .ImageName }}-artifact
+- from: {{ .ModuleName }}/{{ .ImageName }}-artifact
   add: /src/docs-builder
   to: /app/server
   before: setup
-- image: d8-docs-artifacts
+- from: d8-docs-artifacts
   add: /export
   to: /app/hugo-init/data/dkp
   includePaths:
@@ -37,8 +37,15 @@ git:
 {{ end }}
 
 ---
+image: d8-docs-runtime-artifact
+from: {{ index $.Images "builder/distroless" }}
+final: false
+packages:
+- type: os-pm
+  spec: [bash, jq, yq, sed, gawk, findutils, coreutils]
+---
 image: d8-docs-artifacts
-from: {{ index $.Images "builder/alpine" }}
+from: d8-docs-runtime-artifact
 final: false
 shell:
   setup:
@@ -101,15 +108,6 @@ shell:
     cd /rawdata/docs
     {{ .Files.Get (printf "%sdocs/documentation/werf-editions-convert-partials.inc.yaml" .ModulePath) | indent 4 }}
     cp /rawdata/docs/editions.json /export/editions.json
-import:
-- from: {{ index $.Images "tools/jq" }}
-  add: /usr/bin/jq
-  to: /usr/bin/jq
-  before: setup
-- from: {{ index $.Images "tools/yq" }}
-  add: /usr/bin/yq
-  to: /usr/bin/yq
-  before: setup
 git:
 - add: /docs/documentation/_tools/modules_generate_metadata.sh
   to: /_tools/modules_generate_metadata.sh
@@ -141,13 +139,13 @@ git:
   - editions-addition.json
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}-artifact
-from: {{ index $.Images "builder/golang" }}
+from: {{ index $.Images "builder/distroless" }}
 final: false
 mount:
 {{ include "mount points for golang builds" . }}
 {{ if ne .ModuleName "website-docs" }}
 import:
-- image: {{ .ModuleName }}/{{ .ImageName }}-src-artifact
+- from: {{ .ModuleName }}/{{ .ImageName }}-src-artifact
   add: /src
   to: /src
   before: install
@@ -155,22 +153,25 @@ import:
 secrets:
 - id: GOPROXY
   value: {{ .GOPROXY }}
+packages:
+- type: os-pm
+  spec: [golang, git, ca-certificates, coreutils]
+- type: go-mod
+  workdir: /src
+  env:
+    GOPROXY: "%secret:GOPROXY%"
 shell:
   install:
   - cd /src
   - export CGO_ENABLED=0 GOOS=linux GOARCH=amd64
-  - GOPROXY=$(cat /run/secrets/GOPROXY) go mod download
   - go build -ldflags '-s -w' .
   - chown -R 64535:64535 /src
   - chmod 0700 /src/docs-builder
 {{ if ne .ModuleName "website-docs" }}
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}-src-artifact
-fromImage: common/src-artifact
+from: common/src-artifact
 final: false
-shell:
-  install:
-  - cd /src
 {{ end }}
 git:
 - add: /{{ .ModulePath }}docs/site/backends/docs-builder
@@ -179,6 +180,11 @@ git:
   - '**/*.go'
   - '**/*.mod'
   - '**/*.sum'
+{{ if eq .ModuleName "website-docs" }}
   stageDependencies:
+    packages:
+    - '**/*.mod'
+    - '**/*.sum'
     install:
     - '**/*'
+{{ end }}

@@ -1,30 +1,38 @@
 {{- $version := "v2.8.3-deckhouse.5"}}
 ---
 image: "{{ $.ModuleName }}/{{ $.ImageName }}-src-artifact"
-fromImage: common/src-artifact
+from: {{ index $.Images "builder/distroless" }}
 final: false
+packages:
+  - type: os-pm
+    spec: [coreutils]
 git:
+  - url: {{ $.SOURCE_REPO }}/deckhouse/3p-distribution.git
+    tag: {{ $version }}
+    add: /
+    to: /src/distribution
   - add: /{{ $.ModulePath }}modules/{{ $.ModulePriority }}-{{ $.ModuleName }}/images/{{ $.ImageName }}/scripts
     to: /src/scripts
     stageDependencies:
       install:
         - '**/*'
-secrets:
-  - id: SOURCE_REPO
-    value: "{{ $.SOURCE_REPO }}"
 shell:
   install:
     - mkdir -m 1777 /src/tmp
     - chmod +x /src/scripts/*
-    - git config --global advice.detachedHead false
-    - git clone --depth 1 --single-branch --branch {{ $version }} $(cat /run/secrets/SOURCE_REPO)/deckhouse/3p-distribution.git /src/distribution
-    - rm -rf /src/distribution/.git
 ---
 image: "{{ $.ModuleName }}/{{ $.ImageName }}-artifact"
-from: {{ index $.Images "builder/golang" }}
+from: {{ index $.Images "builder/distroless" }}
 final: false
+packages:
+  - type: os-pm
+    spec: [golang, git, bash, coreutils, make, grep, findutils]
+  - type: go-mod
+    workdir: /src/distribution
+    env:
+      GOPROXY: "%secret:GOPROXY%"
 import:
-  - image: "{{ $.ModuleName }}/{{ $.ImageName }}-src-artifact"
+  - from: "{{ $.ModuleName }}/{{ $.ImageName }}-src-artifact"
     add: /src/distribution
     before: install
 mount:
@@ -34,35 +42,35 @@ secrets:
     value: "{{ $.GOPROXY }}"
 shell:
   install:
-    - export GOPROXY=$(cat /run/secrets/GOPROXY)
+    - export GOPROXY=off
     - export GOOS=linux
     - export GOARCH=amd64
     - export CGO_ENABLED=0
     - cd /src/distribution
-    - make build
-    - make binaries
-    - chmod +x ./registry
+    - make build VERSION={{ $version }} REVISION={{ $version }}
+    - make binaries VERSION={{ $version }} REVISION={{ $version }}
+    - chmod +x ./bin/registry
     - mv ./bin/registry /registry
 ---
 image: "{{ $.ModuleName }}/{{ $.ImageName }}"
-fromImage: common/distroless
+from: {{ index $.Images "base/distroless" }}
 import:
-- image: "{{ $.ModuleName }}/{{ $.ImageName }}-src-artifact"
+- from: "{{ $.ModuleName }}/{{ $.ImageName }}-src-artifact"
   add: /src/scripts
   to: /
   includePaths:
   - install
   - uninstall
   before: setup
-- image: "{{ $.ModuleName }}/{{ $.ImageName }}-src-artifact"
+- from: "{{ $.ModuleName }}/{{ $.ImageName }}-src-artifact"
   add: /src/tmp
   to: /tmp
   before: setup
-- image: "{{ $.ModuleName }}/{{ $.ImageName }}-artifact"
+- from: "{{ $.ModuleName }}/{{ $.ImageName }}-artifact"
   add: /registry
   to: /registry
   before: setup
-- image: common/pause
+- from: common/pause
   add: /pause
   to: /pause
   before: setup

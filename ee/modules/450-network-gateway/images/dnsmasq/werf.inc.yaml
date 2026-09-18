@@ -2,9 +2,17 @@
 image: {{ .ModuleName }}/{{ .ImageName }}-artifact
 final: false
 from: {{ index $.Images "builder/distroless" }}
+packages:
+- type: os-pm
+  spec: [dnsmasq, coreutils, ldd, gawk]
 shell:
-  beforeInstall:
-  - pm install dnsmasq -d /out
+  install:
+  - mkdir -p /out/usr/bin /out/usr/lib
+  - cp -L "$(command -v dnsmasq)" /out/usr/bin/dnsmasq
+  - |
+    for library in $(ldd "$(command -v dnsmasq)" | gawk '/=> \/|^\s*\// { for (field = 1; field <= NF; field++) if ($field ~ /^\//) print $field }'); do
+      cp -L "${library}" /out/usr/lib/
+    done
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-wheel-artifact
 from: {{ index $.Images "builder/distroless" }}
@@ -13,26 +21,28 @@ git:
 - add: /{{ $.ModulePath }}modules/{{ .ModulePriority }}-{{ .ModuleName }}/images/{{ $.ImageName }}/src/requirements.txt
   to: /requirements.txt
   stageDependencies:
-    install:
+    packages:
     - '**/*'
-shell:
-  beforeInstall:
-  - pm install python@3.12 libc python-wheel
-  install:
-  - pip3 install -f file:///wheels --no-index --upgrade pip
-  - pip3 install -f file:///wheels --no-index -r /requirements.txt
+packages:
+- type: os-pm
+  spec: [python==3.12.12, gnu-glibc, python-wheel]
+- type: python-pip
+  workdir: /
+  env:
+    PIP_FIND_LINKS: file:///wheels
+    PIP_NO_INDEX: "1"
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}
-from: {{ index $.Images "base/distroless-fin" }}
+from: {{ index $.Images "base/distroless" }}
 git:
 - add: /{{ $.ModulePath }}modules/450-{{ $.ModuleName }}/images/{{ $.ImageName }}/src/prepare-config.py
   to: /prepare-config.py
 import:
-- image: {{ .ModuleName }}/{{ .ImageName }}-artifact
+- from: {{ .ModuleName }}/{{ .ImageName }}-artifact
   add: /out
   to: /
   before: install
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-wheel-artifact
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-wheel-artifact
   add: /
   to: /
   before: install
@@ -41,7 +51,6 @@ import:
   - usr/lib/python3*
   - usr/lib/lib*.so*
   - usr/lib/ld-linux-x86-64.so.2
-  - lib64
   excludePaths:
   - usr/lib/python*/site-packages/pip-25.3*
   - usr/lib/python*/test

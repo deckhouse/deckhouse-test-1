@@ -1,33 +1,39 @@
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}
-fromImage: common/distroless
+from: {{ index $.Images "base/distroless" }}
 import:
-  - image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact
+  - from: common/distroless-artifact
+    add: /relocate
+    to: /
+    before: install
+  - from: {{ $.ModuleName }}/{{ $.ImageName }}-artifact
     add: /constraint_exporter
     to: /constraint_exporter
     before: setup
 imageSpec:
   config:
+    user: "64535:64535"
     entrypoint: [ "/constraint_exporter" ]
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
-fromImage: common/src-artifact
+from: {{ index $.Images "builder/distroless" }}
 final: false
 git:
 - add: /{{ $.ModulePath }}modules/015-{{ $.ModuleName }}/images/{{ $.ImageName }}/src
   to: /src
-  stageDependencies:
-    install:
-    - '**/*'
-shell:
-  install:
-    - cd /src
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}-artifact
-from: {{ index $.Images "builder/golang" }}
+from: {{ index $.Images "builder/distroless" }}
 final: false
+packages:
+- type: os-pm
+  spec: [golang==1.26.8, git, bash, coreutils, svace, ssh-static, rsync]
+- type: go-mod
+  workdir: /src
+  env:
+    GOPROXY: "%secret:GOPROXY%"
 import:
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
   add: /src
   to: /src
   before: install
@@ -38,7 +44,7 @@ secrets:
   value: {{ .GOPROXY }}
 shell:
   install:
-  - export GOPROXY=$(cat /run/secrets/GOPROXY)
+  - export GOPROXY=off
   - cd /src
   - export GOOS=linux GOARCH=amd64 CGO_ENABLED=0
   - |

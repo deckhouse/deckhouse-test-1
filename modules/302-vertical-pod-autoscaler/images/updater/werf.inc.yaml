@@ -1,8 +1,12 @@
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}
-fromImage: common/distroless
+{{- $vexPath := printf "%smodules/%s-%s/images/%s/known_vulnerabilities.vex" $.ModulePath $.ModulePriority $.ModuleName $.ImageName }}
+{{- if eq (len ($.Files.Glob $vexPath)) 1 }}
+vex: {{ $vexPath }}
+{{- end }}
+from: common/distroless
 import:
-- image: {{ .ModuleName }}/vertical-pod-autoscaler-artifact
+- from: {{ .ModuleName }}/vertical-pod-autoscaler-artifact
   add: /updater
   to: /updater
   before: setup
@@ -11,4 +15,3 @@ imageSpec:
     entrypoint: ["/updater"]
     cmd: ["--v=4", "--stderrthreshold=info"]
 ---
-{{- include "vex mitigation" (list $ (printf "%s/%s" $.ModuleName $.ImageName )) }}

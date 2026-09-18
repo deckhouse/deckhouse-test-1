@@ -6,9 +6,9 @@
 {{- end }}
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}
-fromImage: common/distroless
+from: {{ index $.Images "base/distroless" }}
 import:
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-artifact
   add: /src/manager
   to: /capy-controller-manager
   before: setup
@@ -18,21 +18,26 @@ imageSpec:
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
 final: false
-fromImage: common/src-artifact
-{{- if $patch }}
+from: {{ index $.Images "builder/distroless" }}
+packages:
+- type: os-pm
+  spec: [git, coreutils]
 git:
+  - url: {{ .SOURCE_REPO }}/yandex-cloud/cluster-api-provider-yandex.git
+    tag: {{ $version }}
+    add: /
+    to: /src
+    stageDependencies:
+      install: ['**/*']
+{{- if $patch }}
   - add: {{ $patches }}/patches
     to: /patches
     stageDependencies:
       install:
         - '**/*'
 {{- end }}
-secrets:
-- id: SOURCE_REPO
-  value: {{ .SOURCE_REPO }}
 shell:
   install:
-  - git clone --depth 1 --branch {{ $version }} $(cat /run/secrets/SOURCE_REPO)/yandex-cloud/cluster-api-provider-yandex.git /src
   - cd /src
   {{- if $patch }}
   - git apply /patches/*.patch --verbose
@@ -41,9 +46,16 @@ shell:
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact
 final: false
-from: {{ index $.Images "builder/golang" }}
+from: {{ index $.Images "builder/distroless" }}
+packages:
+- type: os-pm
+  spec: [golang, git, coreutils]
+- type: go-mod
+  workdir: /src
+  env:
+    GOPROXY: "%secret:GOPROXY%"
 import:
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
   add: /src
   to: /src
   before: install
@@ -53,9 +65,6 @@ secrets:
 - id: GOPROXY
   value: {{ .GOPROXY }}
 shell:
-  install:
-  - cd /src
-  - GOPROXY=$(cat /run/secrets/GOPROXY) go mod download
   setup:
   - cd /src
   - GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags="-s -w" -o manager main.go

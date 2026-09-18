@@ -1,8 +1,8 @@
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}
-from: {{ index $.Images "builder/scratch" }}
+from: scratch
 import:
-- image: {{ .ModuleName }}/{{ .ImageName }}-artifact
+- from: {{ .ModuleName }}/{{ .ImageName }}-artifact
   add: /
   to: /
   includePaths:
@@ -20,40 +20,31 @@ imageSpec:
     removeEnv: ["/.*/"]
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}-artifact
-from: {{ index $.Images "builder/alpine" }}
+from: {{ index $.Images "builder/distroless" }}
 final: false
+packages:
+- type: os-pm
+  spec: [bash, coreutils, cryptsetup==2.7.5, patchelf, file, findutils, grep, gawk, ldd]
 git:
 - add: /{{ .ModulePath }}modules/{{ .ModulePriority }}-{{ .ModuleName }}/images/{{ .ImageName }}/scripts
   to: /
   stageDependencies:
     setup:
     - '**/*'
-import:
-- from: {{ index $.Images "tools/cryptsetup" }}
-  add: /
-  to: /src
-  includePaths:
-  - usr/lib
-  - usr/sbin
-  before: install
 shell:
-  beforeInstall:
-  {{- include "alpine packages proxy" . | nindent 2 }}
-  - apk add --no-cache patchelf file findutils
   setup:
-  - mkdir -p /opt/deckhouse/bin
-  - cp -pr /src/usr/sbin/* /opt/deckhouse/bin
-  - cp -pr /src/usr/lib /opt/deckhouse
-  - cd /opt/deckhouse/bin
+  - mkdir -p /opt/deckhouse/bin /opt/deckhouse/lib
   - |
-    for i in $(find . -type f); do
-      if file $i | grep -q "ELF"; then
-        patchelf --set-interpreter /opt/deckhouse/lib/libc.so $i
-        patchelf --set-rpath /opt/deckhouse/lib $i
+    for binary in /usr/sbin/cryptsetup /usr/sbin/veritysetup /usr/sbin/integritysetup; do
+      cp -L "$binary" /opt/deckhouse/bin/
+      if file -L "$binary" | grep -q "ELF.*dynamically linked"; then
+        interpreter=$(patchelf --print-interpreter "$binary")
+        cp -L "$interpreter" /opt/deckhouse/lib/
+        for library in $(ldd "$binary" | awk '/=> \/|^\s*\// { for (field=1; field<=NF; field++) if ($field ~ /^\//) print $field }'); do
+          cp -L "$library" /opt/deckhouse/lib/
+        done
+        patchelf --set-interpreter "/opt/deckhouse/lib/$(basename "$interpreter")" "/opt/deckhouse/bin/$(basename "$binary")"
+        patchelf --force-rpath --set-rpath /opt/deckhouse/lib "/opt/deckhouse/bin/$(basename "$binary")"
       fi
     done
-  - cd /opt/deckhouse/lib
-  - find . -type f -name "*.la" -exec rm -f \{} \;
-  - find . -type f -name "*.a" -exec rm -f \{} \;
-  - find . -type f -name "*.pc" -exec rm -f \{} \;
   - chown -R 0:0 /opt/deckhouse

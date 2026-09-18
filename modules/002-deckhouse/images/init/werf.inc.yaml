@@ -1,7 +1,17 @@
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}
-fromImage: common/init
+{{- $vexPath := printf "%smodules/%s-%s/images/%s/known_vulnerabilities.vex" $.ModulePath $.ModulePriority $.ModuleName $.ImageName }}
+{{- if eq (len ($.Files.Glob $vexPath)) 1 }}
+vex: {{ $vexPath }}
+{{- end }}
+from: {{ index $.Images "base/distroless" }}
 import:
+- from: common/init-artifact
+  add: /relocate
+  to: /
+  before: setup
 {{- include "image mount points" . }}
+imageSpec:
+  config:
+    user: "64535:64535"
 ---
-{{- include "vex mitigation" (list $ (printf "%s/%s" $.ModuleName $.ImageName)) }}

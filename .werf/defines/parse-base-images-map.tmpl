@@ -24,6 +24,9 @@
       {{- if ne $k "REGISTRY_PATH" }}
         {{ $altImagePath := (printf "%s@%s" $altBaseImages.REGISTRY_PATH (trimSuffix "/" $v)) }}
         {{- $_ := set $baseImages $k $altImagePath }}
+        {{- if eq $k "base/distroless-fin" }}
+          {{- $_ := set $baseImages "base/distroless" $altImagePath }}
+        {{- end }}
       {{- end }}
     {{- end }}
   {{- end }}

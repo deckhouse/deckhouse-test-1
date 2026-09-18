@@ -1,22 +1,16 @@
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
-from: {{ index $.Images "builder/src" }}
+from: {{ index $.Images "builder/distroless" }}
 final: false
 git:
   - add: /{{ $.ModulePath }}modules/{{ .ModulePriority }}-{{ $.ModuleName }}/images/{{ $.ImageName }}/src
     to: /src
-    stageDependencies:
-      install:
-        - '**/*'
-shell:
-  install:
-    - cd /src
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}-artifact
-from: {{ index $.Images "builder/golang" }}
+from: {{ index $.Images "builder/distroless" }}
 final: false
 import:
-  - image: {{ .ModuleName }}/{{ .ImageName }}-src-artifact
+  - from: {{ .ModuleName }}/{{ .ImageName }}-src-artifact
     add: /src
     to: /src
     before: install
@@ -25,10 +19,14 @@ mount:
 secrets:
 - id: GOPROXY
   value: {{ .GOPROXY }}
+packages:
+- type: os-pm
+  spec: [golang, git, coreutils, bash]
+- type: go-mod
+  workdir: /src
+  env:
+    GOPROXY: "%secret:GOPROXY%"
 shell:
-  install:
-  - cd /src
-  - GOPROXY=$(cat /run/secrets/GOPROXY) go mod download
   setup:
   - cd /src
   - export GO_VERSION=${GOLANG_VERSION} CGO_ENABLED=0 GOOS=linux GOARCH=amd64
@@ -39,7 +37,7 @@ shell:
 image: {{ $.ModuleName }}/{{ $.ImageName }}
 from: {{ index $.Images "base/distroless" }}
 import:
-  - image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact
+  - from: {{ $.ModuleName }}/{{ $.ImageName }}-artifact
     add: /cni-migration-init-checker
     to: /cni-migration-init-checker
     before: setup

@@ -1,12 +1,10 @@
 ---
 image: version-map-artifact
-from: {{ index $.Images "builder/alpine" }}
+from: {{ index $.Images "builder/distroless" }}
 final: false
-import:
-- from: {{ index $.Images "tools/yq" }}
-  add: /usr/bin/yq
-  to: /usr/bin/yq
-  before: install
+packages:
+- type: os-pm
+  spec: [bash, coreutils, yq]
 git:
 - add: /
   to: /

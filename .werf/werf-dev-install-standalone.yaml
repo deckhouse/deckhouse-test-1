@@ -1,6 +1,6 @@
 ---
 image: install-standalone-builder-content
-from: {{ index $.Images "builder/scratch" }}
+from: scratch
 final: false
 git:
 - add: /
@@ -19,9 +19,12 @@ shell:
 ---
 image: install-standalone-builder
 final: false
-from: {{ index $.Images "builder/alpine" }}
+from: {{ index $.Images "builder/distroless" }}
+packages:
+- type: os-pm
+  spec: [tar, gzip]
 import:
-- image: install-standalone-builder-content
+- from: install-standalone-builder-content
   add: /
   to: /image
   before: setup

@@ -1,56 +1,63 @@
 {{- $version := include "get_oss_version_by_id" (list "terraform-provider-gcp" $) }}
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}
-from: {{ index $.Images "base/scratch" }}
+{{- $vexPath := printf "%smodules/%s-%s/images/%s/known_vulnerabilities.vex" $.ModulePath $.ModulePriority $.ModuleName $.ImageName }}
+{{- if eq (len ($.Files.Glob $vexPath)) 1 }}
+vex: {{ $vexPath }}
+{{- end }}
+from: scratch
 git:
 - add: /{{ $.ModulePath }}modules/030-{{ $.ModuleName }}/candi
   to: /candi
   excludePaths:
   - '**/terraform_versions.yml'
-  stageDependencies:
-    install:
-    - '**/*'
 - add: /{{ $.ModulePath }}modules/030-{{ $.ModuleName }}/candi/terraform_versions.yml
   to: /terraform-manager/terraform_versions.yml
-  stageDependencies:
-    install:
-    - '**/*'
 import:
-- image: terraform-provider-gcp
+- from: terraform-provider-gcp
   add: /terraform-provider-gcp
   to: /terraform-manager/terraform-provider-gcp
   before: setup
-shell:
-  install:
-  - set -e
 {{ include "image_spec_for_infrastructure_manager" . }}
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}-src-artifact
 final: false
-fromImage: common/src-artifact
+from: {{ index $.Images "builder/distroless" }}
+packages:
+- type: os-pm
+  spec: [git, coreutils]
 git:
+- url: {{ .SOURCE_REPO }}/hashicorp/terraform-provider-google.git
+  tag: v{{ $version }}
+  add: /
+  to: /src
+  stageDependencies:
+    install: ['**/*']
 - add: /{{ $.ModulePath }}modules/{{ $.ModulePriority }}-{{ $.ModuleName }}/images/{{ $.ImageName }}/patches
   to: /patches
   stageDependencies:
     install:
     - '**/*'
-secrets:
-- id: SOURCE_REPO
-  value: {{ .SOURCE_REPO }}
 shell:
   install:
   - cd /src
-  - git clone --depth 1 --branch v{{ $version }} $(cat /run/secrets/SOURCE_REPO)/hashicorp/terraform-provider-google.git .
   - git apply /patches/*.patch --verbose
-  - rm -rf .git scripts/diff.go google/test-fixtures/appengine/hello-world-flask
+  - rm -rf scripts/diff.go google/test-fixtures/appengine/hello-world-flask
 ---
 image: terraform-provider-gcp
 final: false
-from: {{ index $.Images "builder/golang" }}
+from: {{ index $.Images "builder/distroless" }}
+packages:
+- type: os-pm
+  spec: [golang, git, coreutils, binutils]
+- type: go-mod
+  workdir: /src
+  env:
+    GOPROXY: "%secret:GOPROXY%"
 mount:
 {{ include "mount points for golang builds" . }}
 import:
-- image: {{ .ModuleName }}/{{ .ImageName }}-src-artifact
+- from: {{ .ModuleName }}/{{ .ImageName }}-src-artifact
   add: /src
   to: /src
   before: install
@@ -60,11 +67,10 @@ secrets:
 shell:
   install:
   - cd /src
-  - GOPROXY=$(cat /run/secrets/GOPROXY) go mod download
+  - export GOPROXY=off
   - CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o terraform-provider-gcp -ldflags="-s -w -extldflags \"-static\" -X github.com/hashicorp/terraform-provider-google/version.ProviderVersion={{ $version }}"
   - mv terraform-provider-gcp /terraform-provider-gcp
   - strip /terraform-provider-gcp
   - chmod -R 755 /terraform-provider-gcp
   - chown 64535:64535 /terraform-provider-gcp
 ---
-{{- include "vex mitigation" (list $ (printf "%s/%s" $.ModuleName $.ImageName )) }}

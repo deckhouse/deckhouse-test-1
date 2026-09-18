@@ -13,8 +13,17 @@
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact-{{ $image_version }}
 final: false
-fromImage: common/src-artifact
+from: {{ index $.Images "builder/distroless" }}
+packages:
+- type: os-pm
+  spec: [bash, coreutils, git]
 git:
+- url: {{ $.SOURCE_REPO }}/kubernetes-sigs/cri-tools.git
+  tag: v{{ $full_version }}
+  add: /
+  to: /src/cri-tools
+  stageDependencies:
+    install: ['**/*']
 - add: /{{ $.ModulePath }}modules/{{ $.ModulePriority }}-{{ $.ModuleName }}/images/{{ $.ImageName }}/scripts
   to: /src/scripts
   stageDependencies:
@@ -27,22 +36,22 @@ git:
     install:
     - '**/*'
   {{- end }}
-secrets:
-- id: SOURCE_REPO
-  value: {{ $.SOURCE_REPO }}
 shell:
   install:
-  - git clone --depth 1 --branch v{{ $full_version }} $(cat /run/secrets/SOURCE_REPO)/kubernetes-sigs/cri-tools.git /src/cri-tools
   - cd /src/cri-tools
   {{- if $patch }}
   - git apply /patches/*.patch --verbose
   {{- end }}
-  - rm -rf hack/tools .git vendor
+  - rm -rf hack/tools vendor
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-{{ $image_version }}
-from: {{ index $.Images "builder/scratch" }}
+{{- $vexPath := printf "%smodules/%s-%s/images/%s/known_vulnerabilities.vex" $.ModulePath $.ModulePriority $.ModuleName $.ImageName }}
+{{- if eq (len ($.Files.Glob $vexPath)) 1 }}
+vex: {{ $vexPath }}
+{{- end }}
+from: scratch
 import:
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact-{{ $image_version }}
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-artifact-{{ $image_version }}
   add: /
   to: /
   includePaths:
@@ -61,9 +70,16 @@ imageSpec:
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact-{{ $image_version }}
 final: false
-from: {{ index $.Images "builder/golang" }}
+from: {{ index $.Images "builder/distroless" }}
+packages:
+- type: os-pm
+  spec: [bash, coreutils, golang, make, git, sed, grep, findutils]
+- type: go-mod
+  workdir: /src/cri-tools
+  env:
+    GOPROXY: "%secret:GOPROXY%"
 import:
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact-{{ $image_version }}
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact-{{ $image_version }}
   add: /src
   to: /src
   before: install
@@ -76,7 +92,7 @@ secrets:
   value: {{ $.GOPROXY }}
 shell:
   setup:
-  - export GOPROXY=$(cat /run/secrets/GOPROXY)
+  - export GOPROXY=off GOSUMDB=off
   - cd /src/cri-tools
   - go mod vendor
   - export VERSION={{ $full_version }}
@@ -86,5 +102,4 @@ shell:
   - chmod +x /crictl /install /uninstall
   - rm -rf vendor
 ---
-{{- include "vex mitigation" (list $ (printf "%s/%s-%s" $.ModuleName $.ImageName $image_version)) }}
 {{- end }}

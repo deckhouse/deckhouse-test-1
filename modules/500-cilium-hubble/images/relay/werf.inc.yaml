@@ -2,10 +2,17 @@
 # and https://github.com/cilium/cilium/blob/v1.17.4/images/hubble-relay/download-grpc-health-probe.sh
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-build-artifact
-from: {{ index $.Images "builder/golang" }}
+from: {{ index $.Images "builder/distroless" }}
 final: false
+packages:
+- type: os-pm
+  spec: [golang==1.26.8, make, bash, binutils, git, coreutils, sed, grep, findutils]
+- type: go-mod
+  workdir: /src/cilium
+  env:
+    GOPROXY: "%secret:GOPROXY%"
 import:
-- image: cni-cilium/bin-cilium-src-artifact
+- from: cni-cilium/bin-cilium-src-artifact
   add: /src/cilium
   to: /src/cilium
   before: install
@@ -15,14 +22,12 @@ secrets:
 - id: GOPROXY
   value: {{ .GOPROXY }}
 shell:
-  beforeInstall:
-  - pm install make bash binutils
   setup:
-  - export GO_VERSION=${GOLANG_VERSION} GOPROXY=$(cat /run/secrets/GOPROXY)
+  - export GO_VERSION=$(go env GOVERSION) GOPROXY=off
   - export GOOS=linux GOARCH=amd64 CGO_ENABLED=0
   #
   - cd /src/cilium
-  - go mod vendor && go mod download -x
+  - go mod vendor
   - make DESTDIR=/out/linux/amd64 build-container-hubble-relay install-container-binary-hubble-relay
   - chown 64535:64535 /out/linux/amd64/usr/bin/hubble-relay
   - chmod 0700 /out/linux/amd64/usr/bin/hubble-relay
@@ -30,17 +35,22 @@ shell:
 # Distroless Main Image
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}
-fromImage: common/distroless
+from: {{ index $.Images "base/distroless" }}
 import:
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-build-artifact
+- from: common/distroless-artifact
+  add: /relocate
+  to: /
+  before: install
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-build-artifact
   add: /out/linux/amd64/usr/bin/hubble-relay
   to: /usr/local/bin/hubble-relay
   before: install
-- image: cni-cilium/gops-artifact
+- from: cni-cilium/gops-artifact
   add: /out/linux/amd64/bin/gops
-  to: /bin/gops
+  to: /usr/bin/gops
   before: install
 {{- include "image mount points" . }}
 imageSpec:
   config:
+    user: "64535:64535"
     entrypoint: ["/usr/local/bin/hubble-relay", "serve"]

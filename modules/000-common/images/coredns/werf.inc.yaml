@@ -2,33 +2,39 @@
 {{- $kubeforward_version := "0.3.0" }}
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}-src-artifact
-fromImage: common/src-artifact
+from: common/src-artifact
 final: false
+packages:
+- type: os-pm
+  spec: [golang, git, bash, coreutils]
 git:
+- url: {{ .SOURCE_REPO }}/coredns/coredns.git
+  tag: v{{ $coredns_version }}
+  add: /
+  to: /src
+- url: {{ .SOURCE_REPO }}/deckhouse/coredns-kubeforward
+  tag: v{{ $kubeforward_version }}
+  add: /
+  to: /src/coredns-kubeforward
 - add: /{{ $.ModulePath }}modules/{{ .ModulePriority }}-{{ $.ModuleName }}/images/{{ $.ImageName }}/patches
   to: /patches
   stageDependencies:
     install:
     - '**/*'
-secrets:
-- id: SOURCE_REPO
-  value: {{ .SOURCE_REPO }}
 shell:
   install:
-    - git clone --depth 1 -b v{{ $coredns_version }} $(cat /run/secrets/SOURCE_REPO)/coredns/coredns.git /src
-    - git clone --depth 1 -b v{{ $kubeforward_version }} -v "$(cat /run/secrets/SOURCE_REPO)/deckhouse/coredns-kubeforward" /src/coredns-kubeforward
     - cd /src
     - git apply /patches/*.patch --verbose
-    - touch /src/coredns-kubeforward/go.mod # need for go build
+    - printf 'module github.com/deckhouse/coredns-kubeforward\n\ngo 1.25.0\n' > /src/coredns-kubeforward/go.mod
     - echo "kubeforward:github.com/deckhouse/coredns-kubeforward" >> plugin.cfg
-    - rm -rf /src/.git
-    - rm -rf /src/coredns-kubeforward/.git
+    - go mod edit -replace=github.com/deckhouse/coredns-kubeforward=./coredns-kubeforward
+    - go mod edit -require=github.com/deckhouse/coredns-kubeforward@v0.1.0
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}-artifact
-from: {{ index $.Images "builder/golang" }}
+from: {{ index $.Images "builder/distroless" }}
 final: false
 import:
-  - image: {{ .ModuleName }}/{{ .ImageName }}-src-artifact
+  - from: {{ .ModuleName }}/{{ .ImageName }}-src-artifact
     add: /src
     to: /src
     before: install
@@ -37,27 +43,36 @@ mount:
 secrets:
 - id: GOPROXY
   value: {{ .GOPROXY }}
+packages:
+- type: os-pm
+  spec: [golang, git, bash, coreutils]
+- type: go-mod
+  workdir: /src
+  env:
+    GOPROXY: "%secret:GOPROXY%"
 shell:
   install:
-    - export GO_VERSION=${GOLANG_VERSION} GOPROXY=$(cat /run/secrets/GOPROXY) CGO_ENABLED=0 GOOS=linux GOARCH=amd64
+    - export GO_VERSION=${GOLANG_VERSION} GOPROXY=off CGO_ENABLED=0 GOOS=linux GOARCH=amd64
     - cd /src
-    - go mod edit -replace=github.com/deckhouse/coredns-kubeforward=./coredns-kubeforward # hack
-    - go mod edit -require=github.com/deckhouse/coredns-kubeforward@v0.1.0 # hack
     - go generate
     - go build -ldflags='-extldflags "-static" -s -w -X github.com/{{ .ImageName }}/{{ .ImageName }}/coremain.GitCommit=v1.12.3' -o /coredns
     - chown 64535:64535 /coredns
     - chmod 0700 /coredns
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}
-fromImage: common/distroless
+from: {{ index $.Images "base/distroless" }}
+vex: {{ $.ModulePath }}modules/{{ $.ModulePriority }}-{{ $.ModuleName }}/images/{{ $.ImageName }}/known_vulnerabilities.vex
 import:
-- image: {{ .ModuleName }}/{{ .ImageName }}-artifact
+- from: common/distroless-artifact
+  add: /relocate
+  to: /
+  before: setup
+- from: {{ .ModuleName }}/{{ .ImageName }}-artifact
   add: /coredns
   to: /coredns
   before: setup
 {{- include "image mount points" . }}
 imageSpec:
   config:
+    user: "64535:64535"
     entrypoint: ["/coredns"]
----
-{{- include "vex mitigation" (list $ (printf "%s/%s" $.ModuleName $.ImageName)) }}

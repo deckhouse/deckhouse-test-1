@@ -1,24 +1,25 @@
 ---
 image: {{ .ModuleName }}/{{ $.ImageName }}-src-artifact
-fromImage: common/src-artifact
+from: {{ index $.Images "builder/distroless" }}
 final: false
 git:
   - add: /{{ $.ModulePath }}/modules/036-{{ $.ModuleName }}/images/{{ $.ImageName }}/src
     to: /src
-    stageDependencies:
-      install:
-        - '**/*'
-shell:
-  install:
-  - cd /src
 ---
 image: {{ .ModuleName }}/{{ $.ImageName }}-artifact
-from: {{ index $.Images "builder/golang" }}
+from: {{ index $.Images "builder/distroless" }}
+packages:
+- type: os-pm
+  spec: [golang, git]
+- type: go-mod
+  workdir: /src
+  env:
+    GOPROXY: "%secret:GOPROXY%"
 final: false
 mount:
 {{ include "mount points for golang builds" . }}
 import:
-  - image: {{ .ModuleName }}/{{ $.ImageName }}-src-artifact
+  - from: {{ .ModuleName }}/{{ $.ImageName }}-src-artifact
     add: /src
     to: /src
     before: install
@@ -27,14 +28,14 @@ secrets:
   value: {{ .GOPROXY }}
 shell:
   install:
-    - export GO_VERSION=${GOLANG_VERSION} GOPROXY=$(cat /run/secrets/GOPROXY) CGO_ENABLED=0 GOOS=linux GOARCH=amd64
+    - export GO_VERSION=${GOLANG_VERSION} GOPROXY=off CGO_ENABLED=0 GOOS=linux GOARCH=amd64
     - cd /src
     - go build -ldflags="-s -w" -o entrypoint main.go
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}
-fromImage: common/distroless
+from: {{ index $.Images "base/distroless" }}
 import:
-- image: {{ .ModuleName }}/{{ $.ImageName }}-artifact
+- from: {{ .ModuleName }}/{{ $.ImageName }}-artifact
   add: /src/entrypoint
   to: /entrypoint
   before: setup

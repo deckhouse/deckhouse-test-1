@@ -1,8 +1,12 @@
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}
-fromImage: common/coredns
+{{- $vexPath := printf "%smodules/%s-%s/images/%s/known_vulnerabilities.vex" $.ModulePath $.ModulePriority $.ModuleName $.ImageName }}
+{{- if eq (len ($.Files.Glob $vexPath)) 1 }}
+vex: {{ $vexPath }}
+{{- end }}
+from: common/coredns
 import:
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-artifact
   add: /coredns-helper
   to: /coredns-helper
   before: setup
@@ -12,23 +16,17 @@ imageSpec:
     entrypoint: [ "/coredns" ]
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
-fromImage: common/src-artifact
+from: {{ index $.Images "builder/distroless" }}
 final: false
 git:
 - add: /{{ $.ModulePath }}modules/{{ $.ModulePriority }}-{{ $.ModuleName }}/images/{{ $.ImageName }}/src
   to: /src
-  stageDependencies:
-    install:
-    - '**/*'
-shell:
-  install:
-  - cd /src
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}-artifact
-from: {{ index $.Images "builder/golang" }}
+from: {{ index $.Images "builder/distroless" }}
 final: false
 import:
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
   add: /src
   to: /src
   before: install
@@ -37,11 +35,17 @@ mount:
 secrets:
 - id: GOPROXY
   value: {{ .GOPROXY }}
+packages:
+- type: os-pm
+  spec: [golang, git, coreutils]
+- type: go-mod
+  workdir: /src
+  env:
+    GOPROXY: "%secret:GOPROXY%"
 shell:
   install:
-  - export GOPROXY=$(cat /run/secrets/GOPROXY)
+  - export GOPROXY=off
   - cd /src
   - GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags="-s -w" -o /coredns-helper main.go
   - chmod 0700 /coredns-helper
 ---
-{{- include "vex mitigation" (list $ (printf "%s/%s" $.ModuleName $.ImageName)) }}

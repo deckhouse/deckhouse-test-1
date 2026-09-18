@@ -1,21 +1,39 @@
 {{ $gatekeeperVersion := include "get_oss_version_by_id" (list "gatekeeper" $ ) }}
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}
-fromImage: common/distroless
+{{- $vexPath := printf "%smodules/%s-%s/images/%s/known_vulnerabilities.vex" $.ModulePath $.ModulePriority $.ModuleName $.ImageName }}
+{{- if eq (len ($.Files.Glob $vexPath)) 1 }}
+vex: {{ $vexPath }}
+{{- end }}
+from: {{ index $.Images "base/distroless" }}
 import:
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact
+- from: common/distroless-artifact
+  add: /relocate
+  to: /
+  before: install
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-artifact
   add: /gatekeeper
-  to: /bin/gatekeeper
+  to: /usr/bin/gatekeeper
   before: setup
 {{- include "image mount points" . }}
 imageSpec:
   config:
+    user: "64535:64535"
     entrypoint: [ "/bin/gatekeeper" ]
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
-fromImage: common/src-artifact
+from: {{ index $.Images "builder/distroless" }}
 final: false
+packages:
+- type: os-pm
+  spec: [git, coreutils, diffutils]
 git:
+- url: {{ .SOURCE_REPO }}/open-policy-agent/gatekeeper.git
+  tag: v{{ $gatekeeperVersion }}
+  add: /
+  to: /src
+  stageDependencies:
+    install: ['**/*']
 - add: /{{ $.ModulePath }}modules/015-{{ $.ModuleName }}/images/{{ $.ImageName }}/patches
   to: /patches
   stageDependencies:
@@ -28,26 +46,28 @@ git:
   stageDependencies:
     install:
     - '**/*'    
-secrets:
-- id: SOURCE_REPO
-  value: {{ .SOURCE_REPO }}
 shell:
   install:
-  - git clone --depth 1 --branch v{{ $gatekeeperVersion }} $(cat /run/secrets/SOURCE_REPO)/open-policy-agent/gatekeeper.git /src
   - cd /src
   - git apply /patches/*.patch --verbose --allow-empty
   - rm -rf website
-  - rm -rf .git
   # check if module crds/gatekeeper are the same as gatekeeper crds
   - | 
     echo "Checking if module crds/gatekeeper are the same as gatekeeper crds"
     diff -qr "/src/charts/gatekeeper/crds" "/module_crds/gatekeeper" 
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}-artifact
-from: {{ index $.Images "builder/golang" }}
+from: {{ index $.Images "builder/distroless" }}
 final: false
+packages:
+- type: os-pm
+  spec: [golang==1.26.8, git, bash, coreutils, svace, ssh-static, rsync]
+- type: go-mod
+  workdir: /src
+  env:
+    GOPROXY: "%secret:GOPROXY%"
 import:
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
   add: /src
   to: /src
   before: install
@@ -59,11 +79,10 @@ secrets:
 shell:
   install:
   - cd /src
-  - GOPROXY=$(cat /run/secrets/GOPROXY) go mod vendor
+  - GOPROXY=off go mod vendor
   - export GOOS=linux GOARCH=amd64 CGO_ENABLED=0
   - |
     {{- include "image-build.build" (set $ "BuildCommand" `go build -mod vendor -ldflags="-s -w" -o /gatekeeper .`) | indent 6 }}
   - chown 64535:64535 /gatekeeper
   - chmod 0700 /gatekeeper
 ---
-{{- include "vex mitigation" (list $ (printf "%s/%s" $.ModuleName $.ImageName)) }}

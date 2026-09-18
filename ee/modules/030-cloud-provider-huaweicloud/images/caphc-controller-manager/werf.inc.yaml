@@ -2,9 +2,13 @@
 {{- $version_common := "v0.8.2" }}
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}
-fromImage: common/distroless
+{{- $vexPath := printf "%smodules/%s-%s/images/%s/known_vulnerabilities.vex" $.ModulePath $.ModulePriority $.ModuleName $.ImageName }}
+{{- if eq (len ($.Files.Glob $vexPath)) 1 }}
+vex: {{ $vexPath }}
+{{- end }}
+from: {{ index $.Images "base/distroless" }}
 import:
-- image: {{ .ModuleName }}/{{ .ImageName }}-artifact
+- from: {{ .ModuleName }}/{{ .ImageName }}-artifact
   add: /caphc-controller-manager
   to: /caphc-controller-manager
   before: setup
@@ -14,14 +18,23 @@ imageSpec:
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
 final: false
-fromImage: common/src-artifact
-secrets:
-- id: CLOUD_PROVIDERS_SOURCE_REPO
-  value: {{ .CLOUD_PROVIDERS_SOURCE_REPO }}
+from: {{ index $.Images "builder/distroless" }}
+git:
+- url: {{ .CLOUD_PROVIDERS_SOURCE_REPO }}/huaweicloud/caphc-controller-manager.git
+  tag: {{ $version }}
+  to: /src
+  stageDependencies:
+    install: ['**/*']
+- url: {{ .CLOUD_PROVIDERS_SOURCE_REPO }}/huaweicloud/huaweicloud-common.git
+  tag: {{ $version_common }}
+  to: /src/huaweicloud-common
+  stageDependencies:
+    install: ['**/*']
+packages:
+- type: os-pm
+  spec: [coreutils, sed]
 shell:
   install:
-  - git clone --depth 1 --branch {{ $version }} $(cat /run/secrets/CLOUD_PROVIDERS_SOURCE_REPO)/huaweicloud/caphc-controller-manager.git /src
-  - git clone --depth 1 --branch {{ $version_common }} $(cat /run/secrets/CLOUD_PROVIDERS_SOURCE_REPO)/huaweicloud/huaweicloud-common.git /src/huaweicloud-common
   - cd /src/huaweicloud-common
   - rm -rf .git
   - cd /src
@@ -30,9 +43,9 @@ shell:
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}-artifact
 final: false
-from: {{ index $.Images "builder/golang" }}
+from: {{ index $.Images "builder/distroless" }}
 import:
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
   add: /src
   to: /src
   before: install
@@ -41,14 +54,17 @@ mount:
 secrets:
 - id: GOPROXY
   value: {{ .GOPROXY }}
+packages:
+- type: os-pm
+  spec: [golang, git, coreutils]
+- type: go-mod
+  workdir: /src
+  env:
+    GOPROXY: "%secret:GOPROXY%"
 shell:
-  install:
-  - cd /src
-  - GOPROXY=$(cat /run/secrets/GOPROXY) go mod download
   setup:
   - cd /src
   - CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -o /caphc-controller-manager cmd/main.go
   - chown 64535:64535 /caphc-controller-manager
   - chmod 0700 /caphc-controller-manager
 ---
-{{- include "vex mitigation" (list $ (printf "%s/%s" $.ModuleName $.ImageName )) }}

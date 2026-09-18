@@ -1,18 +1,18 @@
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}
-fromImage: common/distroless
+from: {{ index $.Images "base/distroless" }}
 imageSpec:
   config:
     entrypoint: ["/integrity-containerd-configurator"]
 import:
-- image: {{ .ModuleName }}/{{ $.ImageName }}-artifact
+- from: {{ .ModuleName }}/{{ $.ImageName }}-artifact
   add: /integrity-containerd-configurator
   to: /integrity-containerd-configurator
   before: setup
 {{- include "image mount points" . }}
 ---
 image: {{ .ModuleName }}/{{ $.ImageName }}-src-artifact
-fromImage: common/src-artifact
+from: {{ index $.Images "builder/distroless" }}
 final: false
 git:
 - add: /{{ $.ModulePath }}modules/040-{{ .ModuleName }}/images/{{ .ImageName }}/src
@@ -51,20 +51,23 @@ git:
     - '**/*.go'
     - go.mod
     - go.sum
+packages:
+- type: os-pm
+  spec: [sed]
 shell:
   install:
   - cd /src
   - sed -i -e 's# ../../integrity-controller/src# /src/integrity-controller#g' go.mod
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}-artifact
-from: {{ index $.Images "builder/golang" }}
+from: {{ index $.Images "builder/distroless" }}
 final: false
 import:
-- image: {{ .ModuleName }}/{{ $.ImageName }}-src-artifact
+- from: {{ .ModuleName }}/{{ $.ImageName }}-src-artifact
   add: /src
   to: /src
   before: install
-- image: {{ .ModuleName }}/{{ $.ImageName }}-src-artifact
+- from: {{ .ModuleName }}/{{ $.ImageName }}-src-artifact
   add: /go_lib/controlplane
   to: /go_lib/controlplane
   before: install
@@ -73,8 +76,14 @@ mount:
 secrets:
 - id: GOPROXY
   value: {{ .GOPROXY }}
+packages:
+- type: os-pm
+  spec: [golang, git]
+- type: go-mod
+  workdir: /src
+  env:
+    GOPROXY: "%secret:GOPROXY%"
 shell:
   install:
   - cd /src
-  - GOPROXY=$(cat /run/secrets/GOPROXY) go mod download
   - CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -o /integrity-containerd-configurator cmd/main.go

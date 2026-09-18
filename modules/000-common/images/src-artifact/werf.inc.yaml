@@ -1,11 +1,12 @@
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}
-fromImage: common/alt-p11-artifact
+from: {{ index $.Images "builder/distroless" }}
 final: false
+packages:
+- type: os-pm
+  spec: [git, coreutils, bash, patch, sed, findutils]
 shell:
-  beforeInstall:
-  - apt-get install -y git
-  - rm -rf /var/lib/apt/lists/* /var/cache/apt/* && mkdir -p /var/lib/apt/lists/partial /var/cache/apt/archives/partial
-  - mkdir -p /src
+  install:
+  - mkdir -p /src /root
   # turn the detached message off
   - git config --global advice.detachedHead false

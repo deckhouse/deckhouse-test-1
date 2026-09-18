@@ -11,13 +11,17 @@
     {{- end }}
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-{{ $image_version }}
-fromImage: common/distroless
+{{- $vexPath := printf "%smodules/%s-%s/images/%s/known_vulnerabilities.vex" $.ModulePath $.ModulePriority $.ModuleName $.ImageName }}
+{{- if eq (len ($.Files.Glob $vexPath)) 1 }}
+vex: {{ $vexPath }}
+{{- end }}
+from: {{ index $.Images "base/distroless" }}
 import:
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact-{{ $image_version }}
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-artifact-{{ $image_version }}
   add: /src/cinder-csi-plugin
-  to: /bin/cinder-csi-plugin
+  to: /usr/bin/cinder-csi-plugin
   before: setup
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-binaries-artifact
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-binaries-artifact
   add: /relocate
   to: /
   before: install
@@ -29,32 +33,33 @@ imageSpec:
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact-{{ $image_version }}
 final: false
-fromImage: common/src-artifact
-{{- if $patch }}
+from: {{ index $.Images "builder/distroless" }}
 git:
+- url: {{ $.SOURCE_REPO }}/kubernetes/cloud-provider-openstack.git
+  tag: {{ $version }}
+  to: /src
+{{- if $patch }}
+  stageDependencies:
+    install: ['**/*']
 - add: {{ $patches }}/patches/{{ $k8s_version }}
   to: /patches
   stageDependencies:
     install:
       - '**/*'
-{{- end }}
-secrets:
-- id: SOURCE_REPO
-  value: {{ $.SOURCE_REPO }}
+packages:
+- type: os-pm
+  spec: [git]
 shell:
   install:
-  - git clone --depth 1 --branch {{ $version }} $(cat /run/secrets/SOURCE_REPO)/kubernetes/cloud-provider-openstack.git /src
   - cd /src
-  {{- if $patch }}
   - git apply /patches/*.patch --verbose
-  {{- end }}
-  - rm -rf .git
+{{- end }}
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact-{{ $image_version }}
 final: false
-from: {{ index $.Images "builder/golang" }}
+from: {{ index $.Images "builder/distroless" }}
 import:
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact-{{ $image_version }}
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact-{{ $image_version }}
   add: /src
   to: /src
   before: install
@@ -63,24 +68,36 @@ mount:
 secrets:
 - id: GOPROXY
   value: {{ $.GOPROXY }}
+packages:
+- type: os-pm
+  spec: [golang, bash, git, make, coreutils, sed, grep, findutils]
+- type: go-mod
+  workdir: /src
+  env:
+    GOPROXY: "%secret:GOPROXY%"
 shell:
   install:
   - cd /src
-  - export GOPROXY=$(cat /run/secrets/GOPROXY)
+  - export GOPROXY=off
   - export VERSION={{ $version }}
   - make cinder-csi-plugin
 ---
-{{- include "vex mitigation" (list $ (printf "%s/%s-%s" $.ModuleName $.ImageName $image_version )) }}
 {{- end }}
 {{- end }}
 ---
 {{- $csiBinaries := "/bin/chmod /bin/mount /bin/mkdir /bin/rmdir /bin/umount /bin/findmnt /bin/lsblk /sbin/badblocks /sbin/blockdev /sbin/blk* /sbin/btrfs* /sbin/dumpe2fs /sbin/e2* /sbin/findfs /sbin/fsck* /sbin/fsfreeze /sbin/fstrim /sbin/mke2fs /sbin/mkfs* /sbin/resize2fs /usr/sbin/parted /usr/sbin/xfs*" }}
 image: {{ $.ModuleName }}/{{ $.ImageName }}-binaries-artifact
 final: false
-fromImage: common/relocate-artifact
+from: {{ index $.Images "builder/distroless" }}
+git:
+- add: /modules/000-common/images/relocate/binary_replace.sh
+  to: /binary_replace.sh
+  stageDependencies:
+    install: ['**/*']
+packages:
+- type: os-pm
+  spec: [bash, coreutils, gawk, ldd, util-linux, e2fsprogs, xfsprogs, parted, btrfs-progs]
 shell:
-  beforeInstall:
-  - apt-get update -y
-  - apt-get install -y e2fsprogs xfsprogs parted btrfs-progs
   install:
-  - /binary_replace.sh -i "{{ $csiBinaries }}" -o /relocate
+  - ln -sf /usr/bin/gawk /usr/bin/awk
+  - bash /binary_replace.sh -i "{{ $csiBinaries }}" -o /relocate

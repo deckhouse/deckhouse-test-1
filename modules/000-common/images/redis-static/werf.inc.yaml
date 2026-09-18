@@ -1,28 +1,28 @@
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
-fromImage: common/src-artifact
+from: common/src-artifact
 final: false
-secrets:
-- id: SOURCE_REPO
-  value: {{ .SOURCE_REPO }}
+git:
+- url: {{ .SOURCE_REPO }}/redis/redis.git
+  tag: 7.4.0
+  add: /
+  to: /src
 shell:
   install:
-  - git clone --branch 7.4.0 --depth 1 $(cat /run/secrets/SOURCE_REPO)/redis/redis.git /src
   - rm -r /src/utils/req-res-validator/requirements.txt
-  - rm -r /src/.git
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}-artifact
-from: {{ index $.Images "builder/alpine" }}
+from: {{ index $.Images "builder/distroless" }}
 final: false
+packages:
+- type: os-pm
+  spec: [gnu-gcc, binutils, gnu-glibc-devel, libgcc-static, make, bash, coreutils, grep, sed, findutils, gawk]
 import:
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
   add: /src
   to: /src
   before: install
 shell:
-  beforeInstall:
-  {{- include "alpine packages proxy" . | nindent 2 }}
-  - apk add --no-cache build-base gcc make
   install:
   - cd /src
   # disable Redis protected mode [1] as it is unnecessary in context of Docker
@@ -36,12 +36,17 @@ shell:
   - chmod 0700 /src/src/redis-server
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}
-fromImage: common/distroless
+from: {{ index $.Images "base/distroless" }}
 import:
-- image: {{ $.ModuleName }}/{{ .ImageName }}-artifact
+- from: common/distroless-artifact
+  add: /relocate
+  to: /
+  before: setup
+- from: {{ $.ModuleName }}/{{ .ImageName }}-artifact
   add: /src/src/redis-server
   to: /redis-server
   before: setup
 imageSpec:
   config:
+    user: "64535:64535"
     entrypoint: ["/redis-server"]
