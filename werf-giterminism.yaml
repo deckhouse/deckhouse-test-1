@@ -62,3 +62,5 @@ config:
       allowBuildDir: true
       allowFromPaths:
         - ~/go-pkg-cache
+    git:
+      allowBranch: true
