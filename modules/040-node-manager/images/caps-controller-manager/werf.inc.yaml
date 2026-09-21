@@ -25,6 +25,8 @@ git:
   - "**/*.md"
   - "**/*.yaml"
   - hack
+- add: /modules/030-cloud-provider-aws/images/ebs-csi-plugin/relocate.sh
+  to: /relocate.sh
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}-artifact
 from: {{ index $.Images "builder/distroless" }}
@@ -35,13 +37,12 @@ packages:
   workdir: /src
   env:
     GOPROXY: "%secret:GOPROXY%"
-git:
-- add: /modules/030-cloud-provider-aws/images/ebs-csi-plugin/relocate.sh
-  to: /relocate.sh
-  stageDependencies:
-    install: ['**/*']
 final: false
 import:
+- from: {{ .ModuleName }}/{{ $.ImageName }}-src-artifact
+  add: /relocate.sh
+  to: /relocate.sh
+  before: install
 - from: {{ .ModuleName }}/{{ $.ImageName }}-src-artifact
   add: /src
   to: /src

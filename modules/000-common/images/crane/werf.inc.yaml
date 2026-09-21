@@ -16,6 +16,9 @@ git:
   tag: v0.20.3
   add: /
   to: /go-containerregistry
+  stageDependencies:
+    packages: [go.mod, go.sum]
+    install: ['**/*']
 secrets:
 - id: GOPROXY
   value: {{ .GOPROXY }}

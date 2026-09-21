@@ -20,19 +20,25 @@ imageSpec:
   config:
     entrypoint: ["/istio-config-analyzer"]
 ---
-image: {{ .ModuleName }}/{{ .ImageName }}-build-artifact
+image: {{ .ModuleName }}/{{ .ImageName }}-src-artifact
 final: false
 from: {{ index $.Images "builder/distroless" }}
+import:
+- from: {{ .ModuleName }}/common-{{ $istioImageVersion }}-src-artifact
+  add: /src/istio
+  to: /src/istio
+  before: install
 git:
 - add: /{{ .ModulePath }}modules/{{ .ModulePriority }}-{{ .ModuleName }}/images/{{ .ImageName }}/src
   to: /src/istio/tools/istio-config-analyzer
-  stageDependencies:
-    install:
-    - '**/*'
+---
+image: {{ .ModuleName }}/{{ .ImageName }}-build-artifact
+final: false
+from: {{ index $.Images "builder/distroless" }}
 mount:
 {{ include "mount points for golang builds" . }}
 import:
-- from: {{ .ModuleName }}/common-{{ $istioImageVersion }}-src-artifact
+- from: {{ .ModuleName }}/{{ .ImageName }}-src-artifact
   add: /src/istio
   to: /src/istio
   before: install

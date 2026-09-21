@@ -60,12 +60,6 @@ import:
   add: /task
   to: /usr/local/bin/task
   before: install
-git:
-  - add: /{{ $.ModulePath }}modules/007-{{ $.ModuleName }}/images/{{ $.ImageName }}/scripts
-    to: /
-    stageDependencies:
-      install:
-      - '**/*'
 secrets:
 - id: GOPROXY
   value: {{ .GOPROXY }}

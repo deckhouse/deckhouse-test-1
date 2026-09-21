@@ -20,6 +20,8 @@ git:
   stageDependencies:
     install:
     - '**/*.patch'
+- add: /modules/002-deckhouse/images/init/relocate.sh
+  to: /relocate.sh
 shell:
   install:
   - cd /src/chrony_exporter
@@ -36,14 +38,13 @@ packages:
   workdir: /chrony_exporter
   env:
     GOPROXY: "%secret:GOPROXY%"
-git:
-- add: /modules/002-deckhouse/images/init/relocate.sh
-  to: /relocate.sh
-  stageDependencies:
-    install: ['**/*']
 mount:
 {{ include "mount points for golang builds" . }}
 import:
+- from: {{ .ModuleName }}/{{ .ImageName }}-src-artifact
+  add: /relocate.sh
+  to: /relocate.sh
+  before: install
 - from: {{ .ModuleName }}/{{ .ImageName }}-src-artifact
   add: /src/chrony_exporter
   to: /chrony_exporter
