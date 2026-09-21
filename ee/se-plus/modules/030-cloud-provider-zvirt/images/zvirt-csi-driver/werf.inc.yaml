@@ -25,7 +25,7 @@ final: false
 from: {{ index $.Images "builder/distroless" }}
 git:
 - url: {{ .SOURCE_REPO }}/openshift/ovirt-csi-driver.git
-  tag: {{ $version }}
+  branch: {{ $version }}
   to: /src
   stageDependencies:
     install: ['**/*']
