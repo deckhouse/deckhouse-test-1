@@ -227,6 +227,11 @@ steps:
       export REGISTRY_PATH="${DEV_REGISTRY_PATH}"
       export WERF_REPO="${DEV_REGISTRY_PATH}"
     {!{- end }!}
+    {!{- if and (eq $buildType "dev") (eq $werfEnv "FE") }!}
+      if [[ "$(werf version)" =~ ^v?3\. ]]; then
+        export WERF_META_REPO="${WERF_REPO}/meta"
+      fi
+    {!{- end }!}
     {!{ if eq $buildType "release" }!}
       # Registry path to publish images for Git tags.
       if [[ -n ${DECKHOUSE_REGISTRY_STAGE_HOST:-} ]] ; then
@@ -498,6 +503,11 @@ steps:
       DEV_REGISTRY_PATH="${DECKHOUSE_DEV_REGISTRY_HOST}/${REGISTRY_PATH}"
       export REGISTRY_PATH="${DEV_REGISTRY_PATH}"
       export WERF_REPO="${DEV_REGISTRY_PATH}"
+    {!{- if eq $buildType "dev" }!}
+      if [[ "$(werf version)" =~ ^v?3\. ]]; then
+        export WERF_META_REPO="${WERF_REPO}/meta"
+      fi
+    {!{- end }!}
 
       # Statisctics added since werf 2.78.1
       werf_major="$(werf version | cut -d. -f1)"
