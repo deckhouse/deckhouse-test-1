@@ -647,7 +647,9 @@ jobs:
           DEV_REGISTRY_PATH="${DECKHOUSE_DEV_REGISTRY_HOST}/${REGISTRY_PATH}"
           export REGISTRY_PATH="${DEV_REGISTRY_PATH}"
           export WERF_REPO="${DEV_REGISTRY_PATH}"
-          export WERF_META_REPO="${WERF_REPO}/meta"
+          if [[ "$(werf version)" =~ ^v?3\. ]]; then
+            export WERF_META_REPO="${WERF_REPO}/meta"
+          fi
 
           # Determine image tag
           if [[ -n ${WERF_ENV} && ${WERF_ENV,,} != "fe" ]]; then
@@ -1015,7 +1017,9 @@ jobs:
           DEV_REGISTRY_PATH="${DECKHOUSE_DEV_REGISTRY_HOST}/${REGISTRY_PATH}"
           export REGISTRY_PATH="${DEV_REGISTRY_PATH}"
           export WERF_REPO="${DEV_REGISTRY_PATH}"
-          export WERF_META_REPO="${WERF_REPO}/meta"
+          if [[ "$(werf version)" =~ ^v?3\. ]]; then
+            export WERF_META_REPO="${WERF_REPO}/meta"
+          fi
 
           # Statisctics added since werf 2.78.1
           werf_major="$(werf version | cut -d. -f1)"
