@@ -20,7 +20,7 @@ git:
   stageDependencies:
     install: ['**/*']
 - url: {{ .SOURCE_REPO }}/cilium/hubble-ui-frontend-assets.git
-  tag: v{{ $hubbleUIFrontendAssetsVersion }}
+  branch: v{{ $hubbleUIFrontendAssetsVersion }}
   add: /
   to: /src/frontend_prebuilt
   stageDependencies:
