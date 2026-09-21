@@ -7,6 +7,15 @@ version: 2
 updates:
 # go.mod
 - package-ecosystem: "gomod"
+  directory: "/.werf/tooling/tests"
+  labels:
+  - "type/dependencies"
+  - "status/ok-to-test"
+  schedule:
+    interval: "daily"
+  open-pull-requests-limit: 0
+
+- package-ecosystem: "gomod"
   directory: "/deckhouse-controller/register"
   labels:
   - "type/dependencies"
@@ -990,6 +999,24 @@ updates:
 # pip
 - package-ecosystem: "pip"
   directory: "/.github/scripts/python/e2e-commander-clean"
+  labels:
+  - "type/dependencies"
+  - "status/ok-to-test"
+  schedule:
+    interval: "daily"
+  open-pull-requests-limit: 0
+
+- package-ecosystem: "pip"
+  directory: "/.werf/tooling/e2e-opentofu-eks"
+  labels:
+  - "type/dependencies"
+  - "status/ok-to-test"
+  schedule:
+    interval: "daily"
+  open-pull-requests-limit: 0
+
+- package-ecosystem: "pip"
+  directory: "/deckhouse-controller/files"
   labels:
   - "type/dependencies"
   - "status/ok-to-test"
