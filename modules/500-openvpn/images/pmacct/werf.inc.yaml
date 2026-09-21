@@ -20,7 +20,7 @@ final: false
 from: {{ index $.Images "builder/distroless" }}
 git:
 - url: {{ .SOURCE_REPO }}/pmacct/pmacct.git
-  tag: 1.7.9
+  tag: v1.7.9
   add: /
   to: /src
 ---
