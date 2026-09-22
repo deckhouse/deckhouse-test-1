@@ -114,9 +114,10 @@ packages:
   env:
     GOPROXY: "%secret:GOPROXY%"
     GOWORK: "off"
+    GOTOOLCHAIN: "local"
 shell:
   install:
-  - export GOPROXY=off GO_VERSION=${GOLANG_VERSION} GOWORK=off
+  - export GOPROXY=off GOTOOLCHAIN=local GOWORK=off
   - cd /src
   - export KUBE_GIT_VERSION_FILE=.kube-version
   - go mod vendor
