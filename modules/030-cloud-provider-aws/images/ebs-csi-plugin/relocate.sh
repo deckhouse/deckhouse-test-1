@@ -35,7 +35,7 @@ for pattern in "$@"; do
     fi
     while read -r dependency; do
       copy_file "$dependency"
-    done < <(printf '%s\n' "$dependencies" | awk '$2 == "=>" && $3 ~ /^\// {print $3} $1 ~ /^\// {print $1}')
+    done < <(printf '%s\n' "$dependencies" | awk '$2 == "=>" && $3 ~ /^\// {print $3} NF == 2 && $1 ~ /^\// && $2 ~ /^\(0x[[:xdigit:]]+\)$/ {print $1}')
   done
   if [[ "$matched" == false ]]; then
     printf 'Missing runtime artifact: %s\n' "$pattern" >&2
