@@ -87,9 +87,12 @@ git:
     install: ['**/*']
 packages:
 - type: os-pm
-  spec: [bash, coreutils, gawk, ldd, e2fsprogs, xfsprogs, util-linux, parted, nvme-cli, btrfs-progs, udev, gnu-glibc]
+  spec: [bash, coreutils, gawk, ldd, e2fsprogs, xfsprogs, util-linux, gnu-glibc]
 shell:
   install:
-  - bash /relocate.sh /out '/usr/bin/*' '/usr/lib/udev/*'
+  - |
+    for tool in bash sh mount umount blkid blockdev findmnt lsblk mkfs mkfs.ext2 mkfs.ext3 mkfs.ext4 mkfs.xfs resize2fs xfs_growfs fsck fsck.ext2 fsck.ext3 fsck.ext4 e2fsck; do
+      bash /relocate.sh /out "$(command -v "$tool")"
+    done
   - mkdir -p /out/usr/lib
   - cp -a /usr/lib/libnss_*.so* /out/usr/lib/
