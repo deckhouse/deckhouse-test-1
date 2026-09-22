@@ -126,5 +126,5 @@ git:
 shell:
   install:
   - bash /relocate.sh /relocate /usr/sbin/nginx
-  - mkdir -p /relocate/etc /relocate/var/cache/nginx /relocate/var/log/nginx /relocate/run
-  - cp -a /etc/nginx /relocate/etc/
+  - mkdir -p /relocate/usr /relocate/var/cache/nginx /relocate/var/log/nginx /relocate/run
+  - cp -a /usr/conf /relocate/usr/
