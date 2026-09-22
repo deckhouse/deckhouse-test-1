@@ -74,7 +74,7 @@ function relocate() {
   local binary=$1
   relocate_item "${binary}"
 
-  for lib in $( { ldd "${binary}" 2>/dev/null || true; } | awk '{if ($2=="=>" && $3 ~ /^\//) print $3; else if ($1 ~ /^\//) print $1}'); do
+  for lib in $( { ldd "${binary}" 2>/dev/null || true; } | awk '{if ($2=="=>" && $3 ~ /^\//) print $3; else if (NF==2 && $1 ~ /^\// && $2 ~ /^\(0x[[:xdigit:]]+\)$/) print $1}'); do
     # don't try to relocate linux-vdso.so lib due to this lib is virtual
     if [[ "${lib}" =~ "linux-vdso" ]]; then
       continue
