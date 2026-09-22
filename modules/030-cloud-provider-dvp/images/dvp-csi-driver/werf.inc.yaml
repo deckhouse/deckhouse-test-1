@@ -90,6 +90,6 @@ packages:
   spec: [bash, coreutils, gawk, ldd, e2fsprogs, xfsprogs, util-linux, parted, nvme-cli, btrfs-progs, udev, gnu-glibc]
 shell:
   install:
-  - bash /relocate.sh /out /usr/bin/* /usr/lib/udev/*
+  - bash /relocate.sh /out '/usr/bin/*' '/usr/lib/udev/*'
   - mkdir -p /out/usr/lib
   - cp -a /usr/lib/libnss_*.so* /out/usr/lib/
