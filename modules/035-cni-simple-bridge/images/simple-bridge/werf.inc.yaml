@@ -1,10 +1,22 @@
 ---
+image: {{ $.ModuleName }}/{{ $.ImageName }}-busybox-artifact
+final: false
+from: {{ index $.Images "builder/distroless" }}
+packages:
+- type: os-pm
+  spec: [busybox]
+---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact
 final: false
 from: {{ index $.Images "builder/distroless" }}
 packages:
 - type: os-pm
-  spec: [python==3.12.12, jq, gnu-glibc, gawk, coreutils, grep, bash, iproute2, bridge-utils, procps, util-linux, findutils, curl, ldd, busybox]
+  spec: [python==3.12.12, jq, gnu-glibc, gawk, coreutils, grep, bash, iproute2, bridge-utils, procps, util-linux, findutils, curl, ldd]
+import:
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-busybox-artifact
+  add: /usr/bin/busybox
+  to: /usr/bin/busybox
+  before: install
 git:
 - add: /{{ $.ModulePath }}modules/035-{{ $.ModuleName }}/images/{{ $.ImageName }}/src/rootfs
   to: /out
@@ -14,7 +26,7 @@ git:
     install: ['**/*']
 shell:
   install:
-  - bash /relocate.sh /out /usr/bin/*
+  - bash /relocate.sh /out /usr/bin/bash /usr/bin/busybox /usr/bin/cat /usr/bin/curl /usr/bin/env /usr/bin/find /usr/bin/gawk /usr/bin/grep /usr/bin/ip /usr/bin/jq /usr/bin/python3 /usr/bin/rm /usr/bin/sleep /usr/bin/tee /usr/bin/wc
   - ln -sf bash /out/usr/bin/sh
   - ln -sf gawk /out/usr/bin/awk
   - ln -sf busybox /out/usr/bin/hostname
