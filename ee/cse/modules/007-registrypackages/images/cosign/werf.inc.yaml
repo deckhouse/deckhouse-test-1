@@ -1,16 +1,20 @@
 {{- $version := "v2.6.5" }}
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}
-from: {{ index $.Images "builder/scratch" }}
+{{- $vexPath := printf "%smodules/%s-%s/images/%s/known_vulnerabilities.vex" $.ModulePath $.ModulePriority $.ModuleName $.ImageName }}
+{{- if eq (len ($.Files.Glob $vexPath)) 1 }}
+vex: {{ $vexPath }}
+{{- end }}
+from: scratch
 import:
-- image: {{ .ModuleName }}/{{ .ImageName }}-artifact
+- from: {{ .ModuleName }}/{{ .ImageName }}-artifact
   add: /
   to: /
   includePaths:
   - install
   - uninstall
   before: setup
-- image: {{ .ModuleName }}/{{ .ImageName }}-artifact
+- from: {{ .ModuleName }}/{{ .ImageName }}-artifact
   add: /usr/bin/cosign
   to: /cosign
   before: setup
@@ -29,8 +33,7 @@ from: {{ index $.Images "builder/distroless" }}
 git:
 - add: /{{ .ModulePath }}modules/{{ .ModulePriority }}-{{ .ModuleName }}/images/{{ .ImageName }}/scripts
   to: /
-shell:
-  install:
-   - pm install cosign@{{ $version }}
+packages:
+- type: os-pm
+  spec: [cosign=={{ trimPrefix "v" $version }}]
 ---
-{{- include "vex mitigation" (list $ (printf "%s/%s" $.ModuleName $.ImageName)) }}

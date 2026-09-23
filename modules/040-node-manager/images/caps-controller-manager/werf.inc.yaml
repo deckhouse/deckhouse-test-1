@@ -1,24 +1,22 @@
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}
-fromImage: common/distroless
+from: {{ index $.Images "base/distroless" }}
 imageSpec:
   config:
     entrypoint: ["/caps-controller-manager"]
 import:
-- image: {{ .ModuleName }}/{{ .ImageName }}-artifact
+- from: {{ .ModuleName }}/{{ .ImageName }}-artifact
   add: /caps-controller-manager
   to: /caps-controller-manager
   before: setup
-- image: ssh-static
-  add: /ssh/bin
-  to: /bin
+- from: {{ .ModuleName }}/{{ .ImageName }}-artifact
+  add: /runtime
+  to: /
   before: setup
-  includePaths:
-    - ssh
 {{- include "image mount points" . }}
 ---
 image: {{ .ModuleName }}/{{ $.ImageName }}-src-artifact
-fromImage: common/src-artifact
+from: {{ index $.Images "builder/distroless" }}
 final: false
 git:
 - add: /{{ $.ModulePath }}modules/040-{{ .ModuleName }}/images/{{ .ImageName }}/src
@@ -27,20 +25,25 @@ git:
   - "**/*.md"
   - "**/*.yaml"
   - hack
-  stageDependencies:
-    install:
-    - go.mod
-    - go.sum
-    - "**/*.go"
-shell:
-  install:
-  - cd /src
+- add: /modules/030-cloud-provider-aws/images/ebs-csi-plugin/relocate.sh
+  to: /relocate.sh
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}-artifact
-from: {{ index $.Images "builder/golang" }}
+from: {{ index $.Images "builder/distroless" }}
+packages:
+- type: os-pm
+  spec: [golang, git, coreutils, bash, gawk, ldd, ssh-static]
+- type: go-mod
+  workdir: /src
+  env:
+    GOPROXY: "%secret:GOPROXY%"
 final: false
 import:
-- image: {{ .ModuleName }}/{{ $.ImageName }}-src-artifact
+- from: {{ .ModuleName }}/{{ $.ImageName }}-src-artifact
+  add: /relocate.sh
+  to: /relocate.sh
+  before: install
+- from: {{ .ModuleName }}/{{ $.ImageName }}-src-artifact
   add: /src
   to: /src
   before: install
@@ -52,7 +55,7 @@ secrets:
 shell:
   install:
   - cd /src
-  - GOPROXY=$(cat /run/secrets/GOPROXY) go mod download
+  - bash /relocate.sh /runtime /usr/bin/ssh
   - CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -o /caps-controller-manager cmd/main.go
   - chown 64535:64535 /caps-controller-manager
   - chmod 0700 /caps-controller-manager

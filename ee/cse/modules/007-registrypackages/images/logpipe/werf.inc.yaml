@@ -3,7 +3,7 @@
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}-src-artifact-{{ $image_version }}
 final: false
-fromImage: common/src-artifact
+from: {{ index $.Images "builder/distroless" }}
 git:
 - add: /{{ .ModulePath }}/modules/{{ .ModulePriority }}-{{ .ModuleName }}/images/{{ .ImageName }}/scripts
   to: /src/scripts
@@ -11,9 +11,9 @@ git:
   to: /src/logpipe
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}-{{ $image_version }}
-from: {{ index .Images "builder/scratch" }}
+from: scratch
 import:
-- image: {{ .ModuleName }}/{{ .ImageName }}-artifact-{{ $image_version }}
+- from: {{ .ModuleName }}/{{ .ImageName }}-artifact-{{ $image_version }}
   add: /
   to: /
   includePaths:
@@ -32,19 +32,26 @@ imageSpec:
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}-artifact-{{ $image_version }}
 final: false
-from: {{ index .Images "builder/golang" }}
+from: {{ index .Images "builder/distroless" }}
 mount:
 {{ include "mount points for golang builds" . }}
 import:
-- image: {{ .ModuleName }}/{{ .ImageName }}-src-artifact-{{ $image_version }}
+- from: {{ .ModuleName }}/{{ .ImageName }}-src-artifact-{{ $image_version }}
   add: /src
   to: /src
   before: install
 secrets:
 - id: GOPROXY
   value: {{ .GOPROXY }}
+packages:
+- type: os-pm
+  spec: [golang, git, coreutils]
+- type: go-mod
+  workdir: /src/logpipe
+  env:
+    GOPROXY: "%secret:GOPROXY%"
 shell:
   setup:
   - cd /src/logpipe
-  - GOPROXY=$(cat /run/secrets/GOPROXY) CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -o /logpipe logpipe.go
+  - GOPROXY=off CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -o /logpipe logpipe.go
   - mv /src/scripts/* /

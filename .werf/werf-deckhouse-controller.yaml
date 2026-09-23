@@ -1,7 +1,10 @@
 ---
 image: deckhouse-controller-src-artifact
 final: false
-from: {{ index $.Images "builder/src" }}
+from: {{ index $.Images "builder/distroless" }}
+packages:
+- type: os-pm
+  spec: [bash, findutils, sed]
 git:
 - add: /
   to: /deckhouse
@@ -27,9 +30,9 @@ shell:
 ---
 image: deckhouse-controller-artifact
 final: false
-fromImage: base-for-go
+from: base-for-go
 import:
-- image: deckhouse-controller-src-artifact
+- from: deckhouse-controller-src-artifact
   add: /deckhouse
   to: /deckhouse
   before: install
@@ -40,10 +43,16 @@ secrets:
   value: {{ .GOPROXY }}
 - id: DECKHOUSE_PRIVATE_REPO
   value: {{ .DECKHOUSE_PRIVATE_REPO }}
+packages:
+- type: os-pm
+  spec: [ssh-static, grep]
+- type: go-mod
+  workdir: /deckhouse
+  env:
+    GOPROXY: "%secret:GOPROXY%"
 shell:
   beforeInstall:
   - mkdir /deckhouse /out
-  - pm install ssh-static
   - mkdir -p ~/.ssh && echo "StrictHostKeyChecking accept-new" > ~/.ssh/config
   setup:
   - |
@@ -75,12 +84,8 @@ shell:
       export CI_COMMIT_TAG
     fi
   - cd /deckhouse
-  - export GOPROXY=$(cat /run/secrets/GOPROXY)
   # Generate hooks imports for particular edition
   - go generate ./tools/register.go
-  # Go modules depend on `register-go-hooks.go` file, hence we cannot split downloading dependencies and building
-  # into separate phases.
-  - go mod download
   - cd /deckhouse/deckhouse-controller
 {{- if eq $.Env "CSE" }}
   - export DEFAULT_RELEASE_CHANNEL=LTS
@@ -93,6 +98,4 @@ shell:
   - mv deckhouse-controller /out
   - cp /out/deckhouse-controller /out/caps-deckhouse-controller
   - setcap "cap_sys_chroot=ep cap_sys_admin=ep cap_mknod=ep" /out/caps-deckhouse-controller
----
-{{- include "vex mitigation" (list $ "dev") }}
 ---

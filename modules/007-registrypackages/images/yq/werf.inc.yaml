@@ -2,9 +2,9 @@
 {{- $image_version := $version | replace "." "-" }}
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-{{ $image_version }}
-from: {{ index $.Images "builder/scratch" }}
+from: scratch
 import:
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact-{{ $image_version }}
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-artifact-{{ $image_version }}
   add: /
   to: /
   includePaths:
@@ -24,6 +24,9 @@ imageSpec:
 image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact-{{ $image_version }}
 final: false
 from: {{ index $.Images "builder/distroless" }}
+packages:
+- type: os-pm
+  spec: [bash, coreutils, "yq=={{ $version }}"]
 git:
 - add: /{{ $.ModulePath }}modules/007-{{ $.ModuleName }}/images/{{ $.ImageName }}/scripts
   to: /
@@ -35,6 +38,5 @@ git:
     - '**/*'
 shell:
   setup:
-  - pm install yq@{{ $version }} -d /out
-  - cp /out/usr/bin/yq /yq
+  - cp /usr/bin/yq /yq
   - chmod +x /yq /install /uninstall

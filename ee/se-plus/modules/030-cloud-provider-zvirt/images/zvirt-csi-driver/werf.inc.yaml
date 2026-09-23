@@ -3,32 +3,18 @@
 {{- $go_ovirt_client_version := "v3.2.0-flant-1" }}
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}
-fromImage: common/distroless
+from: {{ index $.Images "base/distroless" }}
 import:
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-artifact
   add: /ovirt-csi-driver
   to: /ovirt-csi-driver
   before: setup
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-binaries-artifact
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-binaries-artifact
   add: /relocate
   to: /
   before: install
   includePaths:
   - '**/*'
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-binaries-artifact
-  add: /lib64
-  to: /lib64
-  before: install
-  includePaths:
-  - 'libresolv*'
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-binaries-artifact
-  add: /lib/udev/scsi_id
-  to: /lib/udev/scsi_id
-  before: setup
-- from: {{ index $.Images "tools/util-linux" }}
-  add: /bin/lsblk
-  to: /bin/lsblk
-  before: setup
 {{- include "image mount points" . }}
 imageSpec:
   config:
@@ -36,34 +22,44 @@ imageSpec:
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
 final: false
-fromImage: common/src-artifact
+from: {{ index $.Images "builder/distroless" }}
 git:
+- url: {{ .SOURCE_REPO }}/openshift/ovirt-csi-driver.git
+  branch: {{ $version }}
+  to: /src
+  stageDependencies:
+    install: ['**/*']
+- url: {{ .CLOUD_PROVIDERS_SOURCE_REPO }}/ovirt/go-ovirt
+  tag: {{ $go_ovirt_version }}
+  to: /src/go-ovirt
+  stageDependencies:
+    install: ['**/*']
+- url: {{ .SOURCE_REPO }}/flant/go-ovirt-client.git
+  tag: {{ $go_ovirt_client_version }}
+  to: /src/go-ovirt-client
+  stageDependencies:
+    install: ['**/*']
 - add: /{{ $.ModulePath }}modules/{{ $.ModulePriority }}-{{ $.ModuleName }}/images/{{ $.ImageName }}/patches
   to: /patches
   stageDependencies:
     install:
     - '**/*'
-secrets:
-- id: SOURCE_REPO
-  value: {{ .SOURCE_REPO }}
-- id: CLOUD_PROVIDERS_SOURCE_REPO
-  value: {{ .CLOUD_PROVIDERS_SOURCE_REPO }}
+packages:
+- type: os-pm
+  spec: [git, coreutils]
 shell:
   install:
-  - git clone --depth 1 --branch {{ $version }} $(cat /run/secrets/SOURCE_REPO)/openshift/ovirt-csi-driver.git /src
-  - git clone --depth 1 --branch {{ $go_ovirt_version }} $(cat /run/secrets/CLOUD_PROVIDERS_SOURCE_REPO)/ovirt/go-ovirt /src/go-ovirt
-  - git clone --depth 1 --branch {{ $go_ovirt_client_version }} $(cat /run/secrets/SOURCE_REPO)/flant/go-ovirt-client.git /src/go-ovirt-client
   - cd /src
   - git apply /patches/*.patch --verbose
   - echo "replace github.com/ovirt/go-ovirt => /src/go-ovirt" >> go.mod
   - echo "replace github.com/ovirt/go-ovirt-client/v3 => /src/go-ovirt-client" >> go.mod
-  - rm -rf vendor .git
+  - rm -rf vendor
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact
 final: false
-from: {{ index $.Images "builder/golang" }}
+from: {{ index $.Images "builder/distroless" }}
 import:
-  - image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
+  - from: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
     add: /src
     to: /src
     before: install
@@ -72,10 +68,14 @@ mount:
 secrets:
 - id: GOPROXY
   value: {{ .GOPROXY }}
+packages:
+- type: os-pm
+  spec: [golang, git]
+- type: go-mod
+  workdir: /src
+  env:
+    GOPROXY: "%secret:GOPROXY%"
 shell:
-  install:
-  - cd /src
-  - GOPROXY=$(cat /run/secrets/GOPROXY) go mod download
   setup:
   - cd /src
   - GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags "-s -w -X version.Version={{ $version }}" -o /ovirt-csi-driver ./cmd/ovirt-csi-driver/ovirt-csi-driver.go
@@ -83,10 +83,16 @@ shell:
 {{- $csiBinaries := "/bin/chmod /bin/mount /bin/mkdir /bin/rmdir /bin/umount /bin/findmnt /sbin/badblocks /sbin/blockdev /sbin/blk* /sbin/btrfs* /sbin/dumpe2fs /sbin/e2* /sbin/findfs /sbin/fsck* /sbin/fsfreeze /sbin/fstrim /sbin/mke2fs /sbin/mkfs* /sbin/resize2fs /sbin/xfs_repair /usr/sbin/nvme /usr/sbin/parted /usr/sbin/xfs*" }}
 image: {{ $.ModuleName }}/{{ $.ImageName }}-binaries-artifact
 final: false
-fromImage: common/relocate-artifact
+from: {{ index $.Images "builder/distroless" }}
+git:
+- add: /modules/000-common/images/relocate/binary_replace.sh
+  to: /binary_replace.sh
+  stageDependencies:
+    install: ['**/*']
+packages:
+- type: os-pm
+  spec: [bash, coreutils, gawk, ldd, gnu-glibc, util-linux, e2fsprogs, xfsprogs, btrfs-progs, nfs-utils, parted, nvme-cli, udev]
 shell:
-  beforeInstall:
-  {{- include "alt packages proxy" . | nindent 2 }}
-  - apt-get install -y e2fsprogs xfsprogs btrfs-progs nfs-utils parted nvme udev
   install:
-    - /binary_replace.sh -i "{{ $csiBinaries }}" -o /relocate
+  - ln -sf /usr/bin/gawk /usr/bin/awk
+  - bash /binary_replace.sh -i "{{ $csiBinaries }} /usr/bin/lsblk /usr/lib/libresolv.so.2 /usr/lib/udev/scsi_id" -o /relocate

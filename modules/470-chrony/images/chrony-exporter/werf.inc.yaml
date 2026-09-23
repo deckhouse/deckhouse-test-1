@@ -1,9 +1,18 @@
 {{- $chronyExproterVersion := "0.11.0"}}
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}-src-artifact
-fromImage: common/src-artifact
+from: {{ index $.Images "builder/distroless" }}
 final: false
+packages:
+- type: os-pm
+  spec: [git, coreutils]
 git:
+- url: {{ .SOURCE_REPO }}/SuperQ/chrony_exporter.git
+  tag: v{{ $chronyExproterVersion }}
+  add: /
+  to: /src/chrony_exporter
+  stageDependencies:
+    install: ['**/*']
 - add: /{{ .ModulePath }}modules/{{ .ModulePriority }}-{{ .ModuleName }}/images/{{ .ImageName }}/patches
   to: /patches
   includePaths:
@@ -11,49 +20,67 @@ git:
   stageDependencies:
     install:
     - '**/*.patch'
-secrets:
-- id: SOURCE_REPO
-  value: {{ .SOURCE_REPO }}
+- add: /modules/002-deckhouse/images/init/relocate.sh
+  to: /relocate.sh
 shell:
   install:
-  - cd /src
-  - git clone --depth 1 --branch v{{$chronyExproterVersion}} $(cat /run/secrets/SOURCE_REPO)/SuperQ/chrony_exporter.git chrony_exporter
   - cd /src/chrony_exporter
   - git apply /patches/chrony_exporter/*.patch --verbose
   - rm -rf /src/chrony_exporter/.git
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}-artifact
-from: {{ index $.Images "builder/golang-alpine" }}
+from: {{ index $.Images "builder/distroless" }}
 final: false
+packages:
+- type: os-pm
+  spec: [golang==1.26.8, git, coreutils, gnu-gcc, binutils, gnu-glibc-devel, ldd, bash, gawk]
+- type: go-mod
+  workdir: /chrony_exporter
+  env:
+    GOPROXY: "%secret:GOPROXY%"
 mount:
 {{ include "mount points for golang builds" . }}
 import:
-- image: {{ .ModuleName }}/{{ .ImageName }}-src-artifact
+- from: {{ .ModuleName }}/{{ .ImageName }}-src-artifact
+  add: /relocate.sh
+  to: /relocate.sh
+  before: install
+- from: {{ .ModuleName }}/{{ .ImageName }}-src-artifact
   add: /src/chrony_exporter
   to: /chrony_exporter
   before: install
-- image: common/promu-artifact
+- from: common/promu-artifact
   add: /src/promu
-  to: /bin/promu
+  to: /usr/bin/promu
   before: install
 secrets:
 - id: GOPROXY
   value: {{ .GOPROXY }}
 shell:
   install:
-  - export GOPROXY=$(cat /run/secrets/GOPROXY) CGO_ENABLED=1 GOOS=linux GOARCH=amd64
+  - export GOPROXY=off CGO_ENABLED=1 GOOS=linux GOARCH=amd64
   - cd /chrony_exporter
   - promu build
+  - bash /relocate.sh /relocate /chrony_exporter/chrony_exporter
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}
-fromImage: common/distroless
+from: {{ index $.Images "base/distroless" }}
 import:
-- image: {{ .ModuleName }}/{{ .ImageName }}-artifact
+- from: common/distroless-artifact
+  add: /relocate
+  to: /
+  before: install
+- from: {{ .ModuleName }}/{{ .ImageName }}-artifact
+  add: /relocate/usr
+  to: /usr
+  before: install
+- from: {{ .ModuleName }}/{{ .ImageName }}-artifact
   add: /chrony_exporter/chrony_exporter
-  to: /bin/chrony_exporter
+  to: /usr/bin/chrony_exporter
   before: install
 {{- include "image mount points" . }}
 imageSpec:
   config:
+    user: "64535:64535"
     entrypoint: ["/bin/chrony_exporter"]
     expose: ["9123"]

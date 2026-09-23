@@ -7,38 +7,53 @@
 # and on https://github.com/cilium/hubble-ui/blob/v0.13.5/backend/Dockerfile
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
-fromImage: common/src-artifact
+from: {{ index $.Images "builder/distroless" }}
 final: false
+packages:
+- type: os-pm
+  spec: [git, coreutils, findutils]
 git:
+- url: {{ .SOURCE_REPO }}/cilium/hubble-ui.git
+  tag: v{{ $hubbleUIVersion }}
+  add: /
+  to: /src/hubble-ui
+  stageDependencies:
+    install: ['**/*']
+- url: {{ .SOURCE_REPO }}/cilium/hubble-ui-frontend-assets.git
+  branch: v{{ $hubbleUIFrontendAssetsVersion }}
+  add: /
+  to: /src/frontend_prebuilt
+  stageDependencies:
+    install: ['**/*']
 - add: /{{ $.ModulePath }}modules/500-{{ $.ModuleName }}/images/{{ $.ImageName }}/patches
   to: /patches
   stageDependencies:
     install:
       - '**/*'
-secrets:
-- id: SOURCE_REPO
-  value: {{ .SOURCE_REPO }}
 shell:
   install:
-  - git clone --depth 1 --branch v{{ $hubbleUIVersion }} $(cat /run/secrets/SOURCE_REPO)/cilium/hubble-ui.git /src/hubble-ui
   - cd /src/hubble-ui
   - git apply /patches/*.patch --verbose
-  - rm -r /src/hubble-ui/.git
   # CSE
   - find /src/hubble-ui -mindepth 1 -maxdepth 1 ! -name 'backend' -exec rm -rf {} +
   # also, there is README.md in repo ;)
-  - git clone --depth 1 --branch v{{ $hubbleUIFrontendAssetsVersion }} $(cat /run/secrets/SOURCE_REPO)/cilium/hubble-ui-frontend-assets.git /src/frontend_prebuilt
-  - rm -r /src/frontend_prebuilt/.git
   - mkdir -p /src/server/public
   - mv /src/frontend_prebuilt/static/* /src/server/public
   - chown -R 64535:64535 /src/server/public
 
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-backend-build-artifact
-from: {{ index $.Images "builder/golang" }}
+from: {{ index $.Images "builder/distroless" }}
 final: false
+packages:
+- type: os-pm
+  spec: [golang==1.26.8, git, coreutils]
+- type: go-mod
+  workdir: /src/hubble-ui/backend
+  env:
+    GOPROXY: "%secret:GOPROXY%"
 import:
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
   add: /src/hubble-ui
   to: /src/hubble-ui
   before: install
@@ -49,10 +64,10 @@ secrets:
   value: {{ .GOPROXY }}
 shell:
   install:
-  - export GO_VERSION=${GOLANG_VERSION} GOPROXY=$(cat /run/secrets/GOPROXY)
+  - export GO_VERSION=$(go env GOVERSION) GOPROXY=off
   - export "GOARCH=amd64"
   - cd /src/hubble-ui/backend
-  - go mod download -x && go mod vendor && go mod verify
+  - go mod vendor && go mod verify
   - CGO_ENABLED=0 go build -ldflags "-s -w" -o backend
   - chown 64535:64535 /src/hubble-ui/backend/backend
   - chmod 0700 /src/hubble-ui/backend/backend
@@ -60,9 +75,13 @@ shell:
 ############################################################################
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-frontend
-from: {{ index $.Images "base/nginx" }}
+from: {{ index $.Images "base/distroless" }}
 import:
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-runtime-artifact
+  add: /relocate
+  to: /
+  before: install
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
   add: /src/server/public
   to: /app
   before: install
@@ -72,15 +91,40 @@ imageSpec:
     entrypoint: [ "/usr/sbin/nginx", "-g", "daemon off;" ]
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-backend
-fromImage: common/distroless
+{{- $vexPath := printf "%smodules/%s-%s/images/%s/known_vulnerabilities.vex" $.ModulePath $.ModulePriority $.ModuleName $.ImageName }}
+{{- if eq (len ($.Files.Glob $vexPath)) 1 }}
+vex: {{ $vexPath }}
+{{- end }}
+from: {{ index $.Images "base/distroless" }}
 import:
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-backend-build-artifact
+- from: common/distroless-artifact
+  add: /relocate
+  to: /
+  before: install
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-backend-build-artifact
   add: /src/hubble-ui/backend/backend
   to: /usr/local/bin/hubble-ui-backend
   before: install
 {{- include "image mount points" . }}
 imageSpec:
   config:
+    user: "64535:64535"
     entrypoint: ["/usr/local/bin/hubble-ui-backend"]
 ---
-{{- include "vex mitigation" (list $ (printf "%s/%s" $.ModuleName "ui-backend" )) }}
+---
+image: {{ $.ModuleName }}/{{ $.ImageName }}-runtime-artifact
+from: {{ index $.Images "builder/distroless" }}
+final: false
+packages:
+- type: os-pm
+  spec: [nginx, bash, coreutils, gawk, ldd]
+git:
+- add: /modules/002-deckhouse/images/init/relocate.sh
+  to: /relocate.sh
+  stageDependencies:
+    install: ['**/*']
+shell:
+  install:
+  - bash /relocate.sh /relocate /usr/sbin/nginx
+  - mkdir -p /relocate/usr /relocate/var/cache/nginx /relocate/var/log/nginx /relocate/run
+  - cp -a /usr/conf /relocate/usr/

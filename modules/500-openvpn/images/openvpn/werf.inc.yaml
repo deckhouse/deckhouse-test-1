@@ -1,17 +1,24 @@
-{{- $binaries := "/usr/sbin/conntrack /usr/lib64/libnetfilter_conntrack.so* /bin/mknod" }}
+{{- $binaries := "/usr/sbin/conntrack /usr/bin/mknod" }}
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}
-fromImage: common/distroless
+from: {{ index $.Images "base/distroless" }}
+imageSpec:
+  config:
+    user: "64535:64535"
 import:
-- image: {{ .ModuleName }}/{{ .ImageName }}-artifact
+- from: common/distroless-artifact
+  add: /relocate
+  to: /
+  before: install
+- from: {{ .ModuleName }}/{{ .ImageName }}-artifact
   add: /src/openvpn/src/openvpn/openvpn
   to: /usr/sbin/openvpn
   before: setup
-- image: {{ .ModuleName }}/{{ .ImageName }}-entrypoint-artifact
+- from: {{ .ModuleName }}/{{ .ImageName }}-entrypoint-artifact
   add: /src/entrypoint
   to: /entrypoint
   before: setup
-- image: {{ .ModuleName }}/{{ .ImageName }}-binaries-artifact
+- from: {{ .ModuleName }}/{{ .ImageName }}-binaries-artifact
   add: /relocate
   to: /
   before: setup
@@ -19,7 +26,7 @@ import:
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}-src-artifact
 final: false
-fromImage: common/src-artifact
+from: {{ index $.Images "builder/distroless" }}
 git:
 - add: /{{ .ModulePath }}modules/{{ .ModulePriority }}-{{ .ModuleName }}/images/{{ .ImageName }}/entrypoint
   to: /src/entrypoint
@@ -27,25 +34,31 @@ git:
   - '**/*.go'
   - '**/*.mod'
   - '**/*.sum'
-  stageDependencies:
-    install:
-    - '**/*.go'
-    - 'go.mod'
-    - 'go.sum'
-secrets:
-- id: SOURCE_REPO
-  value: {{ .SOURCE_REPO }}
-shell:
-  install:
-  - git clone --depth 1 -b openssl-{{ include "get_oss_version_by_id" (list "openssl" $ ) }} $(cat /run/secrets/SOURCE_REPO)/openssl/openssl.git /src/openssl && cd /src/openssl && rm -rf .git
-  - git clone --depth 1 -b v{{ include "get_oss_version_by_id" (list "libcapng" $ ) }} $(cat /run/secrets/SOURCE_REPO)/stevegrubb/libcap-ng.git /src/libcap-ng && cd /src/libcap-ng && rm -rf .git
-  - git clone --depth 1 -b v{{ include "get_oss_version_by_id" (list "openvpn" $ ) }} $(cat /run/secrets/SOURCE_REPO)/OpenVPN/openvpn.git /src/openvpn && cd /src/openvpn && rm -rf .git
+- url: {{ .SOURCE_REPO }}/openssl/openssl.git
+  tag: openssl-{{ include "get_oss_version_by_id" (list "openssl" $ ) }}
+  add: /
+  to: /src/openssl
+- url: {{ .SOURCE_REPO }}/stevegrubb/libcap-ng.git
+  tag: v{{ include "get_oss_version_by_id" (list "libcapng" $ ) }}
+  add: /
+  to: /src/libcap-ng
+- url: {{ .SOURCE_REPO }}/OpenVPN/openvpn.git
+  tag: v{{ include "get_oss_version_by_id" (list "openvpn" $ ) }}
+  add: /
+  to: /src/openvpn
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}-entrypoint-artifact
 final: false
-from: {{ index $.Images "builder/golang" }}
+from: {{ index $.Images "builder/distroless" }}
+packages:
+- type: os-pm
+  spec: [golang==1.26.8, git, coreutils]
+- type: go-mod
+  workdir: /src
+  env:
+    GOPROXY: "%secret:GOPROXY%"
 import:
-- image: {{ .ModuleName }}/{{ .ImageName }}-src-artifact
+- from: {{ .ModuleName }}/{{ .ImageName }}-src-artifact
   add: /src/entrypoint
   to: /src
   before: install
@@ -58,23 +71,23 @@ shell:
   install:
   - cd /src
   - export CGO_ENABLED=0 GOOS=linux GOARCH=amd64
-  - GOPROXY=$(cat /run/secrets/GOPROXY) go mod download
+  - export GOPROXY=off
   - go build -ldflags '-s -w' .
   - chown -R 64535:64535 /src
   - chmod 0755 /src/entrypoint
 ---
 image: {{ .ModuleName }}/openssl-artifact
 final: false
-from: {{ index $.Images "builder/alpine" }}
+from: {{ index $.Images "builder/distroless" }}
+packages:
+- type: os-pm
+  spec: [autoconf, automake, make, libtool, gnu-gcc, binutils, gnu-glibc-devel, linux-headers, perl, bash, coreutils, sed, grep, gawk]
 import:
-- image: {{ .ModuleName }}/{{ .ImageName }}-src-artifact
+- from: {{ .ModuleName }}/{{ .ImageName }}-src-artifact
   add: /src/openssl
   to: /src
   before: install
 shell:
-  beforeInstall:
-  {{- include "alpine packages proxy" . | nindent 2 }}
-  - apk add --no-cache autoconf automake make libtool g++ linux-headers
   install:
   - cd /src/
   - ./Configure gcc -static -no-shared
@@ -83,20 +96,20 @@ shell:
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}-artifact
 final: false
-from: {{ index $.Images "builder/alpine" }}
+from: {{ index $.Images "builder/distroless" }}
+packages:
+- type: os-pm
+  spec: [autoconf, automake, make, libtool, gnu-gcc, binutils, gnu-glibc-devel, linux-headers, pkgconf, perl, bash, coreutils, sed, grep, gawk]
 import:
-- image: {{ .ModuleName }}/{{ .ImageName }}-src-artifact
+- from: {{ .ModuleName }}/{{ .ImageName }}-src-artifact
   add: /src
   to: /src
   before: install
-- image: {{ .ModuleName }}/openssl-artifact
+- from: {{ .ModuleName }}/openssl-artifact
   add: /openssl
   to: /
   before: install
 shell:
-  beforeInstall:
-  {{- include "alpine packages proxy" . | nindent 2 }}
-  - apk add --no-cache autoconf automake make libtool g++ linux-headers pkgconfig
   install:
   - cd /src/libcap-ng
   - ./autogen.sh
@@ -110,11 +123,15 @@ shell:
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}-binaries-artifact
 final: false
-fromImage: common/relocate-artifact
+from: {{ index $.Images "builder/distroless" }}
+packages:
+- type: os-pm
+  spec: [conntrack-tools, coreutils, bash, gawk, ldd]
+git:
+- add: /modules/002-deckhouse/images/init/relocate.sh
+  to: /relocate.sh
+  stageDependencies:
+    install: ['**/*']
 shell:
-  beforeInstall:
-  {{- include "alt packages proxy" . | nindent 2 }}
-  - apt-get install -y conntrack-tools coreutils
-  - find /var/lib/apt/lists /var/cache/apt -type f -exec rm -f {} +
   install:
-  - /binary_replace.sh -i "{{ $binaries }}" -o /relocate
+  - bash /relocate.sh /relocate {{ $binaries }}

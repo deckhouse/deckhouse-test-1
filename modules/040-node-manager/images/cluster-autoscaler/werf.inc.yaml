@@ -18,25 +18,30 @@
 
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-{{ $image_version }}-src-artifact
-fromImage: common/src-artifact
+from: {{ index $.Images "builder/distroless" }}
+packages:
+- type: os-pm
+  spec: [git, coreutils]
 final: false
-    {{- if $patch }}
+{{- $clusterAutoscalerVersion := $version }}
 git:
+- url: {{ $.SOURCE_REPO }}/gardener/autoscaler.git
+  tag: v{{ $clusterAutoscalerVersion }}.{{ $value.clusterAutoscalerPatch }}
+  add: /
+  to: /tmp/autoscaler
+  stageDependencies:
+    install: ['**/*']
+    {{- if $patch }}
 - add: {{ $patches }}/patches/{{ $version }}
   to: /patches
   stageDependencies:
     install:
     - '**/*'
     {{- end }}
-secrets:
-- id: SOURCE_REPO
-  value: {{ $.SOURCE_REPO }}
 shell:
   install:
-  - mkdir -p /tmp/autoscaler
+  - mkdir -p /src
   - cd /tmp/autoscaler
-    {{- $clusterAutoscalerVersion := $version }}
-  - git clone --depth 1 --branch v{{ $clusterAutoscalerVersion }}.{{ $value.clusterAutoscalerPatch }} $(cat /run/secrets/SOURCE_REPO)/gardener/autoscaler.git .
     {{- if $patch }}
   - git apply /patches/*.patch --verbose
     {{- end }}
@@ -45,10 +50,17 @@ shell:
   - rm -rf /src/cloudprovider/azure/test
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact-{{ $image_version }}
-from: {{ index $.Images "builder/golang" }}
+from: {{ index $.Images "builder/distroless" }}
+packages:
+- type: os-pm
+  spec: [golang, git]
+- type: go-mod
+  workdir: /src
+  env:
+    GOPROXY: "%secret:GOPROXY%"
 final: false
 import:
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-{{ $image_version }}-src-artifact
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-{{ $image_version }}-src-artifact
   add: /src
   to: /src
   before: install
@@ -61,14 +73,17 @@ shell:
   install:
   - cd /src
   - export GOOS=linux GOARCH=amd64 CGO_ENABLED=0
-  - GOPROXY=$(cat /run/secrets/GOPROXY) go mod download
   - go build -ldflags='-s -w -extldflags "-static"' -o cluster-autoscaler
   - echo "{{ $clusterAutoscalerVersion }}.{{ $value.clusterAutoscalerPatch }}-flant" > VERSION
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-{{ $image_version }}
-fromImage: common/distroless
+{{- $vexPath := printf "%smodules/%s-%s/images/%s/known_vulnerabilities.vex" $.ModulePath $.ModulePriority $.ModuleName $.ImageName }}
+{{- if eq (len ($.Files.Glob $vexPath)) 1 }}
+vex: {{ $vexPath }}
+{{- end }}
+from: {{ index $.Images "base/distroless" }}
 import:
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact-{{ $image_version }}
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-artifact-{{ $image_version }}
   add: /src
   to: /
   includePaths:
@@ -81,5 +96,4 @@ imageSpec:
     entrypoint: ["/cluster-autoscaler"]
   {{- end }}
 ---
-{{- include "vex mitigation" (list $ (printf "%s/%s-%s" $.ModuleName $.ImageName $image_version)) }}
 {{- end }}

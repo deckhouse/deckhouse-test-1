@@ -12,66 +12,74 @@
     {{- end }}
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-{{ $version | replace "." "-" }}
-fromImage: common/distroless
+from: {{ index $.Images "base/distroless" }}
+vex: {{ $.ModulePath }}modules/{{ $.ModulePriority }}-{{ $.ModuleName }}/images/{{ $.ImageName }}/known_vulnerabilities.vex
 import:
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact-{{ $version | replace "." "-" }}
+- from: common/distroless-artifact
+  add: /relocate
+  to: /
+  before: setup
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-artifact-{{ $version | replace "." "-" }}
   add: /livenessprobe
   to: /livenessprobe
   before: setup
 {{- include "image mount points" $ }}
 imageSpec:
   config:
+    user: "64535:64535"
     entrypoint: ["/livenessprobe"]
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact-{{ $version | replace "." "-" }}
-fromImage: common/src-artifact
+from: common/src-artifact
 final: false
-    {{- if $patch }}
 git:
+- url: {{ $.SOURCE_REPO }}/kubernetes-csi/livenessprobe.git
+  tag: {{ $src_version }}
+  add: /
+  to: /src
+    {{- if $patch }}
 - add: {{ $patches }}/patches/{{ $src_version }}
   to: /patches
   stageDependencies:
     install:
     - '**/*'
     {{- end }}
-secrets:
-- id: SOURCE_REPO
-  value: {{ $.SOURCE_REPO }}
 shell:
   install:
   - cd /src
-  - git clone --depth 1 --branch {{ $src_version }} $(cat /run/secrets/SOURCE_REPO)/kubernetes-csi/livenessprobe.git .
   {{- if $patch }}
   - git apply /patches/*.patch --verbose
   {{- end }}
   - rm -rf vendor
-  - rm -rf .git
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact-{{ $version | replace "." "-" }}
-from: {{ index $.Images "builder/golang" }}
+from: {{ index $.Images "builder/distroless" }}
 final: false
 mount:
 {{ include "mount points for golang builds" . }}
 import:
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact-{{ $version | replace "." "-" }}
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact-{{ $version | replace "." "-" }}
   add: /src
   to: /src
   before: install
 secrets:
 - id: GOPROXY
   value: {{ $.GOPROXY }}
+packages:
+- type: os-pm
+  spec: [golang, git, make, bash, coreutils, grep, sed, findutils]
+- type: go-mod
+  workdir: /src
+  env:
+    GOPROXY: "%secret:GOPROXY%"
 shell:
-  beforeInstall:
-  - pm install git
   install:
   - export GO_VERSION=${GOLANG_VERSION} CGO_ENABLED=0 GOOS=linux GOARCH=amd64
   - cd /src
-  - GOPROXY=$(cat /run/secrets/GOPROXY) go mod download
-  - make build
+  - export GOPROXY=off
+  - make build REV={{ $src_version }}
   - cp bin/livenessprobe /livenessprobe
   - chown 64535:64535 /livenessprobe
   - chmod 0755 /livenessprobe
----
-{{- include "vex mitigation" (list $ (printf "%s/%s-%s" $.ModuleName $.ImageName ($version | replace "." "-"))) }}
   {{- end }}
 {{- end }}

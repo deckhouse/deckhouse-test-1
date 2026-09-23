@@ -1,30 +1,42 @@
 {{- $vpaVersion := include "get_oss_version_by_id" (list "autoscaler" $ )  -}}
 ---
 image: {{ .ModuleName }}/{{ $.ImageName }}-src-artifact
-fromImage: common/src-artifact
+from: {{ index $.Images "builder/distroless" }}
 final: false
+packages:
+- type: os-pm
+  spec: [git, coreutils]
 git:
+- url: {{ .SOURCE_REPO }}/kubernetes/autoscaler.git
+  tag: vertical-pod-autoscaler-{{ $vpaVersion }}
+  add: /
+  to: /src/autoscaler
+  stageDependencies:
+    install: ['**/*']
 - add: /{{ $.ModulePath }}/modules/302-{{ $.ModuleName }}/images/{{ $.ImageName }}/patches
   to: /patches
   stageDependencies:
     install:
       - '**/*'
-secrets:
-- id: SOURCE_REPO
-  value: {{ .SOURCE_REPO }}
 shell:
   install:
-    - git clone --depth 1 -b vertical-pod-autoscaler-{{ $vpaVersion }} $(cat /run/secrets/SOURCE_REPO)/kubernetes/autoscaler.git /src/autoscaler
     - cd /src/autoscaler
     - git apply /patches/*.patch --verbose
     - mv vertical-pod-autoscaler /src/vertical-pod-autoscaler
     - rm -rf /src/autoscaler /src/vertical-pod-autoscaler/e2e/ /patches /src/autoscaler/.git/
 ---
 image: {{ .ModuleName }}/{{ $.ImageName }}-artifact
-from: {{ index $.Images "builder/golang" }}
+from: {{ index $.Images "builder/distroless" }}
 final: false
+packages:
+- type: os-pm
+  spec: [golang==1.26.8, git, coreutils]
+- type: go-mod
+  workdir: /src/vertical-pod-autoscaler
+  env:
+    GOPROXY: "%secret:GOPROXY%"
 import:
-  - image: {{ .ModuleName }}/{{ $.ImageName }}-src-artifact
+  - from: {{ .ModuleName }}/{{ $.ImageName }}-src-artifact
     add: /src
     to: /src
     before: install
@@ -37,7 +49,7 @@ shell:
   install:
     - export CGO_ENABLED=0 GOOS=linux GOARCH=amd64
     - cd /src/vertical-pod-autoscaler/
-    - GOPROXY=$(cat /run/secrets/GOPROXY) go mod vendor
+    - GOPROXY=off go mod vendor
 
     - cd /src/vertical-pod-autoscaler/pkg/admission-controller
     - go build -ldflags="-s -w" -o /admission-controller

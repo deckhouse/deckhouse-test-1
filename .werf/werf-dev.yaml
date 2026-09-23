@@ -1,6 +1,6 @@
 ---
 image: dev-prebuild
-fromImage: common-base
+from: common-base
 git:
 - add: /
   to: /deckhouse
@@ -43,9 +43,9 @@ shell:
 image: minget-artifact
 final: false
 from: {{ index $.Images "builder/distroless" }}
-shell:
-  install:
-  - pm install minget
+packages:
+- type: os-pm
+  spec: [minget]
 ---
 {{ include "dev_image" . }}
 {{ include "controller_and_install_image_labels" . }}

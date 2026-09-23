@@ -1,29 +1,33 @@
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}-src-artifact
-fromImage: common/src-artifact
+from: {{ index $.Images "builder/distroless" }}
 final: false
 git:
+- url: {{ .SOURCE_REPO }}/metallb/metallb.git
+  tag: v{{ include "get_oss_version_by_id" (list "metallb" $ ) }}
+  add: /
+  to: /src
+  stageDependencies:
+    install: ['**/*']
 - add: /{{ .ModulePath }}modules/380-{{ .ModuleName }}/images/{{ .ImageName }}/patches
   to: /patches
   stageDependencies:
     install:
     - '**/*'
-secrets:
-- id: SOURCE_REPO
-  value: {{ .SOURCE_REPO }}
+packages:
+- type: os-pm
+  spec: [git, coreutils]
 shell:
   install:
   - cd /src
-  - git clone -b v{{ include "get_oss_version_by_id" (list "metallb" $ ) }} $(cat /run/secrets/SOURCE_REPO)/metallb/metallb.git .
   - git apply /patches/*.patch --verbose --allow-empty
   - rm -rf e2etest website
-  - rm -rf /src/.git
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}-artifact
-from: {{ index $.Images "builder/golang" }}
+from: {{ index $.Images "builder/distroless" }}
 final: false
 import:
-- image: {{ .ModuleName }}/{{ .ImageName }}-src-artifact
+- from: {{ .ModuleName }}/{{ .ImageName }}-src-artifact
   add: /src
   to: /src
   before: install
@@ -32,11 +36,18 @@ mount:
 secrets:
 - id: GOPROXY
   value: {{ .GOPROXY }}
+packages:
+- type: os-pm
+  spec: [golang, git, coreutils]
+- type: go-mod
+  workdir: /src
+  env:
+    GOPROXY: "%secret:GOPROXY%"
 shell:
   install:
   - cd /src
   - export GO_VERSION=${GOLANG_VERSION}
-  - export GOPROXY=$(cat /run/secrets/GOPROXY) GOOS=linux GOARCH=amd64 CGO_ENABLED=0
+  - export GOPROXY=off GOOS=linux GOARCH=amd64 CGO_ENABLED=0
   - cd controller
   - go build -ldflags="-s -w" -o /controller
   - chown 64535:64535 /controller
@@ -47,9 +58,9 @@ shell:
   - chmod 0755 /speaker
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}-controller
-fromImage: common/distroless
+from: {{ index $.Images "base/distroless" }}
 import:
-- image: {{ .ModuleName }}/{{ .ImageName }}-artifact
+- from: {{ .ModuleName }}/{{ .ImageName }}-artifact
   add: /controller
   to: /controller
   before: setup
@@ -58,9 +69,9 @@ imageSpec:
     entrypoint: ["/controller"]
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}-speaker
-fromImage: common/distroless
+from: {{ index $.Images "base/distroless" }}
 import:
-- image: {{ .ModuleName }}/{{ .ImageName }}-artifact
+- from: {{ .ModuleName }}/{{ .ImageName }}-artifact
   add: /speaker
   to: /speaker
   before: setup

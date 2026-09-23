@@ -1,48 +1,45 @@
 {{- $version_map := include "get_oss_version_map_by_id_and_condition_key" (list "terraform-provider-vcd" "mode" $) | fromYaml }}
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}
-from: {{ index $.Images "base/scratch" }}
+from: scratch
 git:
 - add: /{{ $.ModulePath }}modules/030-{{ $.ModuleName }}/candi
   to: /candi
   excludePaths:
   - '**/terraform_versions.yml'
-  stageDependencies:
-    install:
-    - '**/*'
 - add: /{{ $.ModulePath }}modules/030-{{ $.ModuleName }}/candi/terraform_versions.yml
   to: /terraform-manager/terraform_versions.yml
-  stageDependencies:
-    install:
-    - '**/*'
 import:
 {{- range $_, $version := $version_map }}
-- image: terraform-provider-vcd-artifact
+- from: terraform-provider-vcd-artifact
   add: /terraform-provider-vcd-v{{ $version }}
   to: /terraform-manager/terraform-provider-vcd-v{{ $version }}
   before: setup
 {{- end }}
-shell:
-  install:
-  - set -e
 {{ include "image_spec_for_infrastructure_manager" . }}
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
 final: false
-fromImage: common/src-artifact
+from: {{ index $.Images "builder/distroless" }}
 git:
+{{- range $_, $version := $version_map }}
+- url: {{ $.SOURCE_REPO }}/vmware/terraform-provider-vcd.git
+  tag: v{{ $version }}
+  to: /src/v{{ $version }}
+  stageDependencies:
+    install: ['**/*']
+{{- end }}
 - add: /{{ $.ModulePath }}modules/030-{{ $.ModuleName }}/images/{{ $.ImageName }}/patches
   to: /patches
   stageDependencies:
     install:
     - '**/*'
-secrets:
-- id: SOURCE_REPO
-  value: {{ .SOURCE_REPO }}
+packages:
+- type: os-pm
+  spec: [git, coreutils]
 shell:
   install:
 {{- range $_, $version := $version_map }}
-  - git clone --depth 1 --branch v{{ $version }} $(cat /run/secrets/SOURCE_REPO)/vmware/terraform-provider-vcd.git /src/v{{ $version }}
   - cd /src/v{{ $version }}
   - git apply /patches/v{{ $version }}/*.patch --verbose
   - rm -rf .git
@@ -50,20 +47,29 @@ shell:
 ---
 image: terraform-provider-vcd-artifact
 final: false
-from: {{ index $.Images "builder/golang" }}
+from: {{ index $.Images "builder/distroless" }}
 mount:
 {{ include "mount points for golang builds" . }}
 import:
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
   add: /src
   to: /src
   before: install
 secrets:
 - id: GOPROXY
   value: {{ .GOPROXY }}
+packages:
+- type: os-pm
+  spec: [golang, git, coreutils, binutils]
+{{- range $_, $version := $version_map }}
+- type: go-mod
+  workdir: /src/v{{ $version }}
+  env:
+    GOPROXY: "%secret:GOPROXY%"
+{{- end }}
 shell:
   install:
-  - export GOPROXY=$(cat /run/secrets/GOPROXY)
+  - export GOPROXY=off
 {{- range $_, $version := $version_map }}
   - cd /src/v{{ $version }}
   - CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w -extldflags \"-static\" -X 'github.com/vmware/terraform-provider-vcd/v3/vcd.BuildVersion={{ $version }}'" -o /terraform-provider-vcd-v{{ $version }}  .

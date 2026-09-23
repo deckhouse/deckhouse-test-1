@@ -2,7 +2,10 @@
 {{ $appAbsPath := printf "/deckhouse/modules/038-%s/images/%s/app" $.ModuleName $.ImageName }}
 ---
 image: "{{ $.ModuleName }}/{{ $.ImageName }}-src-artifact"
-fromImage: common/src-artifact
+from: {{ index $.Images "builder/distroless" }}
+packages:
+- type: os-pm
+  spec: [coreutils]
 final: false
 git:
   - add: {{ $appRelPath }}
@@ -15,10 +18,17 @@ shell:
     - mkdir -m 1777 /src/tmp
 ---
 image: "{{ $.ModuleName }}/{{ $.ImageName }}-artifact"
-from: {{ index $.Images "builder/golang" }}
+from: {{ index $.Images "builder/distroless" }}
+packages:
+- type: os-pm
+  spec: [golang, git, coreutils]
+- type: go-mod
+  workdir: {{ $appAbsPath }}
+  env:
+    GOPROXY: "%secret:GOPROXY%"
 final: false
 import:
-  - image: "{{ $.ModuleName }}/{{ $.ImageName }}-src-artifact"
+  - from: "{{ $.ModuleName }}/{{ $.ImageName }}-src-artifact"
     add: /src/deckhouse
     to: /deckhouse
     before: install
@@ -29,7 +39,7 @@ secrets:
     value: "{{ $.GOPROXY }}"
 shell:
   install:
-    - export GOPROXY=$(cat /run/secrets/GOPROXY)
+    - export GOPROXY=off
     - cd {{ $appAbsPath }}
     - GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go test ./...
     - GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags="-s -w" -o /mirrorer ./cmd/mirrorer
@@ -37,17 +47,17 @@ shell:
     - chmod 0755 /mirrorer
 ---
 image: "{{ $.ModuleName }}/{{ $.ImageName }}"
-fromImage: common/distroless
+from: {{ index $.Images "base/distroless" }}
 import:
-- image: "{{ $.ModuleName }}/{{ $.ImageName }}-src-artifact"
+- from: "{{ $.ModuleName }}/{{ $.ImageName }}-src-artifact"
   add: /src/tmp
   to: /tmp
   before: setup
-- image: "{{ $.ModuleName }}/{{ $.ImageName }}-artifact"
+- from: "{{ $.ModuleName }}/{{ $.ImageName }}-artifact"
   add: /mirrorer
   to: /mirrorer
   before: setup
-- image: common/pause
+- from: common/pause
   add: /pause
   to: /pause
   before: setup

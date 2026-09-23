@@ -25,30 +25,30 @@
 {{- define "dev_prebuild_images_imports" }}
 {{- $context := . -}}
 
-- image: deckhouse-controller-artifact
+- from: deckhouse-controller-artifact
   add: /out
   to: /usr/bin
   after: install
   includePaths:
   - deckhouse-controller
   - caps-deckhouse-controller
-- from: {{ index $.Images "libs/ncurses" }}
+- from: common-base-runtime-artifact
   add: /usr/share/terminfo
   to: /usr/share/terminfo
   before: install
-- from: {{ index $.Images "tools/jq" }}
+- from: common-base-runtime-artifact
   add: /usr/bin/jq
   to: /usr/bin/jq
   after: setup
-- from: {{ index $.Images "tools/erofs-utils" }}
+- from: common-base-runtime-artifact
   add: /usr/bin/mkfs.erofs
   to: /usr/bin/mkfs.erofs
   after: setup
-- from: {{ index $.Images "tools/cryptsetup" }}
+- from: common-base-runtime-artifact
   add: /usr/sbin/veritysetup
   to: /usr/sbin/veritysetup
   after: setup
-- image: version-map-artifact
+- from: version-map-artifact
   add: /version_map_{{ $context.Env }}.yml
   to: /deckhouse/candi/version_map.yml
   after: setup
@@ -88,17 +88,20 @@ imageSpec:
 # render deckhouse controller image
 {{- define "dev_image" }}
 image: dev
-fromImage: dev-prebuild
+from: dev-prebuild
+{{- if eq (len ($.Files.Glob "deckhouse-controller/known_vulnerabilities.vex")) 1 }}
+vex: deckhouse-controller/known_vulnerabilities.vex
+{{- end }}
 import:
-- image: images-digests
+- from: images-digests
   add: /images_digests.json
   to: /deckhouse/modules/images_digests.json
   after: setup
-- image: images-digests
+- from: images-digests
   add: /images_digests.json
   to: /deckhouse/modules/040-node-manager/images_digests.json
   after: setup
-- image: minget-artifact
+- from: minget-artifact
   add: /usr/bin/minget
   to: /deckhouse/candi/bashible/bootstrap/minget
   after: setup

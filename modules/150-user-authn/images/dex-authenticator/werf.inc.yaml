@@ -1,24 +1,36 @@
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}
-fromImage: common/distroless
+{{- $vexPath := printf "%smodules/%s-%s/images/%s/known_vulnerabilities.vex" $.ModulePath $.ModulePriority $.ModuleName $.ImageName }}
+{{- if eq (len ($.Files.Glob $vexPath)) 1 }}
+vex: {{ $vexPath }}
+{{- end }}
+from: {{ index $.Images "base/distroless" }}
 import:
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-oauth2-proxy-artifact
+- from: common/distroless-artifact
+  add: /relocate
+  to: /
+  before: install
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-oauth2-proxy-artifact
   add: /src/oauth2-proxy
-  to: /bin/oauth2_proxy
+  to: /usr/bin/oauth2_proxy
   before: setup
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-url-exec-prober-artifact
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-url-exec-prober-artifact
   add: /src/url-exec-prober
   to: /usr/local/bin/url-exec-prober
   before: setup
 {{- include "image mount points" . }}
 imageSpec:
   config:
+    user: "64535:64535"
     entrypoint: [ "/bin/oauth2_proxy" ]
     cmd: [ "--upstream=http://0.0.0.0:8080/", "--http-address=0.0.0.0:4180" ]
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}-src-artifact
-fromImage: common/src-artifact
+from: {{ index $.Images "builder/distroless" }}
 final: false
+packages:
+- type: os-pm
+  spec: [git, coreutils]
 git:
   - add: /{{ $.ModulePath }}modules/{{ $.ModulePriority }}-{{ $.ModuleName }}/images/{{ $.ImageName }}/patches/
     to: /patches
@@ -51,10 +63,17 @@ shell:
     - rm -rf .git docs
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}-oauth2-proxy-artifact
-from: {{ index $.Images "builder/golang" }}
+from: {{ index $.Images "builder/distroless" }}
 final: false
+packages:
+- type: os-pm
+  spec: [golang==1.26.8, git, bash, coreutils, svace, ssh-static, rsync]
+- type: go-mod
+  workdir: /src
+  env:
+    GOPROXY: "%secret:GOPROXY%"
 import:
-  - image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
+  - from: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
     add: /src
     to: /src
     before: install
@@ -65,7 +84,7 @@ secrets:
   value: {{ .GOPROXY }}
 shell:
   install:
-    - export GOPROXY=$(cat /run/secrets/GOPROXY) CGO_ENABLED=0 GOOS=linux GOARCH=amd64
+    - export GOPROXY=off CGO_ENABLED=0 GOOS=linux GOARCH=amd64
     - cd /src
     {{- $_ := set $ "ProjectName" (printf "%s/%s/oauth2-proxy" $.ModuleName $.ImageName ) }}
     - |
@@ -74,10 +93,17 @@ shell:
     - chmod 0700 oauth2-proxy
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}-url-exec-prober-artifact
-from: {{ index $.Images "builder/golang" }}
+from: {{ index $.Images "builder/distroless" }}
 final: false
+packages:
+- type: os-pm
+  spec: [golang==1.26.8, git, bash, coreutils, svace, ssh-static, rsync]
+- type: go-mod
+  workdir: /src
+  env:
+    GOPROXY: "%secret:GOPROXY%"
 import:
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
   add: /src/url-exec-prober
   to: /src
   before: install
@@ -88,7 +114,7 @@ secrets:
   value: {{ .GOPROXY }}
 shell:
   install:
-    - export GOPROXY=$(cat /run/secrets/GOPROXY) CGO_ENABLED=0 GOOS=linux GOARCH=amd64
+    - export GOPROXY=off CGO_ENABLED=0 GOOS=linux GOARCH=amd64
     - cd /src
     {{- $_ := set $ "ProjectName" (printf "%s/%s/url-exec-prober" $.ModuleName $.ImageName ) }}
     - |
@@ -104,4 +130,3 @@ shell:
 {{- $_ := set . "FuzzPackages" ". ./pkg/middleware ./pkg/sessions/persistence" }}
 {{- include "fuzz image" . }}
 ---
-{{- include "vex mitigation" (list $ (printf "%s/%s" $.ModuleName $.ImageName)) }}

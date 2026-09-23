@@ -1,9 +1,9 @@
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}
-fromImage: common/distroless
+from: {{ index $.Images "base/distroless" }}
 import:
 {{- include "image mount points" . }}
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-artifact
   add: /validation-webhook
   to: /validation-webhook
   before: setup
@@ -13,7 +13,10 @@ imageSpec:
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
 final: false
-fromImage: common/src-artifact
+from: {{ index $.Images "builder/distroless" }}
+packages:
+- type: os-pm
+  spec: [sed]
 git:
 - add: /{{ $.ModulePath }}modules/030-{{ $.ModuleName }}/images/{{ $.ImageName }}/src
   to: /src/validation-webhook/src
@@ -80,9 +83,19 @@ shell:
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact
 final: false
-from: {{ index $.Images "builder/golang" }}
+from: {{ index $.Images "builder/distroless" }}
+secrets:
+- id: GOPROXY
+  value: {{ $.GOPROXY }}
+packages:
+- type: os-pm
+  spec: [golang, git, coreutils]
+- type: go-mod
+  workdir: /src/validation-webhook/src
+  env:
+    GOPROXY: "%secret:GOPROXY%"
 import:
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
   add: /src
   to: /src
   before: install
@@ -90,9 +103,8 @@ mount:
 {{ include "mount points for golang builds" . }}
 shell:
   install:
-  - export GOPROXY={{ $.GOPROXY }}
+  - export GOPROXY=off
   - cd /src/validation-webhook/src
-  - go mod download
   - CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o /validation-webhook .
   - chown 64535:64535 /validation-webhook
   - chmod 0755 /validation-webhook

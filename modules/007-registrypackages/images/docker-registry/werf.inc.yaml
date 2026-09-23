@@ -5,8 +5,21 @@
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}-src-artifact-{{ $image_version }}
 final: false
-fromImage: common/src-artifact
+from: {{ index $.Images "builder/distroless" }}
+packages:
+- type: os-pm
+  spec: [bash, coreutils, git]
 git:
+- url: {{ $.SOURCE_REPO }}/cesanta/docker_auth.git
+  tag: {{ $docker_auth_version }}
+  add: /
+  to: /src/docker_auth
+  stageDependencies:
+    install: ['**/*']
+- url: {{ $.SOURCE_REPO }}/distribution/distribution.git
+  tag: v{{ $docker_version }}
+  add: /
+  to: /src/distribution
 - add: /{{ .ModulePath }}/modules/{{ .ModulePriority }}-{{ .ModuleName }}/images/{{ .ImageName }}/scripts
   to: /src/scripts
   stageDependencies:
@@ -17,22 +30,15 @@ git:
   stageDependencies:
     install:
     - '**/*'
-secrets:
-- id: SOURCE_REPO
-  value: {{ .SOURCE_REPO }}
 shell:
   install:
-  - git clone --depth 1 --branch {{ $docker_auth_version }} {{ .SOURCE_REPO }}/cesanta/docker_auth.git /src/docker_auth
   - cd /src/docker_auth
   - git apply /patches/docker_auth/*.patch --verbose
-  - git clone --depth 1 --branch v{{ $docker_version }} {{ .SOURCE_REPO }}/distribution/distribution.git /src/distribution
-  - rm -rf /src/docker_auth/.git
-  - rm -rf /src/distribution/.git
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}-{{ $image_version }}
-from: {{ index $.Images "builder/scratch" }}
+from: scratch
 import:
-- image: {{ .ModuleName }}/{{ .ImageName }}-artifact-{{ $image_version }}
+- from: {{ .ModuleName }}/{{ .ImageName }}-artifact-{{ $image_version }}
   add: /
   to: /
   includePaths:
@@ -52,9 +58,16 @@ imageSpec:
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}-artifact-{{ $image_version }}
 final: false
-from: {{ index $.Images "builder/golang" }}
+from: {{ index $.Images "builder/distroless" }}
+packages:
+- type: os-pm
+  spec: [bash, coreutils, golang, make, git, sed, grep, findutils]
+- type: go-mod
+  workdir: /src/docker_auth/auth_server
+  env:
+    GOPROXY: "%secret:GOPROXY%"
 import:
-- image: {{ .ModuleName }}/{{ .ImageName }}-src-artifact-{{ $image_version }}
+- from: {{ .ModuleName }}/{{ .ImageName }}-src-artifact-{{ $image_version }}
   add: /src
   to: /src
   before: install
@@ -64,12 +77,10 @@ secrets:
 - id: GOPROXY
   value: {{ .GOPROXY }}
 shell:
-  beforeInstall:
-  - pm install make git
   setup:
-  - export GOPROXY=$(cat /run/secrets/GOPROXY) CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=auto
+  - export GOPROXY=off GOSUMDB=off CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=auto
   - cd /src/docker_auth/auth_server
-  - make build
+  - make build VERSION={{ $docker_auth_version }} BUILD_ID={{ $docker_auth_version }}
   - mv ./auth_server /auth_server
   - mkdir -p /go/src/github.com/docker/
   - mv /src/distribution /go/src/github.com/docker/

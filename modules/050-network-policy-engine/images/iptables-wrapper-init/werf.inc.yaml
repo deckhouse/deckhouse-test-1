@@ -2,32 +2,25 @@
 {{- $iptables_image_version := $iptables_version | replace "." "-" }}
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}
-fromImage: common/distroless
+from: {{ index $.Images "base/distroless" }}
 fromCacheVersion: "2025-09-10-2"
 import:
-- from: {{ index $.Images "tools/coreutils" }}
-  add: /
+- from: {{ .ModuleName }}/{{ .ImageName }}-relocate-artifact
+  add: /runtime
   to: /
   before: setup
-  includePaths:
-  - usr/bin/rm
-  - usr/bin/cp
-- from: {{ index $.Images "tools/bash" }}
-  add: /usr/bin/bash
-  to: /bin/bash
-  before: setup
-- image: common/iptables-wrapper
+- from: common/iptables-wrapper
   add: /iptables-wrapper
   to: /iptables-wrapper
   before: setup
-- image: registrypackages/iptables-artifact-{{ $iptables_image_version }}
+- from: registrypackages/iptables-artifact-{{ $iptables_image_version }}
   add: /
   to: /_sbin
   includePaths:
   - xtables-legacy-multi
   - xtables-nft-multi
   before: setup
-- image: {{ .ModuleName }}/{{ .ImageName }}-relocate-artifact
+- from: {{ .ModuleName }}/{{ .ImageName }}-relocate-artifact
   add: /relocate
   to: /relocate
   before: setup
@@ -36,9 +29,18 @@ import:
 image: {{ .ModuleName }}/{{ .ImageName }}-relocate-artifact
 final: false
 fromCacheVersion: "2025-09-10-2"
-fromImage: common/relocate-artifact
+from: {{ index $.Images "builder/distroless" }}
+packages:
+- type: os-pm
+  spec: [bash, coreutils, gawk, ldd]
+git:
+- add: /modules/030-cloud-provider-aws/images/ebs-csi-plugin/relocate.sh
+  to: /relocate.sh
+  stageDependencies:
+    install: ['**/*']
 shell:
   install:
+  - bash /relocate.sh /runtime /usr/bin/rm /usr/bin/cp /usr/bin/bash
   - mkdir -p /relocate/sbin
   - |
     for cmd in iptables iptables-save iptables-restore ip6tables ip6tables-save ip6tables-restore; do

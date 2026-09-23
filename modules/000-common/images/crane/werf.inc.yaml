@@ -1,25 +1,37 @@
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}
-from: {{ index $.Images "builder/scratch" }}
+from: scratch
 final: false
 import:
-- image: {{ .ModuleName }}/{{ .ImageName }}-artifact
+- from: {{ .ModuleName }}/{{ .ImageName }}-artifact
   add: /crane
   to: /crane
   before: install
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}-artifact
-from: {{ index $.Images "builder/golang" }}
+from: {{ index $.Images "builder/distroless" }}
 final: false
+git:
+- url: {{ .SOURCE_REPO }}/google/go-containerregistry.git
+  tag: v0.20.3
+  add: /
+  to: /go-containerregistry
+  stageDependencies:
+    packages: [go.mod, go.sum]
+    install: ['**/*']
 secrets:
-- id: SOURCE_REPO
-  value: {{ .SOURCE_REPO }}
+- id: GOPROXY
+  value: {{ .GOPROXY }}
+packages:
+- type: os-pm
+  spec: [golang, git, coreutils, bash]
+- type: go-mod
+  workdir: /go-containerregistry
+  env:
+    GOPROXY: "%secret:GOPROXY%"
 shell:
-  beforeInstall:
-  - pm install git ssh-static
-  - mkdir -p ~/.ssh && echo "StrictHostKeyChecking accept-new" > ~/.ssh/config
-  - git clone --depth 1 --branch  v0.20.3 {{ .SOURCE_REPO }}/google/go-containerregistry.git /go-containerregistry
-  - cd go-containerregistry/cmd/crane
-  - export GOPROXY={{ .GOPROXY }}
+  install:
+  - cd /go-containerregistry/cmd/crane
+  - export GOPROXY=off
   - CGO_ENABLED=0 GOOS=linux go build  -ldflags '-s -w -X github.com/google/go-containerregistry/cmd/crane/cmd.Version=v0.20.3' -o /crane
   - rm -rf /go-containerregistry

@@ -1,27 +1,25 @@
 ---
 image: "{{ $.ModuleName }}/{{ $.ImageName }}-src-artifact"
-fromImage: common/src-artifact
+from: {{ index $.Images "builder/distroless" }}
 final: false
 git:
   - add: /{{ $.ModulePath }}modules/{{ $.ModulePriority }}-{{ $.ModuleName }}/images/{{ $.ImageName }}/scripts
     to: /src/scripts
-    stageDependencies:
-      install:
-        - '**/*'
   - add: /{{ $.ModulePath }}modules/{{ $.ModulePriority }}-{{ $.ModuleName }}/images/{{ $.ImageName }}/app
     to:  /src/app
-    stageDependencies:
-      install:
-        - '**/*'
-shell:
-  install:
-  - set -e
 ---
 image: "{{ $.ModuleName }}/{{ $.ImageName }}-artifact"
-from: {{ index $.Images "builder/golang" }}
+from: {{ index $.Images "builder/distroless" }}
+packages:
+- type: os-pm
+  spec: [golang, git, coreutils]
+- type: go-mod
+  workdir: /app
+  env:
+    GOPROXY: "%secret:GOPROXY%"
 final: false
 import:
-  - image: "{{ $.ModuleName }}/{{ $.ImageName }}-src-artifact"
+  - from: "{{ $.ModuleName }}/{{ $.ImageName }}-src-artifact"
     add: /src/app
     to: /app
     before: install
@@ -33,23 +31,23 @@ secrets:
 shell:
   install:
     - cd /app
-    - export GOPROXY=$(cat /run/secrets/GOPROXY)
+    - export GOPROXY=off
     - GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go test ./...
     - GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags="-s -w" -o /syncer ./cmd/syncer
     - chown 64535:64535 /syncer
     - chmod 0755 /syncer
 ---
 image: "{{ $.ModuleName }}/{{ $.ImageName }}"
-fromImage: common/distroless
+from: {{ index $.Images "base/distroless" }}
 import:
-  - image: "{{ $.ModuleName }}/{{ $.ImageName }}-src-artifact"
+  - from: "{{ $.ModuleName }}/{{ $.ImageName }}-src-artifact"
     add: /src/scripts
     to: /
     includePaths:
     - install
     - uninstall
     before: setup
-  - image: "{{ $.ModuleName }}/{{ $.ImageName }}-artifact"
+  - from: "{{ $.ModuleName }}/{{ $.ImageName }}-artifact"
     add: /syncer
     to: /syncer
     before: setup

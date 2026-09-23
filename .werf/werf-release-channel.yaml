@@ -1,18 +1,16 @@
 ---
 image: release-channel-version-prebuild
-from: {{ index $.Images "builder/alpine" }}
+from: {{ index $.Images "builder/distroless" }}
 final: false
+packages:
+- type: os-pm
+  spec: [bash, coreutils, yq]
 dependencies:
-- image: dev
+- from: dev
   before: setup
   imports:
   - type: ImageDigest
     targetEnv: deckhouseImageDigest
-import:
-- from: {{ index $.Images "tools/yq" }}
-  add: /usr/bin/yq
-  to: /usr/bin/yq
-  before: install
 shell:
   install:
   - |
@@ -50,9 +48,9 @@ git:
 
 ---
 image: release-channel-version
-from: {{ index $.Images "builder/scratch" }}
+from: scratch
 import:
-- image: release-channel-version-prebuild
+- from: release-channel-version-prebuild
   add: /
   to: /
   after: install

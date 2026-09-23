@@ -4,13 +4,13 @@
 #   CandiVersionMap - dict CandiVersionMap from werf.yaml
 {{- define "base components imports" }}
 {{- $context := . -}}
-- from: {{ index $.Images "tools/semver" }}
+- from: common-base-runtime-artifact
   add: /usr/bin/semver
   to: /usr/bin/semver
   before: setup
   {{- range $k8s := $context.k8sVersions }}
     {{- $image_version := printf "%s.%d" $k8s.kubectl (index $context.CandiVersionMap "k8s" $k8s.kubectl "patch") | replace "." "-" }}
-- image: common/kubernetes-artifact-{{ $image_version }}
+- from: common/kubernetes-artifact-{{ $image_version }}
   add: /src/_output/bin/kubectl
   to: /usr/bin/kubectl-{{ $k8s.kubectl }}
   before: setup
@@ -66,23 +66,45 @@
 {{- define "common_base_image" }}
 {{- $context := . -}}
 ---
-image: common-base-python-artifact
+image: common-base-python-packages
 final: false
-from: {{ index $.Images "base/python-3.12" }}
-import:
-- image: common/wheel-artifact
-  add: /wheels
-  to: /wheels
-  before: install
+from: {{ index $.Images "builder/distroless" }}
+packages:
+- type: os-pm
+  spec: [python==3.12.12, coreutils]
 shell:
   install:
-  - pip3 install -f file:///wheels --no-index --upgrade pip
-  - pip3 install -f file:///wheels --no-index pyOpenSSL==24.3.0 cryptography==44.0.1 bcrypt==4.1.1
+  - ln -s /usr/bin/pip3 /usr/bin/pip
+---
+image: common-base-python-artifact
+final: false
+from: common-base-python-packages
+git:
+- add: /deckhouse-controller/files/requirements.txt
+  to: /requirements/requirements.txt
+  stageDependencies:
+    packages: ["**/*"]
+packages:
+- type: python-pip
+  workdir: /requirements
+  env:
+    PIP_ONLY_BINARY: ":all:"
+---
+image: common-base-runtime-artifact
+final: false
+from: {{ index $.Images "builder/distroless" }}
+packages:
+- type: os-pm
+  spec: [bash, bash-completion, jq, yq, sed, grep, gawk, findutils, coreutils, openssl, vim, less, util-linux, diffutils, procps, semver, ncurses, erofs-utils, cryptsetup]
 ---
 image: common-base
 from: {{ index $.Images "base/distroless" }}
 import:
-- image: common-base-python-artifact
+- from: common/distroless-artifact
+  add: /relocate
+  to: /
+  before: install
+- from: common-base-python-artifact
   add: /
   to: /
   before: setup
@@ -90,20 +112,23 @@ import:
   - usr/bin/python*
   - usr/lib/python*
   - usr/lib/lib*.so*
-  - lib/ld-musl-x86_64.so.1
   excludePaths:
-  - usr/lib/python*/site-packages/pip-25.3*
+  - usr/lib/python*/site-packages/pip*
   - usr/lib/python*/test
+- from: common-base-runtime-artifact
+  add: /usr/lib
+  to: /usr/lib
+  before: install
 {{ include "base components imports" (dict "Images" $context.Images "k8sVersions" $context.k8sVersions "CandiVersionMap" $context.CandiVersionMap ) }}
-- image: registrypackages/d8-curl-artifact-8-9-1
+- from: registrypackages/d8-curl-artifact-8-9-1
   add: /d8-curl
   to: /usr/bin/curl
   before: install
-- from: {{ index $.Images "tools/bash" }}
+- from: common-base-runtime-artifact
   add: /usr/bin/bash
-  to: /bin/bash
+  to: /usr/bin/bash
   before: install
-- from: {{ index $.Images "tools/bash-completion" }}
+- from: common-base-runtime-artifact
   add: /
   to: /
   includePaths:
@@ -111,29 +136,29 @@ import:
   - etc/bash_completion.d
   - usr/share/bash-completion
   before: install
-- from: {{ index $.Images "tools/jq" }}
+- from: common-base-runtime-artifact
   add: /usr/bin/jq
   before: install
-- from: {{ index $.Images "tools/yq" }}
+- from: common-base-runtime-artifact
   add: /usr/bin/yq
   before: install
-- from: {{ index $.Images "tools/sed" }}
+- from: common-base-runtime-artifact
   add: /usr/bin/sed
   before: install
-- from: {{ index $.Images "tools/grep" }}
+- from: common-base-runtime-artifact
   add: /usr/bin/grep
   before: install
-- from: {{ index $.Images "tools/gawk" }}
+- from: common-base-runtime-artifact
   add: /
   to: /
   includePaths:
   - usr/bin/awk
   - usr/bin/gawk
   before: install
-- from: {{ index $.Images "tools/findutils" }}
+- from: common-base-runtime-artifact
   add: /usr/bin/find
   before: install
-- from: {{ index $.Images "tools/coreutils" }}
+- from: common-base-runtime-artifact
   add: /
   to: /
   includePaths:
@@ -245,7 +270,7 @@ import:
   - usr/bin/whoami
   - usr/bin/yes
   before: install
-- from: {{ index $.Images "tools/openssl" }}
+- from: common-base-runtime-artifact
   add: /usr/lib
   to: /usr/lib
   includePaths:
@@ -254,42 +279,38 @@ import:
   - engines-3
   - ossl-modules
   before: install
-- from: {{ index $.Images "tools/openssl" }}
+- from: common-base-runtime-artifact
   add: /usr/bin/openssl
   to: /usr/bin/openssl
   before: install
-- from: {{ index $.Images "tools/vim" }}
+- from: common-base-runtime-artifact
   add: /
   to: /
   includePaths:
   - usr/bin/vim
   - usr/share/vim
   before: install
-- from: {{ index $.Images "tools/less" }}
+- from: common-base-runtime-artifact
   add: /usr/bin/less
   to: /usr/bin/less
   before: install
-- from: {{ index $.Images "tools/util-linux" }}
+- from: common-base-runtime-artifact
   add: /usr/bin/rev
   to: /usr/bin/rev
   before: install
-- from: {{ index $.Images "tools/diffutils" }}
+- from: common-base-runtime-artifact
   add: /usr/bin/diff
   to: /usr/bin/diff
   before: install
-- from: {{ index $.Images "tools/procps" }}
-  add: /bin/ps
-  to: /bin/ps
+- from: common-base-runtime-artifact
+  add: /usr/bin/ps
+  to: /usr/bin/ps
   before: install
 shell:
   install:
   {{- include "base components" (dict "Files" $context.Files "prefix" $context.prefix "k8sVersions" $context.k8sVersions) | nindent 2 }}
-  # link /run directory to /var/run
-  - ln -s /var/run /run
-  # add link from bash to bash
-  - ln -s /bin/bash /bin/sh
-  # add link from vim to vi
-  - ln -s /usr/bin/vim /usr/bin/vi
+  - ln -sf /usr/bin/bash /usr/bin/sh
+  - ln -sf /usr/bin/vim /usr/bin/vi
 imageSpec:
   config:
     env: { "CRYPTOGRAPHY_OPENSSL_NO_LEGACY": "true", "EDITOR": "/usr/bin/vim" }

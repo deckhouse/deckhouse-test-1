@@ -1,22 +1,34 @@
 {{- $kuberouterVersion := include "get_oss_version_by_id" (list "kuberouter" $ ) }}
-{{- $binaries := "/usr/lib64/libnetfilter_conntrack.so* /usr/sbin/ipset /usr/sbin/ip /usr/sbin/conntrack" }}
+{{- $binaries := "/usr/bin/ipset /usr/bin/ip /usr/bin/conntrack" }}
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-binaries-artifact
 final: false
-fromImage: common/relocate-artifact
+from: {{ index $.Images "builder/distroless" }}
+packages:
+- type: os-pm
+  spec: [bash, coreutils, gawk, ldd, ipset, iproute2, conntrack-tools]
+git:
+- add: /modules/030-cloud-provider-aws/images/ebs-csi-plugin/relocate.sh
+  to: /relocate.sh
+  stageDependencies:
+    install: ['**/*']
 shell:
-  beforeInstall:
-  - apt-get install -y ipset conntrack-tools
   install:
-  - /binary_replace.sh -i "{{ $binaries }}" -o /relocate
+  - bash /relocate.sh /relocate {{ $binaries }}
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
 final: false
-fromImage: common/src-artifact
-secrets:
-- id: SOURCE_REPO
-  value: {{ .SOURCE_REPO }}
+from: {{ index $.Images "builder/distroless" }}
+packages:
+- type: os-pm
+  spec: [git, coreutils]
 git:
+  - url: {{ .SOURCE_REPO }}/cloudnativelabs/kube-router.git
+    tag: v{{ $kuberouterVersion }}
+    add: /
+    to: /src
+    stageDependencies:
+      install: ['**/*']
   - add: /{{ $.ModulePath }}modules/{{ $.ModulePriority }}-{{ $.ModuleName }}/images/{{ $.ImageName }}/patches
     to: /patches
     stageDependencies:
@@ -24,20 +36,26 @@ git:
         - '**/*'
 shell:
   install:
-  - git clone --depth 1 --branch v{{ $kuberouterVersion }} $(cat /run/secrets/SOURCE_REPO)/cloudnativelabs/kube-router.git /src
   - cd /src
   - git apply /patches/001-fix-cve-gomod.patch
-  - git describe --tags --dirty > GIT_COMMIT
+  - echo "v{{ $kuberouterVersion }}-dirty" > GIT_COMMIT
   - rm -rf .git
 ---
 image: {{ .ModuleName }}/kube-router-artifact
 final: false
 import:
-- image: {{ .ModuleName }}/{{ .ImageName }}-src-artifact
+- from: {{ .ModuleName }}/{{ .ImageName }}-src-artifact
   add: /src
   to: /src
   before: install
-from: {{ index $.Images "builder/golang" }}
+from: {{ index $.Images "builder/distroless" }}
+packages:
+- type: os-pm
+  spec: [golang, git, coreutils]
+- type: go-mod
+  workdir: /src
+  env:
+    GOPROXY: "%secret:GOPROXY%"
 secrets:
 - id: GOPROXY
   value: {{ .GOPROXY }}
@@ -46,17 +64,21 @@ shell:
   - cd /src
   - GIT_COMMIT=$(cat GIT_COMMIT)
   - BUILD_DATE=$(date +%Y-%m-%dT%H:%M:%S%z)
-  - export GOPROXY=$(cat /run/secrets/GOPROXY)
+  - export GOPROXY=off
   - GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags "-X github.com/cloudnativelabs/kube-router/v2/pkg/version.Version=${GIT_COMMIT} -X github.com/cloudnativelabs/kube-router/v2/pkg/version.BuildDate=${BUILD_DATE}" -o kube-router cmd/kube-router/kube-router.go
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}
-fromImage: common/distroless
+{{- $vexPath := printf "%smodules/%s-%s/images/%s/known_vulnerabilities.vex" $.ModulePath $.ModulePriority $.ModuleName $.ImageName }}
+{{- if eq (len ($.Files.Glob $vexPath)) 1 }}
+vex: {{ $vexPath }}
+{{- end }}
+from: {{ index $.Images "base/distroless" }}
 import:
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-binaries-artifact
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-binaries-artifact
   add: /relocate
   to: /
   before: setup
-- image: {{ .ModuleName }}/kube-router-artifact
+- from: {{ .ModuleName }}/kube-router-artifact
   add: /src/kube-router
   to: /opt/bin/kube-router
   before: setup
@@ -64,4 +86,3 @@ import:
 imageSpec:
   config:
     entrypoint: ["/opt/bin/kube-router"]
-{{- include "vex mitigation" (list $ (printf "%s/%s" $.ModuleName $.ImageName)) }}

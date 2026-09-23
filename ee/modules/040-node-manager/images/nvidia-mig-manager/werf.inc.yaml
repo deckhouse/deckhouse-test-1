@@ -7,76 +7,58 @@
   {{- $kubectl_version  := printf "%s.%s" $version $patch | replace "." "-" }}
 ---
 image: {{ $.ModuleName }}/nvidia-mig-manager-{{ $image_version }}
-fromImage: common/distroless
+from: {{ index $.Images "base/distroless" }}
 import:
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-build-artifact-{{ $image_version }}
-  add: /usr/bin
-  includePaths:
-    - nvidia-mig-parted
-    - nvidia-mig-manager
-  before: setup
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-build-artifact-{{ $image_version }}
-  add: /usr/lib64
-  includePaths:
-    - ld-linux-x86-64.so.2
-  before: setup
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-build-artifact-{{ $image_version }}
-  add: /usr/lib/x86_64-linux-gnu
-  includePaths:
-    - ld-linux-x86-64.so.2
-    - libc.so.6
-    - libresolv.so.2
-    - libpthread.so.0
-    - librt.so.1
-    - libdl.so.2
-    - libm.so.6
-  before: setup
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-build-artifact-{{ $image_version }}
-  add: /
-  includePaths:
-    - lib64
-    - lib
-  before: setup
-- image: {{ $.ModuleName }}/nvidia-container-toolkit-build-artifact
-  add: /usr/bin/nvidia-ctk
-  to: /usr/bin/nvidia-ctk
-  before: setup
-- from: {{ index $.Images "tools/bash" }}
-  add: /usr/bin/bash
-  to: /usr/bin/bash
-  before: setup
-- from: {{ index $.Images "tools/coreutils" }}
-  add: /
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-runtime-artifact-{{ $image_version }}
+  add: /relocate
   to: /
-  includePaths:
-  - usr/bin/*
   before: setup
-- image: common/kubernetes-artifact-{{ $kubectl_version }}
+- from: common/kubernetes-artifact-{{ $kubectl_version }}
   add: /src/_output/bin/kubectl
   to: /usr/bin/kubectl
   before: setup
-- from: {{ index $.Images "tools/jq" }}
-  add: /usr/bin/jq
-  to: /usr/bin/jq
-  after: setup
 ---
-image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact-{{ $image_version }}
-fromImage: common/src-artifact
+image: {{ $.ModuleName }}/{{ $.ImageName }}-runtime-artifact-{{ $image_version }}
+from: common/relocate-artifact
 final: false
-secrets:
-- id: SOURCE_REPO
-  value: {{ $.SOURCE_REPO }}
+packages:
+- type: os-pm
+  spec: [bash, coreutils, jq]
+import:
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-build-artifact-{{ $image_version }}
+  add: /usr/bin
+  includePaths:
+  - nvidia-mig-parted
+  - nvidia-mig-manager
+  before: install
+- from: {{ $.ModuleName }}/nvidia-container-toolkit-build-artifact
+  add: /usr/bin/nvidia-ctk
+  before: install
 shell:
   install:
-  - git clone --depth 1 --branch v{{ $mig_manager_version }} $(cat /run/secrets/SOURCE_REPO)/NVIDIA/mig-parted.git /src/mig-parted
+  - /binary_replace.sh -i "/usr/bin/nvidia-mig-parted /usr/bin/nvidia-mig-manager /usr/bin/nvidia-ctk /usr/bin/bash /usr/bin/jq /usr/bin/cat /usr/bin/chmod /usr/bin/chown /usr/bin/cp /usr/bin/cut /usr/bin/date /usr/bin/dirname /usr/bin/echo /usr/bin/env /usr/bin/head /usr/bin/id /usr/bin/ln /usr/bin/ls /usr/bin/mkdir /usr/bin/mktemp /usr/bin/mv /usr/bin/readlink /usr/bin/rm /usr/bin/sleep /usr/bin/sort /usr/bin/stat /usr/bin/tail /usr/bin/tee /usr/bin/timeout /usr/bin/touch /usr/bin/tr /usr/bin/true /usr/bin/uname /usr/bin/wc" -o /relocate
+  - ln -s bash /relocate/usr/bin/sh
+  - chroot_binary=$(command -v chroot)
+  - /binary_replace.sh -i "$chroot_binary" -o /relocate
+---
+image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact-{{ $image_version }}
+from: common/src-artifact
+final: false
+git:
+- url: {{ $.SOURCE_REPO }}/NVIDIA/mig-parted.git
+  tag: v{{ $mig_manager_version }}
+  add: /
+  to: /src/mig-parted
+shell:
+  install:
   - cd /src/mig-parted
-  - rm -rf .git hack deployments vendor
+  - rm -rf deployments vendor
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-build-artifact-{{ $image_version }}
 final: false
-fromImage: {{ $.ModuleName }}/builder-cuda
+from: {{ index $.Images "builder/distroless" }}
 import:
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact-{{ $image_version }}
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact-{{ $image_version }}
   add: /src
   before: install
 mount:
@@ -84,15 +66,18 @@ mount:
 secrets:
 - id: GOPROXY
   value: {{ $.GOPROXY }}
+packages:
+- type: os-pm
+  spec: [golang, gnu-gcc, binutils, gnu-glibc-devel, make, git, bash, coreutils, sed, grep, gawk]
+- type: go-mod
+  workdir: /src/mig-parted
+  env:
+    GOPROXY: "%secret:GOPROXY%"
 shell:
   install:
-  - export GOPATH=/go
-  - export PATH=$GOPATH/bin:/usr/local/go/bin:$PATH
-  - export GIT_COMMIT=$(cat /src/.GIT_HASH)
   - cd /src/mig-parted
-  - export CLI_VERSION_PACKAGE=github.com/NVIDIA/mig-parted/internal/info
-  - export GOPROXY=$(cat /run/secrets/GOPROXY) GOOS=linux GOARCH=amd64
-  - make PREFIX=/usr/bin/ cmds
+  - export GOPROXY=off GOSUMDB=off CGO_ENABLED=1 GOOS=linux GOARCH=amd64 GOFLAGS=-mod=readonly
+  - make GIT_COMMIT=v{{ $mig_manager_version }} PREFIX=/usr/bin/ cmds
   - chmod 0700 /usr/bin/nvidia-mig-parted /usr/bin/nvidia-mig-manager
 {{- end }}
 {{- end }}

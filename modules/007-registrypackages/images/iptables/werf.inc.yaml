@@ -6,29 +6,27 @@
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact-{{ $image_version }}
 final: false
-fromImage: common/src-artifact
+from: {{ index $.Images "builder/distroless" }}
 git:
+- url: {{ $.SOURCE_REPO }}/netfilter/libmnl
+  tag: libmnl-{{ $libmnl_version }}
+  add: /
+  to: /src/libmnl
+- url: {{ $.SOURCE_REPO }}/netfilter/libnftnl
+  tag: libnftnl-{{ $libnftnl_version }}
+  add: /
+  to: /src/libnftnl
+- url: {{ $.SOURCE_REPO }}/netfilter/iptables
+  tag: v{{ $iptables_version }}
+  add: /
+  to: /src/iptables
 - add: /{{ $.ModulePath }}modules/007-{{ $.ModuleName }}/images/{{ $.ImageName }}/scripts
   to: /src/scripts
-  stageDependencies:
-    install:
-    - '**/*'
-secrets:
-- id: SOURCE_REPO
-  value: {{ .SOURCE_REPO }}
-shell:
-  install:
-  - git clone -b libmnl-{{ $libmnl_version }} --depth 1 $(cat /run/secrets/SOURCE_REPO)/netfilter/libmnl /src/libmnl
-  - rm -rf /src/libmnl/.git
-  - git clone -b libnftnl-{{ $libnftnl_version }} --depth 1  $(cat /run/secrets/SOURCE_REPO)/netfilter/libnftnl /src/libnftnl
-  - rm -rf /src/libnftnl/.git
-  - git clone -b v{{ $iptables_version }} --depth 1  $(cat /run/secrets/SOURCE_REPO)/netfilter/iptables /src/iptables
-  - rm -rf /src/iptables/.git
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-{{ $image_version }}
-from: {{ index $.Images "builder/scratch" }}
+from: scratch
 import:
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact-{{ $image_version }}
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-artifact-{{ $image_version }}
   add: /
   to: /
   includePaths:
@@ -48,18 +46,18 @@ imageSpec:
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact-{{ $image_version }}
 final: false
-from: {{ index $.Images "builder/alpine" }}
+from: {{ index $.Images "builder/distroless" }}
+packages:
+- type: os-pm
+  spec: [bash, coreutils, make, gettext, autoconf, automake, libtool, clang, gnu-gcc, gnu-glibc-devel, linux-headers, pkgconf, bison, flex, binutils, perl, sed, grep, gawk, findutils, diffutils]
 import:
-- image: {{ .ModuleName }}/{{ .ImageName }}-src-artifact-{{ $image_version }}
+- from: {{ .ModuleName }}/{{ .ImageName }}-src-artifact-{{ $image_version }}
   add: /src
   to: /src
   before: install
 mount:
 {{ include "mount points for golang builds" . }}
 shell:
-  beforeInstall:
-  {{- include "alpine packages proxy" . | nindent 2 }}
-  - apk add --no-cache make gettext-dev autoconf automake libtool clang g++ linux-headers bash pkgconf bzip2-dev libnl3 libc-dev libnl3-dev coreutils libuv utmps-libs glib-dev libmnl-static nghttp2-libs musl libbz2 gdbm pcre gcc perl-error zlib-dev libstdc++ ncurses-libs zlib file-dev linux-headers mpdecimal
   setup:
   - export PKG_CONFIG_PATH=/opt/deckhouse/bin/.libs/pkgconfig
   - cd /src/libmnl

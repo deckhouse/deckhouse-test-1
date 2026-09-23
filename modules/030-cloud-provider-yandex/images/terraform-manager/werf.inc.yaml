@@ -1,56 +1,62 @@
 {{- $version := include "get_oss_version_by_id" (list "terraform-provider-yandex" $) }}
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}
-from: {{ index $.Images "base/scratch" }}
+{{- $vexPath := printf "%smodules/%s-%s/images/%s/known_vulnerabilities.vex" $.ModulePath $.ModulePriority $.ModuleName $.ImageName }}
+{{- if eq (len ($.Files.Glob $vexPath)) 1 }}
+vex: {{ $vexPath }}
+{{- end }}
+from: scratch
 git:
 - add: /{{ $.ModulePath }}modules/030-{{ $.ModuleName }}/candi
   to: /candi
   excludePaths:
   - '**/terraform_versions.yml'
-  stageDependencies:
-    install:
-    - '**/*'
 - add: /{{ $.ModulePath }}modules/030-{{ $.ModuleName }}/candi/terraform_versions.yml
   to: /terraform-manager/terraform_versions.yml
-  stageDependencies:
-    install:
-    - '**/*'
 import:
-- image: terraform-provider-yandex
+- from: terraform-provider-yandex
   add: /terraform-provider-yandex
   to: /terraform-manager/terraform-provider-yandex
   before: setup
-shell:
-  install:
-  - set -e
 {{ include "image_spec_for_infrastructure_manager" . }}
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
 final: false
-fromImage: common/src-artifact
+from: {{ index $.Images "builder/distroless" }}
+packages:
+- type: os-pm
+  spec: [git, coreutils]
 git:
+- url: {{ .SOURCE_REPO }}/yandex-cloud/terraform-provider-yandex.git
+  tag: v{{ $version }}
+  add: /
+  to: /src
+  stageDependencies:
+    install: ['**/*']
 - add: /{{ $.ModulePath }}modules/030-{{ $.ModuleName }}/images/{{ $.ImageName }}/patches
   to: /patches
   stageDependencies:
     install:
     - '**/*'
-secrets:
-- id: SOURCE_REPO
-  value: {{ .SOURCE_REPO }}
 shell:
   install:
-  - git clone --depth 1 --branch v{{ $version }} $(cat /run/secrets/SOURCE_REPO)/yandex-cloud/terraform-provider-yandex.git /src
   - cd /src
   - git apply /patches/*.patch --verbose
-  - rm -rf .git
 ---
 image: terraform-provider-yandex
 final: false
-from: {{ index $.Images "builder/golang" }}
+from: {{ index $.Images "builder/distroless" }}
+packages:
+- type: os-pm
+  spec: [golang, git, coreutils, binutils]
+- type: go-mod
+  workdir: /src
+  env:
+    GOPROXY: "%secret:GOPROXY%"
 mount:
 {{ include "mount points for golang builds" . }}
 import:
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
   add: /src
   to: /src
   before: install
@@ -59,11 +65,10 @@ secrets:
   value: {{ .GOPROXY }}
 shell:
   install:
-  - export GOPROXY=$(cat /run/secrets/GOPROXY)
+  - export GOPROXY=off
   - cd /src
   - CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "-s -w -extldflags '-static' -X github.com/yandex-cloud/terraform-provider-yandex/version.ProviderVersion={{ $version }}" -o /terraform-provider-yandex .
   - strip /terraform-provider-yandex
   - chmod -R 755 /terraform-provider-yandex
   - chown 64535:64535 /terraform-provider-yandex
 ---
-{{- include "vex mitigation" (list $ (printf "%s/%s" $.ModuleName $.ImageName )) }}

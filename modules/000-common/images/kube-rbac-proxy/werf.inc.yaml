@@ -1,49 +1,58 @@
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}
-fromImage: common/distroless
+from: {{ index $.Images "base/distroless" }}
+vex: {{ $.ModulePath }}modules/{{ $.ModulePriority }}-{{ $.ModuleName }}/images/{{ $.ImageName }}/known_vulnerabilities.vex
 import:
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact
+- from: common/distroless-artifact
+  add: /relocate
+  to: /
+  before: setup
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-artifact
   add: /kube-rbac-proxy
   to: /kube-rbac-proxy
   before: setup
-- image: {{ .ModuleName }}/{{ .ImageName }}-coreutils-artifact
-  add: /coreutils/usr/bin/true
-  to: /bin/true
+- from: {{ .ModuleName }}/{{ .ImageName }}-runtime-artifact
+  add: /usr/bin/true
+  to: /usr/bin/true
   before: setup
-- image: common/pause
+- from: {{ .ModuleName }}/{{ .ImageName }}-runtime-artifact
+  add: /usr/lib
+  to: /usr/lib
+  before: setup
+- from: common/pause
   add: /pause
   to: /pause
   before: install
 {{- include "image mount points" . }}
 imageSpec:
   config:
+    user: "64535:64535"
     entrypoint: ["/kube-rbac-proxy", "--tls-cipher-suites", "TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256,TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256,TLS_RSA_WITH_AES_128_CBC_SHA,TLS_RSA_WITH_AES_256_CBC_SHA,TLS_RSA_WITH_AES_128_GCM_SHA256,TLS_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA,TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA,TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA,TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA"]
     expose: ["8080"]
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
-fromImage: common/src-artifact
+from: common/src-artifact
 final: false
 git:
+- url: {{ .SOURCE_REPO }}/brancz/kube-rbac-proxy.git
+  tag: v0.11.0
+  add: /
+  to: /src
 - add: /{{ $.ModulePath }}modules/{{ .ModulePriority }}-{{ $.ModuleName }}/images/{{ $.ImageName }}/patches
   to: /patches
   stageDependencies:
     install:
     - '**/*'
-secrets:
-- id: SOURCE_REPO
-  value: {{ .SOURCE_REPO }}
 shell:
   install:
-  - git clone --depth 1 --branch v0.11.0 $(cat /run/secrets/SOURCE_REPO)/brancz/kube-rbac-proxy.git /src
   - cd /src
   - git apply /patches/*.patch --verbose
-  - rm -r .git
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact
-from: {{ index $.Images "builder/golang" }}
+from: {{ index $.Images "builder/distroless" }}
 final: false
 import:
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
   add: /src
   to: /src
   before: install
@@ -52,20 +61,25 @@ mount:
 secrets:
 - id: GOPROXY
   value: {{ .GOPROXY }}
+packages:
+- type: os-pm
+  spec: [golang, git, make, bash, coreutils, sed, grep, findutils]
+- type: go-mod
+  workdir: /src
+  env:
+    GOPROXY: "%secret:GOPROXY%"
 shell:
   install:
   - cd /src
-  - export GOPROXY=$(cat /run/secrets/GOPROXY) GOOS=linux GOARCH=amd64 CGO_ENABLED=0
+  - export GOPROXY=off GOOS=linux GOARCH=amd64 CGO_ENABLED=0
   - make build
   - cp /src/_output/kube-rbac-proxy-linux-$(go env GOARCH) /kube-rbac-proxy
   - chown 64535:64535 /kube-rbac-proxy
   - chmod 0755 /kube-rbac-proxy
 ---
-image: {{ .ModuleName }}/{{ .ImageName }}-coreutils-artifact
+image: {{ .ModuleName }}/{{ .ImageName }}-runtime-artifact
 from: {{ index $.Images "builder/distroless" }}
 final: false
-shell:
-  beforeInstall:
-  - pm install coreutils -d /coreutils
----
-{{- include "vex mitigation" (list $ (printf "%s/%s" $.ModuleName $.ImageName)) }}
+packages:
+- type: os-pm
+  spec: [coreutils]

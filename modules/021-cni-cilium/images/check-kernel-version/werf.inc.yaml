@@ -1,16 +1,20 @@
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}
-fromImage: common/distroless
+from: {{ index $.Images "base/distroless" }}
 import:
-- image: common/check-kernel-version
+- from: common/check-kernel-version
   add: /check-kernel-version
   to: /check-kernel-version
   before: setup
-- image: {{ .ModuleName }}/{{ .ImageName }}-relocate-artifact
-  add: /relocate/bin/true
-  to: /bin/true
+- from: {{ .ModuleName }}/{{ .ImageName }}-relocate-artifact
+  add: /usr/bin/true
+  to: /usr/bin/true
   before: setup
-- image: common/pause
+- from: {{ .ModuleName }}/{{ .ImageName }}-relocate-artifact
+  add: /usr/lib
+  to: /usr/lib
+  before: setup
+- from: common/pause
   add: /pause
   to: /pause
   before: install
@@ -18,11 +22,9 @@ imageSpec:
   config:
     entrypoint: [ "/check-kernel-version" ]
 ---
-{{- $binaries := "/bin/true" }}
----
 image: {{ .ModuleName }}/{{ .ImageName }}-relocate-artifact
-fromImage: common/relocate-artifact
+from: {{ index $.Images "builder/distroless" }}
 final: false
-shell:
- setup:
-   - /binary_replace.sh -i "{{ $binaries }}" -o /relocate
+packages:
+- type: os-pm
+  spec: [coreutils]

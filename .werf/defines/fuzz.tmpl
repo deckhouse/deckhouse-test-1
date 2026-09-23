@@ -57,7 +57,7 @@ git:
       install:
         - Taskfile.fuzz.yml
 import:
-  - image: {{ $fuzzSrcImage }}
+  - from: {{ $fuzzSrcImage }}
     add: {{ $fuzzSrcAdd }}
     to: {{ $fuzzSrcAdd }}
     before: install

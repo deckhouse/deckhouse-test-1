@@ -1,14 +1,11 @@
 {{- if eq $.Env "FE" }}
 ---
 image: tests-prebuild
-fromImage: base-for-go
+from: base-for-go
 git:
 - add: /
   to: /deckhouse
   stageDependencies:
-    install:
-    - go.mod
-    - go.sum
     setup:
     - '**/*'
   includePaths:
@@ -31,6 +28,10 @@ git:
   excludePaths:
   {{ .Files.Get (printf "tools/build_includes/modules-excluded-%s.yaml" .Env) | nindent 2}}
   - docs
+- add: /.werf/tooling/tests
+  to: /tools/tests
+  stageDependencies:
+    packages: [go.mod, go.sum]
 - url: {{ .SOURCE_REPO }}/flant/shell-operator
   tag: v1.4.10
   add: /frameworks/shell
@@ -45,26 +46,30 @@ git:
   {{ .Files.Get (printf "tools/build_includes/candi-cloud-providers-%s.yaml" .Env) }}
   {{ .Files.Get (printf "tools/build_includes/candi-%s.yaml" .Env) }}
 import:
-- from: {{ index $.Images "tools/jq" }}
-  add: /usr/bin/jq
-  to: /usr/bin/jq
-  after: setup
-- image: version-map-artifact
+- from: version-map-artifact
   add: /version_map_{{ $.Env }}.yml
   to: /deckhouse/candi/version_map.yml
   after: setup
-- image: golangci-lint-artifact
+- from: golangci-lint-artifact
   add: /usr/local/bin/golangci-lint
   to: /usr/local/bin/golangci-lint
   before: install
 mount:
 {{ include "mount points for golang builds" . }}
+secrets:
+- id: GOPROXY
+  value: {{ .GOPROXY }}
+packages:
+- type: os-pm
+  spec: [elfutils-devel, openssl-devel, jq]
+- type: go-mod
+  workdir: /tools/tests
+  env:
+    GOPROXY: "%secret:GOPROXY%"
 shell:
-  beforeInstall:
-  - pm install elfutils-devel openssl-devel
   install:
-  - go install github.com/onsi/ginkgo/ginkgo@latest
-  - go install github.com/go-delve/delve/cmd/dlv@latest
+  - cd /tools/tests
+  - GOPROXY=off GOSUMDB=off GOTOOLCHAIN=local CGO_ENABLED=0 GOOS=linux GOBIN=/usr/local/bin go install -mod=readonly github.com/onsi/ginkgo/ginkgo github.com/go-delve/delve/cmd/dlv
   setup:
     {{- range $_, $edition := $.Editions }}
       {{- if not $edition.skipFixingImports }}
@@ -78,21 +83,21 @@ imageSpec:
     env: { "ADDON_OPERATOR_NAMESPACE": "tests", "DECKHOUSE_POD": "tests", "MODULES_DIR": "/deckhouse/modules", "GLOBAL_HOOKS_DIR": "/deckhouse/global-hooks", "PATH": "${PATH}:/go/bin:/usr/local/go/bin:/root/go/bin" }
 ---
 image: tests
-fromImage: tests-prebuild
+from: tests-prebuild
 import:
-- image: terraform # from modules/040-terraform-manager/images/terraform-manager-base/werf.inc.yaml
+- from: terraform # from modules/040-terraform-manager/images/terraform-manager-base/werf.inc.yaml
   add: /terraform/terraform
   to: /dhctl-tests/bin/terraform
   before: setup
-- image: opentofu # from modules/040-terraform-manager/images/terraform-manager-base/werf.inc.yaml
+- from: opentofu # from modules/040-terraform-manager/images/terraform-manager-base/werf.inc.yaml
   add: /opentofu/opentofu
   to: /dhctl-tests/bin/opentofu
   before: setup
-- image: {{ .TF.yandex.artifact }} # from modules/040-terraform-manager/images/terraform-manager-{PROVIDER}/werf.inc.yaml
+- from: {{ .TF.yandex.artifact }} # from modules/040-terraform-manager/images/terraform-manager-{PROVIDER}/werf.inc.yaml
   add: /{{ .TF.yandex.artifactBinary }}
   to: /dhctl-tests/plugins/registry.opentofu.org/{{ .TF.yandex.namespace }}/{{ .TF.yandex.type }}/{{ $.TF.yandex.version }}/linux_amd64/{{ .TF.yandex.destinationBinary }}
   before: setup
-- image: {{ .TF.gcp.artifact }} # from modules/040-terraform-manager/images/terraform-manager-{PROVIDER}/werf.inc.yaml
+- from: {{ .TF.gcp.artifact }} # from modules/040-terraform-manager/images/terraform-manager-{PROVIDER}/werf.inc.yaml
   add: /{{ .TF.gcp.artifactBinary }}
   to: /dhctl-tests/plugins/registry.terraform.io/{{ .TF.gcp.namespace }}/{{ .TF.gcp.type }}/{{ $.TF.gcp.version }}/linux_amd64/{{ .TF.gcp.destinationBinary }}
   before: setup
@@ -102,7 +107,7 @@ import:
 # images_digests.json, testing/library/utils.go falls back to the dummy
 # DefaultImagesDigests (tools/images_tags) — the path designed for
 # template/matrix tests.
-- image: werf-mountpoints
+- from: werf-mountpoints
   add: /tools/mounts/mountfile
   to: /root/.ack-ginkgo-rc
   before: setup

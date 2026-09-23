@@ -2,18 +2,31 @@
 image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact
 final: false
 from: {{ index $.Images "builder/distroless" }}
+packages:
+- type: os-pm
+  spec: [python==3.12.12, jq, gnu-glibc, gawk, coreutils, grep, bash, iproute2, bridge-utils, procps, util-linux, findutils, curl, hostname, ldd]
 git:
 - add: /{{ $.ModulePath }}modules/035-{{ $.ModuleName }}/images/{{ $.ImageName }}/src/rootfs
   to: /out
+- add: /modules/030-cloud-provider-aws/images/ebs-csi-plugin/relocate.sh
+  to: /relocate.sh
+  stageDependencies:
+    install: ['**/*']
 shell:
-  beforeInstall:
-  - pm install python@3.12 jq gnu-glibc gawk coreutils grep bash iproute2 bridge-utils procps util-linux findutils curl -d /out
-  - rm -rf /out/usr/lib/python3*/site-packages/pip* /out/usr/bin/pip3*
+  install:
+  - bash /relocate.sh /out /usr/bin/*
+  - ln -sf bash /out/usr/bin/sh
+  - ln -sf gawk /out/usr/bin/awk
+  - python_stdlib=$(python3 -c 'import sysconfig; print(sysconfig.get_path("stdlib"))')
+  - cp -a --parents "$python_stdlib" /out
+  - find "$python_stdlib" -type f -name '*.so' -exec bash /relocate.sh /out {} +
+  - cp -a /usr/lib/libnss_*.so* /out/usr/lib/
+  - rm -rf /out/usr/lib/python3*/site-packages/pip* /out/usr/lib64/python3*/site-packages/pip* /out/usr/bin/pip3*
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}
-from: {{ index $.Images "base/distroless-fin" }}
+from: {{ index $.Images "base/distroless" }}
 import:
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-artifact
   add: /out
   to: /
   before: install

@@ -1,13 +1,13 @@
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}
-from: {{ index $.Images "base/distroless-fin" }}
+from: {{ index $.Images "base/distroless" }}
 import:
 {{- include "image mount points" . }}
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-artifact
   add: /dvp-csi-driver
   to: /dvp-csi-driver
   before: setup
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-binaries-artifact
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-binaries-artifact
   add: /out
   to: /
   before: install
@@ -19,7 +19,10 @@ imageSpec:
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
 final: false
-fromImage: common/src-artifact
+from: {{ index $.Images "builder/distroless" }}
+packages:
+- type: os-pm
+  spec: [sed]
 git:
 - add: /{{ .ModulePath }}modules/{{ .ModulePriority }}-{{ .ModuleName }}/images/{{ .ImageName }}/src
   to:  /src
@@ -48,19 +51,28 @@ shell:
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact
 final: false
-from: {{ index $.Images "builder/golang" }}
+from: {{ index $.Images "builder/distroless" }}
+secrets:
+- id: GOPROXY
+  value: {{ $.GOPROXY }}
+packages:
+- type: os-pm
+  spec: [golang, git, coreutils]
+- type: go-mod
+  workdir: /src
+  env:
+    GOPROXY: "%secret:GOPROXY%"
 mount:
 {{ include "mount points for golang builds" . }}
 import:
-  - image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
+  - from: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
     add: /src
     to: /src
     before: install
 shell:
   install:
-  - export GOPROXY={{ $.GOPROXY }}
+  - export GOPROXY=off
   - cd /src
-  - go mod download
   - CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "-s -w -X main.version=${VERSION}" -o /dvp-csi-driver cmd/dvp-csi-driver/main.go
   - chown 64535:64535 /dvp-csi-driver
   - chmod 0755 /dvp-csi-driver
@@ -68,6 +80,19 @@ shell:
 image: {{ $.ModuleName }}/{{ $.ImageName }}-binaries-artifact
 final: false
 from: {{ index $.Images "builder/distroless" }}
+git:
+- add: /modules/030-cloud-provider-aws/images/ebs-csi-plugin/relocate.sh
+  to: /relocate.sh
+  stageDependencies:
+    install: ['**/*']
+packages:
+- type: os-pm
+  spec: [bash, coreutils, gawk, ldd, e2fsprogs, xfsprogs, util-linux, gnu-glibc]
 shell:
   install:
-  - pm install coreutils e2fsprogs xfsprogs util-linux parted nvme-cli btrfs-progs udev libc -d /out
+  - |
+    for tool in bash sh mount umount blkid blockdev findmnt lsblk mkfs mkfs.ext2 mkfs.ext3 mkfs.ext4 mkfs.xfs resize2fs xfs_growfs fsck fsck.ext2 fsck.ext3 fsck.ext4 e2fsck; do
+      bash /relocate.sh /out "$(command -v "$tool")"
+    done
+  - mkdir -p /out/usr/lib
+  - cp -a /usr/lib/libnss_*.so* /out/usr/lib/

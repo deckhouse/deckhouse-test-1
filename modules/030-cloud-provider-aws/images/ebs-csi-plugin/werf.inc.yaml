@@ -10,13 +10,13 @@
     {{- end }}
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-{{ $image_version }}
-fromImage: common/distroless
+from: {{ index $.Images "base/distroless" }}
 import:
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact-{{ $image_version }}
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-artifact-{{ $image_version }}
   add: /aws-ebs-csi-driver
-  to: /bin/aws-ebs-csi-driver
+  to: /usr/bin/aws-ebs-csi-driver
   before: setup
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-binaries-artifact
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-binaries-artifact
   add: /relocate
   to: /
   before: install
@@ -28,21 +28,26 @@ imageSpec:
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact-{{ $image_version }}
 final: false
-fromImage: common/src-artifact
-{{- if $patch }}
+from: {{ index $.Images "builder/distroless" }}
+packages:
+- type: os-pm
+  spec: [git, coreutils]
 git:
+- url: {{ $.SOURCE_REPO }}/kubernetes-sigs/aws-ebs-csi-driver.git
+  tag: {{ $version }}
+  add: /
+  to: /src
+  stageDependencies:
+    install: ['**/*']
+{{- if $patch }}
 - add: {{ $patches }}/patches/{{ $version }}
   to: /patches
   stageDependencies:
     install:
       - '**/*'
 {{- end }}
-secrets:
-- id: SOURCE_REPO
-  value: {{ $.SOURCE_REPO }}
 shell:
   install:
-    - git clone --depth 1 --branch {{ $version }} $(cat /run/secrets/SOURCE_REPO)/kubernetes-sigs/aws-ebs-csi-driver.git /src
     - cd /src
     {{- if $patch}}
     - git apply /patches/*.patch --verbose
@@ -51,9 +56,16 @@ shell:
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact-{{ $image_version }}
 final: false
-from: {{ index $.Images "builder/golang" }}
+from: {{ index $.Images "builder/distroless" }}
+packages:
+- type: os-pm
+  spec: [golang, git, coreutils]
+- type: go-mod
+  workdir: /src
+  env:
+    GOPROXY: "%secret:GOPROXY%"
 import:
-  - image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact-{{ $image_version }}
+  - from: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact-{{ $image_version }}
     add: /src
     to: /src
     before: install
@@ -63,9 +75,6 @@ secrets:
 - id: GOPROXY
   value: {{ $.GOPROXY }}
 shell:
-  install:
-  - cd /src
-  - GOPROXY=$(cat /run/secrets/GOPROXY) go mod download
   setup:
   - cd /src
   - GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags="X github.com/kubernetes-sigs/aws-ebs-csi-driver/pkg/driver.driverVersion={{ $version }} -X github.com/kubernetes-sigs/aws-ebs-csi-driver/pkg/cloud.driverVersion={{ $version }} -s -w" -o /aws-ebs-csi-driver ./cmd/main.go
@@ -74,13 +83,18 @@ shell:
  {{- end }}
 {{- end }}
 ---
-{{- $csiBinaries := "/bin/chmod /bin/mount /bin/mkdir /bin/rmdir /bin/umount /bin/findmnt /bin/lsblk /sbin/badblocks /sbin/blockdev /sbin/blk* /sbin/dumpe2fs /sbin/e2* /sbin/findfs /sbin/fsck* /sbin/fstrim /sbin/mke2fs /sbin/mkfs* /sbin/resize2fs /usr/sbin/parted /usr/sbin/xfs*" }}
+{{- $csiBinaries := "/usr/bin/chmod /usr/bin/mount /usr/bin/mkdir /usr/bin/rmdir /usr/bin/umount /usr/bin/findmnt /usr/bin/lsblk /usr/bin/badblocks /usr/bin/blockdev /usr/bin/blk* /usr/bin/dumpe2fs /usr/bin/e2* /usr/bin/findfs /usr/bin/fsck* /usr/bin/fstrim /usr/bin/mke2fs /usr/bin/mkfs* /usr/bin/resize2fs /usr/bin/parted /usr/bin/xfs*" }}
 image: {{ $.ModuleName }}/{{ $.ImageName }}-binaries-artifact
 final: false
-fromImage: common/relocate-artifact
+from: {{ index $.Images "builder/distroless" }}
+git:
+- add: /modules/030-cloud-provider-aws/images/ebs-csi-plugin/relocate.sh
+  to: /relocate.sh
+  stageDependencies:
+    install: ['**/*']
+packages:
+- type: os-pm
+  spec: [bash, coreutils, gawk, ldd, util-linux, e2fsprogs, xfsprogs, parted]
 shell:
-  beforeInstall:
-    - apt-get update -y
-    - apt-get install -y e2fsprogs xfsprogs parted
   install:
-    - /binary_replace.sh -i "{{ $csiBinaries }}" -o /relocate
+    - bash /relocate.sh /relocate {{ $csiBinaries }}

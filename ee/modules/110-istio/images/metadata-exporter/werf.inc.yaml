@@ -1,14 +1,18 @@
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}
-fromImage: common/distroless
+{{- $vexPath := printf "%smodules/%s-%s/images/%s/known_vulnerabilities.vex" $.ModulePath $.ModulePriority $.ModuleName $.ImageName }}
+{{- if eq (len ($.Files.Glob $vexPath)) 1 }}
+vex: {{ $vexPath }}
+{{- end }}
+from: {{ index $.Images "base/distroless" }}
 import:
-- image: {{ .ModuleName }}/{{ .ImageName }}-build-artifact
+- from: {{ .ModuleName }}/{{ .ImageName }}-build-artifact
   add: /src/metadata-exporter
   to: /metadata-exporter
   owner: "64535"
   group: "64535"
   after: setup
-- from: {{ index $.Images "tools/curl-curl-8_18_0" }}
+- from: {{ .ModuleName }}/{{ .ImageName }}-runtime-artifact
   add: /usr/bin/curl-static
   to: /usr/bin/curl
   owner: "64535"
@@ -19,10 +23,10 @@ imageSpec:
     entrypoint: ["/metadata-exporter"]
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}-build-artifact
-from: {{ index $.Images "builder/golang" }}
+from: {{ index $.Images "builder/distroless" }}
 final: false
 import:
-- image: {{ .ModuleName }}/{{ .ImageName }}-src-artifact
+- from: {{ .ModuleName }}/{{ .ImageName }}-src-artifact
   add: /src
   to: /src
   before: install
@@ -31,12 +35,14 @@ mount:
 secrets:
 - id: GOPROXY
   value: {{ .GOPROXY }}
+packages:
+- type: os-pm
+  spec: [golang, git, binutils, coreutils]
+- type: go-mod
+  workdir: /src
+  env:
+    GOPROXY: "%secret:GOPROXY%"
 shell:
-  beforeInstall:
-  - pm install git binutils
-  install:
-  - cd /src
-  - GOPROXY=$(cat /run/secrets/GOPROXY) go mod download
   setup:
   - cd /src
   - export GOOS=linux GOARCH=amd64 CGO_ENABLED=0
@@ -45,15 +51,15 @@ shell:
   - chown -R 64535:64535 /src/metadata-exporter
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}-src-artifact
-fromImage: common/src-artifact
+from: {{ index $.Images "builder/distroless" }}
 final: false
 git:
 - add: /{{ $.ModulePath }}modules/{{ $.ModulePriority }}-{{ $.ModuleName }}/images/{{ $.ImageName }}/src
   to: /src
-  stageDependencies:
-    install:
-    - "**/*"
-shell:
-  install:
-  - cd /src
-{{- include "vex mitigation" (list $ (printf "%s/%s" $.ModuleName $.ImageName)) }}
+---
+image: {{ .ModuleName }}/{{ .ImageName }}-runtime-artifact
+from: {{ index $.Images "builder/distroless" }}
+final: false
+packages:
+- type: os-pm
+  spec: [curl-static]

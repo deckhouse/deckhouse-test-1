@@ -7,31 +7,14 @@
 
 image: dhctl-src-artifact
 final: false
-fromImage: common/src-artifact
+from: common/src-artifact
 git:
 - add: {{ printf "%s/dhctl" $prefix }}
   to: /src/dhctl
-  stageDependencies:
-    install:
-    - "**/*.go"
-    - Makefile
-    - go.sum
-    - go.mod
 - add: {{ printf "%s/go_lib" $prefix }}
   to: /src/go_lib
-  stageDependencies:
-    install:
-      - "**/*.go"
 - add: {{ printf "%s/pkg/log" $prefix }}
   to: /src/pkg/log
-  stageDependencies:
-    install:
-      - go.mod
-      - go.sum
-      - "**/*.go"
-shell:
-  install:
-  - cd /src
 
 {{- end }}
 
@@ -49,14 +32,14 @@ image: dhctl
 image: dhctl-base
 {{- end }}
 final: false
-fromImage: base-for-go
+from: base-for-go
 import:
-- image: dhctl-src-artifact
+- from: dhctl-src-artifact
   add: /src
   to: /
   before: install
 {{- if $context.includeImagesDigests }}
-- image: images-digests
+- from: images-digests
   add: /images_digests.json
   to: /images_digests.json
   before: install
@@ -66,16 +49,21 @@ mount:
 secrets:
 - id: GOPROXY
   value: {{ .GOPROXY }}
+packages:
+- type: os-pm
+  spec: [minget]
+- type: go-mod
+  workdir: /dhctl
+  env:
+    GOPROXY: "%secret:GOPROXY%"
 shell:
   install:
-  - pm install minget
   - cd /dhctl
 {{- if $context.includeImagesDigests }}
   - cp /images_digests.json pkg/config/digests/images_digests.json
 {{- end }}
   - mkdir -p pkg/minget/embed
   - cp /usr/bin/minget pkg/minget/embed/minget
-  - GOPROXY=$(cat /run/secrets/GOPROXY) go mod download
   - export RPP_SIGN_CHECK={{ $rppSignCheck }}
   - export D8_VERSION={{ $context.CI_COMMIT_TAG }}
   - export DEFAULT_KUBERNETES_VERSION={{ $context.DEFAULT_KUBERNETES_VERSION }}

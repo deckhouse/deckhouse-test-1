@@ -11,9 +11,13 @@
     {{- end }}
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-{{ $image_version }}
-fromImage: common/distroless
+{{- $vexPath := printf "%smodules/%s-%s/images/%s/known_vulnerabilities.vex" $.ModulePath $.ModulePriority $.ModuleName $.ImageName }}
+{{- if eq (len ($.Files.Glob $vexPath)) 1 }}
+vex: {{ $vexPath }}
+{{- end }}
+from: {{ index $.Images "base/distroless" }}
 import:
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact-{{ $image_version }}
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-artifact-{{ $image_version }}
   add: /vsphere-cloud-controller-manager
   to: /bin/vsphere-cloud-controller-manager
   before: setup
@@ -22,22 +26,26 @@ imageSpec:
     entrypoint: ["/bin/vsphere-cloud-controller-manager"]
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact-{{ $image_version }}
-fromImage: common/src-artifact
+from: {{ index $.Images "builder/distroless" }}
 final: false
-{{- if $patch }}
 git:
+- url: {{ $.SOURCE_REPO }}/kubernetes/cloud-provider-vsphere.git
+  tag: {{ $version }}
+  to: /src
+  stageDependencies:
+    install: ['**/*']
+{{- if $patch }}
 - add: {{ $patches }}/patches/{{ $k8s_version }}
   to: /patches
   stageDependencies:
     install:
       - '**/*'
 {{- end }}
-secrets:
-- id: SOURCE_REPO
-  value: {{ $.SOURCE_REPO }}
+packages:
+- type: os-pm
+  spec: [git, coreutils]
 shell:
   install:
-  - git clone --depth 1 --branch {{ $version }} $(cat /run/secrets/SOURCE_REPO)/kubernetes/cloud-provider-vsphere.git /src
   - cd /src
   {{- if $patch }}
   - git apply /patches/*.patch --verbose
@@ -46,9 +54,9 @@ shell:
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact-{{ $image_version }}
 final: false
-from: {{ index $.Images "builder/golang" }}
+from: {{ index $.Images "builder/distroless" }}
 import:
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact-{{ $image_version }}
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact-{{ $image_version }}
   add: /src
   to: /src
   before: install
@@ -57,16 +65,19 @@ mount:
 secrets:
 - id: GOPROXY
   value: {{ $.GOPROXY }}
+packages:
+- type: os-pm
+  spec: [golang, git, coreutils]
+- type: go-mod
+  workdir: /src
+  env:
+    GOPROXY: "%secret:GOPROXY%"
 shell:
-  install:
-  - cd /src
-  - GOPROXY=$(cat /run/secrets/GOPROXY) go mod download
   setup:
   - cd /src
   - GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags "-s -w -X version.Version={{ $version }}" -o /vsphere-cloud-controller-manager ./cmd/vsphere-cloud-controller-manager/main.go
   - chown 64535:64535 /vsphere-cloud-controller-manager
   - chmod 0755 /vsphere-cloud-controller-manager
 ---
-{{- include "vex mitigation" (list $ (printf "%s/%s-%s" $.ModuleName $.ImageName $image_version )) }}
 {{- end }}
 {{- end }}

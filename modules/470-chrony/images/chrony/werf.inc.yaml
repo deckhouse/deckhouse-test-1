@@ -1,7 +1,7 @@
 {{- $version := "4.6.1" }}
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}-src-artifact
-fromImage: common/src-artifact
+from: {{ index $.Images "builder/distroless" }}
 final: false
 git:
 - add: /{{ $.ModulePath }}modules/470-{{ $.ModuleName }}/images/{{ $.ImageName }}/src
@@ -10,30 +10,23 @@ git:
   - '**/*.go'
   - '**/*.mod'
   - '**/*.sum'
-  stageDependencies:
-    install:
-    - '**/*.go'
-    - 'go.mod'
-    - 'go.sum'
-secrets:
-- id: SOURCE_REPO
-  value: {{ .SOURCE_REPO }}
-shell:
-  install:
-  - cd /src
-  - git clone --depth 1 --branch {{ $version }} $(cat /run/secrets/SOURCE_REPO)/chrony/chrony /src/chrony && rm -rf /src/chrony/.git
+- url: {{ .SOURCE_REPO }}/chrony/chrony
+  tag: {{ $version }}
+  add: /
+  to: /src/chrony
 ---
 image: {{ .ModuleName }}/build-chrony-static-artifact
 from: {{ index $.Images "builder/distroless" }}
 final: false
+packages:
+- type: os-pm
+  spec: [automake, autoconf, libtool, build-base, bison, asciidoctor, libcap-devel, libucontext, linux-headers, make, coreutils, bash, sed, grep, gawk]
 import:
-- image: {{ .ModuleName }}/{{ .ImageName }}-src-artifact
+- from: {{ .ModuleName }}/{{ .ImageName }}-src-artifact
   add: /src/chrony
   to: /src
   before: install
 shell:
-  beforeInstall:
-  - pm install automake autoconf libtool build-base bison asciidoctor libcap-devel libucontext linux-headers
   install:
   - cd /src
   - echo "{{ $version }}" > version.txt
@@ -45,10 +38,17 @@ shell:
   - chmod +x /opt/chrony-static/sbin/chronyd
 ---
 image: {{ .ModuleName }}/build-entrypoint-artifact
-from: {{ index $.Images "builder/golang" }}
+from: {{ index $.Images "builder/distroless" }}
 final: false
+packages:
+- type: os-pm
+  spec: [golang==1.26.8, git, coreutils]
+- type: go-mod
+  workdir: /src
+  env:
+    GOPROXY: "%secret:GOPROXY%"
 import:
-- image: {{ .ModuleName }}/{{ .ImageName }}-src-artifact
+- from: {{ .ModuleName }}/{{ .ImageName }}-src-artifact
   add: /src/entrypoint
   to: /src
   before: install
@@ -60,26 +60,38 @@ secrets:
 shell:
   install:
   - cd /src
-  - GOPROXY=$(cat /run/secrets/GOPROXY) CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags='-extldflags "-static" -s -w' -o /entrypoint main.go
+  - GOPROXY=off CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags='-extldflags "-static" -s -w' -o /entrypoint main.go
   - chown -R 64535:64535 /entrypoint
   - chmod +x /entrypoint
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}
-fromImage: common/distroless
+from: {{ index $.Images "base/distroless" }}
 import:
-- image: {{ .ModuleName }}/build-chrony-static-artifact
+- from: common/distroless-artifact
+  add: /relocate
+  to: /
+  before: install
+- from: {{ .ModuleName }}/build-chrony-static-artifact
   add: /opt/chrony-static
   before: setup
-- from: {{ index $.Images "tools/tini" }}
+- from: {{ .ModuleName }}/{{ .ImageName }}-runtime-artifact
   add: /usr/bin/tini
-  to: /tini
+  to: /usr/bin/tini
   before: setup
-- image: {{ .ModuleName }}/build-entrypoint-artifact
+- from: {{ .ModuleName }}/build-entrypoint-artifact
   add: /entrypoint
   to: /entrypoint
   before: setup
 {{- include "image mount points" . }}
 imageSpec:
   config:
-    entrypoint: ["/tini", "--"]
+    user: "64535:64535"
+    entrypoint: ["/usr/bin/tini", "--"]
     cmd: ["/entrypoint"]
+---
+image: {{ .ModuleName }}/{{ .ImageName }}-runtime-artifact
+from: {{ index $.Images "builder/distroless" }}
+final: false
+packages:
+- type: os-pm
+  spec: [tini]

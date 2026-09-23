@@ -4,55 +4,60 @@ image: {{ $.ModuleName }}/{{ $.ImageName }}
 final: false
 from: {{ index $.Images "base/distroless" }}
 import:
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-artifact
   add: /shell-operator/shell-operator
   to: /shell-operator
   before: setup
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-artifact
   add: /shell-operator/shell_lib.sh
   to: /shell_lib.sh
   before: setup
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-artifact
   add: /shell-operator/frameworks
   to: /frameworks
   before: setup
 {{- $k8sVersion := index (index .k8sVersions 0) "kubectl" }}
 {{- $image_version := printf "%s.%d" $k8sVersion (index $.CandiVersionMap "k8s" $k8sVersion "patch") | replace "." "-" }}
-- image: common/kubernetes-artifact-{{ $image_version }}
+- from: common/kubernetes-artifact-{{ $image_version }}
   add: /src/_output/bin/kubectl
   to: /usr/bin/kubectl
   before: setup
-- from: {{ index $.Images "tools/tini" }}
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-runtime-artifact
   add: /usr/bin/tini
+  to: /usr/bin/tini
   before: setup
-- from: {{ index $.Images "tools/bash" }}
+- from: common-base-runtime-artifact
+  add: /usr/lib
+  to: /usr/lib
+  before: setup
+- from: common-base-runtime-artifact
   add: /usr/bin/bash
-  to: /bin/bash
+  to: /usr/bin/bash
   before: setup
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-artifact
   add: /shell-operator/sh
-  to: /bin/sh
+  to: /usr/bin/sh
   before: setup
-- from: {{ index $.Images "tools/jq" }}
+- from: common-base-runtime-artifact
   add: /usr/bin/jq
   before: setup
-- from: {{ index $.Images "tools/sed" }}
+- from: common-base-runtime-artifact
   add: /usr/bin/sed
   before: setup
-- from: {{ index $.Images "tools/grep" }}
+- from: common-base-runtime-artifact
   add: /usr/bin/grep
   before: setup
-- from: {{ index $.Images "tools/gawk" }}
+- from: common-base-runtime-artifact
   add: /
   to: /
   includePaths:
   - usr/bin/awk
   - usr/bin/gawk
   before: setup
-- from: {{ index $.Images "tools/findutils" }}
+- from: common-base-runtime-artifact
   add: /usr/bin/find
   before: setup
-- from: {{ index $.Images "tools/coreutils" }}
+- from: common-base-runtime-artifact
   add: /
   to: /
   includePaths:
@@ -167,37 +172,46 @@ imageSpec:
   config:
     entrypoint: ["/usr/bin/tini", "--", "/shell-operator"]
 ---
-image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
-from: {{ index $.Images "builder/src" }}
+image: {{ $.ModuleName }}/{{ $.ImageName }}-runtime-artifact
+from: {{ index $.Images "builder/distroless" }}
 final: false
-secrets:
-- id: SOURCE_REPO
-  value: {{ .SOURCE_REPO }}
-shell:
-  install:
-  - git clone --branch {{ $shellOperatorVersion }} --depth 1 $(cat /run/secrets/SOURCE_REPO)/flant/shell-operator.git /src
-  - rm -r /src/.git
+packages:
+- type: os-pm
+  spec: [tini]
+---
+image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
+from: {{ index $.Images "builder/distroless" }}
+final: false
+git:
+- url: {{ .SOURCE_REPO }}/flant/shell-operator.git
+  tag: {{ $shellOperatorVersion }}
+  add: /
+  to: /src
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact
-from: {{ index $.Images "builder/golang" }}
+from: {{ index $.Images "builder/distroless" }}
 final: false
 mount:
 {{ include "mount points for golang builds" . }}
 import:
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
   add: /src
   to: /src
   before: install
 secrets:
 - id: GOPROXY
   value: {{ .GOPROXY }}
+packages:
+- type: os-pm
+  spec: [golang, git, bash, coreutils]
+- type: go-mod
+  workdir: /src
+  env:
+    GOPROXY: "%secret:GOPROXY%"
 shell:
-  beforeInstall:
-  - pm install git
   install:
-  - export GOPROXY=$(cat /run/secrets/GOPROXY) CGO_ENABLED=0 GOOS=linux
+  - export GOPROXY=off CGO_ENABLED=0 GOOS=linux
   - cd /src
-  - go mod download -x
   - go build -ldflags="-s -w -X 'github.com/flant/shell-operator/pkg/app.Version={{ $shellOperatorVersion }}'" -o shell-operator ./cmd/shell-operator
   - mkdir -p /shell-operator
   - cp -r shell_lib.sh frameworks shell-operator /shell-operator

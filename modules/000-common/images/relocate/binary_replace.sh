@@ -72,29 +72,29 @@ mkdir -p "${RDIR}"
 
 function relocate() {
   local binary=$1
-  relocate_item ${binary}
+  relocate_item "${binary}"
 
-  for lib in $(ldd ${binary} 2>/dev/null | awk '{if ($2=="=>") print $3; else print $1}'); do
+  for lib in $( { ldd "${binary}" 2>/dev/null || true; } | awk '{if ($2=="=>" && $3 ~ /^\//) print $3; else if (NF==2 && $1 ~ /^\// && $2 ~ /^\(0x[[:xdigit:]]+\)$/) print $1}'); do
     # don't try to relocate linux-vdso.so lib due to this lib is virtual
     if [[ "${lib}" =~ "linux-vdso" ]]; then
       continue
     fi
-    relocate_item ${lib}
+    relocate_item "${lib}"
   done
 }
 
 function relocate_item() {
   local file=$1
-  local new_place="${RDIR}$(dirname ${file})"
-
-  mkdir -p ${new_place}
-  cp -a ${file} ${new_place}
-
-  # if symlink, copy original file too
-  local orig_file="$(readlink -f ${file})"
-  if [[ "${file}" != "${orig_file}" ]]; then
-    cp -a ${orig_file} ${new_place}
-  fi
+  local destination="${file}"
+  case "${destination}" in
+    /bin/*|/sbin/*|/usr/sbin/*) destination="/usr/bin/${destination##*/}" ;;
+    /lib/*) destination="/usr${destination}" ;;
+    /lib64/*) destination="/usr/lib/${destination#/lib64/}" ;;
+    /usr/lib64/*) destination="/usr/lib/${destination#/usr/lib64/}" ;;
+    /usr/local/lib64/*) destination="/usr/lib/${destination#/usr/local/lib64/}" ;;
+  esac
+  mkdir -p "${RDIR}$(dirname "${destination}")"
+  cp -L --preserve=mode,timestamps "${file}" "${RDIR}${destination}"
 }
 
 function get_binary_path () {
@@ -106,7 +106,7 @@ function get_binary_path () {
       echo "Not found $bin"
       exit 1
     fi
-    BINARY_LIST+=$(ls -la $bin 2>/dev/null | awk '{print $9}')" "
+    BINARY_LIST+="${bin} "
   done
 
   if [[ -z $BINARY_LIST ]]; then echo "No binaryes for replace"; exit 1; fi;

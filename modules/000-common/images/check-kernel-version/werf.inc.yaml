@@ -1,33 +1,32 @@
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}
-fromImage: common/distroless
+from: {{ index $.Images "base/distroless" }}
 import:
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact
+- from: common/distroless-artifact
+  add: /relocate
+  to: /
+  before: setup
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-artifact
   add: /src/check-kernel-version
   to: /check-kernel-version
   before: setup
 imageSpec:
   config:
+    user: "64535:64535"
     entrypoint: [ "/check-kernel-version" ]
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}-src-artifact
-fromImage: common/src-artifact
+from: common/src-artifact
 final: false
 git:
 - add: /{{ $.ModulePath }}modules/{{ $.ModulePriority }}-{{ $.ModuleName }}/images/{{ $.ImageName }}/src
   to: /src
-  stageDependencies:
-    install:
-    - '**/*'
-shell:
-  install:
-    - cd /src
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact
-from: {{ index $.Images "builder/golang" }}
+from: {{ index $.Images "builder/distroless" }}
 final: false
 import:
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
   add: /src
   to: /src
   before: install
@@ -36,9 +35,16 @@ mount:
 secrets:
 - id: GOPROXY
   value: {{ .GOPROXY }}
+packages:
+- type: os-pm
+  spec: [golang, git, coreutils, bash]
+- type: go-mod
+  workdir: /src
+  env:
+    GOPROXY: "%secret:GOPROXY%"
 shell:
   install:
   - cd /src
-  - GOPROXY=$(cat /run/secrets/GOPROXY) GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags="-w -s" -o check-kernel-version check-kernel-version.go
+  - GOPROXY=off GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags="-w -s" -o check-kernel-version check-kernel-version.go
   - chown 64535:64535 check-kernel-version
   - chmod 0700 check-kernel-version
