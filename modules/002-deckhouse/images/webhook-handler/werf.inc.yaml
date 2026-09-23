@@ -7,8 +7,12 @@ vex: {{ $vexPath }}
 from: common/shell-operator
 import:
 - from: {{ .ModuleName }}/{{ .ImageName }}-runtime-artifact
-  add: /relocate
-  to: /
+  add: /usr/bin/yq
+  to: /usr/bin/yq
+  before: install
+- from: {{ .ModuleName }}/{{ .ImageName }}-runtime-artifact
+  add: /usr/bin/semver
+  to: /usr/bin/semver
   before: install
 - from: common/promtool-artifact
   add: /promtool
@@ -145,15 +149,7 @@ from: {{ index $.Images "builder/distroless" }}
 final: false
 packages:
 - type: os-pm
-  spec: [yq, semver, bash, coreutils, gawk, ldd]
-git:
-- add: /modules/002-deckhouse/images/init/relocate.sh
-  to: /relocate.sh
-  stageDependencies:
-    install: ['**/*']
-shell:
-  install:
-  - bash /relocate.sh /relocate /usr/bin/yq /usr/bin/semver
+  spec: [yq, semver]
 ---
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-webhook-operator-artifact

@@ -75,8 +75,8 @@ import:
   add: /opt/chrony-static
   before: setup
 - from: {{ .ModuleName }}/{{ .ImageName }}-runtime-artifact
-  add: /relocate
-  to: /
+  add: /usr/bin/tini
+  to: /usr/bin/tini
   before: setup
 - from: {{ .ModuleName }}/build-entrypoint-artifact
   add: /entrypoint
@@ -94,12 +94,4 @@ from: {{ index $.Images "builder/distroless" }}
 final: false
 packages:
 - type: os-pm
-  spec: [tini, ldd, bash, coreutils, gawk]
-git:
-- add: /modules/002-deckhouse/images/init/relocate.sh
-  to: /relocate.sh
-  stageDependencies:
-    install: ['**/*']
-shell:
-  install:
-  - bash /relocate.sh /relocate /usr/bin/tini
+  spec: [tini]

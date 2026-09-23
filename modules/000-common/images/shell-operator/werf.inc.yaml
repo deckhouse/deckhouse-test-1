@@ -23,8 +23,8 @@ import:
   to: /usr/bin/kubectl
   before: setup
 - from: {{ $.ModuleName }}/{{ $.ImageName }}-runtime-artifact
-  add: /relocate
-  to: /
+  add: /usr/bin/tini
+  to: /usr/bin/tini
   before: setup
 - from: common-base-runtime-artifact
   add: /usr/lib
@@ -173,14 +173,11 @@ imageSpec:
     entrypoint: ["/usr/bin/tini", "--", "/shell-operator"]
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-runtime-artifact
-from: common/relocate-artifact
+from: {{ index $.Images "builder/distroless" }}
 final: false
 packages:
 - type: os-pm
   spec: [tini]
-shell:
-  install:
-  - /binary_replace.sh -i /usr/bin/tini -o /relocate
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
 from: {{ index $.Images "builder/distroless" }}
