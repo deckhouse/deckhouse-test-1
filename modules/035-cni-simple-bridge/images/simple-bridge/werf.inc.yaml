@@ -4,7 +4,7 @@ final: false
 from: {{ index $.Images "builder/distroless" }}
 packages:
 - type: os-pm
-  spec: [python==3.12.12, jq, gnu-glibc, gawk, coreutils, grep, bash, iproute2, bridge-utils, procps, util-linux, findutils, curl, hostname, ldd]
+  spec: [python==3.12.12, jq, gnu-glibc, gawk, coreutils, grep, bash, iproute2, bridge-utils, procps, util-linux, findutils, curl, ldd, busybox]
 git:
 - add: /{{ $.ModulePath }}modules/035-{{ $.ModuleName }}/images/{{ $.ImageName }}/src/rootfs
   to: /out
@@ -17,6 +17,7 @@ shell:
   - bash /relocate.sh /out /usr/bin/*
   - ln -sf bash /out/usr/bin/sh
   - ln -sf gawk /out/usr/bin/awk
+  - ln -sf busybox /out/usr/bin/hostname
   - python_stdlib=$(python3 -c 'import sysconfig; print(sysconfig.get_path("stdlib"))')
   - cp -a --parents "$python_stdlib" /out
   - find "$python_stdlib" -type f -name '*.so' -exec bash /relocate.sh /out {} +
