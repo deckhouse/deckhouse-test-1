@@ -7,27 +7,18 @@ git:
   to: /candi
   excludePaths:
   - '**/terraform_versions.yml'
-  stageDependencies:
-    install:
-    - '**/*'
 - add: /{{ $.ModulePath }}modules/030-{{ $.ModuleName }}/candi/terraform_versions.yml
   to: /terraform-manager/terraform_versions.yml
-  stageDependencies:
-    install:
-    - '**/*'
 import:
-- image: terraform-provider-openstack
+- from: terraform-provider-openstack
   add: /terraform-provider-openstack
   to: /terraform-manager/terraform-provider-openstack
   before: setup
-shell:
-  install:
-  - set -e
 {{ include "image_spec_for_infrastructure_manager" . }}
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
 final: false
-fromImage: common/src-artifact
+from: common/src-artifact
 git:
 - add: /{{ $.ModulePath }}modules/030-{{ $.ModuleName }}/images/{{ $.ImageName }}/patches
   to: /patches
@@ -50,7 +41,7 @@ from: {{ index $.Images "builder/golang" }}
 mount:
 {{ include "mount points for golang builds" . }}
 import:
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
   add: /src
   to: /src
   before: install

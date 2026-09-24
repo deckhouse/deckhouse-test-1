@@ -1,9 +1,9 @@
 {{ $ratifyVersion := include "get_oss_version_by_id" (list "ratify" $ ) }}
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}
-fromImage: common/distroless
+from: common/distroless
 import:
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-artifact
   add: /ratify
   to: /ratify
   before: setup
@@ -13,7 +13,7 @@ imageSpec:
     entrypoint: [ "/ratify" ]
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
-fromImage: common/src-artifact
+from: common/src-artifact
 final: false
 git:
 - add: /{{ $.ModulePath }}modules/015-{{ $.ModuleName }}/images/{{ $.ImageName }}/patches
@@ -46,7 +46,7 @@ image: {{ .ModuleName }}/{{ .ImageName }}-artifact
 from: {{ index $.Images "builder/golang-1.26" }}
 final: false
 import:
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
   add: /src
   to: /src
   before: install
