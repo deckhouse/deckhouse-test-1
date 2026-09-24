@@ -89,9 +89,11 @@ import:
   to: /usr/lib64/libdl.so.2
   before: install
 - from: {{ .ModuleName }}/glibc-artifact
-  add: /out/usr/lib/libtinfo*
-  to: /usr/lib64/
+  add: /out/usr/lib
+  to: /usr/lib64
   before: install
+  includePaths:
+  - libtinfo*
 mount:
 {{ include "mount points for golang builds" . }}
 - from: tmp_dir
