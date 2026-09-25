@@ -242,6 +242,37 @@ from: {{ index $.Images "builder/golang-alpine" }}
 final: false
 ---
 image: {{ $.ModuleName }}/{{ .ImageName }}-build-image-artifact
+git:
+- url: {{ $.SOURCE_REPO }}/llvm/llvm-project.git
+  tag: {{ $llvmRev }}
+  add: /
+  to: /src/llvm
+  stageDependencies:
+    install: ['**/*']
+- url: {{ $.SOURCE_REPO }}/grpc/grpc-go.git
+  tag: cmd/protoc-gen-go-grpc/v1.3.0
+  add: /
+  to: /src/grpc-go
+  stageDependencies:
+    install: ['**/*']
+- url: {{ $.SOURCE_REPO }}/protocolbuffers/protobuf-go.git
+  tag: v1.30.0
+  add: /
+  to: /src/protobuf-go
+  stageDependencies:
+    install: ['**/*']
+- url: {{ $.SOURCE_REPO }}/mitchellh/protoc-gen-go-json.git
+  tag: v1.1.0
+  add: /
+  to: /src/protoc-gen-go-json
+  stageDependencies:
+    install: ['**/*']
+- url: {{ $.SOURCE_REPO }}/pseudomuto/protoc-gen-doc.git
+  tag: v1.5.1
+  add: /
+  to: /src/protoc-gen-doc
+  stageDependencies:
+    install: ['**/*']
 from: {{ index $.Images "builder/golang-bookworm" }}
 final: false
 mount:
@@ -287,13 +318,11 @@ shell:
   - mkdir -p /tmp/ccache-dir
 {{- end }}
   - export CCACHE_DIR="/tmp/ccache-dir"
-  - git clone --depth 1 --branch "{{ $llvmRev }}" $(cat /run/secrets/SOURCE_REPO)/llvm/llvm-project.git /src/llvm
   - cd /src/llvm
   - rm -rf clang-tools-extra/clangd/clients/clangd-vscode
   - rm -rf llvm/utils/git/requirements.txt
   - rm -rf mlir/utils/vscode/package-lock.json
   - rm -rf third-party/benchmark/requirements.txt
-  - rm -rf .git
   - mkdir -p /src/llvm/llvm/build
   - cd /src/llvm/llvm/build
   - |
@@ -329,10 +358,6 @@ shell:
   - git archive --remote "$(cat /run/secrets/SOURCE_REPO)/envoyproxy/envoyproxy_deps.git" HEAD "protoc/v{{ $protocVersion }}/protoc-{{ $protocVersion }}-linux-x86_64.zip" | tar -C /tmp -xvf -
   - unzip /tmp/protoc/v{{ $protocVersion }}/protoc-{{ $protocVersion }}-linux-x86_64.zip -x readme.txt -d /usr/local && rm -r /tmp/protoc
   - chmod o+rx /usr/local/bin/protoc && chmod o+rX -R /usr/local/include/google/
-  - git clone --depth 1 --branch cmd/protoc-gen-go-grpc/v1.3.0 $(cat /run/secrets/SOURCE_REPO)/grpc/grpc-go.git /src/grpc-go
-  - git clone --depth 1 --branch v1.30.0 $(cat /run/secrets/SOURCE_REPO)/protocolbuffers/protobuf-go.git /src/protobuf-go
-  - git clone --depth 1 --branch v1.1.0 $(cat /run/secrets/SOURCE_REPO)/mitchellh/protoc-gen-go-json.git /src/protoc-gen-go-json
-  - git clone --depth 1 --branch v1.5.1 $(cat /run/secrets/SOURCE_REPO)/pseudomuto/protoc-gen-doc.git /src/protoc-gen-doc
   - cd /src/grpc-go/cmd/protoc-gen-go-grpc && go install
   - cd /src/protobuf-go/cmd/protoc-gen-go && go install
   - cd /src/protoc-gen-go-json && go install
@@ -351,15 +376,13 @@ imageSpec:
     env: {"GOROOT": "/usr/local/go", "GOPATH": "/go", "PATH": "${PATH}:${GOROOT}/bin:${GOPATH}/bin", "GOOS": "linux", "GOARCH": "amd64"}
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}-src-artifact
+git:
+- url: {{ $.SOURCE_REPO }}/istio/proxy.git
+  tag: {{ $istioVersion }}
+  add: /
+  to: /src/proxy
 from: common/src-artifact
 final: false
-secrets:
-- id: SOURCE_REPO
-  value: {{ .SOURCE_REPO }}
-shell:
-  install:
-  - git clone --depth 1 --branch {{ $istioVersion }} $(cat /run/secrets/SOURCE_REPO)/istio/proxy.git /src/proxy
-  - cd /src/proxy/
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-glibc-artifact
 final: false

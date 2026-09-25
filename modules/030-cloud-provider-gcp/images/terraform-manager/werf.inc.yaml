@@ -20,20 +20,22 @@ image: {{ .ModuleName }}/{{ .ImageName }}-src-artifact
 final: false
 from: common/src-artifact
 git:
+- url: {{ $.SOURCE_REPO }}/hashicorp/terraform-provider-google.git
+  tag: v{{ $version }}
+  add: /
+  to: /src
+  stageDependencies:
+    install: ['**/*']
 - add: /{{ $.ModulePath }}modules/{{ $.ModulePriority }}-{{ $.ModuleName }}/images/{{ $.ImageName }}/patches
   to: /patches
   stageDependencies:
     install:
     - '**/*'
-secrets:
-- id: SOURCE_REPO
-  value: {{ .SOURCE_REPO }}
 shell:
   install:
   - cd /src
-  - git clone --depth 1 --branch v{{ $version }} $(cat /run/secrets/SOURCE_REPO)/hashicorp/terraform-provider-google.git .
   - git apply /patches/*.patch --verbose
-  - rm -rf .git scripts/diff.go google/test-fixtures/appengine/hello-world-flask
+  - rm -rf scripts/diff.go google/test-fixtures/appengine/hello-world-flask
 ---
 image: terraform-provider-gcp
 final: false

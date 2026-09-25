@@ -5,18 +5,12 @@ image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact-{{ $image_version }}
 final: false
 from: common/src-artifact
 git:
+- url: {{ $.SOURCE_REPO }}/curl/curl.git
+  tag: curl-{{ $version | replace "." "_"}}
+  add: /
+  to: /src/curl
 - add: /{{ $.ModulePath }}/modules/007-{{ $.ModuleName }}/images/{{ $.ImageName }}/scripts
   to: /src/scripts
-  stageDependencies:
-    install:
-    - '**/*'
-secrets:
-- id: SOURCE_REPO
-  value: {{ .SOURCE_REPO }}
-shell:
-  install:
-  - git clone --depth 1 --branch curl-{{ $version | replace "." "_"}} $(cat /run/secrets/SOURCE_REPO)/curl/curl.git /src/curl
-  - rm -rf /src/curl/.git
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-{{ $image_version }}
 from: {{ index $.Images "builder/scratch" }}

@@ -22,21 +22,24 @@ image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
 final: false
 from: common/src-artifact
 git:
+{{- range $_, $version := $version_map }}
+- url: {{ $.SOURCE_REPO }}/vmware/terraform-provider-vcd.git
+  tag: v{{ $version }}
+  add: /
+  to: /src/v{{ $version }}
+  stageDependencies:
+    install: ['**/*']
+{{- end }}
 - add: /{{ $.ModulePath }}modules/030-{{ $.ModuleName }}/images/{{ $.ImageName }}/patches
   to: /patches
   stageDependencies:
     install:
     - '**/*'
-secrets:
-- id: SOURCE_REPO
-  value: {{ .SOURCE_REPO }}
 shell:
   install:
 {{- range $_, $version := $version_map }}
-  - git clone --depth 1 --branch v{{ $version }} $(cat /run/secrets/SOURCE_REPO)/vmware/terraform-provider-vcd.git /src/v{{ $version }}
   - cd /src/v{{ $version }}
   - git apply /patches/v{{ $version }}/*.patch --verbose
-  - rm -rf .git
 {{- end }}
 ---
 image: terraform-provider-vcd-artifact

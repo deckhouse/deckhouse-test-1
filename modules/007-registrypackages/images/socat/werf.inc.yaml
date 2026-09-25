@@ -5,18 +5,12 @@ image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact-{{ $image_version }}
 final: false
 from: common/src-artifact
 git:
+- url: {{ $.SOURCE_REPO }}/socat.git
+  tag: tag-{{ $version }}
+  add: /
+  to: /src/socat
 - add: /{{ $.ModulePath }}/modules/007-{{ $.ModuleName }}/images/{{ $.ImageName }}/scripts
   to: /src/scripts
-  stageDependencies:
-    install:
-    - '**/*'
-secrets:
-- id: SOURCE_REPO
-  value: {{ .SOURCE_REPO }}
-shell:
-  install:
-  - git clone --depth 1 --branch tag-{{ $version }}  $(cat /run/secrets/SOURCE_REPO)/socat.git /src/socat
-  - rm -rf /src/socat/.git
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-{{ $image_version }}
 from: {{ index $.Images "builder/scratch" }}

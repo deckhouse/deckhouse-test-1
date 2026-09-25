@@ -15,6 +15,12 @@ image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
 final: false
 from: common/src-artifact
 git:
+- url: {{ $.CLOUD_PROVIDERS_SOURCE_REPO }}/ovirt/go-ovirt
+  tag: {{ $version }}
+  add: /
+  to: /src/go-ovirt
+  stageDependencies:
+    install: ['**/*']
 - add: /{{ .ModulePath }}modules/{{ .ModulePriority }}-{{ .ModuleName }}/images/{{ .ImageName }}/src
   to:  /src
   excludePaths:
@@ -45,12 +51,8 @@ git:
       - go.mod
       - go.sum
       - "**/*.go"
-secrets:
-- id: CLOUD_PROVIDERS_SOURCE_REPO
-  value: {{ .CLOUD_PROVIDERS_SOURCE_REPO }}
 shell:
   install:
-  - git clone --depth 1 --branch {{ $version }} $(cat /run/secrets/CLOUD_PROVIDERS_SOURCE_REPO)/ovirt/go-ovirt /src/go-ovirt
   - cd /src
   - sed -i -e 's# /deckhouse/go_lib/cloud-data# /src/go_lib/cloud-data#g' go.mod
   - sed -i -e 's# /deckhouse/pkg/log# /src/pkg/log#g' go.mod

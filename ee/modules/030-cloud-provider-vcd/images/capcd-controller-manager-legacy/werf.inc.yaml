@@ -21,21 +21,23 @@ import:
   to: /src/ccm
   after: install
 git:
+- url: {{ $.SOURCE_REPO }}/vmware/cluster-api-provider-cloud-director
+  tag: {{ $version }}
+  add: /
+  to: /src
+  stageDependencies:
+    install: ['**/*']
 - add: /{{ $.ModulePath }}modules/{{ $.ModulePriority }}-{{ $.ModuleName }}/images/{{ $.ImageName }}/patches
   to: /patches
   stageDependencies:
     install:
       - '**/*'
-secrets:
-- id: SOURCE_REPO
-  value: {{ .SOURCE_REPO }}
 shell:
   install:
-  - git clone --depth 1 --branch {{ $version }} $(cat /run/secrets/SOURCE_REPO)/vmware/cluster-api-provider-cloud-director /src
   - cd /src
   - git apply /patches/*.patch --verbose
   - echo "replace github.com/vmware/cloud-provider-for-cloud-director => /src/ccm" >> go.mod
-  - rm -rf .git vendor
+  - rm -rf vendor
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact
 final: false

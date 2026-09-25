@@ -3,15 +3,8 @@
 image: {{ $.ModuleName }}/{{ $.ImageName }}
 final: false
 from: common/src-artifact
-secrets:
-- id: SOURCE_REPO
-  value: {{ .SOURCE_REPO }}
-shell:
-  install:
-  - mkdir /wheels
-  - cd /wheels
-  - git init .
-  - git remote add origin $(cat /run/secrets/SOURCE_REPO)/python-modules/wheels
-  - git fetch origin {{ $commit }}
-  - git checkout {{ $commit }}
-  - rm -rf /wheels/.git
+git:
+- url: {{ .SOURCE_REPO }}/python-modules/wheels
+  commit: {{ $commit }}
+  add: /
+  to: /wheels

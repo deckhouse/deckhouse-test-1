@@ -2,16 +2,19 @@
 {{- if ne $.Env "CSE" }}
 ---
 image: {{ .ModuleName }}/{{ $.ImageName }}-src-artifact
+git:
+- url: {{ $.SOURCE_REPO }}/NVIDIA/nvidia-container-toolkit.git
+  tag: v{{ $version }}
+  add: /
+  to: /src
+  stageDependencies:
+    install: ['**/*']
 from: common/src-artifact
 final: false
-secrets:
-- id: SOURCE_REPO
-  value: {{ .SOURCE_REPO }}
 shell:
   install:
-  - git clone --depth 1 --branch v{{ $version }} $(cat /run/secrets/SOURCE_REPO)/NVIDIA/nvidia-container-toolkit.git /src
   - cd /src
-  - rm -rf .git hack tests deployments
+  - rm -rf hack tests deployments
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}-build-artifact
 final: false

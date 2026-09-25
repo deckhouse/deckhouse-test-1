@@ -4,24 +4,16 @@ image: {{ .ModuleName }}/{{ .ImageName }}-src-artifact
 from: common/src-artifact
 final: false
 git:
+- url: {{ $.SOURCE_REPO }}/chrony/chrony
+  tag: {{ $version }}
+  add: /
+  to: /src/chrony
 - add: /{{ $.ModulePath }}modules/470-{{ $.ModuleName }}/images/{{ $.ImageName }}/src
   to: /src/entrypoint
   includePaths:
   - '**/*.go'
   - '**/*.mod'
   - '**/*.sum'
-  stageDependencies:
-    install:
-    - '**/*.go'
-    - 'go.mod'
-    - 'go.sum'
-secrets:
-- id: SOURCE_REPO
-  value: {{ .SOURCE_REPO }}
-shell:
-  install:
-  - cd /src
-  - git clone --depth 1 --branch {{ $version }} $(cat /run/secrets/SOURCE_REPO)/chrony/chrony /src/chrony && rm -rf /src/chrony/.git
 ---
 image: {{ .ModuleName }}/build-chrony-static-artifact
 from: {{ index $.Images "builder/distroless" }}

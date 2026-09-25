@@ -8,6 +8,7 @@
   {{- end -}}
   {{- $image_version := $origVersion | replace "." "-" }}
   {{- if $value.clusterAutoscalerPatch }}
+    {{- $clusterAutoscalerVersion := $version }}
     {{- $patches := (printf "/%smodules/%s-%s/images/%s" $.ModulePath $.ModulePriority $.ModuleName $.ImageName) }}
     {{- $patch := false }}
     {{- range $path, $_ := $.Files.Glob (printf "%s/*" $patches) }}
@@ -20,23 +21,24 @@
 image: {{ $.ModuleName }}/{{ $.ImageName }}-{{ $image_version }}-src-artifact
 from: common/src-artifact
 final: false
-    {{- if $patch }}
 git:
+- url: {{ $.SOURCE_REPO }}/gardener/autoscaler.git
+  tag: v{{ $clusterAutoscalerVersion }}.{{ $value.clusterAutoscalerPatch }}
+  add: /
+  to: /tmp/autoscaler
+  stageDependencies:
+    install: ['**/*']
+    {{- if $patch }}
 - add: {{ $patches }}/patches/{{ $version }}
   to: /patches
   stageDependencies:
     install:
     - '**/*'
     {{- end }}
-secrets:
-- id: SOURCE_REPO
-  value: {{ $.SOURCE_REPO }}
 shell:
   install:
   - mkdir -p /tmp/autoscaler
   - cd /tmp/autoscaler
-    {{- $clusterAutoscalerVersion := $version }}
-  - git clone --depth 1 --branch v{{ $clusterAutoscalerVersion }}.{{ $value.clusterAutoscalerPatch }} $(cat /run/secrets/SOURCE_REPO)/gardener/autoscaler.git .
     {{- if $patch }}
   - git apply /patches/*.patch --verbose
     {{- end }}

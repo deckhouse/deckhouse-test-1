@@ -4,6 +4,12 @@ image: {{ .ModuleName }}/{{ .ImageName }}-src-artifact
 from: common/src-artifact
 final: false
 git:
+- url: {{ $.SOURCE_REPO }}/SuperQ/chrony_exporter.git
+  tag: v{{$chronyExproterVersion}}
+  add: /
+  to: /src/chrony_exporter
+  stageDependencies:
+    install: ['**/*']
 - add: /{{ .ModulePath }}modules/{{ .ModulePriority }}-{{ .ModuleName }}/images/{{ .ImageName }}/patches
   to: /patches
   includePaths:
@@ -11,16 +17,11 @@ git:
   stageDependencies:
     install:
     - '**/*.patch'
-secrets:
-- id: SOURCE_REPO
-  value: {{ .SOURCE_REPO }}
 shell:
   install:
   - cd /src
-  - git clone --depth 1 --branch v{{$chronyExproterVersion}} $(cat /run/secrets/SOURCE_REPO)/SuperQ/chrony_exporter.git chrony_exporter
   - cd /src/chrony_exporter
   - git apply /patches/chrony_exporter/*.patch --verbose
-  - rm -rf /src/chrony_exporter/.git
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}-artifact
 from: {{ index $.Images "builder/golang-alpine" }}

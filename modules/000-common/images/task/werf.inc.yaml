@@ -1,15 +1,18 @@
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}-src-artifact
+git:
+- url: {{ $.SOURCE_REPO }}/go-task/task
+  tag: v3.45.4
+  add: /
+  to: /src
+  stageDependencies:
+    install: ['**/*']
 from: common/src-artifact
 final: false
-secrets:
-- id: SOURCE_REPO
-  value: {{ .SOURCE_REPO }}
 shell:
   install:
   - cd /src
-  - git clone --depth 1 --branch v3.45.4 $(cat /run/secrets/SOURCE_REPO)/go-task/task .
-  - rm -rf .git website
+  - rm -rf website
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}-artifact
 from: {{ index $.Images "builder/golang" }}

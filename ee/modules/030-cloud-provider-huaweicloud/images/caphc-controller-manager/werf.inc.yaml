@@ -13,19 +13,25 @@ imageSpec:
     entrypoint: ["/caphc-controller-manager"]
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
+git:
+- url: {{ $.CLOUD_PROVIDERS_SOURCE_REPO }}/huaweicloud/caphc-controller-manager.git
+  tag: {{ $version }}
+  add: /
+  to: /src
+  stageDependencies:
+    install: ['**/*']
+- url: {{ $.CLOUD_PROVIDERS_SOURCE_REPO }}/huaweicloud/huaweicloud-common.git
+  tag: {{ $version_common }}
+  add: /
+  to: /src/huaweicloud-common
+  stageDependencies:
+    install: ['**/*']
 final: false
 from: common/src-artifact
-secrets:
-- id: CLOUD_PROVIDERS_SOURCE_REPO
-  value: {{ .CLOUD_PROVIDERS_SOURCE_REPO }}
 shell:
   install:
-  - git clone --depth 1 --branch {{ $version }} $(cat /run/secrets/CLOUD_PROVIDERS_SOURCE_REPO)/huaweicloud/caphc-controller-manager.git /src
-  - git clone --depth 1 --branch {{ $version_common }} $(cat /run/secrets/CLOUD_PROVIDERS_SOURCE_REPO)/huaweicloud/huaweicloud-common.git /src/huaweicloud-common
   - cd /src/huaweicloud-common
-  - rm -rf .git
   - cd /src
-  - rm -rf .git
   - sed -i -e 's# ../huaweicloud-common# /src/huaweicloud-common#g' go.mod
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}-artifact

@@ -4,21 +4,16 @@ image: {{ .ModuleName }}/{{ .ImageName }}-src-artifact
 from: common/src-artifact
 final: false
 git:
+- url: {{ $.SOURCE_REPO }}/netfilter/libmnl
+  tag: libmnl-1.0.5
+  add: /
+  to: /src/libmnl
+- url: {{ $.SOURCE_REPO }}/ethtool/ethtool.git
+  tag: v{{ $version }}
+  add: /
+  to: /src/ethtool
 - add: /{{ .ModulePath }}modules/{{ .ModulePriority }}-{{ .ModuleName }}/images/{{ .ImageName }}/src
   to: /src/vxlan-offloading-fixer
-  stageDependencies:
-    install:
-    - '**/*'
-secrets:
-- id: SOURCE_REPO
-  value: {{ .SOURCE_REPO }}
-shell:
-  install:
-  - cd /src
-  - git clone -b libmnl-1.0.5 --depth 1 $(cat /run/secrets/SOURCE_REPO)/netfilter/libmnl ./libmnl
-  - rm -r libmnl/.git
-  - git clone -b v{{ $version }} --depth 1 $(cat /run/secrets/SOURCE_REPO)/ethtool/ethtool.git ./ethtool
-  - rm -r ethtool/.git
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}-ethtool-artifact
 from: {{ index $.Images "builder/distroless" }}

@@ -5,21 +5,21 @@ image: {{ .ModuleName }}/{{ .ImageName }}-src-artifact
 from: common/src-artifact
 final: false
 git:
+- url: {{ .SOURCE_REPO }}/kubernetes-sigs/descheduler.git
+  tag: {{ $version }}
+  add: /
+  to: /src
+  stageDependencies:
+    install: ['**/*']
 - add: /{{ $.ModulePath }}modules/400-{{ $.ModuleName }}/images/{{ $.ImageName }}/patches
   to: /patches
   stageDependencies:
     install:
     - '**/*'
-secrets:
-- id: SOURCE_REPO
-  value: {{ .SOURCE_REPO }}
 shell:
   install:
-  - git clone $(cat /run/secrets/SOURCE_REPO)/kubernetes-sigs/descheduler.git /src
   - cd /src
-  - git checkout {{ $version }}
   - git apply /patches/*.patch --verbose
-  - rm -rf .git
 ---
 image: {{ .ModuleName }}/build-artifact
 final: false

@@ -36,6 +36,12 @@ image: {{ .ModuleName }}/{{ .ImageName }}-src-artifact
 final: false
 from: common/src-artifact
 git:
+- url: {{ .SOURCE_REPO }}/palark/ovpn-admin.git
+  commit: {{ $gitCommit }}
+  add: /
+  to: /src
+  stageDependencies:
+    install: ['**/*']
 - add: /{{ .ModulePath }}modules/{{ .ModulePriority }}-{{ .ModuleName }}/images/{{ .ImageName }}/patches
   to: /patches
   includePaths:
@@ -43,16 +49,10 @@ git:
   stageDependencies:
     install:
     - '**/*.patch'
-secrets:
-- id: SOURCE_REPO
-  value: {{ .SOURCE_REPO }}
 shell:
   install:
   - cd /src
-  - git clone $(cat /run/secrets/SOURCE_REPO)/palark/ovpn-admin.git .
-  - git checkout {{ $gitCommit }}
   - git apply /patches/*.patch --verbose
-  - rm -rf .git
   - echo {{ $gitCommit }} > version
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}-backend-artifact

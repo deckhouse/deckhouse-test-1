@@ -15,6 +15,12 @@ image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact-{{ $image_version }}
 final: false
 from: common/src-artifact
 git:
+- url: {{ $.SOURCE_REPO }}/kubernetes-sigs/cri-tools.git
+  tag: v{{ $full_version }}
+  add: /
+  to: /src/cri-tools
+  stageDependencies:
+    install: ['**/*']
 - add: /{{ $.ModulePath }}modules/{{ $.ModulePriority }}-{{ $.ModuleName }}/images/{{ $.ImageName }}/scripts
   to: /src/scripts
   stageDependencies:
@@ -27,17 +33,13 @@ git:
     install:
     - '**/*'
   {{- end }}
-secrets:
-- id: SOURCE_REPO
-  value: {{ $.SOURCE_REPO }}
 shell:
   install:
-  - git clone --depth 1 --branch v{{ $full_version }} $(cat /run/secrets/SOURCE_REPO)/kubernetes-sigs/cri-tools.git /src/cri-tools
   - cd /src/cri-tools
   {{- if $patch }}
   - git apply /patches/*.patch --verbose
   {{- end }}
-  - rm -rf hack/tools .git vendor
+  - rm -rf hack/tools vendor
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-{{ $image_version }}
 from: {{ index $.Images "builder/scratch" }}

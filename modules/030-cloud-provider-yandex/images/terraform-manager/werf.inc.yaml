@@ -30,20 +30,21 @@ image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
 final: false
 from: common/src-artifact
 git:
+- url: {{ $.SOURCE_REPO }}/yandex-cloud/terraform-provider-yandex.git
+  tag: v{{ $version }}
+  add: /
+  to: /src
+  stageDependencies:
+    install: ['**/*']
 - add: /{{ $.ModulePath }}modules/030-{{ $.ModuleName }}/images/{{ $.ImageName }}/patches
   to: /patches
   stageDependencies:
     install:
     - '**/*'
-secrets:
-- id: SOURCE_REPO
-  value: {{ .SOURCE_REPO }}
 shell:
   install:
-  - git clone --depth 1 --branch v{{ $version }} $(cat /run/secrets/SOURCE_REPO)/yandex-cloud/terraform-provider-yandex.git /src
   - cd /src
   - git apply /patches/*.patch --verbose
-  - rm -rf .git
 ---
 image: terraform-provider-yandex
 final: false

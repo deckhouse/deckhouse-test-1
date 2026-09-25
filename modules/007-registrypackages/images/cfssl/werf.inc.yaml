@@ -5,6 +5,12 @@ image: "{{ $.ModuleName }}/{{ $.ImageName }}-src-artifact-{{ $image_version }}"
 from: common/src-artifact
 final: false
 git:
+  - url: {{ $.SOURCE_REPO }}/cloudflare/cfssl.git
+    tag: v{{ $version }}
+    add: /
+    to: /src/cfssl
+    stageDependencies:
+      install: ['**/*']
   - add: /{{ $.ModulePath }}modules/{{ $.ModulePriority }}-{{ $.ModuleName }}/images/{{ $.ImageName }}/scripts
     to: /src/scripts
     stageDependencies:
@@ -15,17 +21,11 @@ git:
     stageDependencies:
       install:
         - '**/*'
-secrets:
-  - id: SOURCE_REPO
-    value: "{{ $.SOURCE_REPO }}"
 shell:
   install:
     - mkdir -m 1777 /src/tmp
     - chmod +x /src/scripts/*
-    - git config --global advice.detachedHead false
-    - git clone --depth 1 --single-branch --branch v{{ $version }} $(cat /run/secrets/SOURCE_REPO)/cloudflare/cfssl.git /src/cfssl
     - cd /src/cfssl && git apply /patches/*.patch --verbose
-    - rm -rf /src/cfssl/.git
 ---
 image: "{{ $.ModuleName }}/{{ $.ImageName }}-artifact-{{ $image_version }}"
 from: {{ index $.Images "builder/golang" }}

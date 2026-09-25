@@ -3,21 +3,22 @@ image: {{ .ModuleName }}/{{ .ImageName }}-src-artifact
 from: common/src-artifact
 final: false
 git:
+- url: {{ $.SOURCE_REPO }}/metallb/metallb.git
+  tag: v{{ include "get_oss_version_by_id" (list "metallb" $ ) }}
+  add: /
+  to: /src
+  stageDependencies:
+    install: ['**/*']
 - add: /{{ .ModulePath }}modules/380-{{ .ModuleName }}/images/{{ .ImageName }}/patches
   to: /patches
   stageDependencies:
     install:
     - '**/*'
-secrets:
-- id: SOURCE_REPO
-  value: {{ .SOURCE_REPO }}
 shell:
   install:
   - cd /src
-  - git clone -b v{{ include "get_oss_version_by_id" (list "metallb" $ ) }} $(cat /run/secrets/SOURCE_REPO)/metallb/metallb.git .
   - git apply /patches/*.patch --verbose --allow-empty
   - rm -rf e2etest website
-  - rm -rf /src/.git
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}-artifact
 from: {{ index $.Images "builder/golang" }}

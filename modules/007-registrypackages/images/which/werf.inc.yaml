@@ -25,18 +25,12 @@ image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact-{{ $image_version }}
 final: false
 from: common/src-artifact
 git:
+- url: {{ $.SOURCE_REPO }}/gnu/which.git
+  tag: v{{ $version }}
+  add: /
+  to: /src/which
 - add: /{{ $.ModulePath }}/modules/007-{{ $.ModuleName }}/images/{{ $.ImageName }}/scripts
   to: /src/scripts
-  stageDependencies:
-    install:
-    - '**/*'
-secrets:
-- id: SOURCE_REPO
-  value: {{ .SOURCE_REPO }}
-shell:
-  install:
-  - git clone -b v{{ $version }} --depth 1 $(cat /run/secrets/SOURCE_REPO)/gnu/which.git  /src/which
-  - rm -rf /src/which/.git
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact-{{ $image_version }}
 from: {{ index $.Images "builder/alpine" }}

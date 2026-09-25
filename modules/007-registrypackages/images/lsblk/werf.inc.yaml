@@ -25,18 +25,12 @@ image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact-{{ $image_version }}
 final: false
 from: common/src-artifact
 git:
+- url: {{ $.SOURCE_REPO }}/util-linux/util-linux.git
+  tag: v{{ $lsblk_version }}
+  add: /
+  to: /src/util-linux
 - add: /{{ $.ModulePath }}/modules/007-{{ $.ModuleName }}/images/{{ $.ImageName }}/scripts
   to: /src/scripts
-  stageDependencies:
-    install:
-    - '**/*'
-secrets:
-- id: SOURCE_REPO
-  value: {{ .SOURCE_REPO }}
-shell:
-  install:
-  - git clone -b v{{ $lsblk_version }} --depth 1 $(cat /run/secrets/SOURCE_REPO)/util-linux/util-linux.git  /src/util-linux
-  - rm -rf /src/util-linux/.git
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact-{{ $image_version }}
 from: {{ index $.Images "builder/golang-alpine" }}

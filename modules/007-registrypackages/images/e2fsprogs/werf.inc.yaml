@@ -5,18 +5,12 @@ image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact-{{ $image_version }}
 final: false
 from: common/src-artifact
 git:
+- url: {{ $.SOURCE_REPO }}/ext2/e2fsprogs.git
+  tag: v{{ $version }}
+  add: /
+  to: /src/e2fsprogs
 - add: /{{ .ModulePath }}/modules/{{ .ModulePriority }}-{{ .ModuleName }}/images/{{ .ImageName }}/scripts
   to: /src/scripts
-  stageDependencies:
-    install:
-    - '**/*'
-secrets:
-- id: SOURCE_REPO
-  value: {{ .SOURCE_REPO }}
-shell:
-  install:
-  - git clone -b v{{ $version }} --depth 1 $(cat /run/secrets/SOURCE_REPO)/ext2/e2fsprogs.git /src/e2fsprogs
-  - rm -rf /src/e2fsprogs/.git
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-{{ $image_version }}
 from: {{ index $.Images "builder/scratch" }}

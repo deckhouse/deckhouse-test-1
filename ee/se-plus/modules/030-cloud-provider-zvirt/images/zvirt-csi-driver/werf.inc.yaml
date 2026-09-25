@@ -38,26 +38,36 @@ image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
 final: false
 from: common/src-artifact
 git:
+- url: {{ $.SOURCE_REPO }}/openshift/ovirt-csi-driver.git
+  tag: {{ $version }}
+  add: /
+  to: /src
+  stageDependencies:
+    install: ['**/*']
+- url: {{ $.CLOUD_PROVIDERS_SOURCE_REPO }}/ovirt/go-ovirt
+  tag: {{ $go_ovirt_version }}
+  add: /
+  to: /src/go-ovirt
+  stageDependencies:
+    install: ['**/*']
+- url: {{ $.SOURCE_REPO }}/flant/go-ovirt-client.git
+  tag: {{ $go_ovirt_client_version }}
+  add: /
+  to: /src/go-ovirt-client
+  stageDependencies:
+    install: ['**/*']
 - add: /{{ $.ModulePath }}modules/{{ $.ModulePriority }}-{{ $.ModuleName }}/images/{{ $.ImageName }}/patches
   to: /patches
   stageDependencies:
     install:
     - '**/*'
-secrets:
-- id: SOURCE_REPO
-  value: {{ .SOURCE_REPO }}
-- id: CLOUD_PROVIDERS_SOURCE_REPO
-  value: {{ .CLOUD_PROVIDERS_SOURCE_REPO }}
 shell:
   install:
-  - git clone --depth 1 --branch {{ $version }} $(cat /run/secrets/SOURCE_REPO)/openshift/ovirt-csi-driver.git /src
-  - git clone --depth 1 --branch {{ $go_ovirt_version }} $(cat /run/secrets/CLOUD_PROVIDERS_SOURCE_REPO)/ovirt/go-ovirt /src/go-ovirt
-  - git clone --depth 1 --branch {{ $go_ovirt_client_version }} $(cat /run/secrets/SOURCE_REPO)/flant/go-ovirt-client.git /src/go-ovirt-client
   - cd /src
   - git apply /patches/*.patch --verbose
   - echo "replace github.com/ovirt/go-ovirt => /src/go-ovirt" >> go.mod
   - echo "replace github.com/ovirt/go-ovirt-client/v3 => /src/go-ovirt-client" >> go.mod
-  - rm -rf vendor .git
+  - rm -rf vendor
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact
 final: false

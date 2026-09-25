@@ -5,20 +5,22 @@ image: {{ .ModuleName }}/{{ .ImageName }}-src-artifact
 from: common/src-artifact
 final: false
 git:
+- url: {{ $.SOURCE_REPO }}/kubernetes-sigs/node-feature-discovery.git
+  tag: v{{ $version}}
+  add: /
+  to: /src/node-feature-discovery
+  stageDependencies:
+    install: ['**/*']
 - add: /{{ $.ModulePath }}modules/{{ $.ModulePriority }}-{{ $.ModuleName }}/images/{{ $.ImageName }}/patches
   to: /patches
   stageDependencies:
     install:
     - '**/*'
-secrets:
-- id: SOURCE_REPO
-  value: {{ .SOURCE_REPO }}
 shell:
   install:
-  - git clone --depth 1 --branch v{{ $version}} $(cat /run/secrets/SOURCE_REPO)/kubernetes-sigs/node-feature-discovery.git /src/node-feature-discovery
   - cd /src/node-feature-discovery
   - git apply /patches/*.patch --verbose
-  - rm -rf .git docs test
+  - rm -rf docs test
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}-build-artifact
 final: false

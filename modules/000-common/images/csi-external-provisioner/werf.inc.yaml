@@ -26,26 +26,27 @@ imageSpec:
 image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact-{{ $version | replace "." "-" }}
 from: common/src-artifact
 final: false
-    {{- if $patch }}
 git:
+- url: {{ $.SOURCE_REPO }}/kubernetes-csi/external-provisioner.git
+  tag: {{ $src_version }}
+  add: /
+  to: /src
+  stageDependencies:
+    install: ['**/*']
+    {{- if $patch }}
 - add: {{ $patches }}/patches/{{ $src_version }}
   to: /patches
   stageDependencies:
     install:
     - '**/*'
     {{- end }}
-secrets:
-- id: SOURCE_REPO
-  value: {{ $.SOURCE_REPO }}
 shell:
   install:
   - cd /src
-  - git clone --depth 1 --branch {{ $src_version }} $(cat /run/secrets/SOURCE_REPO)/kubernetes-csi/external-provisioner.git .
   {{- if $patch }}
   - git apply /patches/*.patch --verbose
   {{- end }}
   - rm -rf vendor
-  - rm -rf .git
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact-{{ $version | replace "." "-" }}
 from: {{ index $.Images "builder/golang" }}

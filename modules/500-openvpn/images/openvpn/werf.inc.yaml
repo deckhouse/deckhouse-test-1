@@ -21,25 +21,24 @@ image: {{ .ModuleName }}/{{ .ImageName }}-src-artifact
 final: false
 from: common/src-artifact
 git:
+- url: {{ $.SOURCE_REPO }}/openssl/openssl.git
+  tag: openssl-{{ include "get_oss_version_by_id" (list "openssl" $ ) }}
+  add: /
+  to: /src/openssl
+- url: {{ $.SOURCE_REPO }}/stevegrubb/libcap-ng.git
+  tag: v{{ include "get_oss_version_by_id" (list "libcapng" $ ) }}
+  add: /
+  to: /src/libcap-ng
+- url: {{ $.SOURCE_REPO }}/OpenVPN/openvpn.git
+  tag: v{{ include "get_oss_version_by_id" (list "openvpn" $ ) }}
+  add: /
+  to: /src/openvpn
 - add: /{{ .ModulePath }}modules/{{ .ModulePriority }}-{{ .ModuleName }}/images/{{ .ImageName }}/entrypoint
   to: /src/entrypoint
   includePaths:
   - '**/*.go'
   - '**/*.mod'
   - '**/*.sum'
-  stageDependencies:
-    install:
-    - '**/*.go'
-    - 'go.mod'
-    - 'go.sum'
-secrets:
-- id: SOURCE_REPO
-  value: {{ .SOURCE_REPO }}
-shell:
-  install:
-  - git clone --depth 1 -b openssl-{{ include "get_oss_version_by_id" (list "openssl" $ ) }} $(cat /run/secrets/SOURCE_REPO)/openssl/openssl.git /src/openssl && cd /src/openssl && rm -rf .git
-  - git clone --depth 1 -b v{{ include "get_oss_version_by_id" (list "libcapng" $ ) }} $(cat /run/secrets/SOURCE_REPO)/stevegrubb/libcap-ng.git /src/libcap-ng && cd /src/libcap-ng && rm -rf .git
-  - git clone --depth 1 -b v{{ include "get_oss_version_by_id" (list "openvpn" $ ) }} $(cat /run/secrets/SOURCE_REPO)/OpenVPN/openvpn.git /src/openvpn && cd /src/openvpn && rm -rf .git
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}-entrypoint-artifact
 final: false

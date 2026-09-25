@@ -33,21 +33,29 @@ imageSpec:
     entrypoint: ["/dynamix-csi-driver"]
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
+git:
+- url: {{ $.CLOUD_PROVIDERS_SOURCE_REPO }}/dynamix/dynamix-csi-driver.git
+  tag: {{ $version }}
+  add: /
+  to: /src
+  stageDependencies:
+    install: ['**/*']
+- url: {{ $.CLOUD_PROVIDERS_SOURCE_REPO }}/dynamix/dynamix-common.git
+  tag: {{ $version_common }}
+  add: /
+  to: /src/dynamix-common
+  stageDependencies:
+    install: ['**/*']
 final: false
 from: common/src-artifact
 fromCacheVersion: "2025-02-14.1"
-secrets:
-- id: CLOUD_PROVIDERS_SOURCE_REPO
-  value: {{ .CLOUD_PROVIDERS_SOURCE_REPO }}
 shell:
   install:
-  - git clone --depth 1 --branch {{ $version }} $(cat /run/secrets/CLOUD_PROVIDERS_SOURCE_REPO)/dynamix/dynamix-csi-driver.git /src
-  - git clone --depth 1 --branch {{ $version_common }} $(cat /run/secrets/CLOUD_PROVIDERS_SOURCE_REPO)/dynamix/dynamix-common.git /src/dynamix-common
   - cd /src
-  - rm -rf .git vendor
+  - rm -rf vendor
   - sed -i -e 's# ../../dynamix-common# /src/dynamix-common#g' go.mod
   - cd /src/dynamix-common
-  - rm -rf .git vendor
+  - rm -rf vendor
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact
 final: false

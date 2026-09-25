@@ -61,16 +61,19 @@ import:
   after: setup
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact-{{ $image_version }}
+git:
+- url: {{ $.SOURCE_REPO }}/NVIDIA/mig-parted.git
+  tag: v{{ $mig_manager_version }}
+  add: /
+  to: /src/mig-parted
+  stageDependencies:
+    install: ['**/*']
 from: common/src-artifact
 final: false
-secrets:
-- id: SOURCE_REPO
-  value: {{ $.SOURCE_REPO }}
 shell:
   install:
-  - git clone --depth 1 --branch v{{ $mig_manager_version }} $(cat /run/secrets/SOURCE_REPO)/NVIDIA/mig-parted.git /src/mig-parted
   - cd /src/mig-parted
-  - rm -rf .git hack deployments vendor
+  - rm -rf hack deployments vendor
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-build-artifact-{{ $image_version }}
 final: false

@@ -22,25 +22,31 @@ image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
 final: false
 from: common/src-artifact
 git:
+- url: {{ .SOURCE_REPO }}/flant/vsphere-csi-driver.git
+  commit: {{ $csi_commit }}
+  add: /
+  to: /src
+  stageDependencies:
+    install: ['**/*']
+- url: {{ .SOURCE_REPO }}/flant/cloud-provider-vsphere.git
+  tag: {{ $ccm_version }}
+  add: /
+  to: /src/ccm
+  stageDependencies:
+    install: ['**/*']
 - add: /{{ $.ModulePath }}modules/030-{{ $.ModuleName }}/images/{{ $.ImageName }}/patches
   to: /patches
   stageDependencies:
     install:
       - '**/*'
-secrets:
-- id: SOURCE_REPO
-  value: {{ .SOURCE_REPO }}
 shell:
   install:
-  - git clone $(cat /run/secrets/SOURCE_REPO)/flant/vsphere-csi-driver.git /src
-  - git clone --depth 1 --branch {{ $ccm_version }} $(cat /run/secrets/SOURCE_REPO)/flant/cloud-provider-vsphere.git /src/ccm
   - cd /src
-  - git checkout {{ $csi_commit }}
   - git apply /patches/csi/*.patch --verbose
-  - rm -rf .git vendor
+  - rm -rf vendor
   - cd /src/ccm
   - git apply /patches/ccm/*.patch --verbose
-  - rm -rf .git vendor
+  - rm -rf vendor
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-csi-artifact
 final: false

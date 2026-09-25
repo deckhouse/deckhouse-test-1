@@ -30,25 +30,26 @@ imageSpec:
 image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact-{{ $image_version }}
 final: false
 from: common/src-artifact
-{{- if $patch }}
 git:
+- url: {{ $.SOURCE_REPO }}/kubernetes/cloud-provider-openstack.git
+  tag: {{ $version }}
+  add: /
+  to: /src
+  stageDependencies:
+    install: ['**/*']
+{{- if $patch }}
 - add: {{ $patches }}/patches/{{ $k8s_version }}
   to: /patches
   stageDependencies:
     install:
       - '**/*'
 {{- end }}
-secrets:
-- id: SOURCE_REPO
-  value: {{ $.SOURCE_REPO }}
 shell:
   install:
-  - git clone --depth 1 --branch {{ $version }} $(cat /run/secrets/SOURCE_REPO)/kubernetes/cloud-provider-openstack.git /src
   - cd /src
   {{- if $patch }}
   - git apply /patches/*.patch --verbose
   {{- end }}
-  - rm -rf .git
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact-{{ $image_version }}
 final: false

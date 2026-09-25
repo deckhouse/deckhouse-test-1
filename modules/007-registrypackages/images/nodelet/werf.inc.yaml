@@ -10,22 +10,16 @@
 # it discovers there (systemd-dissect --list, see extensions/sysext.go), so an
 # image without one is merged and never takes effect.
 {{- if ne $.Env "CSE" }}
-  {{- /* Pinned by release tag: werf keys a shell-cloned source on the rendered
-         instructions alone, so a moving branch would be built once and cached
-         forever. Bump this line to pick up agent changes. */ -}}
   {{- $nodeletVersion := "v0.1.9" }}
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
 final: false
 from: common/src-artifact
-secrets:
-- id: DECKHOUSE_PRIVATE_REPO
-  value: {{ $.DECKHOUSE_PRIVATE_REPO }}
-shell:
-  install:
-  - git clone git@$(cat /run/secrets/DECKHOUSE_PRIVATE_REPO):deckhouse/container-base/nodelet.git /src
-  - git -C /src checkout {{ $nodeletVersion }}
-  - rm -rf /src/.git
+git:
+- url: git@{{ $.DECKHOUSE_PRIVATE_REPO }}:deckhouse/container-base/nodelet.git
+  tag: {{ $nodeletVersion }}
+  add: /
+  to: /src
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact
 final: false

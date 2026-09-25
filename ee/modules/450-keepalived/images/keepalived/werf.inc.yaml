@@ -1,14 +1,12 @@
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
+git:
+- url: {{ $.SOURCE_REPO }}/acassen/keepalived.git
+  tag: v{{ include "get_oss_version_by_id" (list "keepalived" $ ) }}
+  add: /
+  to: /src
 final: false
 from: common/src-artifact
-secrets:
-- id: SOURCE_REPO
-  value: {{ .SOURCE_REPO }}
-shell:
-  install:
-  - git clone --depth 1 -b v{{ include "get_oss_version_by_id" (list "keepalived" $ ) }} $(cat /run/secrets/SOURCE_REPO)/acassen/keepalived.git /src
-  - rm -rf /src/.git
 ---
 image: {{ .ModuleName }}/build-keepalived
 final: false

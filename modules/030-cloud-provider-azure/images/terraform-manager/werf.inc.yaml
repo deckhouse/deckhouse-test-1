@@ -20,22 +20,23 @@ image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
 final: false
 from: common/src-artifact
 git:
+- url: {{ $.SOURCE_REPO }}/hashicorp/terraform-provider-azurerm.git
+  tag: v{{ $version }}
+  add: /
+  to: /src
+  stageDependencies:
+    install: ['**/*']
 - add: /{{ $.ModulePath }}modules/030-{{ $.ModuleName }}/images/{{ $.ImageName }}/patches
   to: /patches
   stageDependencies:
     install:
     - '**/*'
-secrets:
-- id: SOURCE_REPO
-  value: {{ .SOURCE_REPO }}
 shell:
   install:
-  - git clone --depth 1 --branch v{{ $version }} $(cat /run/secrets/SOURCE_REPO)/hashicorp/terraform-provider-azurerm.git /src
   - cd /src
   - rm -rf vendor/
   - rm -rf examples/
   - git apply /patches/*.patch --verbose
-  - rm -rf .git
 ---
 image: terraform-provider-azure
 final: false

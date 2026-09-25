@@ -8,22 +8,20 @@ image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact-{{ $image_version }}
 final: false
 from: common/src-artifact
 git:
+- url: {{ $.SOURCE_REPO }}/netfilter/libmnl
+  tag: libmnl-{{ $libmnl_version }}
+  add: /
+  to: /src/libmnl
+- url: {{ $.SOURCE_REPO }}/netfilter/libnftnl
+  tag: libnftnl-{{ $libnftnl_version }}
+  add: /
+  to: /src/libnftnl
+- url: {{ $.SOURCE_REPO }}/netfilter/iptables
+  tag: v{{ $iptables_version }}
+  add: /
+  to: /src/iptables
 - add: /{{ $.ModulePath }}modules/007-{{ $.ModuleName }}/images/{{ $.ImageName }}/scripts
   to: /src/scripts
-  stageDependencies:
-    install:
-    - '**/*'
-secrets:
-- id: SOURCE_REPO
-  value: {{ .SOURCE_REPO }}
-shell:
-  install:
-  - git clone -b libmnl-{{ $libmnl_version }} --depth 1 $(cat /run/secrets/SOURCE_REPO)/netfilter/libmnl /src/libmnl
-  - rm -rf /src/libmnl/.git
-  - git clone -b libnftnl-{{ $libnftnl_version }} --depth 1  $(cat /run/secrets/SOURCE_REPO)/netfilter/libnftnl /src/libnftnl
-  - rm -rf /src/libnftnl/.git
-  - git clone -b v{{ $iptables_version }} --depth 1  $(cat /run/secrets/SOURCE_REPO)/netfilter/iptables /src/iptables
-  - rm -rf /src/iptables/.git
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-{{ $image_version }}
 from: {{ index $.Images "builder/scratch" }}

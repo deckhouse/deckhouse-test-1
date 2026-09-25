@@ -168,15 +168,13 @@ imageSpec:
     entrypoint: ["/usr/bin/tini", "--", "/shell-operator"]
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
+git:
+- url: {{ $.SOURCE_REPO }}/flant/shell-operator.git
+  tag: {{ $shellOperatorVersion }}
+  add: /
+  to: /src
 from: {{ index $.Images "builder/src" }}
 final: false
-secrets:
-- id: SOURCE_REPO
-  value: {{ .SOURCE_REPO }}
-shell:
-  install:
-  - git clone --branch {{ $shellOperatorVersion }} --depth 1 $(cat /run/secrets/SOURCE_REPO)/flant/shell-operator.git /src
-  - rm -r /src/.git
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact
 from: {{ index $.Images "builder/golang" }}

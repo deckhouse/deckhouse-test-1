@@ -12,16 +12,13 @@ imageSpec:
     entrypoint: ["/usr/local/bin/cloud-controller-manager"]
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
+git:
+- url: {{ $.SOURCE_REPO }}/deckhouse/yandex-cloud-controller-manager.git
+  tag: {{ $version }}
+  add: /
+  to: /src
 final: false
 from: common/src-artifact
-secrets:
-- id: SOURCE_REPO
-  value: {{ .SOURCE_REPO }}
-shell:
-  install:
-    - git clone --depth 1 --branch {{ $version }} $(cat /run/secrets/SOURCE_REPO)/deckhouse/yandex-cloud-controller-manager.git /src
-    - cd /src
-    - rm -rf .git
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact
 final: false

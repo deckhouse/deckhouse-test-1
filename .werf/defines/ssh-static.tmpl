@@ -7,15 +7,13 @@
 
 ---
 image: ssh-static-src-artifact
+git:
+- url: {{ $.SOURCE_REPO }}/openssh/openssh-portable
+  tag: V_9_9_P1
+  add: /
+  to: /src
 final: false
 from: common/src-artifact
-secrets:
-- id: SOURCE_REPO
-  value: {{ .SOURCE_REPO }}
-shell:
-  install:
-  - git clone -b V_9_9_P1 --single-branch --depth=1 $(cat /run/secrets/SOURCE_REPO)/openssh/openssh-portable /src
-  - rm -rf /src/.git
 ---
 image: ssh-static
 final: false
