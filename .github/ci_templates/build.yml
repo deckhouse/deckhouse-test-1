@@ -112,9 +112,6 @@ steps:
       WERF_DOCKER_REGISTRY_DEBUG: 1
       WERF_TELEMETRY: "1"
       WERF_TELEMETRY_EXTRA_ATTRIBUTE_TEAM: "flantTeam=deckhouse/deckhouse"
-{!{- if eq $buildType "dev" }!}
-      WERF_DISABLE_PUBLISH_TAG_CACHE_SYNC: 1
-{!{- end }!}
 {!{- if or (eq $buildType "dev") (eq $buildType "main") (eq $buildType "pre-release") }!}
       DECKHOUSE_DEV_REGISTRY_USER : ${{ steps.secrets.outputs.DECKHOUSE_DEV_REGISTRY_USER }}
       DECKHOUSE_DEV_REGISTRY_PASSWORD: ${{ steps.secrets.outputs.DECKHOUSE_DEV_REGISTRY_PASSWORD }}
