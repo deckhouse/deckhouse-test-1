@@ -39,7 +39,7 @@ final: false
 from: common/src-artifact
 git:
 - url: {{ $.SOURCE_REPO }}/openshift/ovirt-csi-driver.git
-  tag: {{ $version }}
+  branch: {{ $version }}
   add: /
   to: /src
   stageDependencies:
