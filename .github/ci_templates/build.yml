@@ -322,18 +322,53 @@ steps:
       if [[ "$GITHUB_REPOSITORY" == "deckhouse/deckhouse-test-1" && "${{ github.event.pull_request.number }}" == "779" ]]; then
         export WERF_LOG_DEBUG=1 WERF_DISABLE_AUTO_HOST_CLEANUP=1 WERF_CHECK_BUILT_IMAGES=1 GOTRACEBACK=all
         ulimit -c 0
-        werf_command=(timeout --signal=QUIT --kill-after=30s 12m werf)
-        echo "Diagnostic check: dump Go stacks after 12 minutes if werf is still running"
-        if command -v strace >/dev/null && [[ -z "${WERF_BUILDAH_MODE:-}" ]]; then
-          diagnostics_dir="$(mktemp -d /var/tmp/werf-ci-diagnostics.XXXXXX)"
-          chmod 755 "$diagnostics_dir"
-          touch "$diagnostics_dir/strace.log"
-          chmod 644 "$diagnostics_dir/strace.log"
-          echo "werf syscall trace: $diagnostics_dir/strace.log"
-          werf_command=(strace -f --seccomp-bpf -tt -T -e trace=connect,flock,wait4,waitid -o "$diagnostics_dir/strace.log" "${werf_command[@]}")
-        else
-          echo "::warning::Syscall tracing unavailable; continuing with werf debug logging only"
-        fi
+        werf_command=(timeout --signal=TERM --kill-after=30s 60m python3 -c '
+      import os, re, selectors, signal, subprocess, sys, time
+      # ponytail: count pinned to this PR tree; remeasure if images or build flags change.
+      expected_digests = 1122
+      marker = re.compile(rb"\xe2\x94\x94 Content-based tag stage \S+ digest [0-9a-f]+")
+      ansi = re.compile(rb"\x1b\[[0-9;]*m")
+      proc = subprocess.Popen(sys.argv[1:], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+      signal.signal(signal.SIGTERM, lambda number, frame: sys.exit(128 + number))
+      pending = b""
+      last_line = b""
+      completed = 0
+      last_output = time.monotonic()
+      dumped = None
+      try:
+          with selectors.DefaultSelector() as ready:
+              ready.register(proc.stdout, selectors.EVENT_READ)
+              while ready.get_map():
+                  for key, events in ready.select(1):
+                      chunk = os.read(key.fd, 65536)
+                      if not chunk:
+                          ready.unregister(key.fileobj)
+                          continue
+                      sys.stdout.buffer.write(chunk)
+                      sys.stdout.buffer.flush()
+                      last_output = time.monotonic()
+                      lines = (pending + chunk).split(b"\n")
+                      pending = lines.pop()
+                      for line in lines:
+                          clean = ansi.sub(b"", line).strip()
+                          if clean:
+                              last_line = clean
+                              if marker.search(clean):
+                                  completed += 1
+                  now = time.monotonic()
+                  if dumped is None and completed == expected_digests and marker.search(last_line) and not pending.strip() and now - last_output >= 120:
+                      print("Diagnostic: all expected anchor digests observed; 120s silence; requesting Go stacks", flush=True)
+                      proc.send_signal(signal.SIGQUIT)
+                      dumped = now
+                  elif dumped is not None and now - dumped >= 30 and proc.poll() is None:
+                      proc.kill()
+          result = proc.wait()
+      finally:
+          if proc.poll() is None:
+              proc.kill()
+          proc.wait()
+      sys.exit(result if result >= 0 else 128 - result)
+      ' werf)
       fi
       "${werf_command[@]}" build \
     {!{- else }!}
