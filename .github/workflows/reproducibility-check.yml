@@ -1240,7 +1240,21 @@ jobs:
           fi
 
           type werf && source $(werf ci-env github --verbose --as-file)
-          werf build \
+          werf_command=(werf)
+          if [[ "$GITHUB_REPOSITORY" == "deckhouse/deckhouse-test-1" && "${{ github.event.pull_request.number }}" == "779" ]]; then
+            export WERF_LOG_DEBUG=1 WERF_DISABLE_AUTO_HOST_CLEANUP=1
+            if command -v strace >/dev/null && [[ -z "${WERF_BUILDAH_MODE:-}" ]]; then
+              diagnostics_dir="$(mktemp -d /var/tmp/werf-ci-diagnostics.XXXXXX)"
+              chmod 755 "$diagnostics_dir"
+              touch "$diagnostics_dir/strace.log"
+              chmod 644 "$diagnostics_dir/strace.log"
+              echo "werf syscall trace: $diagnostics_dir/strace.log"
+              werf_command=(strace -f --seccomp-bpf -tt -T -e trace=connect,flock,wait4,waitid -o "$diagnostics_dir/strace.log" werf)
+            else
+              echo "::warning::Syscall tracing unavailable; continuing with werf debug logging only"
+            fi
+          fi
+          "${werf_command[@]}" build \
             --parallel=true --parallel-tasks-limit=5 \
             --save-build-report=true \
             --build-report-path images_tags_werf.json \
