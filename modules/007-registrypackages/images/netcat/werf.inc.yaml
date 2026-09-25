@@ -6,7 +6,7 @@ final: false
 from: common/src-artifact
 git:
 - url: {{ $.SOURCE_REPO }}/netcat
-  branch: applied/{{ $version }}
+  tag: applied/{{ $version }}
   add: /
   to: /src/netcat
 - add: /{{ $.ModulePath }}/modules/007-{{ $.ModuleName }}/images/{{ $.ImageName }}/scripts
