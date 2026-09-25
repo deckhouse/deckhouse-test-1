@@ -217,6 +217,7 @@ shell:
     build --config=release
     EOF
   - go mod download
+  - export BUILD_SCM_REVISION="{{ $istioVersion }}" BUILD_SCM_STATUS=Clean
   - bazel build //:envoy
   # done while ${BAZEL_OUTPUT_BASE} is still in scope - each werf stage is a
   # separate shell, so it is empty in setup
