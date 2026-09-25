@@ -105,17 +105,6 @@ steps:
   {!{/* `make generate` + drift check live in the dedicated `go_generate`
        job. werf builds committed content, so the generated-code guard does
        not need to run inside every build_* job. */}!}
-  {!{- if and (eq $buildType "dev") (eq $werfEnv "FE") }!}
-  - name: Download local-cache candidate
-    if: github.repository == 'deckhouse/deckhouse-test-1' && github.event.pull_request.number == 779
-    uses: {!{ index (ds "actions") "actions/download-artifact" }!}
-    with:
-      repository: deckhouse/delivery-kit
-      run-id: 36182283906
-      name: werf-test-binary
-      github-token: ${{ secrets.BOATSWAIN_GITHUB_TOKEN }}
-      path: ${{ runner.temp }}/werf-local-cache-candidate
-  {!{- end }!}
   - name: Build and push deckhouse images
     id: build
     env:
@@ -328,22 +317,7 @@ steps:
       fi
 
       type werf && source $(werf ci-env github --verbose --as-file)
-    {!{- if and (eq $buildType "dev") (eq $werfEnv "FE") }!}
-      werf_command=(werf)
-      if [[ "$GITHUB_REPOSITORY" == "deckhouse/deckhouse-test-1" && "${{ github.event.pull_request.number }}" == "779" ]]; then
-        candidate_dir="$RUNNER_TEMP/werf-local-cache-candidate"
-        echo "e2ecf88408bf39cf4e42cde07f3e16681e10b1945915452ffd4beefe676af6d6  $candidate_dir/werf-test-binary.tar" | sha256sum --check -
-        tar -xf "$candidate_dir/werf-test-binary.tar" -C "$candidate_dir"
-        chmod +x "$candidate_dir/werf"
-        echo "Using cache candidate from delivery-kit commit 5742c474c96f200c0b3e5ba89e1fec0688600fac"
-        "$candidate_dir/werf" version
-        export WERF_LOG_DEBUG=1 WERF_DISABLE_AUTO_HOST_CLEANUP=1
-        werf_command=("$candidate_dir/werf")
-      fi
-      "${werf_command[@]}" build \
-    {!{- else }!}
       werf build \
-    {!{- end }!}
         --parallel=true --parallel-tasks-limit=5 \
         --save-build-report=true \
         --build-report-path images_tags_werf.json \
