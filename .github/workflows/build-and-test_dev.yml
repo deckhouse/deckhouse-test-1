@@ -575,7 +575,7 @@ jobs:
         uses: actions/download-artifact@v4.1.8
         with:
           repository: deckhouse/delivery-kit
-          run-id: 36214170768
+          run-id: 36272613138
           name: werf-test-binary
           github-token: ${{ secrets.BOATSWAIN_GITHUB_TOKEN }}
           path: ${{ runner.temp }}/werf-local-cache-candidate
@@ -735,10 +735,10 @@ jobs:
           werf_command=(werf)
           if [[ "$GITHUB_REPOSITORY" == "deckhouse/deckhouse-test-1" && "${{ github.event.pull_request.number }}" == "779" ]]; then
             candidate_dir="$RUNNER_TEMP/werf-local-cache-candidate"
-            echo "fb0ee996e3d211f56d0b6b88e0287125e59d7f89dee7bf4850fd0f6c71516980  $candidate_dir/werf-test-binary.tar" | sha256sum --check -
+            echo "00f8b47ae349dd2a7567c9ff6028044812e1222e19fd58b0c2a2222849d23f80  $candidate_dir/werf-test-binary.tar" | sha256sum --check -
             tar -xf "$candidate_dir/werf-test-binary.tar" -C "$candidate_dir"
             chmod +x "$candidate_dir/werf"
-            echo "Using build-speedups candidate from delivery-kit commit 068422e7a"
+            echo "Using build-speedups candidate from delivery-kit commit 2b56ab4c6"
             "$candidate_dir/werf" version
             export WERF_LOG_DEBUG=1 WERF_DISABLE_AUTO_HOST_CLEANUP=1
             werf_command=("$candidate_dir/werf")
