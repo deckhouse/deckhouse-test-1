@@ -58,6 +58,8 @@ config:
       - FUZZ_TARGET
       - FUZZ_TIME
   stapel:
+    git:
+      allowBranch: true
     mount:
       allowBuildDir: true
       allowFromPaths:

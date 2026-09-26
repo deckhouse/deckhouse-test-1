@@ -1,9 +1,9 @@
 {{- $version := "v0.0.1-flant" }}
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}
-fromImage: common/distroless
+from: common/distroless
 import:
-  - image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact
+  - from: {{ $.ModuleName }}/{{ $.ImageName }}-artifact
     add: /zvirt-cloud-controller-manager
     to: /zvirt-cloud-controller-manager
     before: setup
@@ -13,8 +13,14 @@ imageSpec:
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
 final: false
-fromImage: common/src-artifact
+from: common/src-artifact
 git:
+  - url: {{ $.CLOUD_PROVIDERS_SOURCE_REPO }}/ovirt/go-ovirt
+    tag: {{ $version }}
+    add: /
+    to: /src/go-ovirt
+    stageDependencies:
+      install: ['**/*']
   - add: /{{ .ModulePath }}modules/{{ .ModulePriority }}-{{ .ModuleName }}/images/{{ .ImageName }}/src
     to:  /src
     excludePaths:
@@ -25,12 +31,8 @@ git:
         - go.mod
         - go.sum
         - "**/*.go"
-secrets:
-- id: CLOUD_PROVIDERS_SOURCE_REPO
-  value: {{ .CLOUD_PROVIDERS_SOURCE_REPO }}
 shell:
   install:
-    - git clone --depth 1 --branch {{ $version }} $(cat /run/secrets/CLOUD_PROVIDERS_SOURCE_REPO)/ovirt/go-ovirt /src/go-ovirt
     - cd /src
     - echo "replace github.com/ovirt/go-ovirt => /src/go-ovirt" >> go.mod
 ---
@@ -38,7 +40,7 @@ image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact
 final: false
 from: {{ index $.Images "builder/golang" }}
 import:
-  - image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
+  - from: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
     add: /src
     to: /src
     before: install

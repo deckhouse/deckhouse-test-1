@@ -2,13 +2,13 @@
 {{- $csi_commit := "6189afc2522d83a96d3857110c61478710110347" }}
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}
-fromImage: common/distroless
+from: common/distroless
 import:
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-csi-artifact
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-csi-artifact
   add: /src/vsphere-csi
   to: /bin/vsphere-csi
   before: setup
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-binaries-artifact
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-binaries-artifact
   add: /relocate
   to: /
   before: install
@@ -20,33 +20,39 @@ imageSpec:
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
 final: false
-fromImage: common/src-artifact
+from: common/src-artifact
 git:
+- url: {{ .SOURCE_REPO }}/flant/vsphere-csi-driver.git
+  commit: {{ $csi_commit }}
+  add: /
+  to: /src
+  stageDependencies:
+    install: ['**/*']
+- url: {{ .SOURCE_REPO }}/flant/cloud-provider-vsphere.git
+  tag: {{ $ccm_version }}
+  add: /
+  to: /src/ccm
+  stageDependencies:
+    install: ['**/*']
 - add: /{{ $.ModulePath }}modules/030-{{ $.ModuleName }}/images/{{ $.ImageName }}/patches
   to: /patches
   stageDependencies:
     install:
       - '**/*'
-secrets:
-- id: SOURCE_REPO
-  value: {{ .SOURCE_REPO }}
 shell:
   install:
-  - git clone $(cat /run/secrets/SOURCE_REPO)/flant/vsphere-csi-driver.git /src
-  - git clone --depth 1 --branch {{ $ccm_version }} $(cat /run/secrets/SOURCE_REPO)/flant/cloud-provider-vsphere.git /src/ccm
   - cd /src
-  - git checkout {{ $csi_commit }}
   - git apply /patches/csi/*.patch --verbose
-  - rm -rf .git vendor
+  - rm -rf vendor
   - cd /src/ccm
   - git apply /patches/ccm/*.patch --verbose
-  - rm -rf .git vendor
+  - rm -rf vendor
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-csi-artifact
 final: false
 from: {{ index $.Images "builder/golang" }}
 import:
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
   add: /src
   to: /src
   before: install
@@ -67,7 +73,7 @@ shell:
 {{- $csiBinaries := "/bin/chmod /bin/mount /bin/mkdir /bin/rmdir /bin/umount /bin/findmnt /bin/lsblk /sbin/badblocks /sbin/blockdev /sbin/blk* /sbin/btrfs* /sbin/dumpe2fs /sbin/e2* /sbin/findfs /sbin/fsck* /sbin/fsfreeze /sbin/fstrim /sbin/mke2fs /sbin/mkfs* /sbin/resize2fs /usr/sbin/parted /usr/sbin/xfs* /sbin/mount.nfs* /sbin/umount.nfs*" }}
 image: {{ $.ModuleName }}/{{ $.ImageName }}-binaries-artifact
 final: false
-fromImage: common/relocate-artifact
+from: common/relocate-artifact
 shell:
   beforeInstall:
   - apt-get update -y

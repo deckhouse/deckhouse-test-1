@@ -11,9 +11,9 @@
     {{- end }}
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-{{ $image_version }}
-fromImage: common/distroless
+from: common/distroless
 import:
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact-{{ $image_version }}
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-artifact-{{ $image_version }}
   add: /vsphere-cloud-controller-manager
   to: /bin/vsphere-cloud-controller-manager
   before: setup
@@ -22,33 +22,34 @@ imageSpec:
     entrypoint: ["/bin/vsphere-cloud-controller-manager"]
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact-{{ $image_version }}
-fromImage: common/src-artifact
+from: common/src-artifact
 final: false
-{{- if $patch }}
 git:
+- url: {{ $.SOURCE_REPO }}/kubernetes/cloud-provider-vsphere.git
+  tag: {{ $version }}
+  add: /
+  to: /src
+  stageDependencies:
+    install: ['**/*']
+{{- if $patch }}
 - add: {{ $patches }}/patches/{{ $k8s_version }}
   to: /patches
   stageDependencies:
     install:
       - '**/*'
 {{- end }}
-secrets:
-- id: SOURCE_REPO
-  value: {{ $.SOURCE_REPO }}
 shell:
   install:
-  - git clone --depth 1 --branch {{ $version }} $(cat /run/secrets/SOURCE_REPO)/kubernetes/cloud-provider-vsphere.git /src
   - cd /src
   {{- if $patch }}
   - git apply /patches/*.patch --verbose
   {{- end }}
-  - rm -rf .git
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact-{{ $image_version }}
 final: false
 from: {{ index $.Images "builder/golang" }}
 import:
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact-{{ $image_version }}
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact-{{ $image_version }}
   add: /src
   to: /src
   before: install

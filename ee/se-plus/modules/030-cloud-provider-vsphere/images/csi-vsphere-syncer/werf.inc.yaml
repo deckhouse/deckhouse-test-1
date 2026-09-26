@@ -11,9 +11,9 @@
       {{- if ne $.Env "CSE" }}
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-{{ $image_version }}
-fromImage: common/distroless
+from: common/distroless
 import:
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact-{{ $image_version }}
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-artifact-{{ $image_version }}
   add: /src/vsphere-syncer
   to: /bin/vsphere-syncer
   before: setup
@@ -22,35 +22,36 @@ imageSpec:
     entrypoint: ["/bin/vsphere-syncer"]
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact-{{ $image_version }}
-fromImage: common/src-artifact
+from: common/src-artifact
 final: false
-    {{- if $patch }}
 git:
+- url: {{ $.SOURCE_REPO }}/kubernetes-sigs/vsphere-csi-driver.git
+  tag: {{ $version }}
+  add: /
+  to: /src
+  stageDependencies:
+    install: ['**/*']
+    {{- if $patch }}
 - add: {{ $patches }}/patches/{{ $version }}
   to: /patches
   stageDependencies:
     install:
     - '**/*'
     {{- end }}
-secrets:
-- id: SOURCE_REPO
-  value: {{ $.SOURCE_REPO }}
 shell:
   install:
   - cd /src
-  - git clone --depth 1 --branch {{ $version }} $(cat /run/secrets/SOURCE_REPO)/kubernetes-sigs/vsphere-csi-driver.git  .
   {{- if $patch }}
   - git apply /patches/*.patch --verbose
   {{- end }}
   - sed -i '\#crypto/tls/fipsonly#d' pkg/syncer/admissionhandler/cnscsi_admissionhandler.go
   - rm -rf vendor
-  - rm -rf .git
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact-{{ $image_version }}
 from: {{ index $.Images "builder/golang" }}
 final: false
 import:
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact-{{ $image_version }}
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact-{{ $image_version }}
   add: /src
   to: /src
   before: install

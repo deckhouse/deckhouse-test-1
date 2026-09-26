@@ -2,9 +2,15 @@
 {{- $image_version := $version | replace "." "-" }}
 ---
 image: "{{ $.ModuleName }}/{{ $.ImageName }}-src-artifact-{{ $image_version }}"
-fromImage: common/src-artifact
+from: common/src-artifact
 final: false
 git:
+  - url: {{ $.SOURCE_REPO }}/cloudflare/cfssl.git
+    tag: v{{ $version }}
+    add: /
+    to: /src/cfssl
+    stageDependencies:
+      install: ['**/*']
   - add: /{{ $.ModulePath }}modules/{{ $.ModulePriority }}-{{ $.ModuleName }}/images/{{ $.ImageName }}/scripts
     to: /src/scripts
     stageDependencies:
@@ -15,23 +21,17 @@ git:
     stageDependencies:
       install:
         - '**/*'
-secrets:
-  - id: SOURCE_REPO
-    value: "{{ $.SOURCE_REPO }}"
 shell:
   install:
     - mkdir -m 1777 /src/tmp
     - chmod +x /src/scripts/*
-    - git config --global advice.detachedHead false
-    - git clone --depth 1 --single-branch --branch v{{ $version }} $(cat /run/secrets/SOURCE_REPO)/cloudflare/cfssl.git /src/cfssl
     - cd /src/cfssl && git apply /patches/*.patch --verbose
-    - rm -rf /src/cfssl/.git
 ---
 image: "{{ $.ModuleName }}/{{ $.ImageName }}-artifact-{{ $image_version }}"
 from: {{ index $.Images "builder/golang" }}
 final: false
 import:
-  - image: "{{ $.ModuleName }}/{{ $.ImageName }}-src-artifact-{{ $image_version }}"
+  - from: "{{ $.ModuleName }}/{{ $.ImageName }}-src-artifact-{{ $image_version }}"
     add: /src/cfssl
     before: install
 mount:
@@ -52,16 +52,16 @@ shell:
     - mv ./bin/* /
 ---
 image: "{{ $.ModuleName }}/{{ $.ImageName }}-{{ $image_version }}"
-fromImage: common/distroless
+from: common/distroless
 import:
-  - image: "{{ $.ModuleName }}/{{ $.ImageName }}-src-artifact-{{ $image_version }}"
+  - from: "{{ $.ModuleName }}/{{ $.ImageName }}-src-artifact-{{ $image_version }}"
     add: /src/scripts
     to: /
     includePaths:
     - install
     - uninstall
     before: setup
-  - image: "{{ $.ModuleName }}/{{ $.ImageName }}-artifact-{{ $image_version }}"
+  - from: "{{ $.ModuleName }}/{{ $.ImageName }}-artifact-{{ $image_version }}"
     add: /
     to: /
     includePaths:

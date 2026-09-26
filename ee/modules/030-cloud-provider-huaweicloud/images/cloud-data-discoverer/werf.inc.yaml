@@ -2,9 +2,9 @@
 {{- $version_common := "v0.8.2" }}
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}
-fromImage: common/distroless
+from: common/distroless
 import:
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-artifact
   add: /discoverer
   to: /discoverer
   before: setup
@@ -14,8 +14,20 @@ imageSpec:
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
 final: false
-fromImage: common/src-artifact
+from: common/src-artifact
 git:
+- url: {{ $.CLOUD_PROVIDERS_SOURCE_REPO }}/huaweicloud/cloud-data-discoverer.git
+  tag: {{ $version }}
+  add: /
+  to: /src
+  stageDependencies:
+    install: ['**/*']
+- url: {{ $.CLOUD_PROVIDERS_SOURCE_REPO }}/huaweicloud/huaweicloud-common.git
+  tag: {{ $version_common }}
+  add: /
+  to: /src/huaweicloud-common
+  stageDependencies:
+    install: ['**/*']
 - add: /go_lib/cloud-data
   to: /deckhouse/go_lib/cloud-data
   excludePaths:
@@ -36,28 +48,23 @@ git:
     - go.mod
     - go.sum
     - "**/*.go"
-secrets:
-- id: CLOUD_PROVIDERS_SOURCE_REPO
-  value: {{ .CLOUD_PROVIDERS_SOURCE_REPO }}
 shell:
   install:
-  - git clone --depth 1 --branch {{ $version }} $(cat /run/secrets/CLOUD_PROVIDERS_SOURCE_REPO)/huaweicloud/cloud-data-discoverer.git /src
-  - git clone --depth 1 --branch {{ $version_common }} $(cat /run/secrets/CLOUD_PROVIDERS_SOURCE_REPO)/huaweicloud/huaweicloud-common.git /src/huaweicloud-common
   - mv /deckhouse/go_lib /src
   - mv /deckhouse/pkg /src
   - cd /src
-  - rm -rf .git vendor
+  - rm -rf vendor
   - sed -i -e 's# ../huaweicloud-common# /src/huaweicloud-common#g' go.mod
   - sed -i -e 's# /deckhouse/go_lib/cloud-data# /src/go_lib/cloud-data#g' go.mod
   - sed -i -e 's# /deckhouse/pkg/log# /src/pkg/log#g' go.mod
   - cd /src/huaweicloud-common
-  - rm -rf .git vendor
+  - rm -rf vendor
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}-artifact
 final: false
 from: {{ index $.Images "builder/golang" }}
 import:
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
   add: /src
   to: /src
   before: install
