@@ -662,10 +662,6 @@ jobs:
           DEV_REGISTRY_PATH="${DECKHOUSE_DEV_REGISTRY_HOST}/${REGISTRY_PATH}"
           export REGISTRY_PATH="${DEV_REGISTRY_PATH}"
           export WERF_REPO="${DEV_REGISTRY_PATH}"
-          if [[ -f .ci-cold-measure ]]; then
-            # Diagnostic: fresh stages namespace to measure a cold build (marker file lives only on the measured branch).
-            export WERF_REPO="${WERF_REPO}/cold-measure"
-          fi
           if [[ "$(werf version)" =~ ^v?3\. ]]; then
             export WERF_META_REPO="${WERF_REPO}/meta"
           fi
@@ -1047,10 +1043,6 @@ jobs:
           DEV_REGISTRY_PATH="${DECKHOUSE_DEV_REGISTRY_HOST}/${REGISTRY_PATH}"
           export REGISTRY_PATH="${DEV_REGISTRY_PATH}"
           export WERF_REPO="${DEV_REGISTRY_PATH}"
-          if [[ -f .ci-cold-measure ]]; then
-            # Diagnostic: fresh stages namespace to measure a cold build (marker file lives only on the measured branch).
-            export WERF_REPO="${WERF_REPO}/cold-measure"
-          fi
           if [[ "$(werf version)" =~ ^v?3\. ]]; then
             export WERF_META_REPO="${WERF_REPO}/meta"
           fi
@@ -1708,10 +1700,6 @@ jobs:
           DEV_REGISTRY_PATH="${DECKHOUSE_DEV_REGISTRY_HOST}/${REGISTRY_PATH}"
           export REGISTRY_PATH="${DEV_REGISTRY_PATH}"
           export WERF_REPO="${DEV_REGISTRY_PATH}"
-          if [[ -f .ci-cold-measure ]]; then
-            # Diagnostic: fresh stages namespace to measure a cold build (marker file lives only on the measured branch).
-            export WERF_REPO="${WERF_REPO}/cold-measure"
-          fi
 
           # Determine image tag
           if [[ -n ${WERF_ENV} && ${WERF_ENV,,} != "fe" ]]; then
@@ -2126,10 +2114,6 @@ jobs:
           DEV_REGISTRY_PATH="${DECKHOUSE_DEV_REGISTRY_HOST}/${REGISTRY_PATH}"
           export REGISTRY_PATH="${DEV_REGISTRY_PATH}"
           export WERF_REPO="${DEV_REGISTRY_PATH}"
-          if [[ -f .ci-cold-measure ]]; then
-            # Diagnostic: fresh stages namespace to measure a cold build (marker file lives only on the measured branch).
-            export WERF_REPO="${WERF_REPO}/cold-measure"
-          fi
 
           # Determine image tag
           if [[ -n ${WERF_ENV} && ${WERF_ENV,,} != "fe" ]]; then
@@ -2544,10 +2528,6 @@ jobs:
           DEV_REGISTRY_PATH="${DECKHOUSE_DEV_REGISTRY_HOST}/${REGISTRY_PATH}"
           export REGISTRY_PATH="${DEV_REGISTRY_PATH}"
           export WERF_REPO="${DEV_REGISTRY_PATH}"
-          if [[ -f .ci-cold-measure ]]; then
-            # Diagnostic: fresh stages namespace to measure a cold build (marker file lives only on the measured branch).
-            export WERF_REPO="${WERF_REPO}/cold-measure"
-          fi
 
           # Determine image tag
           if [[ -n ${WERF_ENV} && ${WERF_ENV,,} != "fe" ]]; then
@@ -2962,10 +2942,6 @@ jobs:
           DEV_REGISTRY_PATH="${DECKHOUSE_DEV_REGISTRY_HOST}/${REGISTRY_PATH}"
           export REGISTRY_PATH="${DEV_REGISTRY_PATH}"
           export WERF_REPO="${DEV_REGISTRY_PATH}"
-          if [[ -f .ci-cold-measure ]]; then
-            # Diagnostic: fresh stages namespace to measure a cold build (marker file lives only on the measured branch).
-            export WERF_REPO="${WERF_REPO}/cold-measure"
-          fi
 
           # Determine image tag
           if [[ -n ${WERF_ENV} && ${WERF_ENV,,} != "fe" ]]; then
@@ -3380,10 +3356,6 @@ jobs:
           DEV_REGISTRY_PATH="${DECKHOUSE_DEV_REGISTRY_HOST}/${REGISTRY_PATH}"
           export REGISTRY_PATH="${DEV_REGISTRY_PATH}"
           export WERF_REPO="${DEV_REGISTRY_PATH}"
-          if [[ -f .ci-cold-measure ]]; then
-            # Diagnostic: fresh stages namespace to measure a cold build (marker file lives only on the measured branch).
-            export WERF_REPO="${WERF_REPO}/cold-measure"
-          fi
 
           # Determine image tag
           if [[ -n ${WERF_ENV} && ${WERF_ENV,,} != "fe" ]]; then
@@ -3798,10 +3770,6 @@ jobs:
           DEV_REGISTRY_PATH="${DECKHOUSE_DEV_REGISTRY_HOST}/${REGISTRY_PATH}"
           export REGISTRY_PATH="${DEV_REGISTRY_PATH}"
           export WERF_REPO="${DEV_REGISTRY_PATH}"
-          if [[ -f .ci-cold-measure ]]; then
-            # Diagnostic: fresh stages namespace to measure a cold build (marker file lives only on the measured branch).
-            export WERF_REPO="${WERF_REPO}/cold-measure"
-          fi
 
           # Determine image tag
           if [[ -n ${WERF_ENV} && ${WERF_ENV,,} != "fe" ]]; then
