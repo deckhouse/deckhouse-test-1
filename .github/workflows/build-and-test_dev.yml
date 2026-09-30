@@ -574,7 +574,6 @@ jobs:
       - name: Build and push deckhouse images
         id: build
         env:
-          WERF_EXPERIMENTAL_IMPORT_BY_SOURCE_IMAGE_TAG: 1
           WERF_DOCKER_REGISTRY_DEBUG: 1
           WERF_TELEMETRY: "1"
           WERF_TELEMETRY_EXTRA_ATTRIBUTE_TEAM: "flantTeam=deckhouse/deckhouse"
@@ -604,7 +603,6 @@ jobs:
           WERF_SIGN_MANIFEST: "1"
           WERF_ANNOTATE_LAYERS_WITH_DM_VERITY_ROOT_HASH: "1"
           WERF_VAULT_AUTH_PATH: "github"
-          WERF_ACTIONS_AUDIENCE: "github-access-aud"
           # Signing of the Olcedar sysext roothashes: which Vault role, and where it is
           # allowed. The list mirrors that role's bound_claims; elsewhere no token can be
           # obtained, so signing is skipped rather than failing the build.
@@ -995,7 +993,6 @@ jobs:
         id: build
         env:
           WERF_ENV: FE
-          WERF_EXPERIMENTAL_IMPORT_BY_SOURCE_IMAGE_TAG: 1
           WERF_DISABLE_PUBLISH_TAG_CACHE_SYNC: 1
           DECKHOUSE_DEV_REGISTRY_USER: ${{ steps.secrets.outputs.DECKHOUSE_DEV_REGISTRY_USER }}
           DECKHOUSE_DEV_REGISTRY_PASSWORD: ${{ steps.secrets.outputs.DECKHOUSE_DEV_REGISTRY_PASSWORD }}
@@ -1237,7 +1234,6 @@ jobs:
         env:
           # *-fuzz images are intermediate (final: false); ci-env may force FINAL_IMAGES_ONLY=true
           WERF_FINAL_IMAGES_ONLY: "false"
-          WERF_EXPERIMENTAL_IMPORT_BY_SOURCE_IMAGE_TAG: 1
           WERF_DISABLE_PUBLISH_TAG_CACHE_SYNC: 1
           DECKHOUSE_DEV_REGISTRY_USER: ${{ steps.secrets.outputs.DECKHOUSE_DEV_REGISTRY_USER }}
           DECKHOUSE_DEV_REGISTRY_PASSWORD: ${{ steps.secrets.outputs.DECKHOUSE_DEV_REGISTRY_PASSWORD }}
@@ -1281,7 +1277,7 @@ jobs:
           unset WERF_REPO
           echo "dev fuzz build: local only (no registry push, no build-report upload)"
 
-          FUZZ_IMAGES="$(werf config list --env "${WERF_ENV}" | grep -- '-fuzz$' || true)"
+          FUZZ_IMAGES="$(werf config list --final-images-only=false --env "${WERF_ENV}" | grep -- '-fuzz$' || true)"
           if [[ -z "${FUZZ_IMAGES}" ]]; then
             echo "No fuzz images found; skipping fuzz build"
             exit 0
@@ -1593,7 +1589,6 @@ jobs:
       - name: Build and push deckhouse images
         id: build
         env:
-          WERF_EXPERIMENTAL_IMPORT_BY_SOURCE_IMAGE_TAG: 1
           WERF_DOCKER_REGISTRY_DEBUG: 1
           WERF_TELEMETRY: "1"
           WERF_TELEMETRY_EXTRA_ATTRIBUTE_TEAM: "flantTeam=deckhouse/deckhouse"
@@ -1623,7 +1618,6 @@ jobs:
           WERF_SIGN_MANIFEST: "1"
           WERF_ANNOTATE_LAYERS_WITH_DM_VERITY_ROOT_HASH: "1"
           WERF_VAULT_AUTH_PATH: "github"
-          WERF_ACTIONS_AUDIENCE: "github-access-aud"
           # Signing of the Olcedar sysext roothashes: which Vault role, and where it is
           # allowed. The list mirrors that role's bound_claims; elsewhere no token can be
           # obtained, so signing is skipped rather than failing the build.
@@ -2007,7 +2001,6 @@ jobs:
       - name: Build and push deckhouse images
         id: build
         env:
-          WERF_EXPERIMENTAL_IMPORT_BY_SOURCE_IMAGE_TAG: 1
           WERF_DOCKER_REGISTRY_DEBUG: 1
           WERF_TELEMETRY: "1"
           WERF_TELEMETRY_EXTRA_ATTRIBUTE_TEAM: "flantTeam=deckhouse/deckhouse"
@@ -2037,7 +2030,6 @@ jobs:
           WERF_SIGN_MANIFEST: "1"
           WERF_ANNOTATE_LAYERS_WITH_DM_VERITY_ROOT_HASH: "1"
           WERF_VAULT_AUTH_PATH: "github"
-          WERF_ACTIONS_AUDIENCE: "github-access-aud"
           # Signing of the Olcedar sysext roothashes: which Vault role, and where it is
           # allowed. The list mirrors that role's bound_claims; elsewhere no token can be
           # obtained, so signing is skipped rather than failing the build.
@@ -2421,7 +2413,6 @@ jobs:
       - name: Build and push deckhouse images
         id: build
         env:
-          WERF_EXPERIMENTAL_IMPORT_BY_SOURCE_IMAGE_TAG: 1
           WERF_DOCKER_REGISTRY_DEBUG: 1
           WERF_TELEMETRY: "1"
           WERF_TELEMETRY_EXTRA_ATTRIBUTE_TEAM: "flantTeam=deckhouse/deckhouse"
@@ -2451,7 +2442,6 @@ jobs:
           WERF_SIGN_MANIFEST: "1"
           WERF_ANNOTATE_LAYERS_WITH_DM_VERITY_ROOT_HASH: "1"
           WERF_VAULT_AUTH_PATH: "github"
-          WERF_ACTIONS_AUDIENCE: "github-access-aud"
           # Signing of the Olcedar sysext roothashes: which Vault role, and where it is
           # allowed. The list mirrors that role's bound_claims; elsewhere no token can be
           # obtained, so signing is skipped rather than failing the build.
@@ -2835,7 +2825,6 @@ jobs:
       - name: Build and push deckhouse images
         id: build
         env:
-          WERF_EXPERIMENTAL_IMPORT_BY_SOURCE_IMAGE_TAG: 1
           WERF_DOCKER_REGISTRY_DEBUG: 1
           WERF_TELEMETRY: "1"
           WERF_TELEMETRY_EXTRA_ATTRIBUTE_TEAM: "flantTeam=deckhouse/deckhouse"
@@ -2865,7 +2854,6 @@ jobs:
           WERF_SIGN_MANIFEST: "1"
           WERF_ANNOTATE_LAYERS_WITH_DM_VERITY_ROOT_HASH: "1"
           WERF_VAULT_AUTH_PATH: "github"
-          WERF_ACTIONS_AUDIENCE: "github-access-aud"
           # Signing of the Olcedar sysext roothashes: which Vault role, and where it is
           # allowed. The list mirrors that role's bound_claims; elsewhere no token can be
           # obtained, so signing is skipped rather than failing the build.
@@ -3249,7 +3237,6 @@ jobs:
       - name: Build and push deckhouse images
         id: build
         env:
-          WERF_EXPERIMENTAL_IMPORT_BY_SOURCE_IMAGE_TAG: 1
           WERF_DOCKER_REGISTRY_DEBUG: 1
           WERF_TELEMETRY: "1"
           WERF_TELEMETRY_EXTRA_ATTRIBUTE_TEAM: "flantTeam=deckhouse/deckhouse"
@@ -3279,7 +3266,6 @@ jobs:
           WERF_SIGN_MANIFEST: "1"
           WERF_ANNOTATE_LAYERS_WITH_DM_VERITY_ROOT_HASH: "1"
           WERF_VAULT_AUTH_PATH: "github"
-          WERF_ACTIONS_AUDIENCE: "github-access-aud"
           # Signing of the Olcedar sysext roothashes: which Vault role, and where it is
           # allowed. The list mirrors that role's bound_claims; elsewhere no token can be
           # obtained, so signing is skipped rather than failing the build.
@@ -3663,7 +3649,6 @@ jobs:
       - name: Build and push deckhouse images
         id: build
         env:
-          WERF_EXPERIMENTAL_IMPORT_BY_SOURCE_IMAGE_TAG: 1
           WERF_DOCKER_REGISTRY_DEBUG: 1
           WERF_TELEMETRY: "1"
           WERF_TELEMETRY_EXTRA_ATTRIBUTE_TEAM: "flantTeam=deckhouse/deckhouse"
@@ -3693,7 +3678,6 @@ jobs:
           WERF_SIGN_MANIFEST: "1"
           WERF_ANNOTATE_LAYERS_WITH_DM_VERITY_ROOT_HASH: "1"
           WERF_VAULT_AUTH_PATH: "github"
-          WERF_ACTIONS_AUDIENCE: "github-access-aud"
           # Signing of the Olcedar sysext roothashes: which Vault role, and where it is
           # allowed. The list mirrors that role's bound_claims; elsewhere no token can be
           # obtained, so signing is skipped rather than failing the build.

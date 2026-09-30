@@ -451,7 +451,6 @@ jobs:
       - name: Build and push deckhouse images
         id: build
         env:
-          WERF_EXPERIMENTAL_IMPORT_BY_SOURCE_IMAGE_TAG: 1
           WERF_DOCKER_REGISTRY_DEBUG: 1
           WERF_TELEMETRY: "1"
           WERF_TELEMETRY_EXTRA_ATTRIBUTE_TEAM: "flantTeam=deckhouse/deckhouse"
@@ -485,7 +484,6 @@ jobs:
           WERF_SIGN_MANIFEST: "1"
           WERF_ANNOTATE_LAYERS_WITH_DM_VERITY_ROOT_HASH: "1"
           WERF_VAULT_AUTH_PATH: "github"
-          WERF_ACTIONS_AUDIENCE: "github-access-aud"
           # Signing of the Olcedar sysext roothashes: which Vault role, and where it is
           # allowed. The list mirrors that role's bound_claims; elsewhere no token can be
           # obtained, so signing is skipped rather than failing the build.
@@ -548,7 +546,6 @@ jobs:
           # The Git tag may contain a '+' sign, so use slugify for this situation.
           # Slugify doesn't change a tag with safe-only characters.
           IMAGE_TAG=$(werf slugify --format docker-tag "${CI_COMMIT_TAG}")
-          export WERF_DISABLE_META_TAGS=true
 
           # Check whether current DDK version supports signing
           sign_minimal_version="v2.71.0-dk"
@@ -891,7 +888,6 @@ jobs:
       - name: Build and push deckhouse images
         id: build
         env:
-          WERF_EXPERIMENTAL_IMPORT_BY_SOURCE_IMAGE_TAG: 1
           WERF_DOCKER_REGISTRY_DEBUG: 1
           WERF_TELEMETRY: "1"
           WERF_TELEMETRY_EXTRA_ATTRIBUTE_TEAM: "flantTeam=deckhouse/deckhouse"
@@ -925,7 +921,6 @@ jobs:
           WERF_SIGN_MANIFEST: "1"
           WERF_ANNOTATE_LAYERS_WITH_DM_VERITY_ROOT_HASH: "1"
           WERF_VAULT_AUTH_PATH: "github"
-          WERF_ACTIONS_AUDIENCE: "github-access-aud"
           # Signing of the Olcedar sysext roothashes: which Vault role, and where it is
           # allowed. The list mirrors that role's bound_claims; elsewhere no token can be
           # obtained, so signing is skipped rather than failing the build.
@@ -988,7 +983,6 @@ jobs:
           # The Git tag may contain a '+' sign, so use slugify for this situation.
           # Slugify doesn't change a tag with safe-only characters.
           IMAGE_TAG=$(werf slugify --format docker-tag "${CI_COMMIT_TAG}")
-          export WERF_DISABLE_META_TAGS=true
 
           # Check whether current DDK version supports signing
           sign_minimal_version="v2.71.0-dk"
@@ -1332,7 +1326,6 @@ jobs:
       - name: Build and push deckhouse images
         id: build
         env:
-          WERF_EXPERIMENTAL_IMPORT_BY_SOURCE_IMAGE_TAG: 1
           WERF_DOCKER_REGISTRY_DEBUG: 1
           WERF_TELEMETRY: "1"
           WERF_TELEMETRY_EXTRA_ATTRIBUTE_TEAM: "flantTeam=deckhouse/deckhouse"
@@ -1366,7 +1359,6 @@ jobs:
           WERF_SIGN_MANIFEST: "1"
           WERF_ANNOTATE_LAYERS_WITH_DM_VERITY_ROOT_HASH: "1"
           WERF_VAULT_AUTH_PATH: "github"
-          WERF_ACTIONS_AUDIENCE: "github-access-aud"
           # Signing of the Olcedar sysext roothashes: which Vault role, and where it is
           # allowed. The list mirrors that role's bound_claims; elsewhere no token can be
           # obtained, so signing is skipped rather than failing the build.
@@ -1429,7 +1421,6 @@ jobs:
           # The Git tag may contain a '+' sign, so use slugify for this situation.
           # Slugify doesn't change a tag with safe-only characters.
           IMAGE_TAG=$(werf slugify --format docker-tag "${CI_COMMIT_TAG}")
-          export WERF_DISABLE_META_TAGS=true
 
           # Check whether current DDK version supports signing
           sign_minimal_version="v2.71.0-dk"
@@ -1773,7 +1764,6 @@ jobs:
       - name: Build and push deckhouse images
         id: build
         env:
-          WERF_EXPERIMENTAL_IMPORT_BY_SOURCE_IMAGE_TAG: 1
           WERF_DOCKER_REGISTRY_DEBUG: 1
           WERF_TELEMETRY: "1"
           WERF_TELEMETRY_EXTRA_ATTRIBUTE_TEAM: "flantTeam=deckhouse/deckhouse"
@@ -1807,7 +1797,6 @@ jobs:
           WERF_SIGN_MANIFEST: "1"
           WERF_ANNOTATE_LAYERS_WITH_DM_VERITY_ROOT_HASH: "1"
           WERF_VAULT_AUTH_PATH: "github"
-          WERF_ACTIONS_AUDIENCE: "github-access-aud"
           # Signing of the Olcedar sysext roothashes: which Vault role, and where it is
           # allowed. The list mirrors that role's bound_claims; elsewhere no token can be
           # obtained, so signing is skipped rather than failing the build.
@@ -1870,7 +1859,6 @@ jobs:
           # The Git tag may contain a '+' sign, so use slugify for this situation.
           # Slugify doesn't change a tag with safe-only characters.
           IMAGE_TAG=$(werf slugify --format docker-tag "${CI_COMMIT_TAG}")
-          export WERF_DISABLE_META_TAGS=true
 
           # Check whether current DDK version supports signing
           sign_minimal_version="v2.71.0-dk"
@@ -2214,7 +2202,6 @@ jobs:
       - name: Build and push deckhouse images
         id: build
         env:
-          WERF_EXPERIMENTAL_IMPORT_BY_SOURCE_IMAGE_TAG: 1
           WERF_DOCKER_REGISTRY_DEBUG: 1
           WERF_TELEMETRY: "1"
           WERF_TELEMETRY_EXTRA_ATTRIBUTE_TEAM: "flantTeam=deckhouse/deckhouse"
@@ -2248,7 +2235,6 @@ jobs:
           WERF_SIGN_MANIFEST: "1"
           WERF_ANNOTATE_LAYERS_WITH_DM_VERITY_ROOT_HASH: "1"
           WERF_VAULT_AUTH_PATH: "github"
-          WERF_ACTIONS_AUDIENCE: "github-access-aud"
           # Signing of the Olcedar sysext roothashes: which Vault role, and where it is
           # allowed. The list mirrors that role's bound_claims; elsewhere no token can be
           # obtained, so signing is skipped rather than failing the build.
@@ -2311,7 +2297,6 @@ jobs:
           # The Git tag may contain a '+' sign, so use slugify for this situation.
           # Slugify doesn't change a tag with safe-only characters.
           IMAGE_TAG=$(werf slugify --format docker-tag "${CI_COMMIT_TAG}")
-          export WERF_DISABLE_META_TAGS=true
 
           # Check whether current DDK version supports signing
           sign_minimal_version="v2.71.0-dk"
@@ -2655,7 +2640,6 @@ jobs:
       - name: Build and push deckhouse images
         id: build
         env:
-          WERF_EXPERIMENTAL_IMPORT_BY_SOURCE_IMAGE_TAG: 1
           WERF_DOCKER_REGISTRY_DEBUG: 1
           WERF_TELEMETRY: "1"
           WERF_TELEMETRY_EXTRA_ATTRIBUTE_TEAM: "flantTeam=deckhouse/deckhouse"
@@ -2689,7 +2673,6 @@ jobs:
           WERF_SIGN_MANIFEST: "1"
           WERF_ANNOTATE_LAYERS_WITH_DM_VERITY_ROOT_HASH: "1"
           WERF_VAULT_AUTH_PATH: "github"
-          WERF_ACTIONS_AUDIENCE: "github-access-aud"
           # Signing of the Olcedar sysext roothashes: which Vault role, and where it is
           # allowed. The list mirrors that role's bound_claims; elsewhere no token can be
           # obtained, so signing is skipped rather than failing the build.
@@ -2752,7 +2735,6 @@ jobs:
           # The Git tag may contain a '+' sign, so use slugify for this situation.
           # Slugify doesn't change a tag with safe-only characters.
           IMAGE_TAG=$(werf slugify --format docker-tag "${CI_COMMIT_TAG}")
-          export WERF_DISABLE_META_TAGS=true
 
           # Check whether current DDK version supports signing
           sign_minimal_version="v2.71.0-dk"

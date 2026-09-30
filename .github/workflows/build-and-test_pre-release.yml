@@ -330,7 +330,6 @@ jobs:
       - name: Build and push deckhouse images
         id: build
         env:
-          WERF_EXPERIMENTAL_IMPORT_BY_SOURCE_IMAGE_TAG: 1
           WERF_DOCKER_REGISTRY_DEBUG: 1
           WERF_TELEMETRY: "1"
           WERF_TELEMETRY_EXTRA_ATTRIBUTE_TEAM: "flantTeam=deckhouse/deckhouse"
@@ -359,7 +358,6 @@ jobs:
           WERF_SIGN_MANIFEST: "1"
           WERF_ANNOTATE_LAYERS_WITH_DM_VERITY_ROOT_HASH: "1"
           WERF_VAULT_AUTH_PATH: "github"
-          WERF_ACTIONS_AUDIENCE: "github-access-aud"
           # Signing of the Olcedar sysext roothashes: which Vault role, and where it is
           # allowed. The list mirrors that role's bound_claims; elsewhere no token can be
           # obtained, so signing is skipped rather than failing the build.
@@ -418,7 +416,6 @@ jobs:
             IMAGE_EDITION=${WERF_ENV,,}
           fi
           IMAGE_TAG=${CI_COMMIT_REF_SLUG}${IMAGE_EDITION:+-${IMAGE_EDITION}}${REPO_SUFFIX:+-${REPO_SUFFIX}}
-          export WERF_DISABLE_META_TAGS=true
 
           # Check whether current DDK version supports signing
           sign_minimal_version="v2.71.0-dk"
@@ -731,7 +728,6 @@ jobs:
         id: build
         env:
           WERF_ENV: FE
-          WERF_EXPERIMENTAL_IMPORT_BY_SOURCE_IMAGE_TAG: 1
           WERF_DISABLE_PUBLISH_TAG_CACHE_SYNC: 1
           DECKHOUSE_DEV_REGISTRY_USER: ${{ steps.secrets.outputs.DECKHOUSE_DEV_REGISTRY_USER }}
           DECKHOUSE_DEV_REGISTRY_PASSWORD: ${{ steps.secrets.outputs.DECKHOUSE_DEV_REGISTRY_PASSWORD }}
@@ -1081,7 +1077,6 @@ jobs:
       - name: Build and push deckhouse images
         id: build
         env:
-          WERF_EXPERIMENTAL_IMPORT_BY_SOURCE_IMAGE_TAG: 1
           WERF_DOCKER_REGISTRY_DEBUG: 1
           WERF_TELEMETRY: "1"
           WERF_TELEMETRY_EXTRA_ATTRIBUTE_TEAM: "flantTeam=deckhouse/deckhouse"
@@ -1110,7 +1105,6 @@ jobs:
           WERF_SIGN_MANIFEST: "1"
           WERF_ANNOTATE_LAYERS_WITH_DM_VERITY_ROOT_HASH: "1"
           WERF_VAULT_AUTH_PATH: "github"
-          WERF_ACTIONS_AUDIENCE: "github-access-aud"
           # Signing of the Olcedar sysext roothashes: which Vault role, and where it is
           # allowed. The list mirrors that role's bound_claims; elsewhere no token can be
           # obtained, so signing is skipped rather than failing the build.
@@ -1169,7 +1163,6 @@ jobs:
             IMAGE_EDITION=${WERF_ENV,,}
           fi
           IMAGE_TAG=${CI_COMMIT_REF_SLUG}${IMAGE_EDITION:+-${IMAGE_EDITION}}${REPO_SUFFIX:+-${REPO_SUFFIX}}
-          export WERF_DISABLE_META_TAGS=true
 
           # Check whether current DDK version supports signing
           sign_minimal_version="v2.71.0-dk"
@@ -1503,7 +1496,6 @@ jobs:
       - name: Build and push deckhouse images
         id: build
         env:
-          WERF_EXPERIMENTAL_IMPORT_BY_SOURCE_IMAGE_TAG: 1
           WERF_DOCKER_REGISTRY_DEBUG: 1
           WERF_TELEMETRY: "1"
           WERF_TELEMETRY_EXTRA_ATTRIBUTE_TEAM: "flantTeam=deckhouse/deckhouse"
@@ -1532,7 +1524,6 @@ jobs:
           WERF_SIGN_MANIFEST: "1"
           WERF_ANNOTATE_LAYERS_WITH_DM_VERITY_ROOT_HASH: "1"
           WERF_VAULT_AUTH_PATH: "github"
-          WERF_ACTIONS_AUDIENCE: "github-access-aud"
           # Signing of the Olcedar sysext roothashes: which Vault role, and where it is
           # allowed. The list mirrors that role's bound_claims; elsewhere no token can be
           # obtained, so signing is skipped rather than failing the build.
@@ -1591,7 +1582,6 @@ jobs:
             IMAGE_EDITION=${WERF_ENV,,}
           fi
           IMAGE_TAG=${CI_COMMIT_REF_SLUG}${IMAGE_EDITION:+-${IMAGE_EDITION}}${REPO_SUFFIX:+-${REPO_SUFFIX}}
-          export WERF_DISABLE_META_TAGS=true
 
           # Check whether current DDK version supports signing
           sign_minimal_version="v2.71.0-dk"
@@ -1925,7 +1915,6 @@ jobs:
       - name: Build and push deckhouse images
         id: build
         env:
-          WERF_EXPERIMENTAL_IMPORT_BY_SOURCE_IMAGE_TAG: 1
           WERF_DOCKER_REGISTRY_DEBUG: 1
           WERF_TELEMETRY: "1"
           WERF_TELEMETRY_EXTRA_ATTRIBUTE_TEAM: "flantTeam=deckhouse/deckhouse"
@@ -1954,7 +1943,6 @@ jobs:
           WERF_SIGN_MANIFEST: "1"
           WERF_ANNOTATE_LAYERS_WITH_DM_VERITY_ROOT_HASH: "1"
           WERF_VAULT_AUTH_PATH: "github"
-          WERF_ACTIONS_AUDIENCE: "github-access-aud"
           # Signing of the Olcedar sysext roothashes: which Vault role, and where it is
           # allowed. The list mirrors that role's bound_claims; elsewhere no token can be
           # obtained, so signing is skipped rather than failing the build.
@@ -2013,7 +2001,6 @@ jobs:
             IMAGE_EDITION=${WERF_ENV,,}
           fi
           IMAGE_TAG=${CI_COMMIT_REF_SLUG}${IMAGE_EDITION:+-${IMAGE_EDITION}}${REPO_SUFFIX:+-${REPO_SUFFIX}}
-          export WERF_DISABLE_META_TAGS=true
 
           # Check whether current DDK version supports signing
           sign_minimal_version="v2.71.0-dk"
@@ -2347,7 +2334,6 @@ jobs:
       - name: Build and push deckhouse images
         id: build
         env:
-          WERF_EXPERIMENTAL_IMPORT_BY_SOURCE_IMAGE_TAG: 1
           WERF_DOCKER_REGISTRY_DEBUG: 1
           WERF_TELEMETRY: "1"
           WERF_TELEMETRY_EXTRA_ATTRIBUTE_TEAM: "flantTeam=deckhouse/deckhouse"
@@ -2376,7 +2362,6 @@ jobs:
           WERF_SIGN_MANIFEST: "1"
           WERF_ANNOTATE_LAYERS_WITH_DM_VERITY_ROOT_HASH: "1"
           WERF_VAULT_AUTH_PATH: "github"
-          WERF_ACTIONS_AUDIENCE: "github-access-aud"
           # Signing of the Olcedar sysext roothashes: which Vault role, and where it is
           # allowed. The list mirrors that role's bound_claims; elsewhere no token can be
           # obtained, so signing is skipped rather than failing the build.
@@ -2435,7 +2420,6 @@ jobs:
             IMAGE_EDITION=${WERF_ENV,,}
           fi
           IMAGE_TAG=${CI_COMMIT_REF_SLUG}${IMAGE_EDITION:+-${IMAGE_EDITION}}${REPO_SUFFIX:+-${REPO_SUFFIX}}
-          export WERF_DISABLE_META_TAGS=true
 
           # Check whether current DDK version supports signing
           sign_minimal_version="v2.71.0-dk"
@@ -2769,7 +2753,6 @@ jobs:
       - name: Build and push deckhouse images
         id: build
         env:
-          WERF_EXPERIMENTAL_IMPORT_BY_SOURCE_IMAGE_TAG: 1
           WERF_DOCKER_REGISTRY_DEBUG: 1
           WERF_TELEMETRY: "1"
           WERF_TELEMETRY_EXTRA_ATTRIBUTE_TEAM: "flantTeam=deckhouse/deckhouse"
@@ -2798,7 +2781,6 @@ jobs:
           WERF_SIGN_MANIFEST: "1"
           WERF_ANNOTATE_LAYERS_WITH_DM_VERITY_ROOT_HASH: "1"
           WERF_VAULT_AUTH_PATH: "github"
-          WERF_ACTIONS_AUDIENCE: "github-access-aud"
           # Signing of the Olcedar sysext roothashes: which Vault role, and where it is
           # allowed. The list mirrors that role's bound_claims; elsewhere no token can be
           # obtained, so signing is skipped rather than failing the build.
@@ -2857,7 +2839,6 @@ jobs:
             IMAGE_EDITION=${WERF_ENV,,}
           fi
           IMAGE_TAG=${CI_COMMIT_REF_SLUG}${IMAGE_EDITION:+-${IMAGE_EDITION}}${REPO_SUFFIX:+-${REPO_SUFFIX}}
-          export WERF_DISABLE_META_TAGS=true
 
           # Check whether current DDK version supports signing
           sign_minimal_version="v2.71.0-dk"
@@ -3191,7 +3172,6 @@ jobs:
       - name: Build and push deckhouse images
         id: build
         env:
-          WERF_EXPERIMENTAL_IMPORT_BY_SOURCE_IMAGE_TAG: 1
           WERF_DOCKER_REGISTRY_DEBUG: 1
           WERF_TELEMETRY: "1"
           WERF_TELEMETRY_EXTRA_ATTRIBUTE_TEAM: "flantTeam=deckhouse/deckhouse"
@@ -3220,7 +3200,6 @@ jobs:
           WERF_SIGN_MANIFEST: "1"
           WERF_ANNOTATE_LAYERS_WITH_DM_VERITY_ROOT_HASH: "1"
           WERF_VAULT_AUTH_PATH: "github"
-          WERF_ACTIONS_AUDIENCE: "github-access-aud"
           # Signing of the Olcedar sysext roothashes: which Vault role, and where it is
           # allowed. The list mirrors that role's bound_claims; elsewhere no token can be
           # obtained, so signing is skipped rather than failing the build.
@@ -3279,7 +3258,6 @@ jobs:
             IMAGE_EDITION=${WERF_ENV,,}
           fi
           IMAGE_TAG=${CI_COMMIT_REF_SLUG}${IMAGE_EDITION:+-${IMAGE_EDITION}}${REPO_SUFFIX:+-${REPO_SUFFIX}}
-          export WERF_DISABLE_META_TAGS=true
 
           # Check whether current DDK version supports signing
           sign_minimal_version="v2.71.0-dk"

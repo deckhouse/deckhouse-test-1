@@ -39,9 +39,6 @@
       if [[ "${BUILD_MODE}" == "dev" ]]; then
         export WERF_DISABLE_PUBLISH_TAG_CACHE_SYNC=1
       fi
-      if [[ "${BUILD_MODE}" == "release" || "${BUILD_MODE}" == "pre-release" ]]; then
-        export WERF_DISABLE_META_TAGS=true
-      fi
 
       # --- signing (same roles/paths as GitHub build; JWT from GitLab id_token) ---
       if [[ "${BUILD_MODE}" == "release" ]]; then

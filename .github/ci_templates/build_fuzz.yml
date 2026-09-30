@@ -56,7 +56,6 @@ steps:
     env:
       # *-fuzz images are intermediate (final: false); ci-env may force FINAL_IMAGES_ONLY=true
       WERF_FINAL_IMAGES_ONLY: "false"
-      WERF_EXPERIMENTAL_IMPORT_BY_SOURCE_IMAGE_TAG: 1
       WERF_DISABLE_PUBLISH_TAG_CACHE_SYNC: 1
       DECKHOUSE_DEV_REGISTRY_USER: ${{ steps.secrets.outputs.DECKHOUSE_DEV_REGISTRY_USER }}
       DECKHOUSE_DEV_REGISTRY_PASSWORD: ${{ steps.secrets.outputs.DECKHOUSE_DEV_REGISTRY_PASSWORD }}
@@ -117,7 +116,7 @@ steps:
       echo "main fuzz build: push to ${WERF_REPO}"
 {!{- end }!}
 
-      FUZZ_IMAGES="$(werf config list --env "${WERF_ENV}" | grep -- '-fuzz$' || true)"
+      FUZZ_IMAGES="$(werf config list --final-images-only=false --env "${WERF_ENV}" | grep -- '-fuzz$' || true)"
       if [[ -z "${FUZZ_IMAGES}" ]]; then
         echo "No fuzz images found; skipping fuzz build"
         exit 0
