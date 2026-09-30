@@ -105,6 +105,20 @@ steps:
   {!{/* `make generate` + drift check live in the dedicated `go_generate`
        job. werf builds committed content, so the generated-code guard does
        not need to run inside every build_* job. */}!}
+  {!{- if and (eq $buildType "dev") (eq $werfEnv "FE") }!}
+  - name: Download upstream-main candidate
+    if: github.repository == 'deckhouse/deckhouse-test-1' && github.event.pull_request.number == 779
+    env:
+      GH_TOKEN: ${{ secrets.BOATSWAIN_GITHUB_TOKEN }}
+    run: |
+      candidate_dir="$RUNNER_TEMP/werf-upstream-main-candidate"
+      mkdir -p "$candidate_dir"
+      curl --fail --location --silent --show-error \
+        --header "Authorization: Bearer $GH_TOKEN" \
+        --header "Accept: application/octet-stream" \
+        --output "$candidate_dir/werf-test-binary.tar.gz" \
+        https://api.github.com/repos/deckhouse/delivery-kit/releases/assets/601361775
+  {!{- end }!}
   - name: Build and push deckhouse images
     id: build
     env:
@@ -317,7 +331,23 @@ steps:
       fi
 
       type werf && source $(werf ci-env github --verbose --as-file)
+    {!{- if and (eq $buildType "dev") (eq $werfEnv "FE") }!}
+      werf_command=(werf)
+      if [[ "$GITHUB_REPOSITORY" == "deckhouse/deckhouse-test-1" && "${{ github.event.pull_request.number }}" == "779" ]]; then
+        candidate_dir="$RUNNER_TEMP/werf-upstream-main-candidate"
+        echo "f23a9b5a391f7d3d8ab235fcaf03cc61d4e593b31a6d0df54307be787a506db3  $candidate_dir/werf-test-binary.tar.gz" | sha256sum --check -
+        tar -xzf "$candidate_dir/werf-test-binary.tar.gz" -C "$candidate_dir"
+        chmod +x "$candidate_dir/werf"
+        echo "Using upstream-main candidate from delivery-kit commit c05aff40a69826bd12f1b325af832bda218bb15b"
+        sha256sum "$candidate_dir/werf"
+        "$candidate_dir/werf" version
+        export WERF_LOG_DEBUG=1 WERF_DISABLE_AUTO_HOST_CLEANUP=1
+        werf_command=("$candidate_dir/werf")
+      fi
+      "${werf_command[@]}" build \
+    {!{- else }!}
       werf build \
+    {!{- end }!}
         --parallel=true --parallel-tasks-limit=5 \
         --save-build-report=true \
         --build-report-path images_tags_werf.json \
