@@ -36,6 +36,7 @@ env:
   # Need for ssh: default.
   DOCKER_BUILDKIT: "1"
   WERF_FINAL_IMAGES_ONLY: true
+  WERF_BUILD_REPORT_OPERATIONS: "true"
   WERF_LOG_TERMINAL_WIDTH: "200"
   WERF_LOG_TIME: true
   WERF_GIT_WORK_TREE_POOL_LIMIT: "10"
@@ -622,10 +623,10 @@ jobs:
           #
           # There are 2 modes: "dev" and "release".
           # The "dev" mode builds branches only:
-          # - Build using dev-registry as primary and deckhouse registry as secondary.
+          # - Build using dev-registry.
           # - Push dev and dev/install images with prNUM tags and push to dev-registry.
           # The "release" mode builds branches and tags:
-          # - Build using deckhouse registry as final and dev-registry as primary.
+          # - Build using the edition repository in the stage registry.
           # - Push dev and dev/install images to dev-registry with tag equal to a branch name (main or release-X.Y).
           # - Push dev, dev/install and release-channel-version images to deckhouse registry with tag equels to a Git tag.
 
@@ -654,9 +655,7 @@ jobs:
           DEV_REGISTRY_PATH="${DECKHOUSE_DEV_REGISTRY_HOST}/${REGISTRY_PATH}"
           export REGISTRY_PATH="${DEV_REGISTRY_PATH}"
           export WERF_REPO="${DEV_REGISTRY_PATH}"
-          if [[ "$(werf version)" =~ ^v?3\. ]]; then
-            export WERF_META_REPO="${WERF_REPO}/meta"
-          fi
+          export WERF_META_REPO="${WERF_REPO}/meta"
 
           # Determine image tag
           if [[ -n ${WERF_ENV} && ${WERF_ENV,,} != "fe" ]]; then
@@ -772,8 +771,6 @@ jobs:
           # Filter out data from build report
           egrep -v '(DockerRepo|DockerImageName)' images_tags_werf.json > images_tags_werf_filtered.json
           mv images_tags_werf_filtered.json images_tags_werf.json
-
-
 
       - name: Save build report
         if: ${{ always() && (steps.build.outcome == 'success' || steps.build.outcome == 'failure') }}
@@ -1024,9 +1021,7 @@ jobs:
           DEV_REGISTRY_PATH="${DECKHOUSE_DEV_REGISTRY_HOST}/${REGISTRY_PATH}"
           export REGISTRY_PATH="${DEV_REGISTRY_PATH}"
           export WERF_REPO="${DEV_REGISTRY_PATH}"
-          if [[ "$(werf version)" =~ ^v?3\. ]]; then
-            export WERF_META_REPO="${WERF_REPO}/meta"
-          fi
+          export WERF_META_REPO="${WERF_REPO}/meta"
 
           # Statisctics added since werf 2.78.1
           werf_major="$(werf version | cut -d. -f1)"
@@ -1265,8 +1260,7 @@ jobs:
 
           type werf && source "$(werf ci-env github --as-file)"
 
-          # ci-env re-exports FINAL_IMAGES_ONLY=true from werf_envs.yml — drop it for *-fuzz
-          unset WERF_FINAL_IMAGES_ONLY
+          export WERF_FINAL_IMAGES_ONLY=false
 
           if [[ -z "${FUZZ_S3_ENDPOINT:-}" || -z "${FUZZ_S3_ACCESS_KEY:-}" || -z "${FUZZ_S3_SECRET_KEY:-}" ]]; then
             echo "Fuzz S3 secrets are not set (required for in-image corpus sync)"
@@ -1283,11 +1277,9 @@ jobs:
           fi
           echo "Corpus replay path prefix: anomaloys-materials/${FUZZ_S3_REPOSITORY}/${FUZZ_S3_BRANCH_SLUG}/"
           # PR/dev: build locally, do not push fuzz images; no build-report upload
-          DEV_REGISTRY_PATH="${DECKHOUSE_DEV_REGISTRY_HOST}/${REGISTRY_PATH}"
           export WERF_PROJECT_NAME="deckhouse-fuzz-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
-          export WERF_SECONDARY_REPO_1="${DEV_REGISTRY_PATH}"
           unset WERF_REPO
-          echo "dev fuzz build: local only, cache from ${WERF_SECONDARY_REPO_1} (no registry push, no build-report upload)"
+          echo "dev fuzz build: local only (no registry push, no build-report upload)"
 
           FUZZ_IMAGES="$(werf config list --env "${WERF_ENV}" | grep -- '-fuzz$' || true)"
           if [[ -z "${FUZZ_IMAGES}" ]]; then
@@ -1650,10 +1642,10 @@ jobs:
           #
           # There are 2 modes: "dev" and "release".
           # The "dev" mode builds branches only:
-          # - Build using dev-registry as primary and deckhouse registry as secondary.
+          # - Build using dev-registry.
           # - Push dev and dev/install images with prNUM tags and push to dev-registry.
           # The "release" mode builds branches and tags:
-          # - Build using deckhouse registry as final and dev-registry as primary.
+          # - Build using the edition repository in the stage registry.
           # - Push dev and dev/install images to dev-registry with tag equal to a branch name (main or release-X.Y).
           # - Push dev, dev/install and release-channel-version images to deckhouse registry with tag equels to a Git tag.
 
@@ -1682,6 +1674,7 @@ jobs:
           DEV_REGISTRY_PATH="${DECKHOUSE_DEV_REGISTRY_HOST}/${REGISTRY_PATH}"
           export REGISTRY_PATH="${DEV_REGISTRY_PATH}"
           export WERF_REPO="${DEV_REGISTRY_PATH}"
+          export WERF_META_REPO="${WERF_REPO}/meta"
 
           # Determine image tag
           if [[ -n ${WERF_ENV} && ${WERF_ENV,,} != "fe" ]]; then
@@ -1797,8 +1790,6 @@ jobs:
           # Filter out data from build report
           egrep -v '(DockerRepo|DockerImageName)' images_tags_werf.json > images_tags_werf_filtered.json
           mv images_tags_werf_filtered.json images_tags_werf.json
-
-
 
       - name: Save build report
         if: ${{ always() && (steps.build.outcome == 'success' || steps.build.outcome == 'failure') }}
@@ -2065,10 +2056,10 @@ jobs:
           #
           # There are 2 modes: "dev" and "release".
           # The "dev" mode builds branches only:
-          # - Build using dev-registry as primary and deckhouse registry as secondary.
+          # - Build using dev-registry.
           # - Push dev and dev/install images with prNUM tags and push to dev-registry.
           # The "release" mode builds branches and tags:
-          # - Build using deckhouse registry as final and dev-registry as primary.
+          # - Build using the edition repository in the stage registry.
           # - Push dev and dev/install images to dev-registry with tag equal to a branch name (main or release-X.Y).
           # - Push dev, dev/install and release-channel-version images to deckhouse registry with tag equels to a Git tag.
 
@@ -2097,6 +2088,7 @@ jobs:
           DEV_REGISTRY_PATH="${DECKHOUSE_DEV_REGISTRY_HOST}/${REGISTRY_PATH}"
           export REGISTRY_PATH="${DEV_REGISTRY_PATH}"
           export WERF_REPO="${DEV_REGISTRY_PATH}"
+          export WERF_META_REPO="${WERF_REPO}/meta"
 
           # Determine image tag
           if [[ -n ${WERF_ENV} && ${WERF_ENV,,} != "fe" ]]; then
@@ -2212,8 +2204,6 @@ jobs:
           # Filter out data from build report
           egrep -v '(DockerRepo|DockerImageName)' images_tags_werf.json > images_tags_werf_filtered.json
           mv images_tags_werf_filtered.json images_tags_werf.json
-
-
 
       - name: Save build report
         if: ${{ always() && (steps.build.outcome == 'success' || steps.build.outcome == 'failure') }}
@@ -2480,10 +2470,10 @@ jobs:
           #
           # There are 2 modes: "dev" and "release".
           # The "dev" mode builds branches only:
-          # - Build using dev-registry as primary and deckhouse registry as secondary.
+          # - Build using dev-registry.
           # - Push dev and dev/install images with prNUM tags and push to dev-registry.
           # The "release" mode builds branches and tags:
-          # - Build using deckhouse registry as final and dev-registry as primary.
+          # - Build using the edition repository in the stage registry.
           # - Push dev and dev/install images to dev-registry with tag equal to a branch name (main or release-X.Y).
           # - Push dev, dev/install and release-channel-version images to deckhouse registry with tag equels to a Git tag.
 
@@ -2512,6 +2502,7 @@ jobs:
           DEV_REGISTRY_PATH="${DECKHOUSE_DEV_REGISTRY_HOST}/${REGISTRY_PATH}"
           export REGISTRY_PATH="${DEV_REGISTRY_PATH}"
           export WERF_REPO="${DEV_REGISTRY_PATH}"
+          export WERF_META_REPO="${WERF_REPO}/meta"
 
           # Determine image tag
           if [[ -n ${WERF_ENV} && ${WERF_ENV,,} != "fe" ]]; then
@@ -2627,8 +2618,6 @@ jobs:
           # Filter out data from build report
           egrep -v '(DockerRepo|DockerImageName)' images_tags_werf.json > images_tags_werf_filtered.json
           mv images_tags_werf_filtered.json images_tags_werf.json
-
-
 
       - name: Save build report
         if: ${{ always() && (steps.build.outcome == 'success' || steps.build.outcome == 'failure') }}
@@ -2895,10 +2884,10 @@ jobs:
           #
           # There are 2 modes: "dev" and "release".
           # The "dev" mode builds branches only:
-          # - Build using dev-registry as primary and deckhouse registry as secondary.
+          # - Build using dev-registry.
           # - Push dev and dev/install images with prNUM tags and push to dev-registry.
           # The "release" mode builds branches and tags:
-          # - Build using deckhouse registry as final and dev-registry as primary.
+          # - Build using the edition repository in the stage registry.
           # - Push dev and dev/install images to dev-registry with tag equal to a branch name (main or release-X.Y).
           # - Push dev, dev/install and release-channel-version images to deckhouse registry with tag equels to a Git tag.
 
@@ -2927,6 +2916,7 @@ jobs:
           DEV_REGISTRY_PATH="${DECKHOUSE_DEV_REGISTRY_HOST}/${REGISTRY_PATH}"
           export REGISTRY_PATH="${DEV_REGISTRY_PATH}"
           export WERF_REPO="${DEV_REGISTRY_PATH}"
+          export WERF_META_REPO="${WERF_REPO}/meta"
 
           # Determine image tag
           if [[ -n ${WERF_ENV} && ${WERF_ENV,,} != "fe" ]]; then
@@ -3042,8 +3032,6 @@ jobs:
           # Filter out data from build report
           egrep -v '(DockerRepo|DockerImageName)' images_tags_werf.json > images_tags_werf_filtered.json
           mv images_tags_werf_filtered.json images_tags_werf.json
-
-
 
       - name: Save build report
         if: ${{ always() && (steps.build.outcome == 'success' || steps.build.outcome == 'failure') }}
@@ -3310,10 +3298,10 @@ jobs:
           #
           # There are 2 modes: "dev" and "release".
           # The "dev" mode builds branches only:
-          # - Build using dev-registry as primary and deckhouse registry as secondary.
+          # - Build using dev-registry.
           # - Push dev and dev/install images with prNUM tags and push to dev-registry.
           # The "release" mode builds branches and tags:
-          # - Build using deckhouse registry as final and dev-registry as primary.
+          # - Build using the edition repository in the stage registry.
           # - Push dev and dev/install images to dev-registry with tag equal to a branch name (main or release-X.Y).
           # - Push dev, dev/install and release-channel-version images to deckhouse registry with tag equels to a Git tag.
 
@@ -3342,6 +3330,7 @@ jobs:
           DEV_REGISTRY_PATH="${DECKHOUSE_DEV_REGISTRY_HOST}/${REGISTRY_PATH}"
           export REGISTRY_PATH="${DEV_REGISTRY_PATH}"
           export WERF_REPO="${DEV_REGISTRY_PATH}"
+          export WERF_META_REPO="${WERF_REPO}/meta"
 
           # Determine image tag
           if [[ -n ${WERF_ENV} && ${WERF_ENV,,} != "fe" ]]; then
@@ -3457,8 +3446,6 @@ jobs:
           # Filter out data from build report
           egrep -v '(DockerRepo|DockerImageName)' images_tags_werf.json > images_tags_werf_filtered.json
           mv images_tags_werf_filtered.json images_tags_werf.json
-
-
 
       - name: Save build report
         if: ${{ always() && (steps.build.outcome == 'success' || steps.build.outcome == 'failure') }}
@@ -3725,10 +3712,10 @@ jobs:
           #
           # There are 2 modes: "dev" and "release".
           # The "dev" mode builds branches only:
-          # - Build using dev-registry as primary and deckhouse registry as secondary.
+          # - Build using dev-registry.
           # - Push dev and dev/install images with prNUM tags and push to dev-registry.
           # The "release" mode builds branches and tags:
-          # - Build using deckhouse registry as final and dev-registry as primary.
+          # - Build using the edition repository in the stage registry.
           # - Push dev and dev/install images to dev-registry with tag equal to a branch name (main or release-X.Y).
           # - Push dev, dev/install and release-channel-version images to deckhouse registry with tag equels to a Git tag.
 
@@ -3757,6 +3744,7 @@ jobs:
           DEV_REGISTRY_PATH="${DECKHOUSE_DEV_REGISTRY_HOST}/${REGISTRY_PATH}"
           export REGISTRY_PATH="${DEV_REGISTRY_PATH}"
           export WERF_REPO="${DEV_REGISTRY_PATH}"
+          export WERF_META_REPO="${WERF_REPO}/meta"
 
           # Determine image tag
           if [[ -n ${WERF_ENV} && ${WERF_ENV,,} != "fe" ]]; then
@@ -3871,8 +3859,6 @@ jobs:
           # Filter out data from build report
           egrep -v '(DockerRepo|DockerImageName)' images_tags_werf.json > images_tags_werf_filtered.json
           mv images_tags_werf_filtered.json images_tags_werf.json
-
-
 
       - name: Save build report
         if: ${{ always() && (steps.build.outcome == 'success' || steps.build.outcome == 'failure') }}
