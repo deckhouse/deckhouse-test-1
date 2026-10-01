@@ -37,7 +37,7 @@ final: false
 from: {{ index $.Images "builder/distroless" }}
 packages:
 - type: os-pm
-  spec: [bash, coreutils, yodl, make, autoconf, automake, gnu-gcc, gnu-glibc-devel, binutils, perl, m4, sed, grep, gawk, findutils, diffutils]
+  spec: [bash, coreutils, make, autoconf, automake, gnu-gcc, gnu-glibc-devel, binutils, perl, m4, sed, grep, gawk, findutils, diffutils]
 import:
 - from: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact-{{ $image_version }}
   add: /src
@@ -48,7 +48,8 @@ shell:
     - cd /src/socat
     - autoconf
     - CC='/usr/bin/gcc -static' CFLAGS="-fPIC" CPPFLAGS="-I/build -DNETDB_INTERNAL=-1" ./configure
-    - make
+    # default target also builds man pages with yodl, which pm does not ship
+    - make socat
     - strip ./socat
     - mv ./socat /socat
     - mv /src/scripts/* /

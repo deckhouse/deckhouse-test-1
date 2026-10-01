@@ -5,7 +5,7 @@ final: false
 from: {{ index $.Images "builder/distroless" }}
 packages:
 - type: os-pm
-  spec: [bash, coreutils, ca-certificates, wget, unzip, tar, git, python==3.12.12, jq, curl, gettext]
+  spec: [bash, coreutils, ca-certificates, unzip, tar, git, python==3.12.12, jq, curl, gettext]
 shell:
   install:
   - ln -sf /usr/bin/pip3 /usr/bin/pip

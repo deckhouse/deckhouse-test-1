@@ -41,7 +41,7 @@ final: false
 from: {{ index $.Images "builder/distroless" }}
 packages:
 - type: os-pm
-  spec: [bash, coreutils, gnu-gcc, gnu-glibc-devel, linux-headers, meson, ninja, python, pkgconf, git, sed, grep, gawk, binutils]
+  spec: [bash, coreutils, gnu-gcc, gnu-glibc-devel, linux-headers, meson, ninja-build, python, pkgconf, git, sed, grep, gawk, binutils]
 import:
 - from: {{ .ModuleName }}/{{ .ImageName }}-src-artifact-{{ $image_version }}
   add: /src
