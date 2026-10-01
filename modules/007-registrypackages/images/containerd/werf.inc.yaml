@@ -77,7 +77,7 @@ from: {{ index $.Images "builder/distroless" }}
 final: false
 packages:
 - type: os-pm
-  spec: [bash, coreutils, golang, git, make, pkgconf, libseccomp-devel, gnu-gcc, gnu-glibc-devel, binutils, sed, grep, gawk, findutils, svace, ssh-static, rsync]
+  spec: [bash, coreutils, golang, git, make, pkgconf, libseccomp-devel, gnu-gcc-devel, gnu-glibc-devel, binutils, sed, grep, gawk, findutils, svace, ssh-static, rsync]
 - type: go-mod
   workdir: /src
   env:
@@ -208,7 +208,7 @@ from: {{ index $.Images "builder/distroless" }}
 final: false
 packages:
 - type: os-pm
-  spec: [bash, coreutils, golang, git, make, pkgconf, libseccomp-devel, gnu-gcc, gnu-glibc-devel, binutils, sed, grep, gawk, findutils, svace, ssh-static, rsync]
+  spec: [bash, coreutils, golang, git, make, pkgconf, libseccomp-devel, gnu-gcc-devel, gnu-glibc-devel, binutils, sed, grep, gawk, findutils, svace, ssh-static, rsync]
 - type: go-mod
   workdir: /src/containerd
   env:
@@ -262,7 +262,7 @@ from: {{ index $.Images "builder/distroless" }}
 final: false
 packages:
 - type: os-pm
-  spec: [bash, coreutils, golang, git, gnu-gcc, gnu-glibc-devel, binutils, svace, ssh-static, rsync]
+  spec: [bash, coreutils, golang, git, gnu-gcc-devel, gnu-glibc-devel, binutils, svace, ssh-static, rsync]
 - type: go-mod
   workdir: /src
   env:

@@ -39,7 +39,7 @@ final: false
 from: {{ index $.Images "builder/distroless" }}
 packages:
 - type: os-pm
-  spec: [bash, golang, git, ssh-static, make, coreutils, findutils, file, jq, pkgconf, gnu-gcc, gnu-glibc-devel, elfutils-devel, openssl-devel, libuv-devel, zstd-devel, btrfs-progs-devel, binutils, sed, grep, gawk]
+  spec: [bash, golang, git, ssh-static, make, coreutils, findutils, file, jq, pkgconf, gnu-gcc-devel, gnu-glibc-devel, elfutils-devel, openssl-devel, libuv-devel, zstd-devel, btrfs-progs-devel, binutils, sed, grep, gawk]
 - type: go-mod
   workdir: /src/deckhouse-cli
   env:

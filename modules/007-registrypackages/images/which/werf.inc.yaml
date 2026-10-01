@@ -37,7 +37,7 @@ from: {{ index $.Images "builder/distroless" }}
 final: false
 packages:
 - type: os-pm
-  spec: [bash, coreutils, make, gnu-gcc, gnu-glibc-devel, binutils, sed, grep, gawk, diffutils]
+  spec: [bash, coreutils, make, gnu-gcc-devel, gnu-glibc-devel, binutils, sed, grep, gawk, diffutils]
 mount:
 {{ include "mount points for golang builds" . }}
 import:

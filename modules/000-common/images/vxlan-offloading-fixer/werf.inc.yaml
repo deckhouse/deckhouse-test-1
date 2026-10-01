@@ -30,7 +30,7 @@ mount:
 {{ include "mount points for golang builds" . }}
 packages:
 - type: os-pm
-  spec: [autoconf, m4, automake, libtool, gnu-gcc, binutils, gnu-glibc-devel, libgcc-static, make, linux-headers, pkgconf, bash, coreutils, sed, grep, gawk, findutils, perl]
+  spec: [autoconf, m4, automake, libtool, gnu-gcc-devel, binutils, gnu-glibc-devel, libgcc-static, make, linux-headers, pkgconf, bash, coreutils, sed, grep, gawk, findutils, perl]
 shell:
   setup:
   - export PKG_CONFIG_PATH=/opt/deckhouse/bin/.libs/pkgconfig

@@ -35,7 +35,7 @@ secrets:
   value: {{ .GOPROXY }}
 packages:
 - type: os-pm
-  spec: [golang, gnu-gcc, binutils, gnu-glibc-devel, make, git, bash, coreutils, sed]
+  spec: [golang, gnu-gcc-devel, binutils, gnu-glibc-devel, make, git, bash, coreutils, sed]
 - type: go-mod
   workdir: /src
   env:

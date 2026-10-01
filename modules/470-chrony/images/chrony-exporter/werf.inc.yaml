@@ -33,7 +33,7 @@ from: {{ index $.Images "builder/distroless" }}
 final: false
 packages:
 - type: os-pm
-  spec: [golang==1.26.8, git, coreutils, gnu-gcc, binutils, gnu-glibc-devel, ldd, bash, gawk]
+  spec: [golang==1.26.8, git, coreutils, gnu-gcc-devel, binutils, gnu-glibc-devel, ldd, bash, gawk]
 - type: go-mod
   workdir: /chrony_exporter
   env:

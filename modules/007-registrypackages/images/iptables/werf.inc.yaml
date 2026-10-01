@@ -49,7 +49,7 @@ final: false
 from: {{ index $.Images "builder/distroless" }}
 packages:
 - type: os-pm
-  spec: [bash, coreutils, make, gettext, autoconf, automake, libtool, clang, gnu-gcc, gnu-glibc-devel, linux-headers, pkgconf, bison, flex, binutils, perl, sed, grep, gawk, findutils, diffutils]
+  spec: [bash, coreutils, make, gettext, autoconf, automake, libtool, clang, gnu-gcc-devel, gnu-glibc-devel, linux-headers, pkgconf, bison, flex, binutils, perl, sed, grep, gawk, findutils, diffutils]
 import:
 - from: {{ .ModuleName }}/{{ .ImageName }}-src-artifact-{{ $image_version }}
   add: /src

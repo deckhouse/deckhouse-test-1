@@ -27,7 +27,7 @@ from: {{ index $.Images "builder/distroless" }}
 final: false
 packages:
 - type: os-pm
-  spec: [gnu-gcc, binutils, gnu-glibc-devel, libgcc-static, bash, coreutils]
+  spec: [gnu-gcc-devel, binutils, gnu-glibc-devel, libgcc-static, bash, coreutils]
 import:
 - from: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
   add: /src

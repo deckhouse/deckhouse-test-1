@@ -30,7 +30,7 @@ from: {{ index $.Images "builder/distroless" }}
 final: false
 packages:
 - type: os-pm
-  spec: [golang, git, bash, coreutils, make, linux-headers, binutils, gnu-gcc, grep, sed, findutils]
+  spec: [golang, git, bash, coreutils, make, linux-headers, binutils, gnu-gcc-devel, grep, sed, findutils]
 - type: go-mod
   workdir: /src
   env:

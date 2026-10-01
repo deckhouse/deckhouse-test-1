@@ -108,7 +108,7 @@ secrets:
   value: {{ $.GOPROXY }}
 packages:
 - type: os-pm
-  spec: [golang, git, bash, coreutils, make, sed, grep, gawk, findutils, rsync, ssh-static, svace, gnu-gcc, binutils, gnu-glibc-devel, libgcc-static, diffutils, tar, gzip, util-linux]
+  spec: [golang, git, bash, coreutils, make, sed, grep, gawk, findutils, rsync, ssh-static, svace, gnu-gcc-devel, binutils, gnu-glibc-devel, libgcc-static, diffutils, tar, gzip, util-linux]
 - type: go-mod
   workdir: /src
   env:

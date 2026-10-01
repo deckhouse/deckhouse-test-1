@@ -81,7 +81,7 @@ final: false
 from: {{ index $.Images "builder/distroless" }}
 packages:
 - type: os-pm
-  spec: [autoconf, automake, make, libtool, gnu-gcc, binutils, gnu-glibc-devel, linux-headers, perl, bash, coreutils, sed, grep, gawk]
+  spec: [autoconf, automake, make, libtool, gnu-gcc-devel, binutils, gnu-glibc-devel, linux-headers, perl, bash, coreutils, sed, grep, gawk]
 import:
 - from: {{ .ModuleName }}/{{ .ImageName }}-src-artifact
   add: /src/openssl
@@ -99,7 +99,7 @@ final: false
 from: {{ index $.Images "builder/distroless" }}
 packages:
 - type: os-pm
-  spec: [autoconf, automake, make, libtool, gnu-gcc, binutils, gnu-glibc-devel, linux-headers, pkgconf, perl, bash, coreutils, sed, grep, gawk]
+  spec: [autoconf, automake, make, libtool, gnu-gcc-devel, binutils, gnu-glibc-devel, linux-headers, pkgconf, perl, bash, coreutils, sed, grep, gawk]
 import:
 - from: {{ .ModuleName }}/{{ .ImageName }}-src-artifact
   add: /src

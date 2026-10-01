@@ -55,7 +55,7 @@ final: false
 from: {{ index $.Images "builder/distroless" }}
 packages:
 - type: os-pm
-  spec: [golang==1.26.8, git, ssh-static, make, coreutils, findutils, file, jq, pkgconf, gnu-gcc, gnu-glibc-devel, elfutils-devel, openssl-devel, libuv-devel, zstd-devel, btrfs-progs-devel, bash, sed, grep, tar, gzip]
+  spec: [golang==1.26.8, git, ssh-static, make, coreutils, findutils, file, jq, pkgconf, gnu-gcc-devel, gnu-glibc-devel, elfutils-devel, openssl-devel, libuv-devel, zstd-devel, btrfs-progs-devel, bash, sed, grep, tar, gzip]
 - type: go-mod
   workdir: /src
   env:
