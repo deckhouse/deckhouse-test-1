@@ -35,7 +35,7 @@ from: {{ .ModuleName }}/base-cilium-dev
 final: false
 git:
 - url: {{ .SOURCE_REPO }}/llvm/llvm-build-cache.git
-  tag: {{ $llvmCacheRev }}
+  branch: {{ $llvmCacheRev }}
   add: /
   to: /tmp/ccache-dir
 import:
