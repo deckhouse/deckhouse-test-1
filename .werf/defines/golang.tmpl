@@ -1,9 +1,7 @@
 
 {{- define "mount points for golang builds" }}
-- fromPath: ~/go-pkg-cache
-  to: /go/pkg
-- fromPath: ~/go-pkg-cache
-  to: /root/go/pkg
+# the module cache must stay in the image: `packages: go-mod` fills it in its own stage,
+# and a host-path mount would be empty whenever that stage is reused from the registry
 - from: tmp_dir
   to: /root/.cache/go-build
 {{- end }}
