@@ -52,6 +52,9 @@
     {{- if and $HasAvailableModules (not (hasKey $AvailableModulesDict $moduleName)) }}
       {{- continue -}}
     {{- end }}
+    {{- if has $moduleName $Root.SkipBuildModules }}
+      {{- continue -}}
+    {{- end }}
 
     {{- $_ := set $ctx "CandiVersionMap" $.CandiVersionMap }}
     {{- $_ := set $ctx "k8sVersions" $Root.k8sVersions }}

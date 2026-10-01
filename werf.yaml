@@ -90,6 +90,10 @@ build:
 # images whose build deps live in Git LFS repos; `git: url` cannot fetch LFS objects, set to "false" to skip them
 {{- $_ := set . "GIT_LFS_IMAGES_ENABLED" (env "GIT_LFS_IMAGES_ENABLED" "true") }}
 
+# modules whose images are not built at all (their helm templates stay in the bundle)
+# documentation: Jekyll gems come from rubygems.org, delivery-kit has no ruby `packages` type yet
+{{- $_ := set . "SkipBuildModules" (list "documentation") }}
+
 # goproxy settings
 {{- $_ := set . "GOPROXY" (env "GOPROXY" "https://proxy.golang.org,direct") }}
 
