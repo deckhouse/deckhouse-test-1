@@ -1,4 +1,5 @@
-{{- if ne $.Env "CSE" }}
+# envoy-build-deps is a Git LFS repo
+{{- if and (ne $.Env "CSE") (eq $.GIT_LFS_IMAGES_ENABLED "true") }}
 ---
 {{- $istioVersion := include "get_oss_version_by_id" (list "istio-1-29" $ ) }}
 {{- $istioImageVersion := (printf "v%s" (replace "." "x" $istioVersion)) }} {{- /* 1.29.6 -> v1x29x6 */}}
@@ -45,31 +46,31 @@ import:
   group: 1337
   after: setup
 - from: {{ $.ModuleName }}/{{ $.ImageName }}-glibc-artifact
-  add: /out/lib64/libc.so.6
+  add: /usr/lib/libc.so.6
   to: /lib64/libc.so.6
   before: install
 - from: {{ $.ModuleName }}/{{ $.ImageName }}-glibc-artifact
-  add: /out/lib64/libm.so.6
+  add: /usr/lib/libm.so.6
   to: /lib64/libm.so.6
   before: install
 - from: {{ $.ModuleName }}/{{ $.ImageName }}-glibc-artifact
-  add: /out/lib64/librt.so.1
+  add: /usr/lib/librt.so.1
   to: /lib64/librt.so.1
   before: install
 - from: {{ $.ModuleName }}/{{ $.ImageName }}-glibc-artifact
-  add: /out/lib64/libdl.so.2
+  add: /usr/lib/libdl.so.2
   to: /lib64/libdl.so.2
   before: install
 - from: {{ $.ModuleName }}/{{ $.ImageName }}-glibc-artifact
-  add: /out/lib64/libpthread.so.0
+  add: /usr/lib/libpthread.so.0
   to: /lib64/libpthread.so.0
   before: install
 - from: {{ $.ModuleName }}/{{ $.ImageName }}-glibc-artifact
-  add: /out/lib64/libresolv.so.2
+  add: /usr/lib/libresolv.so.2
   to: /lib64/libresolv.so.2
   before: install
 - from: {{ $.ModuleName }}/{{ $.ImageName }}-glibc-artifact
-  add: /out/lib64/ld-linux-x86-64.so.2
+  add: /usr/lib/ld-linux-x86-64.so.2
   to: /lib64/ld-linux-x86-64.so.2
   before: install
 - from: {{ .ModuleName }}/{{ .ImageName }}-binaries-artifact
@@ -130,21 +131,26 @@ imageSpec:
 #=====================================================================================================
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}-agent-artifact
-from: {{ index $.Images "builder/golang" }}
+from: {{ index $.Images "builder/distroless" }}
 final: false
+packages:
+- type: os-pm
+  spec: [golang==1.26.8, git, binutils, bash, coreutils, sed, grep, findutils]
+- type: go-mod
+  workdir: /src/istio
+  env:
+    GOPROXY: "%secret:GOPROXY%"
 import:
 - from: {{ .ModuleName }}/common-{{ $istioImageVersion }}-src-artifact
   add: /src/istio
   to: /src/istio
-  before: setup
+  before: install
 mount:
 {{ include "mount points for golang builds" . }}
 secrets:
 - id: GOPROXY
   value: {{ .GOPROXY }}
 shell:
-  beforeInstall:
-  - pm install git binutils
   setup:
   - cd /src/istio/
   - echo {{ $istioVersion }} > version
@@ -160,7 +166,7 @@ shell:
     istio.io/istio/pkg/version.buildOS=linux
     istio.io/istio/pkg/version.buildArch=amd64
     EOF
-  - export GOPROXY=$(cat /run/secrets/GOPROXY) GOOS=linux GOARCH=amd64
+  - export GOPROXY=off GOOS=linux GOARCH=amd64
   - export LDFLAGS='-extldflags -static -s -w'
   - go mod vendor
   - common/scripts/gobuild.sh /src/istio/out/ -tags=agent,disable_pgv /src/istio/pilot/cmd/pilot-agent
@@ -232,11 +238,6 @@ image: {{ .ModuleName }}/{{ .ImageName }}-binaries-artifact
 from: common/relocate-artifact
 final: false
 shell:
-  beforeInstall:
-  - apt-get update && apt-get install -y ca-certificates
-  - update-ca-trust
-  - apt-get clean
-  - rm -rf  /var/log/*log /var/lib/apt/lists/* /var/log/apt/* /var/lib/dpkg/*-old /var/cache/debconf/*-old
   install:
   - mkdir -p /relocate/sbin
   - |
@@ -373,19 +374,17 @@ imageSpec:
 image: {{ .ModuleName }}/{{ .ImageName }}-src-artifact
 from: common/src-artifact
 final: false
-secrets:
-- id: SOURCE_REPO
-  value: {{ .SOURCE_REPO }}
-shell:
-  install:
-  - git clone --depth 1 --branch {{ $istioVersion }} $(cat /run/secrets/SOURCE_REPO)/istio/proxy.git /src/proxy
-  - cd /src/proxy/
+git:
+- url: {{ .SOURCE_REPO }}/istio/proxy.git
+  tag: {{ $istioVersion }}
+  add: /
+  to: /src/proxy
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-glibc-artifact
 final: false
 from: {{ index $.Images "builder/distroless" }}
-shell:
-  beforeInstall:
-  - pm install libc@2.43 -d /out
+packages:
+- type: os-pm
+  spec: [libc==2.43]
 ---
 {{- end }}

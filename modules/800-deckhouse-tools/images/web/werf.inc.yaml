@@ -106,11 +106,18 @@ shell:
 image: {{ .ModuleName }}/{{ .ImageName }}-frontend-artifact
 final: false
 from: {{ .Images.BASE_NODE_20_ALPINE }}
+packages:
+- type: javascript-npm
+  workdir: /app
+  {{- if .DistroPackagesProxy }}
+  env:
+    npm_config_registry: http://{{ .DistroPackagesProxy }}/repository/npmjs/
+  {{- end }}
 import:
 - from: {{ .ModuleName }}/{{ .ImageName }}-src-artifact
   add: /src/src
   to: /app
-  before: setup
+  before: install
 mount:
 - from: tmp_dir
   to: /app/node_modules
@@ -120,9 +127,7 @@ mount:
   to: /tmp/node-complile-cache
 shell:
   setup:
-  {{- include "node packages proxy" . | nindent 2 }}
   - cd /app
-  - npm install
   - npm run build
   - chown 64535:64535 /app
 ---

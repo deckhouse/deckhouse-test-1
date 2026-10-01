@@ -16,6 +16,7 @@
 # and https://github.com/cilium/proxy/blob/a7f42a3390781539911b5b9107881b35ecc4e752/Dockerfile
 # and https://github.com/cilium/proxy/blob/a7f42a3390781539911b5b9107881b35ecc4e752/.github/workflows/build-envoy-images-release.yaml
 # #####################################################################
+{{- if eq $.GIT_LFS_IMAGES_ENABLED "true" }}
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}-src-artifact
 from: common/src-artifact
@@ -26,24 +27,24 @@ git:
   stageDependencies:
     install:
     - '**/*'
-secrets:
-- id: SOURCE_REPO
-  value: {{ .SOURCE_REPO }}
+- url: {{ .SOURCE_REPO }}/cilium/proxy.git
+  commit: {{ $ciliumProxyRev }}
+  add: /
+  to: /src/proxy
+- url: {{ .SOURCE_REPO }}/envoyproxy/envoy.git
+  commit: {{ $envoySHA }}
+  add: /
+  to: /src/envoy
 shell:
   install:
-  - git clone $(cat /run/secrets/SOURCE_REPO)/cilium/proxy.git /src/proxy
   - cd /src/proxy
-  - git checkout {{ $ciliumProxyRev }}
   - ls /patches/proxy/*.patch >/dev/null 2>&1 && git apply --verbose --allow-empty /patches/proxy/*.patch
-  - rm -rf /src/proxy/.git
   #
-  - git clone $(cat /run/secrets/SOURCE_REPO)/envoyproxy/envoy.git /src/envoy
   - cd /src/envoy
-  - git checkout {{ $envoySHA }}
   - ls /patches/envoy/*.patch >/dev/null 2>&1 && git apply --verbose --allow-empty /patches/envoy/*.patch
   # original cilium patches
   - git apply --verbose /src/proxy/patches/*.patch
-  - rm -rf /src/envoy/.git
+{{- end }}
 ---
 image: {{ .ModuleName }}/glibc-artifact
 final: false
@@ -51,6 +52,7 @@ from: {{ index $.Images "builder/distroless" }}
 packages:
 - type: os-pm
   spec: [libatomic==15.2, libc==2.43, ncurses]
+{{- if eq $.GIT_LFS_IMAGES_ENABLED "true" }}
 ---
 image: {{ .ModuleName }}/cilium-envoy-artifact
 from: {{ .ModuleName }}/base-cilium-dev
@@ -178,3 +180,4 @@ shell:
   - sudo -u cilium PATH=${PATH} ./bazel/get_workspace_status
   - sudo -u cilium PATH=${PATH} make install
   - rm -rf /cilium/proxy/vendor
+{{- end }}

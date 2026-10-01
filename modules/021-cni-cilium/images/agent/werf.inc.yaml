@@ -1,5 +1,7 @@
 {{- $iptables_version := "1.8.9" }}
 {{- $iptables_image_version := $iptables_version | replace "." "-" }}
+# depends on cilium-envoy-artifact, whose build deps come from a Git LFS repo
+{{- if eq $.GIT_LFS_IMAGES_ENABLED "true" }}
 ---
 # #####################################################################
 # Final image of cilium-agent (used in helm-templates)
@@ -575,3 +577,4 @@ imageSpec:
       PATH: "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
     workingDir: "/home/cilium"
     cmd: ["/usr/bin/cilium-dbg"]
+{{- end }}

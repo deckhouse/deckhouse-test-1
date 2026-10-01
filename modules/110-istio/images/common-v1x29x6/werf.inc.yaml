@@ -35,10 +35,19 @@ shell:
   - cd /src/kiali/
   - git apply --verbose /patches/001-kiali-gomod_gosum.patch
   - git apply --verbose /patches/002-kiali-logout.patch
+  {{- if .DistroPackagesProxy }}
+  - sed -i 's|https://registry.yarnpkg.com|http://{{ $.DistroPackagesProxy }}/repository/yarnpkg|g' /src/kiali/frontend/yarn.lock
+  - sed -i 's|https://registry.npmjs.org|http://{{ $.DistroPackagesProxy }}/repository/npmjs|g' /src/kiali/frontend/yarn.lock
+  {{- end }}
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}-kiali-frontend-build-artifact
 from: {{ index $.Images "builder/node-alpine-22.16" }}
 final: false
+packages:
+- type: javascript-yarn
+  workdir: /src/kiali/frontend
+  env:
+    CYPRESS_INSTALL_BINARY: "0"
 import:
 - from: {{ .ModuleName }}/{{ .ImageName }}-src-artifact
   add: /src/kiali/frontend
@@ -47,12 +56,6 @@ import:
 shell:
   install:
   - cd /src/kiali/frontend
-  {{- if .DistroPackagesProxy }}
-  - sed -i 's|https://registry.yarnpkg.com|http://{{ $.DistroPackagesProxy }}/repository/yarnpkg|g' yarn.lock
-  - sed -i 's|https://registry.npmjs.org|http://{{ $.DistroPackagesProxy }}/repository/npmjs|g' yarn.lock
-  {{- end }}
-  - export CYPRESS_INSTALL_BINARY=0
-  - yarn install --frozen-lockfile
   - KIALI_ENV=production yarn run build
   - rm -rf node_modules
 {{- end }}

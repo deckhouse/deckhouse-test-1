@@ -1,5 +1,7 @@
 {{- $iptables_version := "1.8.9" }}
 {{- $iptables_image_version := $iptables_version | replace "." "-" }}
+# imports cilium-dbg from cni-cilium/agent-distroless, which depends on a Git LFS repo
+{{- if eq $.GIT_LFS_IMAGES_ENABLED "true" }}
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
 from: {{ index $.Images "builder/distroless" }}
@@ -83,3 +85,4 @@ imageSpec:
     env:
       "PATH": "/sbin"
     entrypoint: ["/cni-migration-controller"]
+{{- end }}

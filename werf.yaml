@@ -87,6 +87,9 @@ build:
 
 {{- $_ := set . "SVACE_ANALYZE_SSH_USER" (env "SVACE_ANALYZE_SSH_USER" "user") }}
 
+# images whose build deps live in Git LFS repos; `git: url` cannot fetch LFS objects, set to "false" to skip them
+{{- $_ := set . "GIT_LFS_IMAGES_ENABLED" (env "GIT_LFS_IMAGES_ENABLED" "true") }}
+
 # goproxy settings
 {{- $_ := set . "GOPROXY" (env "GOPROXY" "https://proxy.golang.org,direct") }}
 

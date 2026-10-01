@@ -18,36 +18,33 @@
 image: {{ .ModuleName }}/{{ .ImageName }}-src-artifact
 from: common/src-artifact
 final: false
-secrets:
-- id: SOURCE_REPO
-  value: {{ .SOURCE_REPO }}
-shell:
-  install:
-  - git clone --branch "{{ $llvmRev }}" $(cat /run/secrets/SOURCE_REPO)/llvm/llvm-project.git /src/llvm
-  - cd /src/llvm
+git:
+- url: {{ .SOURCE_REPO }}/llvm/llvm-project.git
+  tag: {{ $llvmRev }}
+  add: /
+  to: /src/llvm
+  excludePaths:
   # CSE
-  - rm -rf clang-tools-extra/clangd/clients/clangd-vscode
-  - rm -rf /src/llvm/llvm/utils/git/requirements.txt
-  - rm -rf /src/llvm/mlir/utils/vscode/package-lock.json
-  - rm -rf /src/llvm/third-party/benchmark/requirements.txt
-  - rm -rf /src/llvm/.git
+  - clang-tools-extra/clangd/clients/clangd-vscode
+  - llvm/utils/git/requirements.txt
+  - mlir/utils/vscode/package-lock.json
+  - third-party/benchmark/requirements.txt
 ---
 image: {{ .ModuleName }}/llvm-artifact
 from: {{ .ModuleName }}/base-cilium-dev
 final: false
+git:
+- url: {{ .SOURCE_REPO }}/llvm/llvm-build-cache.git
+  tag: {{ $llvmCacheRev }}
+  add: /
+  to: /tmp/ccache-dir
 import:
 - from: {{ .ModuleName }}/{{ .ImageName }}-src-artifact
   add: /src
   to: /src
   before: install
-secrets:
-- id: SOURCE_REPO
-  value: {{ .SOURCE_REPO }}
 shell:
   setup:
-  - mkdir -p /tmp/ccache-dir
-  - git clone --depth 1 --branch {{ $llvmCacheRev }} $(cat /run/secrets/SOURCE_REPO)/llvm/llvm-build-cache.git /tmp/ccache-dir
-  - rm -rf /tmp/ccache-dir/.git
   #
   - export GCC_VERSION=11
   - sed -i '/\#include <string>/a \#include <cstdint>' /src/llvm/llvm/include/llvm/Support/Signals.h

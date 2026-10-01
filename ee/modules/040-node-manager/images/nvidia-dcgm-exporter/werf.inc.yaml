@@ -1,5 +1,6 @@
 {{ $version := "4.2.3-4.1.3" }}
-{{- if ne $.Env "CSE" }}
+# imports the DCGM runtime from nvidia-dcgm-build-artifact, which depends on a Git LFS repo
+{{- if and (ne $.Env "CSE") (eq $.GIT_LFS_IMAGES_ENABLED "true") }}
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}-src-artifact
 from: common/src-artifact

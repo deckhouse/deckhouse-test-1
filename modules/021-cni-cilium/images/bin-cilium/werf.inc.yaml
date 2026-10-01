@@ -11,16 +11,16 @@ git:
   stageDependencies:
     install:
     - '**/*'
-secrets:
-- id: SOURCE_REPO
-  value: {{ .SOURCE_REPO }}
+- url: {{ .SOURCE_REPO }}/cilium/cilium.git
+  tag: v{{ include "get_oss_version_by_id" (list "cilium" $ ) }}
+  add: /
+  to: /src/cilium
+  excludePaths:
+  - Documentation
 shell:
   install:
-  - git clone --depth 1 --branch v{{ include "get_oss_version_by_id" (list "cilium" $ ) }} $(cat /run/secrets/SOURCE_REPO)/cilium/cilium.git /src/cilium
   - cd /src/cilium
   - ls /patches/*.patch >/dev/null 2>&1 && git apply --verbose --allow-empty /patches/*.patch
-  - rm -rf Documentation
-  - rm -rf /src/cilium/.git
 ---
 image: {{ .ModuleName }}/cilium-artifact
 from: {{ .ModuleName }}/base-cilium-dev
@@ -52,6 +52,11 @@ import:
   before: install
 mount:
 {{ include "mount points for golang builds" . }}
+packages:
+- type: go-mod
+  workdir: /src/cilium
+  env:
+    GOPROXY: "%secret:GOPROXY%"
 secrets:
 - id: GOPROXY
   value: {{ .GOPROXY }}
@@ -63,7 +68,7 @@ shell:
   # As a workaround, we explicitly specified PATH.
   - export PATH=${GOROOT}/bin:${GOPATH}/bin:/root/bin:/sbin:/usr/sbin:/usr/local/sbin:/bin:/usr/bin:/usr/local/bin
   #
-  - export GO_VERSION=${GOLANG_VERSION} GOPROXY=$(cat /run/secrets/GOPROXY)
+  - export GO_VERSION=${GOLANG_VERSION} GOPROXY=off
   - export GOOS=linux GOARCH=amd64 CGO_ENABLED=0
   - cd /src/cilium
   - go mod vendor && go mod verify
