@@ -46,7 +46,7 @@ env:
   DECKHOUSE_REF: "d89b06002b95aa0a9b49809659226bdca99616d7"
   # delivery-kit commits under comparison.
   BASELINE_DELIVERY_KIT_SHA: "bdf44df89ec5f13a79bbc096e84293f9797d71be"
-  CANDIDATE_DELIVERY_KIT_SHA: "d60c81e140cb7f0290ba677567c41453f9e5b954"
+  CANDIDATE_DELIVERY_KIT_SHA: "d2cff46a903b9aa679a53cbc2e03ec2bb6256a53"
 
 jobs:
 
@@ -66,6 +66,7 @@ jobs:
       TASK_X_REMOTE_TASKFILES: "1"
       GOMAXPROCS: "2"
       GOFLAGS: "-p=2"
+      GOPROXY: "https://proxy.golang.org,direct"
     steps:
       - name: Resolve delivery-kit commit for this arm
         id: arm
@@ -99,7 +100,7 @@ jobs:
           echo "HEAD = ${actual}"
 
       - name: Set up Go
-        uses: actions/setup-go@v6
+        uses: actions/setup-go@v5.4.0
         with:
           cache: false
           go-version-file: delivery-kit/go.mod
@@ -119,7 +120,7 @@ jobs:
 
       - name: Build werf
         working-directory: delivery-kit
-        run: task --yes build
+        run: task --yes build version=v3.6.2-dk.1-cache-benchmark
 
       - name: Record build metadata
         working-directory: delivery-kit
@@ -308,13 +309,13 @@ jobs:
         run: |
           HOST=$(grep -oP '(?<=@)[^/:]+' <<< ${{ steps.secrets.outputs.SOURCE_REPO_GIT }})
           echo "::add-mask::$HOST"
-          IPS=$(nslookup "$HOST" | awk '/^Address: / { print $2 }')
+          IPS=$(timeout 15 nslookup "$HOST" | awk '/^Address: / { print $2 }')
           for IP in $IPS; do
             echo "::add-mask::$IP"
           done
           mkdir -p ~/.ssh
           touch ~/.ssh/known_hosts
-          HOST_KEYS=$(ssh-keyscan -H "$HOST" 2>/dev/null)
+          HOST_KEYS=$(timeout 15 ssh-keyscan -T 5 -H "$HOST" 2>/dev/null)
           while IFS= read -r KEY_LINE; do
             CONSTANT_PART=$(awk '{print $2, $3}' <<< "$KEY_LINE")
             if ! grep -q "$CONSTANT_PART" ~/.ssh/known_hosts; then
@@ -326,11 +327,11 @@ jobs:
         continue-on-error: true
         run: |
           host=${{ steps.secrets.outputs.SVACE_ANALYZE_HOST }}
-          host_ip=$(nslookup "$host" | awk '/^Address: / { print $2 }')
+          host_ip=$(timeout 15 nslookup "$host" | awk '/^Address: / { print $2 }')
           echo "::add-mask::$host_ip"
           mkdir -p ~/.ssh
           touch ~/.ssh/known_hosts
-          HOST_KEYS=$(ssh-keyscan -H "$host" 2>/dev/null)
+          HOST_KEYS=$(timeout 15 ssh-keyscan -T 5 -H "$host" 2>/dev/null)
           while IFS= read -r KEY_LINE; do
               CONSTANT_PART=$(awk '{print $2, $3}' <<< "$KEY_LINE")
               if grep -q "$CONSTANT_PART" ~/.ssh/known_hosts; then
@@ -374,9 +375,7 @@ jobs:
           DEV_REGISTRY_PATH="${DECKHOUSE_DEV_REGISTRY_HOST}/${REGISTRY_PATH}"
           export REGISTRY_PATH="${DEV_REGISTRY_PATH}"
           export WERF_REPO="${DEV_REGISTRY_PATH}"
-          if [[ "$(werf version)" =~ ^v?3\. ]]; then
-            export WERF_META_REPO="${WERF_REPO}/meta"
-          fi
+          export WERF_META_REPO="${WERF_REPO}/meta"
           echo "Benchmark arm '${{ matrix.arm }}' stage storage: ${REGISTRY_PATH}"
 
           sign_minimal_version="v2.71.0-dk"
@@ -399,17 +398,17 @@ jobs:
           fi
 
           export WERF_VAULT_AUTH_JWT=$(jq -r .value <<< $(curl -qfsH "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=github-access-aud" ))
-          if [ -n "${WERF_VAULT_AUTH_JWT}" ]; then
-            echo "Received Actions token";
-          else
-            echo "Actions token empty";
+          if [[ -z "${WERF_VAULT_AUTH_JWT}" || "${WERF_VAULT_AUTH_JWT}" == "null" ]]; then
+            echo "::error::Actions token empty"
+            exit 1
           fi
+          echo "::add-mask::${WERF_VAULT_AUTH_JWT}"
           export VAULT_TOKEN="$(curl -sfX POST "${VAULT_ADDR}/v1/auth/${WERF_VAULT_AUTH_PATH}/login" -d '{"role":"'${WERF_VAULT_AUTH_ROLE}'","jwt":"'${WERF_VAULT_AUTH_JWT}'"}' | jq -r '.auth.client_token')"
-          if [ -n "${VAULT_TOKEN}" ]; then
-            echo "Received Vault token";
-          else
-            echo "Vault token empty";
+          if [[ -z "${VAULT_TOKEN}" || "${VAULT_TOKEN}" == "null" ]]; then
+            echo "::error::Vault token empty"
+            exit 1
           fi
+          echo "::add-mask::${VAULT_TOKEN}"
 
           if $sign_supported; then
             echo "Using WERF_SIGN_MANIFEST=$WERF_SIGN_MANIFEST"
@@ -424,13 +423,12 @@ jobs:
 
           # ci-env must not redirect the build away from this arm's isolated namespace.
           export WERF_REPO="${DEV_REGISTRY_PATH}"
-          if [[ "$(werf version)" =~ ^v?3\. ]]; then
-            export WERF_META_REPO="${WERF_REPO}/meta"
-          fi
+          export WERF_META_REPO="${WERF_REPO}/meta"
           echo "WERF_REPO=${WERF_REPO}"
           echo "WERF_META_REPO=${WERF_META_REPO:-<unset>}"
 
           build_log="$RUNNER_TEMP/werf-build-${{ matrix.arm }}.log"
+          set +e
           set -o pipefail
           werf build \
             --parallel=true --parallel-tasks-limit=5 \
@@ -439,10 +437,12 @@ jobs:
             --build-report-operations=true \
             --log-debug 2>&1 | tee "$build_log"
           build_status=$?
-          set +o pipefail
+          set -e
 
-          egrep -v '(DockerRepo|DockerImageName)' images_tags_werf.json > images_tags_werf_filtered.json
-          mv images_tags_werf_filtered.json images_tags_werf.json
+          if [[ -f images_tags_werf.json ]]; then
+            egrep -v '(DockerRepo|DockerImageName)' images_tags_werf.json > images_tags_werf_filtered.json
+            mv images_tags_werf_filtered.json images_tags_werf.json
+          fi
 
           exit $build_status
 
@@ -473,7 +473,6 @@ jobs:
             echo "--- docker system df ---"
             timeout 15 docker system df || true
           } > "$out"
-          cp "$RUNNER_TEMP/werf-build-${{ matrix.arm }}.log" "./werf-build.log" || true
           cp "$out" "./benchmark-metadata.txt"
 
       - name: Upload benchmark results
@@ -483,7 +482,6 @@ jobs:
           name: benchmark-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.arm }}
           path: |
             images_tags_werf.json
-            werf-build.log
             benchmark-metadata.txt
           if-no-files-found: warn
           retention-days: 14
@@ -491,4 +489,4 @@ jobs:
       - name: Cleanup workdir
         if: always()
         run: |
-          rm -f images_tags_werf.json werf-build.log benchmark-metadata.txt || true
+          rm -f images_tags_werf.json benchmark-metadata.txt "$RUNNER_TEMP/werf-build-${{ matrix.arm }}.log"
