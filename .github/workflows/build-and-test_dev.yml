@@ -40,6 +40,7 @@ env:
   WERF_LOG_TIME: true
   WERF_GIT_WORK_TREE_POOL_LIMIT: "10"
   GOPROXY: "${{vars.GOPROXY}}"
+  GIT_LFS_IMAGES_ENABLED: "false"
   # </template: werf_envs>
 
 # Cancel in-progress jobs for the same PR (pull_request_target event) or for the same branch (push event).
