@@ -172,6 +172,10 @@ jobs:
       REGISTRY_PATH: "sys/deckhouse-oss/cache-only-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.arm }}"
       WERF_BUILDAH_MODE: "docker"
       WERF_DISABLE_AUTO_HOST_CLEANUP: "1"
+      CI_COMMIT_TAG: ""
+      CI_COMMIT_BRANCH: "migrate-to-werf-v3"
+      CI_COMMIT_REF_NAME: "migrate-to-werf-v3"
+      CI_COMMIT_REF_SLUG: "pr779"
     steps:
       - name: Isolate docker config
         run: |
