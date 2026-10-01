@@ -55,11 +55,11 @@ from: {{ index $.Images "builder/distroless" }}
 packages:
 - type: os-pm
   spec: [bash, coreutils, ldd, gawk]
+git:
+- add: /modules/002-deckhouse/images/init/relocate.sh
+  to: /relocate.sh
+  stageDependencies:
+    install: ['**/*']
 shell:
   install:
-  - mkdir -p /runtime/usr/bin /runtime/usr/lib
-  - cp -L /usr/bin/bash /usr/bin/cp /usr/bin/rm /runtime/usr/bin/
-  - |
-    for library in $(ldd /usr/bin/bash /usr/bin/cp /usr/bin/rm | gawk '/=> \/|^\s*\// { for (field = 1; field <= NF; field++) if ($field ~ /^\//) print $field }'); do
-      cp -L "${library}" /runtime/usr/lib/
-    done
+  - bash /relocate.sh /runtime /usr/bin/bash /usr/bin/cp /usr/bin/rm
