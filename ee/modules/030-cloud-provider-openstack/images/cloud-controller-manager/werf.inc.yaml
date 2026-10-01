@@ -76,6 +76,8 @@ shell:
   install:
   - cd /src
   - export GOPROXY=off
+  # upstream Makefile sets GOPATH=$(PWD)/.go when unset, moving GOMODCACHE away from the go-mod stage cache
+  - export GOPATH=$(go env GOPATH)
   - export VERSION={{ $version }}
   - export GIT_VERSION={{ $version }}
   - make openstack-cloud-controller-manager
