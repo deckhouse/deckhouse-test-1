@@ -17,7 +17,7 @@ import:
   before: install
 packages:
 - type: os-pm
-  spec: [bash, coreutils, sed, grep, findutils, gawk, make, gnu-gcc-devel, m4, automake, autoconf, binutils, linux-headers, openssl-devel, pcre-devel, pcre2-devel, net-snmp-devel, pkgconf, perl]
+  spec: [bash, coreutils, sed, grep, findutils, gawk, make, gnu-gcc-devel, gnu-glibc-devel, m4, automake, autoconf, binutils, linux-headers, openssl-devel, pcre-devel, pcre2-devel, net-snmp-devel, pkgconf, perl]
 shell:
   install:
   - cd /src
