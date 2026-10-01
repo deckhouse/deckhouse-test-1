@@ -40,6 +40,8 @@ env:
   WERF_LOG_TIME: true
   WERF_GIT_WORK_TREE_POOL_LIMIT: "10"
   GOPROXY: "${{vars.GOPROXY}}"
+  # Images with build deps in Git LFS repos cannot be fetched via `git: url`; skip them until the deps are mirrored.
+  GIT_LFS_IMAGES_ENABLED: "false"
   # </template: werf_envs>
 
 # Cancel in-progress jobs for the same branch.
@@ -3683,7 +3685,7 @@ jobs:
       # </template: login_rw_registry_step>
       - name: Run tests
         env:
-          TESTS_IMAGE_NAME: "registry.deckhouse.io/container-factory@sha256:cfa2c389d79fa8ea0784eee25b8d4149b3624f4a126e2113bf4ae563d139acdd"
+          TESTS_IMAGE_NAME: "registry.deckhouse.ru/container-factory@sha256:39be714b918a191fafebfbba7cc63faad693ab282f139242059e12f5b0347580"
         run: |
           # Print image name in uppercase to prevent hiding non-secret registry host stored in secret.
           echo "Tests image name: '${TESTS_IMAGE_NAME}'" | tr '[:lower:]' '[:upper:]'
