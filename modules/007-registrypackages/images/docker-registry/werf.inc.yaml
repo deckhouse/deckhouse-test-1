@@ -82,6 +82,8 @@ shell:
   - cd /src/docker_auth/auth_server
   - make build VERSION={{ $docker_auth_version }} BUILD_ID={{ $docker_auth_version }}
   - mv ./auth_server /auth_server
+  # distribution 2.x has no go.mod and builds in GOPATH mode from its vendor/ tree
+  - export GOPATH=/go
   - mkdir -p /go/src/github.com/docker/
   - mv /src/distribution /go/src/github.com/docker/
   - cd /go/src/github.com/docker/distribution
