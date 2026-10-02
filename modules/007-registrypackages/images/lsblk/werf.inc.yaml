@@ -50,6 +50,15 @@ shell:
   - cd /src/util-linux
   - export LDFLAGS="-Wl,-z,now -Wl,-z,relro -static -s"
   - export CFLAGS="-fPIC -pie -fstack-protector-all -O2 -D_FORTIFY_SOURCE=2 -static -s"
+  # pm gettext ships no autopoint archive (/usr/share/gettext is empty); NLS is disabled, so stub autopoint
+  # and the po/Makefile.in.in it would have generated
+  - |
+    mkdir -p /tmp/stubbin
+    printf '#!/bin/sh\n[ "$1" = --version ] && echo "autopoint (GNU gettext-tools) stub"\nexit 0\n' > /tmp/stubbin/autopoint
+    chmod +x /tmp/stubbin/autopoint
+    printf 'datarootdir = @datarootdir@\nall install install-data install-exec uninstall check installcheck clean distclean mostlyclean maintainer-clean dist distdir:\n\t@true\n' > po/Makefile.in.in
+    printf '#!/bin/sh\nexit 0\n' > config/config.rpath
+  - export PATH=/tmp/stubbin:$PATH
   - ./autogen.sh
   - ./configure --enable-static --enable-static-programs=lsblk --disable-pylibmount --without-python --disable-liblastlog2
   - make LDFLAGS="--static" lsblk && strip ./lsblk
