@@ -45,11 +45,12 @@ import:
   before: install
 packages:
 - type: os-pm
-  spec: [rust, cargo, bash, git, coreutils, binutils, gnu-gcc-devel, gnu-glibc-devel, make, cmake, perl, pkgconf, openssl-devel, protoc, cyrus-sasl-devel, zlib-devel]
+  spec: [rust, cargo, bash, git, ssh-static, coreutils, binutils, gnu-gcc-devel, gnu-glibc-devel, make, cmake, perl, pkgconf, openssl-devel, protoc, cyrus-sasl-devel, zlib-devel]
 - type: rust-cargo
   workdir: /src/ztunnel
   env:
     CARGO_NET_GIT_FETCH_WITH_CLI: "true"
+    GIT_SSH_COMMAND: "ssh -o StrictHostKeyChecking=accept-new"
     GIT_CONFIG_COUNT: "1"
     GIT_CONFIG_KEY_0: url.{{ .SOURCE_REPO }}.insteadOf
     GIT_CONFIG_VALUE_0: https://github.com
