@@ -112,7 +112,10 @@ shell:
     - cp -f bin/* /
     - cd /src/cni-plugin
     - export VERSION=v{{ $cni_flannel_version }}
-    - make build_linux
+    # upstream `make build_linux` runs `go mod tidy` (needs network) and scripts/version.sh calls git on a
+    # git-less checkout; this is the go build from scripts/build_flannel.sh with the same tags and ldflags
+    - mkdir -p dist
+    - CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -tags "netgo osusergo no_stage static_build" -o dist/flannel-amd64 -ldflags "-extldflags \"-static\" -w -X main.Version=${VERSION} -X main.Commit=${VERSION} -X main.Program=flannel"
     - mv /src/scripts/* /
     - cp -f /src/cni-plugin/dist/flannel-amd64 /flannel
 {{- if ne $.Env "CSE" }}
