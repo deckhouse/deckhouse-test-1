@@ -45,7 +45,7 @@ import:
   before: install
 packages:
 - type: os-pm
-  spec: [rust, bash, git, coreutils, binutils, gnu-gcc-devel, gnu-glibc-devel, make, cmake, perl, pkgconf, openssl-devel, protoc, cyrus-sasl-devel, zlib-devel]
+  spec: [rust, cargo, bash, git, coreutils, binutils, gnu-gcc-devel, gnu-glibc-devel, make, cmake, perl, pkgconf, openssl-devel, protoc, cyrus-sasl-devel, zlib-devel]
 - type: rust-cargo
   workdir: /src/ztunnel
   env:
