@@ -48,7 +48,7 @@ env:
   DECKHOUSE_REF: "d89b06002b95aa0a9b49809659226bdca99616d7"
   # Kept only as a negative guard: the candidate pin must not silently fall back to it.
   BASELINE_DELIVERY_KIT_SHA: "bdf44df89ec5f13a79bbc096e84293f9797d71be"
-  CANDIDATE_DELIVERY_KIT_SHA: "5c0fee60bf0f9691517dc857cd7c9cb6479b3a22"
+  CANDIDATE_DELIVERY_KIT_SHA: "b106b14fe21ace558f44fc4351c4e109044d4537"
 
 jobs:
 
