@@ -45,7 +45,7 @@ env:
   # </template: werf_envs>
 
   # Frozen Deckhouse tree this build uses (PR 779 head, the commit of run 36746715500).
-  DECKHOUSE_REF: "d89b06002b95aa0a9b49809659226bdca99616d7"
+  DECKHOUSE_REF: "38d430337e6d2e7625d1435eb0cbf3635b8c9dc5e"
   # Kept only as a negative guard: the candidate pin must not silently fall back to it.
   BASELINE_DELIVERY_KIT_SHA: "bdf44df89ec5f13a79bbc096e84293f9797d71be"
   CANDIDATE_DELIVERY_KIT_SHA: "b106b14fe21ace558f44fc4351c4e109044d4537"
