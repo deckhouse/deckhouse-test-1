@@ -48,7 +48,7 @@ env:
   DECKHOUSE_REF: "d89b06002b95aa0a9b49809659226bdca99616d7"
   # Kept only as a negative guard: the candidate pin must not silently fall back to it.
   BASELINE_DELIVERY_KIT_SHA: "bdf44df89ec5f13a79bbc096e84293f9797d71be"
-  CANDIDATE_DELIVERY_KIT_SHA: "d2cff46a903b9aa679a53cbc2e03ec2bb6256a53"
+  CANDIDATE_DELIVERY_KIT_SHA: "a3703ad5f6c8fb5a23f5ae92258aa2f5007d182c"
 
 jobs:
 
@@ -489,8 +489,12 @@ jobs:
           [[ -f "$build_log" ]] || exit 0
           LC_ALL=C sed $'s/\033\\[[0-9;]*m//g' "$build_log" \
             | LC_ALL=C sed -n '/Operations summary/,$p' \
-            | LC_ALL=C grep -E '^([0-9][0-9T:.+-]{8,30} )?((┌|└|│) )?(- [A-Za-z][A-Za-z0-9 :()-]*[0-9][0-9A-Za-z .()×]*|total: [0-9].*|command time: [0-9.]+s \(wall.*\)|Operations summary|Stage cache summary|Registry cache summary|Running time [0-9.]+ seconds)$' \
+            | LC_ALL=C grep -E '^([0-9][0-9TZ:.+-]{8,30} )?((┌|└|│) )?(- [A-Za-z][A-Za-z0-9 :()-]*[0-9][0-9A-Za-z .()×]*|total: [0-9].*|command time: [0-9.]+s \(wall.*\)|Operations summary|Stage cache summary|Registry cache summary|Running time [0-9.]+ seconds)$' \
             > operations-summary.txt
+          if [[ ! -s operations-summary.txt ]] && LC_ALL=C grep -q 'Operations summary' "$build_log"; then
+            echo "::error::Operations summary was logged but extraction produced no lines"
+            exit 1
+          fi
           wc -l operations-summary.txt
 
       - name: Collect benchmark metadata
