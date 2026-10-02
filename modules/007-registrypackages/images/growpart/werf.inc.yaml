@@ -4,27 +4,23 @@
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}-src-artifact-{{ $image_version }}
 final: false
-fromImage: common/src-artifact
+from: common/src-artifact
 git:
+- url: {{ $.SOURCE_REPO }}/util-linux/util-linux.git
+  tag: v{{ $growpart_version }}
+  add: /
+  to: /src/util-linux
+- url: {{ $.SOURCE_REPO }}/canonical/cloud-utils.git
+  tag: {{ $cloud_utils_version | quote }}
+  add: /
+  to: /src/cloud-utils
 - add: /{{ $.ModulePath }}modules/007-{{ $.ModuleName }}/images/{{ $.ImageName }}/scripts
   to: /src/scripts
-  stageDependencies:
-    install:
-    - '**/*'
-secrets:
-- id: SOURCE_REPO
-  value: {{ .SOURCE_REPO }}
-shell:
-  install:
-  - git clone -b v{{ $growpart_version }} --depth 1 $(cat /run/secrets/SOURCE_REPO)/util-linux/util-linux.git  /src/util-linux
-  - rm -rf /src/util-linux/.git
-  - git clone -b {{ $cloud_utils_version }} --depth 1 $(cat /run/secrets/SOURCE_REPO)/canonical/cloud-utils.git /src/cloud-utils
-  - rm -rf /src/cloud-utils/.git
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-{{ $image_version }}
 from: {{ index $.Images "builder/scratch" }}
 import:
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact-{{ $image_version }}
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-artifact-{{ $image_version }}
   add: /
   to: /
   includePaths:
@@ -32,7 +28,7 @@ import:
   - install
   - uninstall
   before: setup
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact-fdisk-{{ $image_version }}
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-artifact-fdisk-{{ $image_version }}
   add: /
   to: /
   includePaths:
@@ -52,7 +48,7 @@ image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact-fdisk-{{ $image_version }}
 final: false
 from: {{ index $.Images "builder/golang-alpine" }}
 import:
-- image: {{ .ModuleName }}/{{ .ImageName }}-src-artifact-{{ $image_version }}
+- from: {{ .ModuleName }}/{{ .ImageName }}-src-artifact-{{ $image_version }}
   add: /src
   to: /src
   before: install
@@ -73,7 +69,7 @@ image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact-{{ $image_version }}
 final: false
 from: {{ index $.Images "builder/alpine" }}
 import:
-- image: {{ .ModuleName }}/{{ .ImageName }}-src-artifact-{{ $image_version }}
+- from: {{ .ModuleName }}/{{ .ImageName }}-src-artifact-{{ $image_version }}
   add: /src
   to: /src
   before: install

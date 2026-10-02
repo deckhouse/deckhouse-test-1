@@ -1,7 +1,7 @@
 {{- if env "FUZZ_S3_ENDPOINT" "" }}
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}-fuzz-src-artifact
-fromImage: common/src-artifact
+from: common/src-artifact
 final: false
 git:
   - add: /
@@ -15,15 +15,12 @@ git:
       - deckhouse-controller/pkg/apis
       - ee/se-plus/modules/021-cni-cilium/images/egress-gateway-agent/src
       - modules/038-registry/hooks
-    stageDependencies:
-      install:
-        - '**/*'
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}-fuzz-artifact
 from: {{ index $.Images "builder/golang" }}
 final: false
 import:
-  - image: {{ .ModuleName }}/{{ .ImageName }}-fuzz-src-artifact
+  - from: {{ .ModuleName }}/{{ .ImageName }}-fuzz-src-artifact
     add: /src
     to: /src
     before: install

@@ -6,7 +6,6 @@ config:
       - /REPO_MCM_.+/
       - SOURCE_REPO
       - GOPROXY
-      - WERF_DISABLE_META_TAGS
       - CLOUD_PROVIDERS_SOURCE_REPO
       - DISTRO_PACKAGES_PROXY
       - CARGO_PROXY
@@ -58,6 +57,8 @@ config:
       - FUZZ_TARGET
       - FUZZ_TIME
   stapel:
+    git:
+      allowBranch: true
     mount:
       allowBuildDir: true
       allowFromPaths:

@@ -10,22 +10,16 @@
 # it discovers there (systemd-dissect --list, see extensions/sysext.go), so an
 # image without one is merged and never takes effect.
 {{- if ne $.Env "CSE" }}
-  {{- /* Pinned by release tag: werf keys a shell-cloned source on the rendered
-         instructions alone, so a moving branch would be built once and cached
-         forever. Bump this line to pick up agent changes. */ -}}
   {{- $nodeletVersion := "v0.1.9" }}
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
 final: false
-fromImage: common/src-artifact
-secrets:
-- id: DECKHOUSE_PRIVATE_REPO
-  value: {{ $.DECKHOUSE_PRIVATE_REPO }}
-shell:
-  install:
-  - git clone git@$(cat /run/secrets/DECKHOUSE_PRIVATE_REPO):deckhouse/container-base/nodelet.git /src
-  - git -C /src checkout {{ $nodeletVersion }}
-  - rm -rf /src/.git
+from: common/src-artifact
+git:
+- url: git@{{ $.DECKHOUSE_PRIVATE_REPO }}:deckhouse/container-base/nodelet.git
+  tag: {{ $nodeletVersion }}
+  add: /
+  to: /src
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact
 final: false
@@ -33,7 +27,7 @@ from: {{ index $.Images "builder/golang" }}
 mount:
 {{ include "mount points for golang builds" . }}
 import:
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
   add: /src
   to: /src
   before: install
@@ -50,7 +44,7 @@ image: {{ $.ModuleName }}/{{ $.ImageName }}-sysext-artifact
 final: false
 from: {{ index $.Images "builder/distroless" }}
 import:
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-artifact
   add: /nodelet
   to: /sysext/usr/bin/nodelet
   before: install
@@ -86,7 +80,7 @@ shell:
 image: {{ $.ModuleName }}/{{ $.ImageName }}-sysext
 from: {{ index $.Images "builder/scratch" }}
 import:
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-sysext-artifact
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-sysext-artifact
   add: /out
   to: /
   includePaths:

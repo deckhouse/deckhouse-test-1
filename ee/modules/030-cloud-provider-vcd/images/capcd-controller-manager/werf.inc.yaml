@@ -1,9 +1,9 @@
 {{- $version := include "get_oss_version_by_id_and_condition" (list "capi-vcd" (dict "mode" "new") $) }}
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}
-fromImage: common/distroless
+from: common/distroless
 import:
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-artifact
   add: /cluster-api-provider-cloud-director
   to: /cluster-api-provider-cloud-director
   before: setup
@@ -13,34 +13,36 @@ imageSpec:
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
 final: false
-fromImage: common/src-artifact
+from: common/src-artifact
 import:
-- image: {{$.ModuleName}}/cloud-controller-manager-src-artifact
+- from: {{$.ModuleName}}/cloud-controller-manager-src-artifact
   add: /src
   to: /src/ccm
   after: install
 git:
+- url: {{ $.SOURCE_REPO }}/vmware/cluster-api-provider-cloud-director
+  tag: {{ $version }}
+  add: /
+  to: /src
+  stageDependencies:
+    install: ['**/*']
 - add: /{{ $.ModulePath }}modules/{{ $.ModulePriority }}-{{ $.ModuleName }}/images/{{ $.ImageName }}/patches
   to: /patches
   stageDependencies:
     install:
       - '**/*'
-secrets:
-- id: SOURCE_REPO
-  value: {{ .SOURCE_REPO }}
 shell:
   install:
-  - git clone --depth 1 --branch {{ $version }} $(cat /run/secrets/SOURCE_REPO)/vmware/cluster-api-provider-cloud-director /src
   - cd /src
   - git apply /patches/*.patch --verbose
   - echo "replace github.com/vmware/cloud-provider-for-cloud-director => /src/ccm" >> go.mod
-  - rm -rf .git vendor
+  - rm -rf vendor
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact
 final: false
 from: {{ index $.Images "builder/golang" }}
 import:
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
   add: /src
   to: /src
   before: install

@@ -1,25 +1,19 @@
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
 final: false
-fromImage: common/src-artifact
+from: common/src-artifact
 git:
+- url: {{ $.SOURCE_REPO }}/deckhouse/deckhouse-cli.git
+  tag: {{ .CandiVersionMap.d8.d8CliVersion }}
+  add: /
+  to: /src/deckhouse-cli
 - add: /{{ $.ModulePath }}/modules/007-{{ $.ModuleName }}/images/{{ $.ImageName }}/scripts
   to: /src/scripts
-  stageDependencies:
-    install:
-    - '**/*'
-secrets:
-- id: SOURCE_REPO
-  value: {{ .SOURCE_REPO }}
-shell:
-  install:
-  - git clone --depth 1 --branch {{ .CandiVersionMap.d8.d8CliVersion }} $(cat /run/secrets/SOURCE_REPO)/deckhouse/deckhouse-cli.git /src/deckhouse-cli
-#  - rm -rf /src/deckhouse-cli/.git # https://github.com/deckhouse/deckhouse-cli/blob/main/Taskfile.yml#L9
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}
 from: {{ index $.Images "builder/scratch" }}
 import:
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-artifact
   add: /
   to: /
   includePaths:
@@ -42,11 +36,11 @@ from: {{ index $.Images "builder/golang" }}
 mount:
 {{ include "mount points for golang builds" . }}
 import:
-- image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
+- from: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
   add: /src
   to: /src
   before: install
-- image: common/task-artifact
+- from: common/task-artifact
   add: /task
   to: /usr/local/bin/task
   before: install
@@ -79,7 +73,9 @@ shell:
   - ssh-keyscan -H ${PRIVATE_REPO} >> ~/.ssh/known_hosts
 
   - cd /src/deckhouse-cli
-  - task build:dist:linux:amd64
+  # The git directive adds sources without .git, so the Taskfile cannot derive
+  # the version via `git describe`; pass it explicitly.
+  - task build:dist:linux:amd64 version={{ .CandiVersionMap.d8.d8CliVersion }}
   - mv ./dist/{{ .CandiVersionMap.d8.d8CliVersion }}/linux-amd64/bin/d8 /d8
   - mv /src/scripts/* /
   - chmod +x /d8 /install /uninstall

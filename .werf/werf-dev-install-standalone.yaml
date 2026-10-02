@@ -7,21 +7,18 @@ git:
   to: /deckhouse
   includePaths:
   - candi
-  {{ .Files.Get (printf "tools/build_includes/candi-cloud-providers-%s.yaml" .Env) }}
-  {{ .Files.Get (printf "tools/build_includes/candi-%s.yaml" .Env) }}
+{{ .Files.Get (printf "tools/build_includes/candi-cloud-providers-%s.yaml" .Env) | include "git_without_install_dependencies" }}
+{{ .Files.Get (printf "tools/build_includes/candi-%s.yaml" .Env) | include "git_without_install_dependencies" }}
 import:
 {{ include "installer_and_installer_standalone_generic_imports" (dict "Images" $.Images "Env" $.Env) }}
 {{ include "installer_and_installer_standalone_terraform_imports" (dict "Env" $.Env "TF" $.TF "Editions" $.Editions) }}
 {{ include "installer_and_installer_standalone_opentofu_imports" (dict "Env" $.Env "TF" $.TF "Editions" $.Editions) }}
-shell:
-  install:
-  - set -e
 ---
 image: install-standalone-builder
 final: false
 from: {{ index $.Images "builder/alpine" }}
 import:
-- image: install-standalone-builder-content
+- from: install-standalone-builder-content
   add: /
   to: /image
   before: setup

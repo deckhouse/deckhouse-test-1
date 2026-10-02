@@ -39,9 +39,6 @@
       if [[ "${BUILD_MODE}" == "dev" ]]; then
         export WERF_DISABLE_PUBLISH_TAG_CACHE_SYNC=1
       fi
-      if [[ "${BUILD_MODE}" == "release" || "${BUILD_MODE}" == "pre-release" ]]; then
-        export WERF_DISABLE_META_TAGS=true
-      fi
 
       # --- signing (same roles/paths as GitHub build; JWT from GitLab id_token) ---
       if [[ "${BUILD_MODE}" == "release" ]]; then
@@ -122,8 +119,7 @@
       if [[ "${BUILD_MODE}" == "release" ]]; then
         STAGE_REGISTRY_PATH="${DECKHOUSE_REGISTRY_STAGE_HOST}/deckhouse/${REGISTRY_SUFFIX}"
         export REGISTRY_PATH="${STAGE_REGISTRY_PATH}"
-        export WERF_REPO="${DECKHOUSE_REGISTRY_STAGE_HOST}/deckhouse/common"
-        export WERF_FINAL_REPO="${STAGE_REGISTRY_PATH}"
+        export WERF_REPO="${STAGE_REGISTRY_PATH}"
         SEMVER_REGISTRY_PATH="${DECKHOUSE_REGISTRY_STAGE_HOST}/deckhouse"
         IMAGE_TAG="$(werf slugify --format docker-tag "${CI_COMMIT_TAG}")"
       else
@@ -142,6 +138,7 @@
         fi
         IMAGE_TAG="${IMAGE_TAG_BASE}${IMAGE_EDITION:+-${IMAGE_EDITION}}${REPO_SUFFIX:+-${REPO_SUFFIX}}"
       fi
+      export WERF_META_REPO="${WERF_REPO}/meta"
 
       type werf && source "$(werf ci-env gitlab --verbose --as-file)"
       werf build \
@@ -181,12 +178,6 @@
         publish_image 'e2e-opentofu-eks' "${SEMVER_REGISTRY_PATH}/${REGISTRY_SUFFIX}/e2e-opentofu-eks" "${IMAGE_TAG}"
       else
         echo "Not a release tag, skipping tag publish."
-      fi
-
-      if [[ "${BUILD_MODE}" == "release" && "${CI_COMMIT_TAG:-}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-        export REGISTRY_FROM="${DECKHOUSE_REGISTRY_STAGE_HOST}/deckhouse/common"
-        export REGISTRY_TO="${DECKHOUSE_REGISTRY_STAGE_HOST}/deckhouse/${WERF_ENV,,}"
-        python3 .github/scripts/python/copy_attestations.py
       fi
 
       TESTS_IMAGE_NAME="$(jq -r '.Images."tests".DockerImageName' images_tags_werf.json)"
@@ -288,6 +279,7 @@
       DEV_REGISTRY_PATH="${DECKHOUSE_DEV_REGISTRY_HOST}/${REGISTRY_PATH}"
       export REGISTRY_PATH="${DEV_REGISTRY_PATH}"
       export WERF_REPO="${DEV_REGISTRY_PATH}"
+      export WERF_META_REPO="${WERF_REPO}/meta"
 
       if [[ -n "${CI_MERGE_REQUEST_IID:-}" ]]; then
         IMAGE_TAG="pr${CI_MERGE_REQUEST_IID}-tests${REPO_SUFFIX:+-${REPO_SUFFIX}}"

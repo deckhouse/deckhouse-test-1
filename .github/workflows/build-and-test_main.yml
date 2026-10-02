@@ -36,6 +36,7 @@ env:
   # Need for ssh: default.
   DOCKER_BUILDKIT: "1"
   WERF_FINAL_IMAGES_ONLY: true
+  WERF_BUILD_REPORT_OPERATIONS: "true"
   WERF_LOG_TERMINAL_WIDTH: "200"
   WERF_LOG_TIME: true
   WERF_GIT_WORK_TREE_POOL_LIMIT: "10"
@@ -330,7 +331,6 @@ jobs:
       - name: Build and push deckhouse images
         id: build
         env:
-          WERF_EXPERIMENTAL_IMPORT_BY_SOURCE_IMAGE_TAG: 1
           WERF_DOCKER_REGISTRY_DEBUG: 1
           WERF_TELEMETRY: "1"
           WERF_TELEMETRY_EXTRA_ATTRIBUTE_TEAM: "flantTeam=deckhouse/deckhouse"
@@ -359,7 +359,6 @@ jobs:
           WERF_SIGN_MANIFEST: "1"
           WERF_ANNOTATE_LAYERS_WITH_DM_VERITY_ROOT_HASH: "1"
           WERF_VAULT_AUTH_PATH: "github"
-          WERF_ACTIONS_AUDIENCE: "github-access-aud"
           # Signing of the Olcedar sysext roothashes: which Vault role, and where it is
           # allowed. The list mirrors that role's bound_claims; elsewhere no token can be
           # obtained, so signing is skipped rather than failing the build.
@@ -378,10 +377,10 @@ jobs:
           #
           # There are 2 modes: "dev" and "release".
           # The "dev" mode builds branches only:
-          # - Build using dev-registry as primary and deckhouse registry as secondary.
+          # - Build using dev-registry.
           # - Push dev and dev/install images with prNUM tags and push to dev-registry.
           # The "release" mode builds branches and tags:
-          # - Build using deckhouse registry as final and dev-registry as primary.
+          # - Build using the edition repository in the stage registry.
           # - Push dev and dev/install images to dev-registry with tag equal to a branch name (main or release-X.Y).
           # - Push dev, dev/install and release-channel-version images to deckhouse registry with tag equels to a Git tag.
 
@@ -410,6 +409,7 @@ jobs:
           DEV_REGISTRY_PATH="${DECKHOUSE_DEV_REGISTRY_HOST}/${REGISTRY_PATH}"
           export REGISTRY_PATH="${DEV_REGISTRY_PATH}"
           export WERF_REPO="${DEV_REGISTRY_PATH}"
+          export WERF_META_REPO="${WERF_REPO}/meta"
 
           # Determine image tag
           if [[ -n ${WERF_ENV} && ${WERF_ENV,,} != "fe" ]]; then
@@ -525,8 +525,6 @@ jobs:
           # Filter out data from build report
           egrep -v '(DockerRepo|DockerImageName)' images_tags_werf.json > images_tags_werf_filtered.json
           mv images_tags_werf_filtered.json images_tags_werf.json
-
-
 
       - name: Save build report
         if: ${{ always() && (steps.build.outcome == 'success' || steps.build.outcome == 'failure') }}
@@ -732,7 +730,6 @@ jobs:
         id: build
         env:
           WERF_ENV: FE
-          WERF_EXPERIMENTAL_IMPORT_BY_SOURCE_IMAGE_TAG: 1
           WERF_DISABLE_PUBLISH_TAG_CACHE_SYNC: 1
           DECKHOUSE_DEV_REGISTRY_USER: ${{ steps.secrets.outputs.DECKHOUSE_DEV_REGISTRY_USER }}
           DECKHOUSE_DEV_REGISTRY_PASSWORD: ${{ steps.secrets.outputs.DECKHOUSE_DEV_REGISTRY_PASSWORD }}
@@ -758,6 +755,7 @@ jobs:
           DEV_REGISTRY_PATH="${DECKHOUSE_DEV_REGISTRY_HOST}/${REGISTRY_PATH}"
           export REGISTRY_PATH="${DEV_REGISTRY_PATH}"
           export WERF_REPO="${DEV_REGISTRY_PATH}"
+          export WERF_META_REPO="${WERF_REPO}/meta"
 
           # Statisctics added since werf 2.78.1
           werf_major="$(werf version | cut -d. -f1)"
@@ -970,7 +968,6 @@ jobs:
         env:
           # *-fuzz images are intermediate (final: false); ci-env may force FINAL_IMAGES_ONLY=true
           WERF_FINAL_IMAGES_ONLY: "false"
-          WERF_EXPERIMENTAL_IMPORT_BY_SOURCE_IMAGE_TAG: 1
           WERF_DISABLE_PUBLISH_TAG_CACHE_SYNC: 1
           DECKHOUSE_DEV_REGISTRY_USER: ${{ steps.secrets.outputs.DECKHOUSE_DEV_REGISTRY_USER }}
           DECKHOUSE_DEV_REGISTRY_PASSWORD: ${{ steps.secrets.outputs.DECKHOUSE_DEV_REGISTRY_PASSWORD }}
@@ -993,8 +990,7 @@ jobs:
 
           type werf && source "$(werf ci-env github --as-file)"
 
-          # ci-env re-exports FINAL_IMAGES_ONLY=true from werf_envs.yml — drop it for *-fuzz
-          unset WERF_FINAL_IMAGES_ONLY
+          export WERF_FINAL_IMAGES_ONLY=false
 
           if [[ -z "${FUZZ_S3_ENDPOINT:-}" || -z "${FUZZ_S3_ACCESS_KEY:-}" || -z "${FUZZ_S3_SECRET_KEY:-}" ]]; then
             echo "Fuzz S3 secrets are not set (required for in-image corpus sync)"
@@ -1012,9 +1008,10 @@ jobs:
           DEV_REGISTRY_PATH="${DECKHOUSE_DEV_REGISTRY_HOST}/${REGISTRY_PATH}"
           export REGISTRY_PATH="${DEV_REGISTRY_PATH}"
           export WERF_REPO="${DEV_REGISTRY_PATH}"
+          export WERF_META_REPO="${WERF_REPO}/meta"
           echo "main fuzz build: push to ${WERF_REPO}"
 
-          FUZZ_IMAGES="$(werf config list --env "${WERF_ENV}" | grep -- '-fuzz$' || true)"
+          FUZZ_IMAGES="$(werf config list --final-images-only=false --env "${WERF_ENV}" | grep -- '-fuzz$' || true)"
           if [[ -z "${FUZZ_IMAGES}" ]]; then
             echo "No fuzz images found; skipping fuzz build"
             exit 0
@@ -1332,7 +1329,6 @@ jobs:
           WERF_DIR: "docs/documentation"
           WERF_LOG_VERBOSE: "on"
           WERF_REPO: "${{ steps.check_rw_registry.outputs.web_registry_path }}"
-          WERF_SECONDARY_REPO: "${{ steps.check_dev_registry.outputs.web_registry_path }}"
           WERF_ENV: "EE"
         run: |
           type werf && source $(werf ci-env github --verbose --as-file)
@@ -1499,7 +1495,6 @@ jobs:
           DOC_API_URL: "${{vars.DOC_API_URL}}"
           DOC_API_REFERER: "${{vars.DOC_API_REFERER}}"
           WERF_REPO: "${{ steps.check_rw_registry.outputs.web_registry_path }}"
-          WERF_SECONDARY_REPO: "${{ steps.check_dev_registry.outputs.web_registry_path }}"
           WERF_ENV: "EE"
         run: |
           type werf && source $(werf ci-env github --verbose --as-file)

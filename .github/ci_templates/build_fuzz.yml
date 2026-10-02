@@ -13,7 +13,6 @@
 
      buildType "dev":
        - local build only (no registry push)
-       - reuse build cache from dev-registry via secondary repo
        - no build-report upload to S3
        - FUZZ_S3_BRANCH_SLUG=main
      buildType "main":
@@ -57,7 +56,6 @@ steps:
     env:
       # *-fuzz images are intermediate (final: false); ci-env may force FINAL_IMAGES_ONLY=true
       WERF_FINAL_IMAGES_ONLY: "false"
-      WERF_EXPERIMENTAL_IMPORT_BY_SOURCE_IMAGE_TAG: 1
       WERF_DISABLE_PUBLISH_TAG_CACHE_SYNC: 1
       DECKHOUSE_DEV_REGISTRY_USER: ${{ steps.secrets.outputs.DECKHOUSE_DEV_REGISTRY_USER }}
       DECKHOUSE_DEV_REGISTRY_PASSWORD: ${{ steps.secrets.outputs.DECKHOUSE_DEV_REGISTRY_PASSWORD }}
@@ -84,8 +82,7 @@ steps:
 
       type werf && source "$(werf ci-env github --as-file)"
 
-      # ci-env re-exports FINAL_IMAGES_ONLY=true from werf_envs.yml — drop it for *-fuzz
-      unset WERF_FINAL_IMAGES_ONLY
+      export WERF_FINAL_IMAGES_ONLY=false
 
       if [[ -z "${FUZZ_S3_ENDPOINT:-}" || -z "${FUZZ_S3_ACCESS_KEY:-}" || -z "${FUZZ_S3_SECRET_KEY:-}" ]]; then
         echo "Fuzz S3 secrets are not set (required for in-image corpus sync)"
@@ -108,19 +105,18 @@ steps:
 
 {!{- if $isDev }!}
       # PR/dev: build locally, do not push fuzz images; no build-report upload
-      DEV_REGISTRY_PATH="${DECKHOUSE_DEV_REGISTRY_HOST}/${REGISTRY_PATH}"
       export WERF_PROJECT_NAME="deckhouse-fuzz-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
-      export WERF_SECONDARY_REPO_1="${DEV_REGISTRY_PATH}"
       unset WERF_REPO
-      echo "dev fuzz build: local only, cache from ${WERF_SECONDARY_REPO_1} (no registry push, no build-report upload)"
+      echo "dev fuzz build: local only (no registry push, no build-report upload)"
 {!{- else }!}
       DEV_REGISTRY_PATH="${DECKHOUSE_DEV_REGISTRY_HOST}/${REGISTRY_PATH}"
       export REGISTRY_PATH="${DEV_REGISTRY_PATH}"
       export WERF_REPO="${DEV_REGISTRY_PATH}"
+      export WERF_META_REPO="${WERF_REPO}/meta"
       echo "main fuzz build: push to ${WERF_REPO}"
 {!{- end }!}
 
-      FUZZ_IMAGES="$(werf config list --env "${WERF_ENV}" | grep -- '-fuzz$' || true)"
+      FUZZ_IMAGES="$(werf config list --final-images-only=false --env "${WERF_ENV}" | grep -- '-fuzz$' || true)"
       if [[ -z "${FUZZ_IMAGES}" ]]; then
         echo "No fuzz images found; skipping fuzz build"
         exit 0

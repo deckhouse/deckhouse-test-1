@@ -122,7 +122,6 @@ steps:
   - name: Build and push deckhouse images
     id: build
     env:
-      WERF_EXPERIMENTAL_IMPORT_BY_SOURCE_IMAGE_TAG: 1
       WERF_DOCKER_REGISTRY_DEBUG: 1
       WERF_TELEMETRY: "1"
       WERF_TELEMETRY_EXTRA_ATTRIBUTE_TEAM: "flantTeam=deckhouse/deckhouse"
@@ -179,7 +178,6 @@ steps:
       WERF_SIGN_MANIFEST: "1"
       WERF_ANNOTATE_LAYERS_WITH_DM_VERITY_ROOT_HASH: "1"
       WERF_VAULT_AUTH_PATH: "github"
-      WERF_ACTIONS_AUDIENCE: "github-access-aud"
       # Signing of the Olcedar sysext roothashes: which Vault role, and where it is
       # allowed. The list mirrors that role's bound_claims; elsewhere no token can be
       # obtained, so signing is skipped rather than failing the build.
@@ -198,10 +196,10 @@ steps:
       #
       # There are 2 modes: "dev" and "release".
       # The "dev" mode builds branches only:
-      # - Build using dev-registry as primary and deckhouse registry as secondary.
+      # - Build using dev-registry.
       # - Push dev and dev/install images with prNUM tags and push to dev-registry.
       # The "release" mode builds branches and tags:
-      # - Build using deckhouse registry as final and dev-registry as primary.
+      # - Build using the edition repository in the stage registry.
       # - Push dev and dev/install images to dev-registry with tag equal to a branch name (main or release-X.Y).
       # - Push dev, dev/install and release-channel-version images to deckhouse registry with tag equels to a Git tag.
 
@@ -231,18 +229,13 @@ steps:
     {!{- if eq $buildType "release" }!}
       STAGE_REGISTRY_PATH="${DECKHOUSE_REGISTRY_STAGE_HOST}/deckhouse/${REGISTRY_SUFFIX}"
       export REGISTRY_PATH="${STAGE_REGISTRY_PATH}"
-      export WERF_REPO="${DECKHOUSE_REGISTRY_STAGE_HOST}/deckhouse/common"
-      export WERF_FINAL_REPO="${STAGE_REGISTRY_PATH}"
+      export WERF_REPO="${STAGE_REGISTRY_PATH}"
     {!{- else }!}
       DEV_REGISTRY_PATH="${DECKHOUSE_DEV_REGISTRY_HOST}/${REGISTRY_PATH}"
       export REGISTRY_PATH="${DEV_REGISTRY_PATH}"
       export WERF_REPO="${DEV_REGISTRY_PATH}"
     {!{- end }!}
-    {!{- if and (eq $buildType "dev") (eq $werfEnv "FE") }!}
-      if [[ "$(werf version)" =~ ^v?3\. ]]; then
-        export WERF_META_REPO="${WERF_REPO}/meta"
-      fi
-    {!{- end }!}
+      export WERF_META_REPO="${WERF_REPO}/meta"
     {!{ if eq $buildType "release" }!}
       # Registry path to publish images for Git tags.
       if [[ -n ${DECKHOUSE_REGISTRY_STAGE_HOST:-} ]] ; then
@@ -254,7 +247,6 @@ steps:
       # The Git tag may contain a '+' sign, so use slugify for this situation.
       # Slugify doesn't change a tag with safe-only characters.
       IMAGE_TAG=$(werf slugify --format docker-tag "${CI_COMMIT_TAG}")
-      export WERF_DISABLE_META_TAGS=true
     {!{- else if eq $buildType "pre-release" }!}
       # The Git tag may contain a '+' sign, so use slugify for this situation.
       # Slugify doesn't change a tag with safe-only characters.
@@ -262,7 +254,6 @@ steps:
         IMAGE_EDITION=${WERF_ENV,,}
       fi
       IMAGE_TAG=${CI_COMMIT_REF_SLUG}${IMAGE_EDITION:+-${IMAGE_EDITION}}${REPO_SUFFIX:+-${REPO_SUFFIX}}
-      export WERF_DISABLE_META_TAGS=true
     {!{- else }!}
       # Determine image tag
       if [[ -n ${WERF_ENV} && ${WERF_ENV,,} != "fe" ]]; then
@@ -398,22 +389,6 @@ steps:
       egrep -v '(DockerRepo|DockerImageName)' images_tags_werf.json > images_tags_werf_filtered.json
       mv images_tags_werf_filtered.json images_tags_werf.json
 
-  {!{ if eq $buildType "release" }!}
-  - uses: {!{ index (ds "actions") "actions/setup-python" }!}
-    with:
-      python-version: '3.12.3'
-
-  - name: Copy attestations
-    if: ${{ startsWith(github.ref, 'refs/tags/v') }}
-    env:
-      DECKHOUSE_REGISTRY_STAGE_HOST: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_HOST }}
-    run: |
-      export REGISTRY_FROM="${DECKHOUSE_REGISTRY_STAGE_HOST}/deckhouse/common"
-      export REGISTRY_TO="${DECKHOUSE_REGISTRY_STAGE_HOST}/deckhouse/${WERF_ENV,,}"
-      export IMAGES_TAGS_PATH="images_tags_werf.json"
-      python .github/scripts/python/copy_attestations.py
-  {!{- end }!}
-
   - name: Save build report
     if: ${{ always() && (steps.build.outcome == 'success' || steps.build.outcome == 'failure') }}
     uses: {!{ index (ds "actions") "actions/upload-artifact" }!}
@@ -500,7 +475,6 @@ steps:
     id: build
     env:
       WERF_ENV: FE
-      WERF_EXPERIMENTAL_IMPORT_BY_SOURCE_IMAGE_TAG: 1
       WERF_DISABLE_PUBLISH_TAG_CACHE_SYNC: 1
       DECKHOUSE_DEV_REGISTRY_USER: ${{ steps.secrets.outputs.DECKHOUSE_DEV_REGISTRY_USER }}
       DECKHOUSE_DEV_REGISTRY_PASSWORD: ${{ steps.secrets.outputs.DECKHOUSE_DEV_REGISTRY_PASSWORD }}
@@ -530,11 +504,7 @@ steps:
       DEV_REGISTRY_PATH="${DECKHOUSE_DEV_REGISTRY_HOST}/${REGISTRY_PATH}"
       export REGISTRY_PATH="${DEV_REGISTRY_PATH}"
       export WERF_REPO="${DEV_REGISTRY_PATH}"
-    {!{- if eq $buildType "dev" }!}
-      if [[ "$(werf version)" =~ ^v?3\. ]]; then
-        export WERF_META_REPO="${WERF_REPO}/meta"
-      fi
-    {!{- end }!}
+      export WERF_META_REPO="${WERF_REPO}/meta"
 
       # Statisctics added since werf 2.78.1
       werf_major="$(werf version | cut -d. -f1)"
