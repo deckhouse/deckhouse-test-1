@@ -37,7 +37,7 @@ final: false
 from: {{ index $.Images "builder/distroless" }}
 packages:
 - type: os-pm
-  spec: [bash, coreutils, make, autoconf, automake, clang, libtool, gettext, binutils, gnu-gcc-devel, gnu-glibc-devel, openssl, openssl-devel, libssh2-devel, libgcrypt-devel, zlib-devel, pkgconf, perl, sed, grep, gawk, findutils, diffutils]
+  spec: [bash, coreutils, make, autoconf, automake, clang, libtool, gettext, binutils, gnu-gcc-devel, gnu-glibc-devel, openssl, openssl-devel, zlib-devel, pkgconf, perl, sed, grep, gawk, findutils, diffutils]
 import:
 - from: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact-{{ $image_version }}
   add: /src
@@ -54,7 +54,8 @@ shell:
   - export CC=clang
   - cd /src/curl
   - autoreconf -fi
-  - LDFLAGS="-static" PKG_CONFIG="pkg-config --static" ./configure --disable-shared --enable-static --disable-ldap --enable-ipv6 --enable-unix-sockets --with-ssl --with-libssh2
+  # no --with-libssh2: pm builds libssh2 shared-only, which a fully static curl cannot link
+  - LDFLAGS="-static" PKG_CONFIG="pkg-config --static" ./configure --disable-shared --enable-static --disable-ldap --enable-ipv6 --enable-unix-sockets --with-ssl --without-libssh2
   - make -j4 V=1 LDFLAGS="-static -all-static"
   - strip src/curl
   - mv src/curl /d8-curl
