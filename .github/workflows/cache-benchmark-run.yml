@@ -116,7 +116,7 @@ jobs:
       - name: Isolate docker config
         run: |
           mkdir -p "$RUNNER_TEMP/.docker-${PHASE}"
-          echo "DOCKER_CONFIG=$RUNNER_TEMP/.docker-${PHASE}" >> $GITHUB_ENV
+          echo "DOCKER_CONFIG=$RUNNER_TEMP/.docker-${PHASE}" >> "$GITHUB_ENV"
 
       # WERF_HOME is deliberately left at the runner default: werf's host locks live under it,
       # and an isolated home hides this build's locks from every other werf process on the host.
@@ -125,7 +125,7 @@ jobs:
         run: |
           set -euo pipefail
           started_at="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-          echo "BENCH_STARTED_AT=${started_at}" >> $GITHUB_ENV
+          echo "BENCH_STARTED_AT=${started_at}" >> "$GITHUB_ENV"
           echo "runner=${RUNNER_NAME:-unknown} phase=${PHASE} started=${started_at}"
           timeout 15 docker info --format '{{.ServerVersion}} {{.Driver}} {{.DockerRootDir}} ncpu={{.NCPU}} mem={{.MemTotal}}'
           if timeout 15 docker system df; then
@@ -151,10 +151,10 @@ jobs:
         env:
           REPO: ${{ github.repository }}
         run: |
-          if [ $REPO == "deckhouse/deckhouse" ]; then
-            echo "name=deckhouse" >> $GITHUB_OUTPUT
+          if [ "$REPO" == "deckhouse/deckhouse" ]; then
+            echo "name=deckhouse" >> "$GITHUB_OUTPUT"
           else
-            echo "name=deckhouse-test" >> $GITHUB_OUTPUT
+            echo "name=deckhouse-test" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Import secrets
@@ -218,7 +218,7 @@ jobs:
           HOST: ${{steps.secrets.outputs.DECKHOUSE_DEV_REGISTRY_HOST}}
         run: |
           if [[ -n $HOST ]]; then
-            echo "has_credentials=true" >> $GITHUB_OUTPUT
+            echo "has_credentials=true" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Login to dev registry
@@ -339,8 +339,8 @@ jobs:
           while IFS= read -r KEY_LINE; do
               CONSTANT_PART=$(awk '{print $2, $3}' <<< "$KEY_LINE")
               if grep -q "$CONSTANT_PART" ~/.ssh/known_hosts; then
-                  ssh-keygen -R $host
-                  ssh-keygen -R $host_ip
+                  ssh-keygen -R "$host"
+                  ssh-keygen -R "$host_ip"
               fi
               echo "$KEY_LINE" >> ~/.ssh/known_hosts
           done <<< "$HOST_KEYS"
@@ -562,13 +562,15 @@ jobs:
             sign_supported=false
           fi
 
-          export WERF_VAULT_AUTH_JWT=$(jq -r .value <<< $(curl -qfsH "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=github-access-aud" ))
+          WERF_VAULT_AUTH_JWT=$(jq -r .value <<< "$(curl -qfsH "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=github-access-aud")")
+          export WERF_VAULT_AUTH_JWT
           if [[ -z "${WERF_VAULT_AUTH_JWT}" || "${WERF_VAULT_AUTH_JWT}" == "null" ]]; then
             echo "::error::Actions token empty"
             exit 1
           fi
           echo "::add-mask::${WERF_VAULT_AUTH_JWT}"
-          export VAULT_TOKEN="$(curl -sfX POST "${VAULT_ADDR}/v1/auth/${WERF_VAULT_AUTH_PATH}/login" -d '{"role":"'${WERF_VAULT_AUTH_ROLE}'","jwt":"'${WERF_VAULT_AUTH_JWT}'"}' | jq -r '.auth.client_token')"
+          VAULT_TOKEN="$(curl -sfX POST "${VAULT_ADDR}/v1/auth/${WERF_VAULT_AUTH_PATH}/login" -d '{"role":"'"${WERF_VAULT_AUTH_ROLE}"'","jwt":"'"${WERF_VAULT_AUTH_JWT}"'"}' | jq -r '.auth.client_token')"
+          export VAULT_TOKEN
           if [[ -z "${VAULT_TOKEN}" || "${VAULT_TOKEN}" == "null" ]]; then
             echo "::error::Vault token empty"
             exit 1
@@ -577,14 +579,18 @@ jobs:
 
           if $sign_supported; then
             echo "Using WERF_SIGN_MANIFEST=$WERF_SIGN_MANIFEST"
-            export WERF_SIGN_INTERMEDIATES=$(curl -sf "${VAULT_ADDR}/v1/${INTERMEDIARY_CERT_PATH}" | base64 -w0)
-            export WERF_SIGN_CERT=$(curl -sf --header "X-Vault-Token: ${VAULT_TOKEN}" "${VAULT_ADDR}/v1/${SIGNING_CERT_PATH}" | jq -r '.data.certificate' | base64 -w0)
+            WERF_SIGN_INTERMEDIATES=$(curl -sf "${VAULT_ADDR}/v1/${INTERMEDIARY_CERT_PATH}" | base64 -w0)
+            WERF_SIGN_CERT=$(curl -sf --header "X-Vault-Token: ${VAULT_TOKEN}" "${VAULT_ADDR}/v1/${SIGNING_CERT_PATH}" | jq -r '.data.certificate' | base64 -w0)
+            export WERF_SIGN_INTERMEDIATES WERF_SIGN_CERT
           else
             export WERF_SIGN_MANIFEST="0"
             echo "Fallback to WERF_SIGN_MANIFEST=$WERF_SIGN_MANIFEST"
           fi
 
-          type werf && source $(werf ci-env github --verbose --as-file)
+          type werf
+          ci_env_file="$(werf ci-env github --verbose --as-file)"
+          # shellcheck source=/dev/null
+          source "$ci_env_file"
 
           # ci-env must not redirect the build away from the working repository.
           export WERF_REPO="${DEV_REGISTRY_PATH}"
@@ -617,7 +623,7 @@ jobs:
             # The unfiltered report stays on the runner for the strict check; only the filtered
             # copy, without repository and image names, is uploaded.
             cp images_tags_werf.json "$RUNNER_TEMP/report-raw-${PHASE}.json"
-            egrep -v '(DockerRepo|DockerImageName)' images_tags_werf.json > images_tags_werf_filtered.json
+            grep -Ev '(DockerRepo|DockerImageName)' images_tags_werf.json > images_tags_werf_filtered.json
             mv images_tags_werf_filtered.json images_tags_werf.json
           fi
 
