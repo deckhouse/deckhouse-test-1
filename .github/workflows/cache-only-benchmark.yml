@@ -494,10 +494,10 @@ jobs:
           build_log="$RUNNER_TEMP/werf-build-${{ matrix.arm }}.log"
           [[ -f "$build_log" ]] || exit 0
           LC_ALL=C sed $'s/\033\\[[0-9;]*m//g' "$build_log" \
-            | LC_ALL=C sed -n '/Operations summary/,$p' \
-            | LC_ALL=C grep -E '^([0-9][0-9TZ:.+-]{8,30} )?((┌|└|│) )?(- [A-Za-z][A-Za-z0-9 :()-]*[0-9][0-9A-Za-z .()×]*|total: [0-9].*|command time: [0-9.]+s \(wall.*\)|Operations summary|Stage cache summary|Registry cache summary|Running time [0-9.]+ seconds)$' \
+            | LC_ALL=C sed -n '/Operations/,$p' \
+            | LC_ALL=C grep -E '^([0-9][0-9TZ:.+-]{8,30} )?((┌|└|│) )?(- [A-Za-z][A-Za-z0-9 :()-]*[0-9][0-9A-Za-z .()×]*( \(sum/union\))?|(docker:|buildah:|registry:|git:|sync:)[ A-Za-z:()-]*[0-9][0-9 .s%—]*( +×[0-9.]+ \(sum/union\))?|operation +count +sum +union +avg +max|operation +lookups +hit +miss +bypass +shared +hit%|sum: durations added; parallel calls counted separately|union: time with ≥1 active call; overlapping intervals counted once|lookups = hit \+ miss \+ bypass|hit% = hit / \(hit \+ miss\); bypass excluded|shared: calls joining an in-flight request; included in miss or bypass|Stages: [0-9]+ reused, [0-9]+ built|total: [0-9]+ (stage\(s\)|request\(s\))|command time: [0-9.]+s \((wall must not exceed it; total may|union must not exceed it; sum may)\)|Operations( summary)?|(Stage cache|Registry cache|Cache) summary|Running time [0-9.]+ seconds)$' \
             > operations-summary.txt
-          if [[ ! -s operations-summary.txt ]] && LC_ALL=C grep -q 'Operations summary' "$build_log"; then
+          if [[ ! -s operations-summary.txt ]] && LC_ALL=C grep -q 'Operations' "$build_log"; then
             echo "::error::Operations summary was logged but extraction produced no lines"
             exit 1
           fi
