@@ -127,6 +127,10 @@ jobs:
           started_at="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
           echo "BENCH_STARTED_AT=${started_at}" >> "$GITHUB_ENV"
           echo "runner=${RUNNER_NAME:-unknown} phase=${PHASE} started=${started_at}"
+          echo "BENCH_HOST=$(hostname)" >> "$GITHUB_ENV"
+          daemon_id="$(timeout 15 docker info --format '{{.ID}}')"
+          test -n "$daemon_id"
+          echo "BENCH_DOCKER_DAEMON_ID=$daemon_id" >> "$GITHUB_ENV"
           timeout 15 docker info --format '{{.ServerVersion}} {{.Driver}} {{.DockerRootDir}} ncpu={{.NCPU}} mem={{.MemTotal}}'
           if timeout 15 docker system df; then
             echo "Docker storage accounting completed"
@@ -353,8 +357,8 @@ jobs:
         run: |
           set -euo pipefail
           marker="$RUNNER_TEMP/ready-${PHASE}.json"
-          printf '{"phase":"%s","runner":"%s","werf_sha256":"%s","candidate_ref":"%s","deckhouse_ref":"%s","cache_version":"%s","ready_at":"%s"}\n' \
-            "${PHASE}" "${RUNNER_NAME:-unknown}" "${EXPECT_WERF_SHA256}" "${CANDIDATE_DELIVERY_KIT_SHA}" \
+          printf '{"phase":"%s","runner":"%s","host":"%s","docker_daemon_id":"%s","werf_sha256":"%s","candidate_ref":"%s","deckhouse_ref":"%s","cache_version":"%s","ready_at":"%s"}\n' \
+            "${PHASE}" "${RUNNER_NAME:-unknown}" "${BENCH_HOST}" "${BENCH_DOCKER_DAEMON_ID}" "${EXPECT_WERF_SHA256}" "${CANDIDATE_DELIVERY_KIT_SHA}" \
             "${DECKHOUSE_REF}" "${{ steps.cache_version.outputs.value }}" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > "$marker"
           cat "$marker"
 
@@ -489,6 +493,12 @@ jobs:
               fail("Legs share a runner",
                    "the %d legs reported %d distinct runner names (%s); they are not running in "
                    "parallel on separate hosts" % (want, len(runners), ", ".join(sorted(runners))))
+
+          for key in ("host", "docker_daemon_id"):
+              identities = {m.get(key) for m in markers}
+              if len(identities) != want or not all(identities) or "unknown" in identities:
+                  fail("Legs share a physical host or Docker daemon",
+                       "expected %d distinct %s values, got %r" % (want, key, identities))
 
           for key in ("werf_sha256", "candidate_ref", "deckhouse_ref", "cache_version"):
               values = {m[key] for m in markers}
@@ -939,6 +949,8 @@ jobs:
             echo "candidate_delivery_kit_sha=${CANDIDATE_DELIVERY_KIT_SHA}"
             echo "werf_sha256=${EXPECT_WERF_SHA256}"
             echo "runner=${RUNNER_NAME:-unknown}"
+            echo "host=${BENCH_HOST:-unknown}"
+            echo "docker_daemon_id=${BENCH_DOCKER_DAEMON_ID:-unknown}"
             echo "nproc=$(nproc)"
             echo "started_at=${BENCH_STARTED_AT:-unknown}"
             echo "build_started_at=${WERF_BUILD_STARTED_AT:-unknown}"

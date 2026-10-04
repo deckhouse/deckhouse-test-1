@@ -36,6 +36,11 @@ run-name: cache benchmark ${{ inputs.candidate_ref }}
 on:
   workflow_dispatch:
     inputs:
+      parallel_only:
+        description: "Run only the two parallel builds and their verification."
+        required: false
+        type: boolean
+        default: false
       candidate_ref:
         description: "delivery-kit commit to build the benchmark werf from (full 40-hex)"
         required: true
@@ -236,6 +241,7 @@ jobs:
           retention-days: 14
 
   cold_a:
+    if: ${{ !inputs.parallel_only }}
     name: Phase 1 cold-A
     needs: build_werf
     uses: ./.github/workflows/cache-benchmark-run.yml
@@ -289,6 +295,7 @@ jobs:
       strict: true
 
   parallel_b:
+    if: ${{ !cancelled() && needs.build_werf.result == 'success' && (inputs.parallel_only || needs.strict_a.result == 'success') }}
     name: Phase 4 parallel-B ${{ matrix.leg }}
     needs: [build_werf, strict_a]
     strategy:
@@ -317,6 +324,7 @@ jobs:
   # different runners, with the same binary, candidate, source and cacheVersion, and the later
   # build started before the earlier one finished.
   verify_parallel_overlap:
+    if: ${{ !cancelled() && needs.parallel_b.result == 'success' }}
     name: Verify parallel-B overlap
     needs: [build_werf, parallel_b]
     runs-on: ubuntu-24.04
@@ -419,6 +427,11 @@ jobs:
           if len(runners) != 2:
               fail("both legs ran on runner %s, so nothing about parallel behaviour was tested"
                    % ", ".join(sorted(map(str, runners))))
+
+          for key in ("host", "docker_daemon_id"):
+              identities = {values.get(key) for values in legs.values()}
+              if len(identities) != 2 or not all(identities) or "unknown" in identities:
+                  fail("both legs must report distinct physical hosts and Docker daemons: " + key)
 
           starts, ends = [], []
           for leg, values in sorted(legs.items()):
