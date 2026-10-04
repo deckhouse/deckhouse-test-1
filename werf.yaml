@@ -2,7 +2,7 @@
 project: deckhouse
 configVersion: 1
 build:
-  cacheVersion: "pagination-no-local-secondary-20261002-1"
+  cacheVersion: "full-cache-layers-20261004-c"
   imageSpec:
     author: "Deckhouse Kubernetes Platform <contact@deckhouse.io>"
     clearHistory: true
