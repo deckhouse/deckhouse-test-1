@@ -874,8 +874,9 @@ jobs:
 
           allow="^${pfx}("
           allow="${allow}Operations|Cache summary|Operations summary|Stage cache summary|Registry cache summary"
-          allow="${allow}|operation +count +sum +union +avg +max"
-          allow="${allow}|(${op}) +[0-9]+( +${secs}){4}( +×[0-9]+\.[0-9]+ \(sum/union\))?"
+          allow="${allow}|operation +count +sum +union +avg +max( +×)?"
+          allow="${allow}|(${op}) +[0-9]+( +${secs}){4}( +(×[0-9]+\.[0-9]+( \(sum/union\))?|—))?"
+          allow="${allow}|× = sum / union"
           allow="${allow}|sum: durations added; parallel calls counted separately"
           allow="${allow}|union: time with ≥1 active call; overlapping intervals counted once"
           allow="${allow}|operation +cache +lookups +hit +miss +bypass +shared +hit%"
@@ -893,7 +894,7 @@ jobs:
           allow="${allow}|Running time [0-9]+\.[0-9]+ seconds"
           allow="${allow})$"
 
-          LC_ALL=C grep -E "$allow" "$region" > operations-summary.txt
+          LC_ALL=C grep -E -e "$allow" -e "^${pfx}[ ]*$" "$region" > operations-summary.txt
           if [[ ! -s operations-summary.txt ]] && LC_ALL=C grep -q 'Operations' "$build_log"; then
             echo "::error::Operations summary was logged but extraction produced no lines"
             exit 1
