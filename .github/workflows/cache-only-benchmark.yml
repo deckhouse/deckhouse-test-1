@@ -41,6 +41,11 @@ on:
         required: false
         type: boolean
         default: false
+      skip_parallel:
+        description: "Run cold/warm/strict only; skip parallel builds and overlap verification."
+        required: false
+        type: boolean
+        default: false
       candidate_ref:
         description: "delivery-kit commit to build the benchmark werf from (full 40-hex)"
         required: true
@@ -91,6 +96,8 @@ jobs:
       GOMAXPROCS: "2"
       GOFLAGS: "-p=2"
       GOPROXY: "https://proxy.golang.org,direct"
+      PARALLEL_ONLY: ${{ inputs.parallel_only }}
+      SKIP_PARALLEL: ${{ inputs.skip_parallel }}
       CANDIDATE_REF: ${{ inputs.candidate_ref }}
       DECKHOUSE_COLD_REF: ${{ inputs.deckhouse_cold_ref }}
       DECKHOUSE_PARALLEL_REF: ${{ inputs.deckhouse_parallel_ref }}
@@ -98,6 +105,13 @@ jobs:
       - name: Validate dispatch inputs
         run: |
           set -euo pipefail
+          if [[ "$PARALLEL_ONLY" == "true" && "$SKIP_PARALLEL" == "true" ]]; then
+            echo "::error title=Conflicting modes::parallel_only and skip_parallel cannot both be true"
+            exit 1
+          fi
+          if [[ "$SKIP_PARALLEL" == "true" ]]; then
+            echo "Parallel builds and overlap verification are explicitly skipped; no parallel coverage is claimed." >> "$GITHUB_STEP_SUMMARY"
+          fi
           status=0
           for name in CANDIDATE_REF DECKHOUSE_COLD_REF DECKHOUSE_PARALLEL_REF; do
             value="${!name}"
@@ -182,7 +196,10 @@ jobs:
 
       - name: Build werf
         working-directory: delivery-kit
-        run: task --yes build version=v3.6.2-dk.1-cache-benchmark
+        run: |
+          set -euo pipefail
+          base_version="$(git describe --tags --abbrev=0 --match 'v3.*-dk*')"
+          task --yes build "version=${base_version}-benchmark.${CANDIDATE_REF}"
 
       - name: Record build metadata
         working-directory: delivery-kit
@@ -191,6 +208,9 @@ jobs:
           sha256sum -b bin/werf | sed 's| \*bin/werf| *werf|' > bin/werf.sha256
           {
             echo "arm=candidate"
+            echo "werf_version=$(./bin/werf version)"
+            echo "parallel_only=${PARALLEL_ONLY}"
+            echo "skip_parallel=${SKIP_PARALLEL}"
             echo "delivery_kit_sha=${CANDIDATE_REF}"
             echo "go_version=$(go version)"
             echo "runner=${RUNNER_NAME:-unknown}"
@@ -295,7 +315,7 @@ jobs:
       strict: true
 
   parallel_b:
-    if: ${{ !cancelled() && needs.build_werf.result == 'success' && (inputs.parallel_only || needs.strict_a.result == 'success') }}
+    if: ${{ !cancelled() && !inputs.skip_parallel && needs.build_werf.result == 'success' && (inputs.parallel_only || needs.strict_a.result == 'success') }}
     name: Phase 4 parallel-B ${{ matrix.leg }}
     needs: [build_werf, strict_a]
     strategy:
@@ -324,7 +344,7 @@ jobs:
   # different runners, with the same binary, candidate, source and cacheVersion, and the later
   # build started before the earlier one finished.
   verify_parallel_overlap:
-    if: ${{ !cancelled() && needs.parallel_b.result == 'success' }}
+    if: ${{ !cancelled() && !inputs.skip_parallel && needs.parallel_b.result == 'success' }}
     name: Verify parallel-B overlap
     needs: [build_werf, parallel_b]
     runs-on: ubuntu-24.04
