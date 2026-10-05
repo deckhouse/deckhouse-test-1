@@ -113,14 +113,16 @@ packages:
   workdir: /src
   env:
     GOPROXY: "%secret:GOPROXY%"
-    GOWORK: "off"
     GOTOOLCHAIN: "local"
 shell:
   install:
-  - export GOPROXY=off GOTOOLCHAIN=local GOWORK=off
+  - export GOPROXY=off GOTOOLCHAIN=local
+  # hack/lib/golang.sh unsets GOWORK and points GOMODCACHE at _output/ unless already set;
+  # keep the cache go-mod filled and vendor the whole workspace so the hack build uses -mod=vendor
+  - export GOMODCACHE=$(go env GOMODCACHE)
   - cd /src
   - export KUBE_GIT_VERSION_FILE=.kube-version
-  - go mod vendor
+  - go work vendor
 
 {{- if eq $.SVACE_ENABLED "true" }}
 # we need stat analyse only kube-apiserver and kubelet
