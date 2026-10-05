@@ -11,6 +11,17 @@ git:
   to: /src/socat
 - add: /{{ $.ModulePath }}/modules/007-{{ $.ModuleName }}/images/{{ $.ImageName }}/scripts
   to: /src/scripts
+- add: /{{ $.ModulePath }}/modules/007-{{ $.ModuleName }}/images/{{ $.ImageName }}/patches
+  to: /patches
+  stageDependencies:
+    install: ['**/*']
+packages:
+- type: os-pm
+  spec: [git]
+shell:
+  install:
+  - cd /src/socat
+  - git apply --verbose /patches/*.patch
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-{{ $image_version }}
 from: scratch

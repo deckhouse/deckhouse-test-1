@@ -1,0 +1,14 @@
+glibc 2.43 declares strchr() const-generic (_GNU_SOURCE implies ISO C23), so writing
+through its result on a `const char *` no longer compiles. Fixed upstream in socat 1.8.
+
+--- a/filan.c
++++ b/filan.c
+@@ -983,7 +983,7 @@ static int printtime(FILE *outfile, time_t time) {
+    } else {
+       fputc('\t', outfile);
+       s = asctime(localtime(&time));
+-      if (strchr(s, '\n'))  *strchr(s, '\n') = '\0';
++      { char *nl = strchr((char *)s, '\n'); if (nl) *nl = '\0'; }
+       fputs(s, outfile);
+    }
+    return 0;
